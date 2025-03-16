@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.CapabilityResolutionDetails;
@@ -35,6 +34,7 @@ import org.gradle.internal.component.external.model.DefaultComponentVariantIdent
 import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.typeconversion.NotationParser;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -43,7 +43,7 @@ public class DefaultCapabilitiesResolution implements CapabilitiesResolutionInte
 
     private final NotationParser<Object, Capability> capabilityNotationParser;
     private final NotationParser<Object, ComponentIdentifier> componentNotationParser;
-    private final List<CapabilityAction> actions = Lists.newArrayListWithExpectedSize(2);
+    private final List<CapabilityAction> actions = new ArrayList<>(2);
 
     public DefaultCapabilitiesResolution(NotationParser<Object, Capability> capabilityNotationParser,
                                          NotationParser<Object, ComponentIdentifier> componentNotationParser) {
@@ -120,6 +120,11 @@ public class DefaultCapabilitiesResolution implements CapabilitiesResolutionInte
                 String reason = resolutionDetails.reason;
                 if (reason != null) {
                     cand.byReason(Describables.of("On capability", version.getCapabilityId(), reason));
+                } else {
+                    cand.byReason(() -> String.format("Explicit selection of %s variant %s",
+                        resolutionDetails.selected.getId().getDisplayName(),
+                        resolutionDetails.selected.getVariantName()
+                    ));
                 }
             } else {
                 cand.evict();

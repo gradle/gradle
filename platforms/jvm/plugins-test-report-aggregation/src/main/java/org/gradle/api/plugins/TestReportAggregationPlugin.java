@@ -24,14 +24,12 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.attributes.Category;
-import org.gradle.api.attributes.TestSuiteType;
+import org.gradle.api.attributes.TestSuiteName;
 import org.gradle.api.attributes.VerificationType;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.testing.DefaultAggregateTestReport;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.testing.AggregateTestReport;
@@ -41,6 +39,8 @@ import org.gradle.testing.base.plugins.TestingBasePlugin;
 
 import javax.inject.Inject;
 import java.util.concurrent.Callable;
+
+import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
 
 /**
  * Adds configurations to for resolving variants containing test execution results, which may span multiple subprojects.  Reacts to the presence of the jvm-test-suite plugin and creates
@@ -61,10 +61,16 @@ public abstract class TestReportAggregationPlugin implements Plugin<Project> {
     public void apply(Project project) {
         project.getPluginManager().apply("org.gradle.reporting-base");
 
-        ConfigurationContainer configurations = ((ProjectInternal) project).getConfigurations();
-        final Configuration testAggregation = configurations.dependencyScope(TEST_REPORT_AGGREGATION_CONFIGURATION_NAME).get();
-        testAggregation.setDescription("A configuration to collect test execution results");
-        testAggregation.setVisible(false);
+        ConfigurationContainer configurations = project.getConfigurations();
+        final Configuration testAggregation = configurations.dependencyScope(TEST_REPORT_AGGREGATION_CONFIGURATION_NAME, dependencyScope -> {
+            dependencyScope.setDescription("A configuration to collect test execution results.");
+        }).get();
+
+        // A resolvable configuration to collect test results
+        Configuration testResultsConf = configurations.resolvable("aggregateTestReportResults", resolvable -> {
+            resolvable.extendsFrom(testAggregation);
+            resolvable.setDescription("Graph needed for the aggregated test results report.");
+        }).get();
 
         ReportingExtension reporting = project.getExtensions().getByType(ReportingExtension.class);
         reporting.getReports().registerBinding(AggregateTestReport.class, DefaultAggregateTestReport.class);
@@ -76,13 +82,9 @@ public abstract class TestReportAggregationPlugin implements Plugin<Project> {
         project.getPlugins().withId("java-base", plugin -> {
             JavaPluginExtension javaPluginExtension = project.getExtensions().getByType(JavaPluginExtension.class);
             testReportDirectory.convention(javaPluginExtension.getTestReportDir());
+            // If the current project is jvm-based, aggregate dependent projects as jvm-based as well.
+            getJvmPluginServices().configureAsRuntimeClasspath(testResultsConf);
         });
-
-        // A resolvable configuration to collect test results
-        Configuration testResultsConf = configurations.resolvable("aggregateTestReportResults").get();
-        testResultsConf.extendsFrom(testAggregation);
-        testResultsConf.setDescription("Graph needed for the aggregated test results report.");
-        testResultsConf.setVisible(false);
 
         // Iterate and configure each user-specified report.
         reporting.getReports().withType(AggregateTestReport.class).all(report -> {
@@ -90,35 +92,30 @@ public abstract class TestReportAggregationPlugin implements Plugin<Project> {
                 Callable<FileCollection> testResults = () ->
                     testResultsConf.getIncoming().artifactView(view -> {
                         view.withVariantReselection();
-                        view.componentFilter(id -> id instanceof ProjectComponentIdentifier);
+                        view.componentFilter(spec(id -> id instanceof ProjectComponentIdentifier));
                         view.attributes(attributes -> {
                             attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.VERIFICATION));
-                            attributes.attributeProvider(TestSuiteType.TEST_SUITE_TYPE_ATTRIBUTE, report.getTestType().map(tt -> objects.named(TestSuiteType.class, tt)));
+                            attributes.attributeProvider(TestSuiteName.TEST_SUITE_NAME_ATTRIBUTE, report.getTestSuiteName().map(tt -> objects.named(TestSuiteName.class, tt)));
                             attributes.attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType.class, VerificationType.TEST_RESULTS));
                         });
                     }).getFiles();
 
                 task.getTestResults().from(testResults);
-                task.getDestinationDirectory().convention(testReportDirectory.dir(report.getTestType().map(tt -> tt + "/aggregated-results")));
+                task.getDestinationDirectory().convention(testReportDirectory.dir(report.getTestSuiteName().map(tt -> tt + "/aggregated-results")));
             });
         });
 
-        project.getPlugins().withType(JavaBasePlugin.class, plugin -> {
-            // If the current project is jvm-based, aggregate dependent projects as jvm-based as well.
-            getJvmPluginServices().configureAsRuntimeClasspath(testAggregation);
-        });
-
         // convention for synthesizing reports based on existing test suites in "this" project
-        project.getPlugins().withId("jvm-test-suite", plugin -> {
+        project.getPlugins().withId("test-suite-base", plugin -> {
             // Depend on this project for aggregation
             testAggregation.getDependencies().add(project.getDependencyFactory().create(project));
 
             TestingExtension testing = project.getExtensions().getByType(TestingExtension.class);
             ExtensiblePolymorphicDomainObjectContainer<TestSuite> testSuites = testing.getSuites();
 
-            testSuites.withType(JvmTestSuite.class).all(testSuite -> {
+            testSuites.withType(TestSuite.class).all(testSuite -> {
                 reporting.getReports().create(testSuite.getName() + "AggregateTestReport", AggregateTestReport.class, report -> {
-                    report.getTestType().convention(testSuite.getTestType());
+                    report.getTestSuiteName().convention(testSuite.getName());
                 });
             });
         });

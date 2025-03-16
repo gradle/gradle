@@ -38,10 +38,9 @@ interface SourceDistributionProvider {
 class SourceDistributionResolver(private val project: Project) : SourceDistributionProvider {
 
     companion object {
-        val artifactType = Attribute.of("artifactType", String::class.java)
-        val zipType = "zip"
-        val unzippedDistributionType = "unzipped-distribution"
-        val sourceDirectory = "src-directory"
+        val artifactType: Attribute<String> = Attribute.of("artifactType", String::class.java)
+        const val ZIP_TYPE = "zip"
+        const val SOURCE_DIRECTORY = "src-directory"
     }
 
     override fun sourceDirs(): Collection<File> =
@@ -61,20 +60,16 @@ class SourceDistributionResolver(private val project: Project) : SourceDistribut
 
     private
     fun registerTransforms() {
-        registerTransform<UnzipDistribution> {
-            from.attribute(artifactType, zipType)
-            to.attribute(artifactType, unzippedDistributionType)
-        }
         registerTransform<FindGradleSources> {
-            from.attribute(artifactType, unzippedDistributionType)
-            to.attribute(artifactType, sourceDirectory)
+            from.attribute(artifactType, ZIP_TYPE)
+            to.attribute(artifactType, SOURCE_DIRECTORY)
         }
     }
 
     private
     fun transientConfigurationForSourcesDownload() =
         detachedConfigurationFor(gradleSourceDependency()).apply {
-            attributes.attribute(artifactType, sourceDirectory)
+            attributes.attribute(artifactType, SOURCE_DIRECTORY)
         }
 
     private
@@ -143,6 +138,7 @@ class SourceDistributionResolver(private val project: Project) : SourceDistribut
                 // source distributions beginning from the previous major version.
                 "${previous(major)}.0"
             }
+
             else -> {
                 // Otherwise include source distributions beginning from the previous minor version only.
                 "$major.${previous(minor)}"

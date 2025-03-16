@@ -27,7 +27,6 @@ import kotlin.script.experimental.api.isStandalone
 /**
  * Common script compilation configuration for Kotlin DSL standalone scripts.
  */
-internal
 abstract class KotlinDslStandaloneScriptCompilationConfiguration protected constructor(
     body: Builder.() -> Unit
 ) : ScriptCompilationConfiguration({
@@ -38,6 +37,7 @@ abstract class KotlinDslStandaloneScriptCompilationConfiguration protected const
         "-api-version", "1.8",
         "-Xjvm-default=all",
         "-Xjsr305=strict",
+        "-Xjspecify-annotations=strict",
         "-Xskip-prerelease-check",
         "-Xallow-unstable-dependencies",
         "-XXLanguage:+DisableCompatibilityModeForNewInference",

@@ -21,7 +21,7 @@ import org.gradle.api.Task;
 import org.gradle.execution.TaskSelection;
 import org.gradle.execution.selection.BuildTaskSelector;
 import org.gradle.internal.build.BuildState;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.ArrayList;
@@ -29,7 +29,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-@ServiceScope(Scopes.Gradle.class)
+@ServiceScope(Scope.Gradle.class)
 public class CommandLineTaskParser {
     private final CommandLineTaskConfigurer taskConfigurer;
     private final BuildTaskSelector taskSelector;

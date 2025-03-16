@@ -37,7 +37,7 @@ class IvyJvmLibraryArtifactResolutionIntegrationTest extends AbstractHttpDepende
     def initBuild(IvyRepository repo) {
         buildFile.text = """
 repositories {
-    ivy { url '$repo.uri' }
+    ivy { url = '$repo.uri' }
 }
 """
     }

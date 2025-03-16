@@ -24,7 +24,6 @@ import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleM
 import org.gradle.internal.component.external.descriptor.Artifact
 import org.gradle.internal.component.external.descriptor.Configuration
 import org.gradle.internal.component.external.descriptor.DefaultExclude
-import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.component.model.ImmutableModuleSources
@@ -66,7 +65,7 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         immutable != metadata
         immutable.id == id
         immutable.sources == ImmutableModuleSources.of()
-        immutable.statusScheme == ComponentResolveMetadata.DEFAULT_STATUS_SCHEME
+        immutable.statusScheme == ExternalComponentResolveMetadata.DEFAULT_STATUS_SCHEME
         immutable.branch == null
         immutable.excludes.empty
         immutable.configurationNames == ["runtime", "default"] as Set
@@ -85,7 +84,7 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         copy != metadata
         copy.id == id
         copy.sources == new MutableModuleSources()
-        copy.statusScheme == ComponentResolveMetadata.DEFAULT_STATUS_SCHEME
+        copy.statusScheme == ExternalComponentResolveMetadata.DEFAULT_STATUS_SCHEME
         copy.branch == null
         copy.artifactDefinitions.size() == 2
         copy.excludes.empty
@@ -176,11 +175,11 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         then:
         metadata.id == id
         metadata.sources == new MutableModuleSources()
-        metadata.statusScheme == ComponentResolveMetadata.DEFAULT_STATUS_SCHEME
+        metadata.statusScheme == ExternalComponentResolveMetadata.DEFAULT_STATUS_SCHEME
 
         immutable.id == id
         immutable.sources == ImmutableModuleSources.of()
-        immutable.statusScheme == ComponentResolveMetadata.DEFAULT_STATUS_SCHEME
+        immutable.statusScheme == ExternalComponentResolveMetadata.DEFAULT_STATUS_SCHEME
 
         copy.id == newId
         copy.sources == MutableModuleSources.of(sources)
@@ -213,7 +212,7 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
 
         immutable.id == id
         immutable.sources == ImmutableModuleSources.of()
-        immutable.statusScheme == ComponentResolveMetadata.DEFAULT_STATUS_SCHEME
+        immutable.statusScheme == ExternalComponentResolveMetadata.DEFAULT_STATUS_SCHEME
 
         immutableCopy.id == newId
         immutableCopy.sources == sources

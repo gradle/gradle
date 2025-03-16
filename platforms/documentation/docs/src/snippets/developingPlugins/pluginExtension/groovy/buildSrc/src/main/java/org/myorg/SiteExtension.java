@@ -11,10 +11,10 @@ abstract public class SiteExtension {
     abstract public RegularFileProperty getOutputDir();
 
     @Nested
-    abstract public CustomData getCustomData();
+    abstract public SiteInfo getSiteInfo();
 
-    public void customData(Action<? super CustomData> action) {
-        action.execute(getCustomData());
+    public void siteInfo(Action<? super SiteInfo> action) {
+        action.execute(getSiteInfo());
     }
 }
 // end::snippet[]

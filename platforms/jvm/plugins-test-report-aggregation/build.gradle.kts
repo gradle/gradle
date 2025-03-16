@@ -22,22 +22,21 @@ plugins {
 description = "Contains the Test Report Aggregation plugin"
 
 dependencies {
-    implementation(project(":base-annotations"))
-    implementation(project(":base-services"))
-    implementation(project(":core-api"))
-    implementation(project(":core"))
-    implementation(project(":logging"))
-    implementation(project(":model-core"))
-    implementation(project(":platform-jvm"))
-    implementation(project(":plugins-java-base"))
-    implementation(project(":plugins-jvm-test-suite"))
-    implementation(project(":reporting"))
-    implementation(project(":testing-base"))
-    implementation(project(":testing-jvm"))
-    implementation(project(":test-suites-base"))
+    api(projects.stdlibJavaExtensions)
+    api(projects.coreApi)
+    api(projects.platformJvm)
 
-    implementation(libs.groovy)
-    implementation(libs.inject)
+    api(libs.inject)
 
-    integTestDistributionRuntimeOnly(project(":distributions-jvm"))
+    implementation(projects.baseServices)
+    implementation(projects.pluginsJavaBase)
+    implementation(projects.reporting)
+    implementation(projects.testingBase)
+    implementation(projects.testingJvm)
+    implementation(projects.testSuitesBase)
+
+    integTestDistributionRuntimeOnly(projects.distributionsJvm)
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

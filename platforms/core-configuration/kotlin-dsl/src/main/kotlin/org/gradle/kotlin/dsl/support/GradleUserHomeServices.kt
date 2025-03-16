@@ -15,11 +15,14 @@
  */
 package org.gradle.kotlin.dsl.support
 
+import org.gradle.internal.service.Provides
+import org.gradle.internal.service.ServiceRegistrationProvider
+
 
 internal
-object GradleUserHomeServices {
+object GradleUserHomeServices : ServiceRegistrationProvider {
 
-    @Suppress("unused")
+    @Provides
     fun createEmbeddedKotlinRepositoryProvider() =
         EmbeddedKotlinProvider()
 }

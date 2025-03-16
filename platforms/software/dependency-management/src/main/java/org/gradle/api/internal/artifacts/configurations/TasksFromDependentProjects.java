@@ -26,8 +26,8 @@ import org.gradle.api.internal.tasks.TaskDependencyContainerInternal;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.util.Path;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Set;
 
 class TasksFromDependentProjects implements TaskDependencyContainerInternal {
@@ -87,7 +87,7 @@ class TasksFromDependentProjects implements TaskDependencyContainerInternal {
         private static boolean doesConfigurationDependOnProject(Configuration configuration, Path identityPath) {
             Set<ProjectDependency> projectDependencies = configuration.getAllDependencies().withType(ProjectDependency.class);
             for (ProjectDependency projectDependency : projectDependencies) {
-                Path dependencyIdentityPath = ((ProjectDependencyInternal) projectDependency).getIdentityPath();
+                Path dependencyIdentityPath = ((ProjectDependencyInternal) projectDependency).getTargetProjectIdentity().getBuildTreePath();
                 if (dependencyIdentityPath.equals(identityPath)) {
                     return true;
                 }

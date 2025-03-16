@@ -10,48 +10,57 @@ This project is a implementation dependency of many other testing-related subpro
 dependency for any projects working directly with Test tasks.
 """
 
-errorprone {
-    disabledChecks.addAll(
-        "EmptyBlockTag", // 1 occurrences
-    )
-}
-
 dependencies {
-    api(project(":testing-base"))
+    api(projects.baseServices)
+    api(projects.buildOperations)
+    api(projects.buildProcessServices)
+    api(projects.core)
+    api(projects.coreApi)
+    api(projects.fileOperations)
+    api(projects.jvmServices)
+    api(projects.logging)
+    api(projects.messaging)
+    api(projects.modelCore)
+    api(projects.reporting)
+    api(projects.stdlibJavaExtensions)
+    api(projects.testingBase)
+    api(projects.testingBaseInfrastructure)
+    api(projects.time)
+    api(projects.toolchainsJvm)
+    api(projects.toolchainsJvmShared)
 
-    implementation(project(":functional"))
-    implementation(project(":base-services"))
-    implementation(project(":messaging"))
-    implementation(project(":logging"))
-    implementation(project(":file-temp"))
-    implementation(project(":model-core"))
-    implementation(project(":core"))
-    implementation(project(":reporting"))
-    implementation(project(":platform-base"))
-    implementation(project(":platform-jvm"))
-    implementation(project(":testing-jvm-infrastructure"))
-    implementation(project(":toolchains-jvm"))
+    api(libs.asm)
+    api(libs.groovy)
+    api(libs.groovyXml)
+    api(libs.inject)
+    api(libs.jspecify)
 
-    implementation(libs.slf4jApi)
-    implementation(libs.groovy)
-    implementation(libs.groovyXml)
-    implementation(libs.guava)
-    implementation(libs.commonsLang)
+    implementation(projects.classloaders)
+    implementation(projects.concurrent)
+    implementation(projects.serviceLookup)
+    implementation(projects.fileTemp)
+    implementation(projects.functional)
+    implementation(projects.loggingApi)
+    implementation(projects.platformBase)
+    implementation(projects.testingJvmInfrastructure)
+
     implementation(libs.commonsIo)
-    implementation(libs.asm)
-    implementation(libs.inject)
+    implementation(libs.commonsLang)
+    implementation(libs.guava)
+    implementation(libs.junit)
+    implementation(libs.slf4jApi)
 
-    testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":model-core")))
+    testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.modelReflect))
+    testImplementation(testFixtures(projects.time))
 
-    integTestImplementation(project(":plugins"))
-    integTestImplementation(testFixtures(project(":testing-base")))
-    integTestImplementation(testFixtures(project(":language-groovy")))
+    integTestImplementation(testFixtures(projects.testingBase))
+    integTestImplementation(testFixtures(projects.languageGroovy))
 
-    testRuntimeOnly(project(":distributions-core")) {
+    testRuntimeOnly(projects.distributionsCore) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-jvm"))
+    integTestDistributionRuntimeOnly(projects.distributionsJvm)
 }
 
 strictCompile {
@@ -64,3 +73,6 @@ packageCycles {
 }
 
 integTest.usesJavadocCodeSnippets = true
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

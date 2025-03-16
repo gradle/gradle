@@ -3,8 +3,8 @@ plugins {
     id 'ivy-publish'
 }
 
-group 'org.gradle.sample'
-version '1.0'
+group = 'org.gradle.sample'
+version = '1.0'
 
 dependencies {
     implementation gradleApi()
@@ -12,7 +12,7 @@ dependencies {
 
 publishing {
     repositories {
-        ivy { url 'build/repo' }
+        ivy { url = layout.buildDirectory.dir('repo') }
     }
     publications {
         ivy(IvyPublication) {

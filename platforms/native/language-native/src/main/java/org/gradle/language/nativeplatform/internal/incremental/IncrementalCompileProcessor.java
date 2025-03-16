@@ -17,7 +17,7 @@ package org.gradle.language.nativeplatform.internal.incremental;
 
 import org.gradle.cache.ObjectHolder;
 import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 
@@ -27,9 +27,9 @@ import java.util.Collection;
 public class IncrementalCompileProcessor {
     private final ObjectHolder<CompilationState> previousCompileStateCache;
     private final IncrementalCompileFilesFactory incrementalCompileFilesFactory;
-    private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildOperationRunner buildOperationExecutor;
 
-    public IncrementalCompileProcessor(ObjectHolder<CompilationState> previousCompileStateCache, IncrementalCompileFilesFactory incrementalCompileFilesFactory, BuildOperationExecutor buildOperationExecutor) {
+    public IncrementalCompileProcessor(ObjectHolder<CompilationState> previousCompileStateCache, IncrementalCompileFilesFactory incrementalCompileFilesFactory, BuildOperationRunner buildOperationExecutor) {
         this.previousCompileStateCache = previousCompileStateCache;
         this.incrementalCompileFilesFactory = incrementalCompileFilesFactory;
         this.buildOperationExecutor = buildOperationExecutor;

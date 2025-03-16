@@ -83,7 +83,7 @@ public class WtpClasspathAttributeSupport {
         if (entry instanceof AbstractLibrary) {
             return createDeploymentAttribute((AbstractLibrary) entry);
         } else if (entry instanceof ProjectDependency) {
-            return createDeploymentAttribute((ProjectDependency) entry);
+            return ImmutableMap.of(AbstractClasspathEntry.COMPONENT_NON_DEPENDENCY_ATTRIBUTE, "");
         } else {
             return Collections.emptyMap();
         }
@@ -93,20 +93,12 @@ public class WtpClasspathAttributeSupport {
         File file = entry.getLibrary().getFile();
         if (!isUtilityProject) {
             if (rootConfigFiles.contains(file)) {
-                return singleEntryMap(AbstractClasspathEntry.COMPONENT_DEPENDENCY_ATTRIBUTE, "/");
+                return ImmutableMap.of(AbstractClasspathEntry.COMPONENT_DEPENDENCY_ATTRIBUTE, "/");
             } else if (libConfigFiles.contains(file)) {
-                return singleEntryMap(AbstractClasspathEntry.COMPONENT_DEPENDENCY_ATTRIBUTE, libDirName);
+                return ImmutableMap.of(AbstractClasspathEntry.COMPONENT_DEPENDENCY_ATTRIBUTE, libDirName);
             }
         }
-        return singleEntryMap(AbstractClasspathEntry.COMPONENT_NON_DEPENDENCY_ATTRIBUTE, "");
-    }
-
-    private Map<String, Object> createDeploymentAttribute(ProjectDependency entry) {
-        return singleEntryMap(AbstractClasspathEntry.COMPONENT_NON_DEPENDENCY_ATTRIBUTE, "");
-    }
-
-    private static Map<String, Object> singleEntryMap(String key, String value) {
-        return ImmutableMap.<String, Object>of(key, value);
+        return ImmutableMap.of(AbstractClasspathEntry.COMPONENT_NON_DEPENDENCY_ATTRIBUTE, "");
     }
 
     private static class WtpClasspathAttributeDependencyVisitor implements IdeDependencyVisitor {

@@ -15,8 +15,10 @@
  */
 package org.gradle.launcher.daemon.server
 
+
 import org.gradle.internal.remote.Address
-import org.gradle.launcher.daemon.configuration.DaemonParameters
+import org.gradle.jvm.toolchain.JavaLanguageVersion
+import org.gradle.launcher.daemon.configuration.DaemonPriority
 import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.launcher.daemon.context.DefaultDaemonContext
 import org.gradle.launcher.daemon.registry.DaemonDir
@@ -29,7 +31,8 @@ import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Subject
 
-import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Idle
+import static org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode
+import static org.gradle.launcher.daemon.server.api.DaemonState.Idle
 import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.DO_NOT_EXPIRE
 import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.GRACEFUL_EXPIRE
 
@@ -42,7 +45,7 @@ class DaemonRegistryUnavailableExpirationStrategyTest extends Specification {
     def "daemon should expire when registry file is unreachable"() {
         given:
         DaemonRegistryUnavailableExpirationStrategy expirationStrategy = new DaemonRegistryUnavailableExpirationStrategy(daemon)
-        DaemonContext daemonContext = new DefaultDaemonContext("user", null, tempDir.file("BOGUS"), 51234L, 10000, [] as List<String>, false, true, DaemonParameters.Priority.NORMAL)
+        DaemonContext daemonContext = new DefaultDaemonContext("user", null, JavaLanguageVersion.current(), null, tempDir.file("BOGUS"), 51234L, 10000, [] as List<String>, false, NativeServicesMode.ENABLED, DaemonPriority.NORMAL)
 
         when:
         1 * daemon.getDaemonContext() >> { daemonContext }
@@ -60,7 +63,7 @@ class DaemonRegistryUnavailableExpirationStrategyTest extends Specification {
                 return "DAEMON_ADDRESS"
             }
         }
-        DaemonContext daemonContext = new DefaultDaemonContext("user", null, daemonDir, 51234L, 10000, [] as List<String>, false, true, DaemonParameters.Priority.NORMAL)
+        DaemonContext daemonContext = new DefaultDaemonContext("user", null, JavaLanguageVersion.current(), null, daemonDir, 51234L, 10000, [] as List<String>, false, NativeServicesMode.ENABLED, DaemonPriority.NORMAL)
         DaemonDir daemonDir = new DaemonDir(daemonDir)
         DaemonRegistry registry = new EmbeddedDaemonRegistry()
         daemonDir.getRegistry().createNewFile()

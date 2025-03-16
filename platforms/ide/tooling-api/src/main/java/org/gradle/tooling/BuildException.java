@@ -15,6 +15,10 @@
  */
 package org.gradle.tooling;
 
+import org.gradle.api.Incubating;
+
+import java.util.List;
+
 /**
  * Thrown when a Gradle build fails or when a model cannot be built.
  *
@@ -23,5 +27,15 @@ package org.gradle.tooling;
 public class BuildException extends GradleConnectionException {
     public BuildException(String message, Throwable throwable) {
         super(message, throwable);
+    }
+
+    /**
+     * Constructor.
+     *
+     * @since 8.12
+     */
+    @Incubating
+    public BuildException(String message, Throwable cause, Supplier<List<Failure>> failures) {
+        super(message, cause, failures);
     }
 }

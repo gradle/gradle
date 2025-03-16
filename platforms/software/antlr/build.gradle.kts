@@ -12,39 +12,40 @@ errorprone {
 }
 
 dependencies {
-    api(project(":base-annotations"))
-    api(project(":base-services"))
-    api(project(":core"))
-    api(project(":core-api"))
-    api(project(":files"))
-    api(project(":model-core"))
+    api(projects.core)
+    api(projects.coreApi)
+    api(projects.fileOperations)
+    api(projects.files)
+    api(projects.modelCore)
+    api(projects.requestHandlerWorker)
+    api(projects.stdlibJavaExtensions)
 
     api(libs.inject)
+    api(libs.jspecify)
 
-    implementation(project(":platform-jvm"))
-    implementation(project(":plugins-java-base"))
-    implementation(project(":plugins-java-library"))
+    implementation(projects.baseServices)
+    implementation(projects.platformJvm)
+    implementation(projects.pluginsJavaBase)
+    implementation(projects.pluginsJavaLibrary)
 
     implementation(libs.guava)
-    implementation(libs.jsr305)
     implementation(libs.slf4jApi)
 
     compileOnly("antlr:antlr:2.7.7") {
         because("this dependency is downloaded by the antlr plugin")
     }
 
-    runtimeOnly(project(":language-jvm"))
-    runtimeOnly(project(":plugins"))
-    runtimeOnly(project(":workers"))
+    runtimeOnly(projects.languageJvm)
+    runtimeOnly(projects.workers)
 
-    testImplementation(project(":base-services-groovy"))
-    testImplementation(testFixtures(project(":core")))
-    testImplementation(project(":file-collections"))
+    testImplementation(projects.baseServicesGroovy)
+    testImplementation(testFixtures(projects.core))
+    testImplementation(projects.fileCollections)
 
-    testRuntimeOnly(project(":distributions-core")) {
+    testRuntimeOnly(projects.distributionsCore) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-full"))
+    integTestDistributionRuntimeOnly(projects.distributionsFull)
 }
 
 packageCycles {

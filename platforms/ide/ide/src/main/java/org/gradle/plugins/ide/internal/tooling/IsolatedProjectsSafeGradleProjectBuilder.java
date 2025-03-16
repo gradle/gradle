@@ -17,7 +17,6 @@
 package org.gradle.plugins.ide.internal.tooling;
 
 import com.google.common.collect.Streams;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleProject;
@@ -26,6 +25,7 @@ import org.gradle.plugins.ide.internal.tooling.model.LaunchableGradleProjectTask
 import org.gradle.plugins.ide.internal.tooling.model.LaunchableGradleTask;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvider;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -38,7 +38,7 @@ import static org.gradle.api.internal.project.ProjectHierarchyUtils.getChildProj
 /**
  * Builds the {@link GradleProject} model that contains the project hierarchy and task information.
  */
-@NonNullApi
+@NullMarked
 public class IsolatedProjectsSafeGradleProjectBuilder implements GradleProjectBuilderInternal {
 
     private static final String MODEL_NAME = "org.gradle.tooling.model.GradleProject";

@@ -26,10 +26,10 @@ import org.gradle.internal.execution.caching.CachingDisabledReasonCategory;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.operations.execution.ExecuteWorkBuildOperationType;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
 
@@ -40,8 +40,8 @@ public class ExecuteWorkBuildOperationFiringStep<C extends IdentityContext, R ex
 
     private final Step<? super C, R> delegate;
 
-    public ExecuteWorkBuildOperationFiringStep(BuildOperationExecutor buildOperationExecutor, Step<C, R> delegate) {
-        super(buildOperationExecutor);
+    public ExecuteWorkBuildOperationFiringStep(BuildOperationRunner buildOperationRunner, Step<C, R> delegate) {
+        super(buildOperationRunner);
         this.delegate = delegate;
     }
 
@@ -121,9 +121,8 @@ public class ExecuteWorkBuildOperationFiringStep<C extends IdentityContext, R ex
             return originMetadata.map(OriginMetadata::getBuildInvocationId).orElse(null);
         }
 
-        @Nullable
         @Override
-        public byte[] getOriginBuildCacheKeyBytes() {
+        public byte @Nullable [] getOriginBuildCacheKeyBytes() {
             return originMetadata
                 .map(OriginMetadata::getBuildCacheKey)
                 .map(HashCode::toByteArray)

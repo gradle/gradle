@@ -17,7 +17,8 @@
 package gradlebuild.binarycompatibility
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.tasks.InputFile
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
@@ -27,15 +28,17 @@ import org.gradle.work.DisableCachingByDefault
  * A task used for cleaning up all accepted API changes. The functionality is called whenever the release process initiates "branching".
  */
 @DisableCachingByDefault(because = "Not worth caching")
-class CleanAcceptedApiChanges extends DefaultTask {
+abstract class CleanAcceptedApiChanges extends DefaultTask {
 
     @PathSensitive(PathSensitivity.ABSOLUTE)
-    @InputFile
-    File jsonFile
+    @InputDirectory
+    abstract DirectoryProperty getJsonFileDirectory()
 
     @TaskAction
     void clean() {
-        AcceptedApiChangesJsonFileManager jsonFileManager = new AcceptedApiChangesJsonFileManager()
-        jsonFileManager.emptyAcceptedApiChanges(jsonFile)
+        def jsonFileManager = new AcceptedApiChangesJsonFileManager()
+        jsonFileDirectory.asFile.get().listFiles()
+            ?.findAll { it.name.endsWith(".json") }
+            ?.each { jsonFileManager.emptyAcceptedApiChanges(it) }
     }
 }

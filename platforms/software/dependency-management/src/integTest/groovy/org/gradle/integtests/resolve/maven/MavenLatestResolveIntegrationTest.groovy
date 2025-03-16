@@ -21,7 +21,7 @@ class MavenLatestResolveIntegrationTest extends AbstractHttpDependencyResolution
     def setup() {
         buildFile << """
             repositories {
-                maven { url '${mavenRepo().uri}' }
+                maven { url = '${mavenRepo().uri}' }
             }
             configurations { compile }
 
@@ -32,6 +32,10 @@ class MavenLatestResolveIntegrationTest extends AbstractHttpDependencyResolution
         """
     }
 
+    def runRetrieveTask() {
+        executer.withArgument("--no-problems-report")
+        run 'retrieve'
+    }
     def "latest selector works correctly when no snapshot versions are present"() {
         given:
         mavenRepo().module('group', 'projectA', '1.0').publish()
@@ -42,7 +46,7 @@ class MavenLatestResolveIntegrationTest extends AbstractHttpDependencyResolution
         buildFile << " dependencies { compile 'group:projectA:latest.$status' }"
 
         when:
-        run 'retrieve'
+        runRetrieveTask()
 
         then:
         def buildDir = file('build')
@@ -58,6 +62,7 @@ class MavenLatestResolveIntegrationTest extends AbstractHttpDependencyResolution
         buildFile << "dependencies { compile 'group:projectA:latest.foo' }"
 
         expect:
+        executer.withArgument("--no-problems-report")
         fails 'retrieve'
         // would be better if metadata validation failed (status not contained in status scheme)
         failure.assertHasCause("Could not find any version that matches group:projectA:latest.foo.")
@@ -71,12 +76,12 @@ class MavenLatestResolveIntegrationTest extends AbstractHttpDependencyResolution
 
         and:
         buildFile << """
-            repositories { maven { url "${mavenHttpRepo.uri}" } }
+            repositories { maven { url = "${mavenHttpRepo.uri}" } }
             dependencies { compile 'group:projectA:latest.${status}' }
         """
 
         when:
-        run "retrieve"
+        runRetrieveTask()
 
         then:
         file("build").assertHasDescendants(latest)
@@ -105,7 +110,7 @@ class MavenLatestResolveIntegrationTest extends AbstractHttpDependencyResolution
             }"""
 
         when:
-        run 'retrieve'
+        runRetrieveTask()
 
         then:
         file('build').assertHasDescendants('projectA-1.0.jar', 'projectB-1.0.jar', "projectC-${resolvedVersion}.jar")

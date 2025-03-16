@@ -19,13 +19,25 @@ import java.lang.annotation.*;
 
 /**
  * Specifies the range of target Gradle versions that the given tooling API test can work with.
+ * <p>
+ * A default version range is defined on the ToolingApiSpecification, which can be overridden by a separate annotation placed on a test task or test method.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.METHOD})
 @Inherited
 public @interface TargetGradleVersion {
     /**
-     * The requested target Gradle version. Can use '>=nnn', '<=nnn', '&lt;nnn', '&gt;nnn', '=nnn', 'current' or '!current' or space-separated list of patterns.
+     * The requested target Gradle version. Can use:
+     * <ul>
+     *     <li>{@code >=nnn}</li>
+     *     <li>{@code <=nnn}</li>
+     *     <li>{@code <nnn}</li>
+     *     <li>{@code >nnn}</li>
+     *     <li>{@code =nnn}</li>
+     *     <li>{@code current}</li>
+     *     <li>{@code !current}</li>
+     *     <li>space-separated list of patterns</li>
+     * </ul>
      */
     String value();
 }

@@ -100,7 +100,11 @@ public class AnnotationProcessingTasks {
 
     public static class TaskWithStaticMethod extends DefaultTask {
         @TaskAction
-        public static void doStuff() {
+        public static void staticAction() {
+        }
+
+        @TaskAction
+        public void goodAction() {
         }
     }
 

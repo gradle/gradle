@@ -21,7 +21,7 @@ import org.gradle.testing.fixture.GroovyCoverage
 
 class Spock2IntegrationSpec extends AbstractIntegrationSpec {
     def setup() {
-        buildScript("""
+        buildFile("""
             plugins {
                 id("groovy")
             }

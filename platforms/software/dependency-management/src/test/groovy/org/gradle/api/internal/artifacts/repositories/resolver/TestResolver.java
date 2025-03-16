@@ -25,6 +25,7 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactIdent
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
+import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resource.ExternalResourceRepository;
 import org.gradle.internal.resource.local.FileStore;
@@ -32,16 +33,11 @@ import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor;
 import org.gradle.util.TestUtil;
 
-public class TestResolver extends ExternalResourceResolver<ModuleComponentResolveMetadata> {
+public class TestResolver extends ExternalResourceResolver {
     ExternalResourceArtifactResolver artifactResolver;
 
     protected TestResolver(UrlRepositoryDescriptor descriptor, boolean local, ExternalResourceRepository repository, CacheAwareExternalResourceAccessor cachingResourceAccessor, LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder, FileStore<ModuleComponentArtifactIdentifier> artifactFileStore, ImmutableMetadataSources metadataSources, MetadataArtifactProvider metadataArtifactProvider) {
         super(descriptor, local, repository, cachingResourceAccessor, locallyAvailableResourceFinder, artifactFileStore, metadataSources, metadataArtifactProvider, null, null, null, TestUtil.getChecksumService());
-    }
-
-    @Override
-    protected Class<ModuleComponentResolveMetadata> getSupportedMetadataType() {
-        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -64,12 +60,12 @@ public class TestResolver extends ExternalResourceResolver<ModuleComponentResolv
         return new RemoteRepositoryAccess() {
 
             @Override
-            protected void resolveJavadocArtifacts(ModuleComponentResolveMetadata module, BuildableArtifactSetResolveResult result) {
+            protected void resolveJavadocArtifacts(ComponentArtifactResolveMetadata module, BuildableArtifactSetResolveResult result) {
                 throw new UnsupportedOperationException();
             }
 
             @Override
-            protected void resolveSourceArtifacts(ModuleComponentResolveMetadata module, BuildableArtifactSetResolveResult result) {
+            protected void resolveSourceArtifacts(ComponentArtifactResolveMetadata module, BuildableArtifactSetResolveResult result) {
                 throw new UnsupportedOperationException();
             }
 

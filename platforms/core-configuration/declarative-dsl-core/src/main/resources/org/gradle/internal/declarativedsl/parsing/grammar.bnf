@@ -1,0 +1,69 @@
+/*
+ * Copyright 2024 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+{
+  tokens=[
+    SEMI=';'
+    COMA=','
+    DOT='.'
+    EQ='='
+    LP='('
+    RP=')'
+    LB='{'
+    RB='}'
+
+    space='regexp:\s+'
+    comment='regexp://.*|/\*[^/*]*\*/'
+    id='regexp:\p{Alpha}\w*'                                    // TODO: doesn't work with all unicode characters, no idea how to fix it ...
+    string='regexp:("""[^\"]*"""|"[^"\\]*")'                    // TODO: still simplistic ...
+
+    integerLiteral='regexp:[1-9]([0-9_]*[0-9])?|[0-9]'
+    binaryLiteral='regexp:0[bB][01]([01_]*[01])?'
+    hexLiteral='regexp:0[xX][0-9a-fA-F]([0-9a-fA-F_]*[0-9a-fA-F])?'
+    longLiteral='regexp:[1-9]([0-9_]*[0-9])?[lL]|[0-9][lL]|0[bB][01]([01_]*[01])?[lL]|0[xX][0-9a-fA-F]([0-9a-fA-F_]*[0-9a-fA-F])?[lL]'
+  ]
+}
+
+// For a description of how these rules relate to the full Kotlin grammar please see:
+// https://docs.google.com/document/d/11GBpWfLV-BwYjGEayUl5OCoLzRlcDkI7m_b5FoaFD9Q/edit
+
+root ::= statements
+
+statement ::= (assignment | block | functionChain)
+statements ::= (statement SEMI*)*
+
+assignment ::= directlyAssignableExpression EQ assignmentValue {pin=2}
+directlyAssignableExpression ::= simpleIdentifier navigationSuffix?
+assignmentValue ::= (simpleIdentifier (navigationSuffix* valueArguments)?) | literalOrIdentifier
+
+block ::= simpleIdentifier valueArguments? annotatedLambda
+annotatedLambda ::= LB statements RB {pin=1}
+
+functionChain ::= simpleIdentifier postfixUnarySuffixes
+postfixUnarySuffixes ::= (navigationSuffix+ valueArguments) | (valueArguments (navigationSuffix valueArguments)*)
+
+valueArguments ::= LP (valueArgument (COMA valueArgument)* COMA?)? RP {pin=2}
+valueArgument ::= (simpleIdentifier EQ)? (functionChain | literalOrIdentifier)
+
+navigationSuffix ::= DOT simpleIdentifier {pin=1}
+
+literalOrIdentifier ::= literalConstant | simpleIdentifier | stringLiteral
+literalConstant ::= "null" | booleanLiteral | binaryLiteral | hexLiteral | integerLiteral | longLiteral
+booleanLiteral ::= "true" | "false" {pin=1}
+
+stringLiteral ::= string
+
+simpleIdentifier ::= id

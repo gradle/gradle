@@ -19,6 +19,7 @@ package org.gradle.tooling.internal.provider.runner;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
+import org.gradle.internal.buildtree.BuildTreeModelSideEffectExecutor;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.tooling.internal.protocol.InternalPhasedAction;
 import org.gradle.tooling.internal.protocol.PhasedActionResult;
@@ -26,19 +27,23 @@ import org.gradle.tooling.internal.provider.PhasedBuildActionResult;
 import org.gradle.tooling.internal.provider.action.ClientProvidedPhasedAction;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class ClientProvidedPhasedActionRunner extends AbstractClientProvidedBuildActionRunner implements BuildActionRunner {
     private final PayloadSerializer payloadSerializer;
     private final BuildEventConsumer buildEventConsumer;
+    private final BuildTreeModelSideEffectExecutor sideEffectExecutor;
 
-    public ClientProvidedPhasedActionRunner(BuildControllerFactory buildControllerFactory,
-                                            PayloadSerializer payloadSerializer,
-                                            BuildEventConsumer buildEventConsumer) {
+    public ClientProvidedPhasedActionRunner(
+        BuildControllerFactory buildControllerFactory,
+        PayloadSerializer payloadSerializer,
+        BuildEventConsumer buildEventConsumer,
+        BuildTreeModelSideEffectExecutor sideEffectExecutor
+    ) {
         super(buildControllerFactory, payloadSerializer);
         this.payloadSerializer = payloadSerializer;
         this.buildEventConsumer = buildEventConsumer;
+        this.sideEffectExecutor = sideEffectExecutor;
     }
 
     @Override
@@ -74,8 +79,9 @@ public class ClientProvidedPhasedActionRunner extends AbstractClientProvidedBuil
 
         @Override
         public void collectActionResult(SerializedPayload serializedResult, PhasedActionResult.Phase phase) {
-            PhasedBuildActionResult res = new PhasedBuildActionResult(serializedResult, phase);
-            buildEventConsumer.dispatch(res);
+            PhasedBuildActionResult phaseResult = new PhasedBuildActionResult(serializedResult, phase);
+            BuildEventConsumer buildEventConsumer = ClientProvidedPhasedActionRunner.this.buildEventConsumer;
+            sideEffectExecutor.runIsolatableSideEffect(() -> buildEventConsumer.dispatch(phaseResult));
         }
 
         @Nullable

@@ -50,8 +50,8 @@ import org.gradle.internal.properties.bean.PropertyWalker;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.DefaultProcessForkOptions;
 import org.gradle.process.internal.JavaForkOptionsFactory;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.Set;
 import java.util.function.Function;
@@ -185,6 +185,6 @@ public class DefaultTestTaskPropertiesService implements TestTaskPropertiesServi
     }
 
     private int detectJavaVersion(String executable) {
-        return Integer.parseInt(jvmVersionDetector.getJavaVersion(executable).getMajorVersion());
+        return jvmVersionDetector.getJavaVersionMajor(executable);
     }
 }

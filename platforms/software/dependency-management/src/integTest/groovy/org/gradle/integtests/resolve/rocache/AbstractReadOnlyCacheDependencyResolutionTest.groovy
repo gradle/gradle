@@ -75,7 +75,7 @@ abstract class AbstractReadOnlyCacheDependencyResolutionTest extends AbstractHtt
         }
         buildFile << """
             apply plugin: 'java-library'
-            repositories { maven { url "${mavenHttpRepo.uri}" } }
+            repositories { maven { url = "${mavenHttpRepo.uri}" } }
             dependencies {
                 $deps
             }
@@ -100,7 +100,7 @@ abstract class AbstractReadOnlyCacheDependencyResolutionTest extends AbstractHtt
 
             repositories {
                maven {
-                  url "${mavenHttpRepo.uri}"
+                  url = "${mavenHttpRepo.uri}"
                }
             }
 
@@ -177,7 +177,7 @@ abstract class AbstractReadOnlyCacheDependencyResolutionTest extends AbstractHtt
     private void copyToReadOnlyCache() {
         roCacheDir = temporaryFolder.createDir("read-only-cache")
         def cachePath = roCacheDir.toPath()
-        doCopy(metadataCacheDir, cachePath, CacheLayout.ROOT)
+        doCopy(metadataCacheDir, cachePath, CacheLayout.MODULES)
 
         roCacheDir
     }

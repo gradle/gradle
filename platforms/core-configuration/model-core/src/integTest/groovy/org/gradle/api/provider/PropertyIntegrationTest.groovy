@@ -185,6 +185,8 @@ task thing(type: SomeTask) {
             def custom2 = extensions.create('custom2', SomeExtension)
             custom2.source = custom1.source
 
+            custom1.source = providers.gradleProperty('ABC')
+
             tasks.register('thing', SomeTask) {
                 prop = custom2.source
             }
@@ -198,7 +200,8 @@ task thing(type: SomeTask) {
         failure.assertHasCause("""Cannot query the value of task ':thing' property 'prop' because it has no value available.
 The value of this property is derived from:
   - extension 'custom2' property 'source'
-  - extension 'custom1' property 'source'""")
+  - extension 'custom1' property 'source'
+  - Gradle property 'ABC'""")
     }
 
     def "can use property with no value as optional ad hoc task input property"() {
@@ -374,6 +377,69 @@ assert custom.prop.get() == "value 4"
 """
 
         expect:
+        succeeds()
+    }
+
+    def "can set Long property value using an Integer"() {
+        given:
+        buildFile << """
+            interface SomeExtension {
+                Property<Long> getProp()
+            }
+
+            extensions.create('custom', SomeExtension)
+            custom.prop = 1
+            assert custom.prop.get() == 1L
+
+            custom.prop = providers.provider { 2 }
+            assert custom.prop.get() == 2L
+
+            custom.prop = null
+            custom.prop.convention(3)
+            assert custom.prop.get() == 3L
+
+            custom.prop.convention(providers.provider { 4 })
+            assert custom.prop.get() == 4L
+        """
+
+        expect:
+        succeeds()
+    }
+
+    def "can set Enum property value using an string"() {
+        given:
+        buildFile << """
+            enum MyEnumOptions {
+                FIRST, SECOND, THIRD, FORTH
+            }
+
+            interface SomeExtension {
+                Property<MyEnumOptions> getProp()
+            }
+
+            extensions.create('custom', SomeExtension)
+            custom.prop = "first"
+            assert custom.prop.get() == MyEnumOptions.FIRST
+            custom.prop = null
+            assert !custom.prop.isPresent()
+            custom.prop = "FIRST"
+            assert custom.prop.get() == MyEnumOptions.FIRST
+
+            custom.prop = providers.provider { "second" }
+            assert custom.prop.get() == MyEnumOptions.SECOND
+
+            custom.prop = null
+            custom.prop.convention("third")
+            assert custom.prop.get() == MyEnumOptions.THIRD
+
+            custom.prop.convention(providers.provider { "forth" })
+            assert custom.prop.get() == MyEnumOptions.FORTH
+        """
+
+        expect:
+        ["first", "FIRST", "second", "third", "forth"].each {
+            executer.expectDocumentedDeprecationWarning("Assigning String value '$it' to property of enum type 'MyEnumOptions'. This behavior has been deprecated. This will fail with an error in Gradle 10.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_string_to_enum_coercion_for_rich_properties")
+        }
         succeeds()
     }
 
@@ -900,6 +966,8 @@ project.extensions.create("some", SomeExtension)
     }
 
     def "can use a filtered value provider"() {
+        enableProblemsApiCheck()
+
         buildFile """
             abstract class MyTask extends DefaultTask {
                 @Input
@@ -942,6 +1010,20 @@ project.extensions.create("some", SomeExtension)
         fails('myTask')
         then:
         failureDescriptionContains("Type 'MyTask' property 'strings' doesn't have a configured value.")
+
+        verifyAll(receivedProblem) {
+            fqid == 'validation:property-validation:value-not-set'
+            contextualLabel == 'Type \'MyTask\' property \'strings\' doesn\'t have a configured value'
+            details == 'This property isn\'t marked as optional and no value has been configured'
+            solutions == [
+                'Assign a value to \'strings\'',
+                'Mark property \'strings\' as optional',
+            ]
+            additionalData.asMap == [
+                'typeName' : 'MyTask',
+                'propertyName' : 'strings',
+            ]
+        }
     }
 
     def "filter is evaluated lazily"() {

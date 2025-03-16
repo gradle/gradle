@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.testing.junit.result;
 
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.internal.tasks.testing.results.serializable.SerializableFailure;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.serialize.Decoder;
@@ -82,10 +83,10 @@ public class TestResultSerializer {
         encoder.writeSmallLong(methodResult.getDuration());
         encoder.writeLong(methodResult.getEndTime());
         encoder.writeSmallInt(methodResult.getFailures().size());
-        for (TestFailure testFailure : methodResult.getFailures()) {
-            encoder.writeString(testFailure.getExceptionType());
-            encoder.writeString(testFailure.getMessage());
-            encoder.writeString(testFailure.getStackTrace());
+        for (SerializableFailure serializableFailure : methodResult.getFailures()) {
+            encoder.writeString(serializableFailure.getExceptionType());
+            encoder.writeString(serializableFailure.getMessage());
+            encoder.writeString(serializableFailure.getStackTrace());
         }
     }
 

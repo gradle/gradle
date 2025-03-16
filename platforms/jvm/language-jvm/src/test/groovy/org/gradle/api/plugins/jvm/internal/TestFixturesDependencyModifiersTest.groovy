@@ -16,11 +16,12 @@
 
 package org.gradle.api.plugins.jvm.internal
 
-
+import org.gradle.api.internal.artifacts.capability.FeatureCapabilitySelector
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory
 import org.gradle.api.plugins.jvm.TestFixturesDependencyModifiers
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -35,11 +36,10 @@ class TestFixturesDependencyModifiersTest extends Specification {
         when:
         dependency = modifier.modify(dependency)
         then:
-        dependency.getRequestedCapabilities().size() == 1
-        dependency.getRequestedCapabilities()[0].with {
-            assert it.group == "group"
-            assert it.name == "name-test-fixtures"
-            assert it.version == null
+        dependency.getCapabilitySelectors().size() == 1
+        dependency.getCapabilitySelectors()[0].with {
+            assert it instanceof FeatureCapabilitySelector
+            assert it.featureName == "test-fixtures"
         }
     }
 
@@ -50,18 +50,17 @@ class TestFixturesDependencyModifiersTest extends Specification {
             name >> "name"
             version >> "1.0"
         }
-        def dependency = new DefaultProjectDependency(projectInternal, false)
+        def dependency = new DefaultProjectDependency(projectInternal, false, DefaultTaskDependencyFactory.withNoAssociatedProject())
         dependency.setCapabilityNotationParser(new CapabilityNotationParserFactory(true).create())
         dependency.setObjectFactory(TestUtil.objectFactory())
 
         when:
         dependency = modifier.modify(dependency)
         then:
-        dependency.getRequestedCapabilities().size() == 1
-        dependency.getRequestedCapabilities()[0].with {
-            assert it.group == "group"
-            assert it.name == "name-test-fixtures"
-            assert it.version == "1.0"
+        dependency.getCapabilitySelectors().size() == 1
+        dependency.getCapabilitySelectors()[0].with {
+            assert it instanceof FeatureCapabilitySelector
+            assert it.featureName == "test-fixtures"
         }
 
         0 * _
@@ -76,7 +75,7 @@ class TestFixturesDependencyModifiersTest extends Specification {
         when:
         modifier.modify(dependency)
         then:
-        dependency.getRequestedCapabilities().isEmpty()
+        dependency.getCapabilitySelectors().isEmpty()
     }
 
     def "does not modify given project dependency to select test fixtures"() {
@@ -86,14 +85,14 @@ class TestFixturesDependencyModifiersTest extends Specification {
             name >> "name"
             version >> "1.0"
         }
-        def dependency = new DefaultProjectDependency(projectInternal, false)
+        def dependency = new DefaultProjectDependency(projectInternal, false, DefaultTaskDependencyFactory.withNoAssociatedProject())
         dependency.setCapabilityNotationParser(new CapabilityNotationParserFactory(true).create())
         dependency.setObjectFactory(TestUtil.objectFactory())
 
         when:
         modifier.modify(dependency)
         then:
-        dependency.getRequestedCapabilities().isEmpty()
+        dependency.getCapabilitySelectors().isEmpty()
 
         0 * _
     }

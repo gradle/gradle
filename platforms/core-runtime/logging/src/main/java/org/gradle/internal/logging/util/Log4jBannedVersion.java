@@ -18,7 +18,7 @@ package org.gradle.internal.logging.util;
 
 /**
  * This class contains references to log4j-core which had a critical vulnerability,
- * see <a url="https://nvd.nist.gov/vuln/detail/CVE-2021-44228">CVE-2021-44228</a>.
+ * see <a href="https://nvd.nist.gov/vuln/detail/CVE-2021-44228">CVE-2021-44228</a>.
  */
 public class Log4jBannedVersion {
     public static final String LOG4J2_CORE_COORDINATES = "org.apache.logging.log4j:log4j-core";

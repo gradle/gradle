@@ -2,8 +2,8 @@ plugins {
     id 'application'
 }
 
-group "org.sample"
-version "1.0"
+group = "org.sample"
+version = "1.0"
 
 application {
     mainClass = "org.sample.myapp.Main"
@@ -16,7 +16,7 @@ dependencies {
 
 repositories {
     maven {
-        url project.file("../local-repo")
+        url = file("../local-repo")
     }
     mavenCentral()
 }

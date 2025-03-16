@@ -21,8 +21,8 @@ import org.gradle.api.NonExtensible;
 import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.HasInternalProtocol;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.concurrent.Callable;
 import java.util.function.BiFunction;
 
@@ -124,7 +124,7 @@ public interface Provider<T> {
      * @param transformer The transformer to apply to values. May return {@code null}, in which case the provider will have no value.
      * @since 4.3
      */
-    <S> Provider<S> map(Transformer<? extends @org.jetbrains.annotations.Nullable S, ? super T> transformer);
+    <S> Provider<S> map(Transformer<? extends @Nullable S, ? super T> transformer);
 
     /**
      * Returns a new {@link Provider} with the value of this provider if the passed spec is satisfied and no value otherwise.
@@ -196,7 +196,7 @@ public interface Provider<T> {
      * provider will have no value.
      * @since 5.0
      */
-    <S> Provider<S> flatMap(Transformer<? extends @org.jetbrains.annotations.Nullable Provider<? extends S>, ? super T> transformer);
+    <S> Provider<S> flatMap(Transformer<? extends @Nullable Provider<? extends S>, ? super T> transformer);
 
     /**
      * Returns {@code true} if there is a value present, otherwise {@code false}.
@@ -224,9 +224,11 @@ public interface Provider<T> {
     Provider<T> orElse(Provider<? extends T> provider);
 
     /**
-     * Returns a view of this {@link Provider} which can be safely read at configuration time.
+     * Deprecated. There is no need to use this method.
      *
      * @since 6.5
+     * @deprecated Since version 7.4 this method does nothing. All providers can be used at configuration time without explicit opt-in.
+     * @see <a href="https://docs.gradle.org/current/userguide/upgrading_version_7.html#for_use_at_configuration_time_deprecation">the upgrade guide</a>
      */
     @Deprecated
     Provider<T> forUseAtConfigurationTime();
@@ -234,6 +236,12 @@ public interface Provider<T> {
     /**
      * Returns a provider which value will be computed by combining this provider value with another
      * provider value using the supplied combiner function.
+     *
+     * <p>
+     * The resulting provider will be live, so that each time it is queried, it queries both this and the supplied provider
+     * and applies the combiner to the results. Whenever any of the providers has no value, the new provider
+     * will also have no value and the combiner will not be called.
+     * </p>
      *
      * <p>
      * If the supplied providers represents a task or the output of a task, the resulting provider
@@ -248,5 +256,5 @@ public interface Provider<T> {
      * @return a combined provider
      * @since 6.6
      */
-    <U, R> Provider<R> zip(Provider<U> right, BiFunction<? super T, ? super U, ? extends @org.jetbrains.annotations.Nullable R> combiner);
+    <U, R> Provider<R> zip(Provider<U> right, BiFunction<? super T, ? super U, ? extends @Nullable R> combiner);
 }

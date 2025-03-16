@@ -312,7 +312,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         buildFile << """
             checkstyleMain.reports {
                 html.required = true
-                html.stylesheet resources.text.fromFile('${sampleStylesheet()}')
+                html.stylesheet = resources.text.fromFile('${sampleStylesheet()}')
             }
         """
 

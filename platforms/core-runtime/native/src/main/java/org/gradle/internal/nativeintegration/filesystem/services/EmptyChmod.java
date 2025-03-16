@@ -16,7 +16,7 @@
 
 package org.gradle.internal.nativeintegration.filesystem.services;
 
-import org.gradle.internal.nativeintegration.filesystem.FileModeMutator;
+import org.gradle.internal.file.FileModeMutator;
 
 import java.io.File;
 import java.io.FileNotFoundException;

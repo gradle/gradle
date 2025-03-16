@@ -22,13 +22,15 @@ import org.gradle.internal.DisplayName;
  * A source file location.
  */
 public class Location {
+    private final String filePath;
     private final int lineNumber;
     private final DisplayName sourceLongDisplayName;
     private final DisplayName sourceShortDisplayName;
 
-    public Location(DisplayName sourceLongDisplayName, DisplayName sourceShortDisplayName, int lineNumber) {
+    public Location(DisplayName sourceLongDisplayName, DisplayName sourceShortDisplayName, String filePath, int lineNumber) {
         this.sourceLongDisplayName = sourceLongDisplayName;
         this.sourceShortDisplayName = sourceShortDisplayName;
+        this.filePath = filePath;
         this.lineNumber = lineNumber;
     }
 
@@ -46,11 +48,20 @@ public class Location {
         return sourceShortDisplayName;
     }
 
+    public String getFilePath() {
+        return filePath;
+    }
+
     public int getLineNumber() {
         return lineNumber;
     }
 
     public String getFormatted() {
         return sourceLongDisplayName.getCapitalizedDisplayName() + ": line " + lineNumber;
+    }
+
+    @Override
+    public String toString() {
+        return getFormatted();
     }
 }

@@ -19,7 +19,6 @@ package org.gradle.api.internal.plugins
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.InvalidPluginException
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.testfixtures.CustomRuleSource
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.Rule
 import spock.lang.Specification

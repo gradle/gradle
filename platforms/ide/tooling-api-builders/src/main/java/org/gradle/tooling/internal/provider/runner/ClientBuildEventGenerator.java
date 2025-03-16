@@ -27,8 +27,8 @@ import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalProgressEvent;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -40,13 +40,13 @@ import java.util.concurrent.ConcurrentHashMap;
  * Generates progress events to send back to the client,
  */
 public class ClientBuildEventGenerator implements BuildOperationListener {
-    private final BuildOperationListener fallback;
+    private final BuildOperationListener nonMappedBuildEventGenerator;
     private final List<Mapper> mappers;
     private final List<BuildOperationTracker> trackers;
     private final Map<OperationIdentifier, Operation> running = new ConcurrentHashMap<>();
 
-    public ClientBuildEventGenerator(ProgressEventConsumer progressEventConsumer, BuildEventSubscriptions subscriptions, List<? extends BuildOperationMapper<?, ?>> mappers, BuildOperationListener fallback) {
-        this.fallback = fallback;
+    public ClientBuildEventGenerator(ProgressEventConsumer progressEventConsumer, BuildEventSubscriptions subscriptions, List<? extends BuildOperationMapper<?, ?>> mappers, BuildOperationListener nonMappedBuildEventGenerator) {
+        this.nonMappedBuildEventGenerator = nonMappedBuildEventGenerator;
         List<Mapper> mapperBuilder = new ArrayList<>(mappers.size());
         Set<BuildOperationTracker> trackers = new LinkedHashSet<>();
         for (BuildOperationMapper<?, ?> mapper : mappers) {
@@ -87,7 +87,7 @@ public class ClientBuildEventGenerator implements BuildOperationListener {
             }
         }
         // Not recognized, so generate generic events, if appropriate
-        fallback.started(buildOperation, startEvent);
+        nonMappedBuildEventGenerator.started(buildOperation, startEvent);
     }
 
     @Override
@@ -95,9 +95,10 @@ public class ClientBuildEventGenerator implements BuildOperationListener {
         Operation operation = running.get(operationIdentifier);
         if (operation != null) {
             operation.progress(progressEvent);
-            return;
         }
-        fallback.progress(operationIdentifier, progressEvent);
+        // For start and finish events we either emit a mapped or a non-mapped event. For progress events we are not doing mapping, but we emit additional progress events. Therefore, we are not
+        // returning in the if statement above.
+        nonMappedBuildEventGenerator.progress(operationIdentifier, progressEvent);
     }
 
     @Override
@@ -110,7 +111,7 @@ public class ClientBuildEventGenerator implements BuildOperationListener {
             operation.generateFinishEvent(buildOperation, finishEvent);
         } else {
             // Not recognized, so generate generic events, if appropriate
-            fallback.finished(buildOperation, finishEvent);
+            nonMappedBuildEventGenerator.finished(buildOperation, finishEvent);
         }
         for (BuildOperationTracker tracker : trackers) {
             tracker.discardState(buildOperation);

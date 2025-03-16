@@ -7,52 +7,51 @@ description = """Extends platform-base with base types and interfaces specific t
 errorprone {
     disabledChecks.addAll(
         "StringCharset", // 1 occurrences
-        "UnusedMethod", // 1 occurrences
     )
 }
 
 dependencies {
-    api(project(":base-annotations"))
-    api(project(":base-services"))
-    api(project(":core"))
-    api(project(":core-api"))
-    api(project(":file-collections"))
-    api(project(":logging"))
-    api(project(":model-core"))
-    api(project(":platform-base"))
+    api(projects.stdlibJavaExtensions)
+    api(projects.serviceProvider)
+    api(projects.baseServices)
+    api(projects.core)
+    api(projects.coreApi)
+    api(projects.fileCollections)
+    api(projects.logging)
+    api(projects.modelCore)
+    api(projects.platformBase)
 
     api(libs.groovy)
     api(libs.inject)
-    api(libs.jsr305)
-    api(libs.nativePlatform)
+    api(libs.jspecify)
 
-    implementation(project(":core-jvm"))
-    implementation(project(":dependency-management"))
-    implementation(project(":execution"))
-    implementation(project(":functional"))
-    implementation(project(":jvm-services"))
-    implementation(project(":publish"))
+    implementation(projects.dependencyManagement)
+    implementation(projects.execution)
+    implementation(projects.fileOperations)
+    implementation(projects.functional)
+    implementation(projects.jvmServices)
+    implementation(projects.publish)
+    implementation(projects.serviceLookup)
 
     implementation(libs.guava)
     implementation(libs.commonsLang)
     implementation(libs.commonsIo)
 
-    testImplementation(project(":snapshots"))
+    testImplementation(projects.snapshots)
     testImplementation(libs.ant)
-    testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":diagnostics")))
-    testImplementation(testFixtures(project(":logging")))
-    testImplementation(testFixtures(project(":platform-base")))
-    testImplementation(testFixtures(project(":platform-native")))
+    testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.logging))
+    testImplementation(testFixtures(projects.platformBase))
+    testImplementation(testFixtures(projects.platformNative))
 
-    integTestImplementation(project(":internal-integ-testing"))
+    integTestImplementation(projects.internalIntegTesting)
 
     integTestImplementation(libs.slf4jApi)
 
-    testRuntimeOnly(project(":distributions-core")) {
+    testRuntimeOnly(projects.distributionsCore) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-core"))
+    integTestDistributionRuntimeOnly(projects.distributionsCore)
 }
 
 strictCompile {
@@ -60,3 +59,6 @@ strictCompile {
 }
 
 integTest.usesJavadocCodeSnippets = true
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

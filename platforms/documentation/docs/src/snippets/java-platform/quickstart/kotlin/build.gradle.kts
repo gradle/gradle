@@ -2,8 +2,8 @@
 plugins {
     `java-platform`
 }
-// end::use-plugin[]
 
+// end::use-plugin[]
 
 // tag::repo[]
 repositories {

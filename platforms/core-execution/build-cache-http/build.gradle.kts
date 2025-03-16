@@ -5,30 +5,37 @@ plugins {
 description = "Implementation for interacting with HTTP build caches"
 
 dependencies {
+    api(projects.stdlibJavaExtensions)
+    api(projects.serviceProvider)
+
     api(libs.httpcore)
     api(libs.inject)
-    api(libs.jsr305)
+    api(libs.jspecify)
 
-    api(project(":base-services"))
-    api(project(":build-cache-spi"))
-    api(project(":core-api"))
-    api(project(":resources-http"))
+    api(projects.baseServices)
+    api(projects.buildCacheSpi)
+    api(projects.coreApi)
+    api(projects.resourcesHttp)
 
-    implementation(project(":base-annotations"))
-    implementation(project(":core"))
-    implementation(project(":logging"))
-    implementation(project(":resources"))
+    implementation(projects.core)
+    implementation(projects.logging)
+    implementation(projects.resources)
 
     implementation(libs.commonsHttpclient)
     implementation(libs.guava)
     implementation(libs.slf4jApi)
 
-    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(projects.core))
     testImplementation(libs.servletApi)
 
-    integTestImplementation(project(":enterprise-operations"))
-    integTestImplementation(testFixtures(project(":build-cache")))
+    integTestImplementation(projects.enterpriseOperations)
+    integTestImplementation(testFixtures(projects.buildCache))
     integTestImplementation(libs.jetty)
 
-    integTestDistributionRuntimeOnly(project(":distributions-basics"))
+    integTestDistributionRuntimeOnly(projects.distributionsJvm) {
+        because("Uses application plugin.")
+    }
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

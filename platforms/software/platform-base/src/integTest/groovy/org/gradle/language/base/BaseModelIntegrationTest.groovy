@@ -26,6 +26,12 @@ import org.gradle.platform.base.LibrarySpec
 
 @UnsupportedWithConfigurationCache(because = "software model")
 class BaseModelIntegrationTest extends AbstractIntegrationSpec {
+
+    @Override
+    protected void setupExecuter() {
+        super.setupExecuter()
+    }
+
     def "empty containers are visible in model report"() {
         buildFile << """
 apply plugin: 'component-model-base'

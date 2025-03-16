@@ -28,7 +28,7 @@ class BuildOperationNotificationContinuousBuildIntegrationTest extends AbstractC
     def "obtains notifications about init scripts"() {
         when:
         settingsFile << notifications.registerListener()
-        buildScript """
+        buildFile """
             apply plugin: "java"
         """
         file("src/main/java/Thing.java") << "class Thing {}"

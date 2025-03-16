@@ -16,10 +16,16 @@
 
 package org.gradle.buildinit.plugins
 
+import org.gradle.api.JavaVersion
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLIN
+import static org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects.Skip.FLAKY
+import static org.hamcrest.CoreMatchers.containsString
 
 @LeaksFileHandles
 class KotlinApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSpec {
@@ -38,9 +44,10 @@ class KotlinApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegra
         dslFixtureFor(KOTLIN).assertGradleFilesGenerated()
     }
 
+    @Requires(value = UnitTestPreconditions.KotlinSupportedJdk.class)
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
-        run('init', '--type', 'kotlin-application', '--dsl', scriptDsl.id)
+        run('init', '--type', 'kotlin-application', '--dsl', scriptDsl.id, '--java-version', JavaVersion.current().majorVersion)
 
         then:
         subprojectDir.file("src/main/kotlin").assertHasDescendants(SAMPLE_APP_CLASS)
@@ -65,11 +72,12 @@ class KotlinApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegra
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
+    @Requires(value = UnitTestPreconditions.KotlinSupportedJdk.class)
     def "creates build using test suites with #scriptDsl build scripts when using --incubating"() {
         def dslFixture = dslFixtureFor(scriptDsl)
 
         when:
-        run('init', '--type', 'kotlin-application', '--dsl', scriptDsl.id, '--incubating')
+        run('init', '--type', 'kotlin-application', '--dsl', scriptDsl.id, '--incubating', '--java-version', JavaVersion.current().majorVersion)
 
         then:
         subprojectDir.file("src/main/kotlin").assertHasDescendants(SAMPLE_APP_CLASS)
@@ -95,12 +103,17 @@ class KotlinApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegra
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
+    @Requires(value = UnitTestPreconditions.KotlinSupportedJdk.class)
     def "creates with gradle.properties when using #scriptDsl build scripts with --incubating"() {
         when:
-        run('init', '--type', 'kotlin-application', '--dsl', scriptDsl.id, '--incubating')
+        run('init', '--type', 'kotlin-application', '--dsl', scriptDsl.id, '--incubating', '--java-version', JavaVersion.current().majorVersion)
 
         then:
-        gradlePropertiesGenerated()
+        gradlePropertiesGenerated {
+            assertCachingEnabled()
+            assertParallelEnabled()
+            assertConfigurationCacheEnabled()
+        }
 
         when:
         run("build")
@@ -118,9 +131,10 @@ class KotlinApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegra
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
+    @Requires(value = UnitTestPreconditions.KotlinSupportedJdk.class)
     def "creates sample source with package and #scriptDsl build scripts"() {
         when:
-        run('init', '--type', 'kotlin-application', '--package', 'my.app', '--dsl', scriptDsl.id)
+        run('init', '--type', 'kotlin-application', '--package', 'my.app', '--dsl', scriptDsl.id, '--java-version', JavaVersion.current().majorVersion)
 
         then:
         subprojectDir.file("src/main/kotlin").assertHasDescendants("my/app/App.kt")
@@ -145,7 +159,8 @@ class KotlinApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegra
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    def "setupProjectLayout is skipped when kotlin sources detected with #scriptDsl build scripts"() {
+    @Requires(value = UnitTestPreconditions.KotlinSupportedJdk.class)
+    def "init task action is skipped when kotlin sources detected with #scriptDsl build scripts"() {
         setup:
         subprojectDir.file("src/main/kotlin/org/acme/SampleMain.kt") << """
         package org.acme
@@ -163,7 +178,7 @@ class KotlinApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegra
                 }
         """
         when:
-        run('init', '--type', 'kotlin-application', '--dsl', scriptDsl.id)
+        run('init', '--type', 'kotlin-application', '--dsl', scriptDsl.id, '--overwrite', '--java-version', JavaVersion.current().majorVersion)
 
         then:
         subprojectDir.file("src/main/kotlin").assertHasDescendants("org/acme/SampleMain.kt")
@@ -178,5 +193,42 @@ class KotlinApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegra
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+    }
+
+    @Requires(value = UnitTestPreconditions.KotlinSupportedJdk.class)
+    @ToBeFixedForIsolatedProjects(skip = FLAKY, because = "KGP modifies service parameter properties concurrently")
+    def "initializes Kotlin application with JUnit Jupiter test framework with --split-project"() {
+        when:
+        run('init', '--type', 'kotlin-application', '--test-framework', 'junit-jupiter', "--split-project", '--java-version', JavaVersion.current().majorVersion)
+
+        then:
+        subprojectDir.file("build.gradle.kts").assertExists()
+
+        and:
+        targetDir.file("/buildSrc/src/main/kotlin/buildlogic.kotlin-common-conventions.gradle.kts").assertContents(containsString("junit.jupiter"))
+
+        when:
+        run("build")
+
+        then:
+        assertTestPassed("org.example.app.MessageUtilsTest", "testGetMessage")
+    }
+
+    @Requires(value = UnitTestPreconditions.KotlinSupportedJdk.class)
+    def "initializes Kotlin application with JUnit Jupiter test framework with --no-split-project"() {
+        when:
+        run('init', '--type', 'kotlin-application', '--test-framework', 'junit-jupiter', "--no-split-project", '--java-version', JavaVersion.current().majorVersion)
+
+        then:
+        subprojectDir.file("build.gradle.kts").assertExists()
+
+        and:
+        subprojectDir.file("build.gradle.kts").assertContents(containsString("junit.jupiter"))
+
+        when:
+        run("build")
+
+        then:
+        assertTestPassed("org.example.AppTest", "appHasAGreeting")
     }
 }

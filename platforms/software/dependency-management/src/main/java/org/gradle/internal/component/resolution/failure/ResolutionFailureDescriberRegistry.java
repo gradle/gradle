@@ -16,32 +16,29 @@
 
 package org.gradle.internal.component.resolution.failure;
 
-import org.gradle.internal.component.resolution.failure.describer.AmbiguousArtifactTransformFailureDescriber;
-import org.gradle.internal.component.resolution.failure.describer.AmbiguousArtifactVariantsFailureDescriber;
-import org.gradle.internal.component.resolution.failure.describer.AmbiguousGraphVariantsFailureDescriber;
-import org.gradle.internal.component.resolution.failure.describer.ConfigurationNotConsumableFailureDescriber;
-import org.gradle.internal.component.resolution.failure.describer.ExternalRequestedConfigurationNotFoundFailureDescriber;
-import org.gradle.internal.component.resolution.failure.describer.IncompatibleArtifactVariantsFailureDescriber;
-import org.gradle.internal.component.resolution.failure.describer.IncompatibleGraphVariantsFailureDescriber;
-import org.gradle.internal.component.resolution.failure.describer.IncompatibleRequestedConfigurationFailureDescriber;
-import org.gradle.internal.component.resolution.failure.describer.InvalidMultipleVariantsFailureDescriber;
-import org.gradle.internal.component.resolution.failure.describer.NoMatchingCapabilitiesFailureDescriber;
-import org.gradle.internal.component.resolution.failure.describer.RequestedConfigurationNotFoundFailureDescriber;
+import org.gradle.internal.component.resolution.failure.describer.AmbiguousArtifactTransformsFailureDescriber;
+import org.gradle.internal.component.resolution.failure.describer.AmbiguousArtifactsFailureDescriber;
+import org.gradle.internal.component.resolution.failure.describer.AmbiguousVariantsFailureDescriber;
+import org.gradle.internal.component.resolution.failure.describer.NoCompatibleArtifactFailureDescriber;
+import org.gradle.internal.component.resolution.failure.describer.NoCompatibleVariantsFailureDescriber;
+import org.gradle.internal.component.resolution.failure.describer.ConfigurationNotCompatibleFailureDescriber;
+import org.gradle.internal.component.resolution.failure.describer.IncompatibleMultipleNodesValidationFailureDescriber;
+import org.gradle.internal.component.resolution.failure.describer.MissingAttributeAmbiguousVariantsFailureDescriber;
+import org.gradle.internal.component.resolution.failure.describer.NoVariantsWithMatchingCapabilitiesFailureDescriber;
+import org.gradle.internal.component.resolution.failure.describer.ConfigurationDoesNotExistFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.UnknownArtifactSelectionFailureDescriber;
-import org.gradle.internal.component.resolution.failure.type.AmbiguousArtifactTransformFailure;
-import org.gradle.internal.component.resolution.failure.type.AmbiguousResolutionFailure;
-import org.gradle.internal.component.resolution.failure.type.ConfigurationNotConsumableFailure;
-import org.gradle.internal.component.resolution.failure.type.ExternalRequestedConfigurationNotFoundFailure;
-import org.gradle.internal.component.resolution.failure.type.IncompatibleGraphVariantFailure;
-import org.gradle.internal.component.resolution.failure.type.IncompatibleRequestedConfigurationFailure;
-import org.gradle.internal.component.resolution.failure.type.IncompatibleResolutionFailure;
-import org.gradle.internal.component.resolution.failure.type.IncompatibleMultipleNodeSelectionFailure;
-import org.gradle.internal.component.resolution.failure.type.NoMatchingCapabilitiesFailure;
-import org.gradle.internal.component.resolution.failure.type.RequestedConfigurationNotFoundFailure;
-import org.gradle.internal.component.resolution.failure.type.ResolutionFailure;
+import org.gradle.internal.component.resolution.failure.type.AmbiguousArtifactTransformsFailure;
+import org.gradle.internal.component.resolution.failure.type.AmbiguousArtifactsFailure;
+import org.gradle.internal.component.resolution.failure.type.NoCompatibleArtifactFailure;
+import org.gradle.internal.component.resolution.failure.type.NoCompatibleVariantsFailure;
+import org.gradle.internal.component.resolution.failure.type.IncompatibleMultipleNodesValidationFailure;
+import org.gradle.internal.component.resolution.failure.type.ConfigurationNotCompatibleFailure;
+import org.gradle.internal.component.resolution.failure.type.NoVariantsWithMatchingCapabilitiesFailure;
+import org.gradle.internal.component.resolution.failure.type.ConfigurationDoesNotExistFailure;
+import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure;
 import org.gradle.internal.component.resolution.failure.type.UnknownArtifactSelectionFailure;
-import org.gradle.internal.component.resolution.failure.type.VariantAwareAmbiguousResolutionFailure;
+import org.gradle.internal.component.resolution.failure.type.AmbiguousVariantsFailure;
 import org.gradle.internal.instantiation.InstanceGenerator;
 
 import java.util.ArrayList;
@@ -55,7 +52,7 @@ import java.util.List;
  */
 public final class ResolutionFailureDescriberRegistry {
     private final InstanceGenerator instanceGenerator;
-    private final LinkedHashMap<Class<? extends ResolutionFailure>, List<ResolutionFailureDescriber<?, ?>>> describers = new LinkedHashMap<>();
+    private final LinkedHashMap<Class<? extends ResolutionFailure>, List<ResolutionFailureDescriber<?>>> describers = new LinkedHashMap<>();
 
     private ResolutionFailureDescriberRegistry(InstanceGenerator instanceGenerator) {
         this.instanceGenerator = instanceGenerator;
@@ -73,7 +70,10 @@ public final class ResolutionFailureDescriberRegistry {
 
     /**
      * Creates a new, registry of {@link ResolutionFailureDescriber}s containing the default internal list of describers
-     * that can describe the complete set of {@link ResolutionFailure} types used by Gradle.
+     * that can describe the {@link org.gradle.internal.component.resolution.failure.interfaces complete set} of {@link ResolutionFailure}
+     * types used by Gradle.
+     * <p>
+     * This list should be ordered according to the order in which the failures can occur during the resolution process.
      *
      * @param instanceGenerator The instance generator to use to create describers
      * @return a new registry instance with the default describers registered
@@ -81,21 +81,21 @@ public final class ResolutionFailureDescriberRegistry {
     public static ResolutionFailureDescriberRegistry standardRegistry(InstanceGenerator instanceGenerator) {
         ResolutionFailureDescriberRegistry registry = new ResolutionFailureDescriberRegistry(instanceGenerator);
 
-        registry.registerDescriber(VariantAwareAmbiguousResolutionFailure.class, AmbiguousGraphVariantsFailureDescriber.class);
-        registry.registerDescriber(IncompatibleGraphVariantFailure.class, IncompatibleGraphVariantsFailureDescriber.class);
+        // Variant Selection failure
+        registry.registerDescriber(AmbiguousVariantsFailure.class, MissingAttributeAmbiguousVariantsFailureDescriber.class); // Added ahead of AmbiguousVariantsFailureDescriber so the more specific ambiguity case is checked first
+        registry.registerDescriber(AmbiguousVariantsFailure.class, AmbiguousVariantsFailureDescriber.class);
+        registry.registerDescriber(NoCompatibleVariantsFailure.class, NoCompatibleVariantsFailureDescriber.class);
+        registry.registerDescriber(ConfigurationNotCompatibleFailure.class, ConfigurationNotCompatibleFailureDescriber.class);
+        registry.registerDescriber(ConfigurationDoesNotExistFailure.class, ConfigurationDoesNotExistFailureDescriber.class);
 
-        registry.registerDescriber(AmbiguousResolutionFailure.class, AmbiguousArtifactVariantsFailureDescriber.class);
-        registry.registerDescriber(IncompatibleResolutionFailure.class, IncompatibleArtifactVariantsFailureDescriber.class);
-        registry.registerDescriber(IncompatibleMultipleNodeSelectionFailure.class, InvalidMultipleVariantsFailureDescriber.class);
-        registry.registerDescriber(AmbiguousArtifactTransformFailure.class, AmbiguousArtifactTransformFailureDescriber.class);
+        // Graph Validation failures
+        registry.registerDescriber(NoVariantsWithMatchingCapabilitiesFailure.class, NoVariantsWithMatchingCapabilitiesFailureDescriber.class);
 
-        registry.registerDescriber(IncompatibleRequestedConfigurationFailure.class, IncompatibleRequestedConfigurationFailureDescriber.class);
-        registry.registerDescriber(RequestedConfigurationNotFoundFailure.class, RequestedConfigurationNotFoundFailureDescriber.class);
-        registry.registerDescriber(ExternalRequestedConfigurationNotFoundFailure.class, ExternalRequestedConfigurationNotFoundFailureDescriber.class);
-        registry.registerDescriber(ConfigurationNotConsumableFailure.class, ConfigurationNotConsumableFailureDescriber.class);
-
-        registry.registerDescriber(NoMatchingCapabilitiesFailure.class, NoMatchingCapabilitiesFailureDescriber.class);
-
+        // Artifact Selection failures
+        registry.registerDescriber(AmbiguousArtifactsFailure.class, AmbiguousArtifactsFailureDescriber.class);
+        registry.registerDescriber(NoCompatibleArtifactFailure.class, NoCompatibleArtifactFailureDescriber.class);
+        registry.registerDescriber(IncompatibleMultipleNodesValidationFailure.class, IncompatibleMultipleNodesValidationFailureDescriber.class);
+        registry.registerDescriber(AmbiguousArtifactTransformsFailure.class, AmbiguousArtifactTransformsFailureDescriber.class);
         registry.registerDescriber(UnknownArtifactSelectionFailure.class, UnknownArtifactSelectionFailureDescriber.class);
 
         return registry;
@@ -108,10 +108,10 @@ public final class ResolutionFailureDescriberRegistry {
      * @param <FAILURE> The type of failure to describe
      * @return The list of describers registered for the given failure type
      */
-    public <FAILURE extends ResolutionFailure> List<ResolutionFailureDescriber<?, FAILURE>> getDescribers(Class<FAILURE> failureType) {
-        List<ResolutionFailureDescriber<?, FAILURE>> result = new ArrayList<>();
+    public <FAILURE extends ResolutionFailure> List<ResolutionFailureDescriber<FAILURE>> getDescribers(Class<FAILURE> failureType) {
+        List<ResolutionFailureDescriber<FAILURE>> result = new ArrayList<>();
         describers.getOrDefault(failureType, Collections.emptyList()).forEach(d -> {
-            @SuppressWarnings("unchecked") ResolutionFailureDescriber<?, FAILURE> typedDescriber = (ResolutionFailureDescriber<?, FAILURE>) d;
+            @SuppressWarnings("unchecked") ResolutionFailureDescriber<FAILURE> typedDescriber = (ResolutionFailureDescriber<FAILURE>) d;
             result.add(typedDescriber);
         });
         return result;
@@ -125,8 +125,8 @@ public final class ResolutionFailureDescriberRegistry {
      * @param describerType A describer that can potentially describe failures of the given type
      * @param <FAILURE> The type of failure to describe
      */
-    public <FAILURE extends ResolutionFailure> void registerDescriber(Class<FAILURE> failureType, Class<? extends ResolutionFailureDescriber<?, FAILURE>> describerType) {
-        ResolutionFailureDescriber<?, ?> describer = instanceGenerator.newInstance(describerType);
+    public <FAILURE extends ResolutionFailure> void registerDescriber(Class<FAILURE> failureType, Class<? extends ResolutionFailureDescriber<FAILURE>> describerType) {
+        ResolutionFailureDescriber<?> describer = instanceGenerator.newInstance(describerType);
         describers.computeIfAbsent(failureType, k -> new ArrayList<>()).add(describer);
     }
 }

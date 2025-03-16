@@ -41,43 +41,48 @@ class ArtifactResolutionQueryIntegrationTest extends AbstractHttpDependencyResol
         def handler = blockingServer.expectConcurrentAndBlock(blockingServer.get(module.pom.path).sendFile(module.pom.file), blockingServer.get('/sync'))
         blockingServer.expect(blockingServer.get(module.artifact.path).sendFile(module.artifact.file))
 
-        createDirs("query", "resolve")
         settingsFile << 'include "query", "resolve"'
-        buildFile << """
-import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-import org.gradle.api.internal.artifacts.DefaultModuleIdentifier as DMI
+        def common = """
+            import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+            import org.gradle.api.internal.artifacts.DefaultModuleIdentifier as DMI
 
-allprojects {
-    apply plugin: 'java'
-    repositories {
-       maven { url '${blockingServer.uri}/repo' }
-    }
+            plugins {
+                id("java-library")
+            }
 
-    dependencies {
-        implementation 'group:artifact:1.0'
-    }
-}
+            repositories {
+               maven { url = '${blockingServer.uri}/repo' }
+            }
 
-project('query') {
-    task query {
-        doLast {
-            '${blockingServer.uri}/sync'.toURL().text
-            dependencies.createArtifactResolutionQuery()
-                        .forComponents(new DefaultModuleComponentIdentifier(DMI.newId('group','artifact'),'1.0'))
-                        .withArtifacts(JvmLibrary)
-                        .execute()
-        }
-    }
-}
+            dependencies {
+                implementation 'group:artifact:1.0'
+            }
+        """
 
-project('resolve') {
-    task resolve {
-        doLast {
-            configurations.compileClasspath.files.collect { it.file }
-        }
-    }
-}
-"""
+        file("query/build.gradle") << """
+            $common
+
+            task query {
+                doLast {
+                    '${blockingServer.uri}/sync'.toURL().text
+                    dependencies.createArtifactResolutionQuery()
+                                .forComponents(new DefaultModuleComponentIdentifier(DMI.newId('group','artifact'),'1.0'))
+                                .withArtifacts(JvmLibrary)
+                                .execute()
+                }
+            }
+        """
+
+        file("resolve/build.gradle") << """
+            $common
+
+            task resolve {
+                doLast {
+                    configurations.compileClasspath.files.collect { it.file }
+                }
+            }
+        """
+
         executer.requireOwnGradleUserHomeDir().requireIsolatedDaemons()
 
         expect:
@@ -103,7 +108,7 @@ project('resolve') {
             apply plugin: 'java'
             repositories {
                 maven {
-                    url '${mavenHttpRepo.uri}'
+                    url = "${mavenHttpRepo.uri}"
                     content {
                         onlyForAttribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.LIBRARY))
                     }
@@ -121,6 +126,41 @@ project('resolve') {
                         .forComponents(id)
                         .withArtifacts(JvmLibrary, JavadocArtifact)
                         .execute()
+                }
+            }
+        """
+
+        expect:
+        succeeds('query')
+    }
+
+    @ToBeFixedForConfigurationCache(because = "task uses artifact query API")
+    def "can resolve sources and javadoc for ivy repo"() {
+        given:
+        ivyRepo.module('group', "artifact", '1.0')
+            .configuration("javadoc")
+            .configuration("sources")
+            .artifact(classifier: 'sources', conf: 'sources')
+            .artifact(classifier: 'javadoc', conf: 'javadoc')
+            .publish()
+
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+            ${ivyTestRepository()}
+            dependencies {
+                implementation 'group:artifact:1.0'
+            }
+            task query {
+                doLast {
+                    def id = configurations.compileClasspath.incoming.resolutionResult
+                        .allDependencies.first().selected.id
+                    ArtifactResolutionResult result = dependencies.createArtifactResolutionQuery()
+                        .forComponents(id)
+                        .withArtifacts(JvmLibrary, JavadocArtifact, SourcesArtifact)
+                        .execute()
+                    assert result.resolvedComponents.first().artifactResults*.file*.name == ['artifact-1.0-javadoc.jar', 'artifact-1.0-sources.jar']
                 }
             }
         """

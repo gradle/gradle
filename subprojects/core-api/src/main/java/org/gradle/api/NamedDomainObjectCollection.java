@@ -20,8 +20,8 @@ import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 import java.util.SortedMap;
@@ -102,18 +102,22 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
     Namer<T> getNamer();
 
     /**
-     * <p>Returns the objects in this collection, as a map from object name to object instance.</p>
-     *
-     * <p>The map is ordered by the <em>natural ordering</em> of the object names (i.e. keys).</p>
+     * Returns the objects in this collection, as a map from object name to object instance.
+     * <p>
+     * The map is ordered by the <em>natural ordering</em> of the object names (i.e. keys).
+     * <p>
+     * This operation is eager and will cause all elements of the collection to be realized.
      *
      * @return The objects. Returns an empty map if this collection is empty.
      */
     SortedMap<String, T> getAsMap();
 
     /**
-     * <p>Returns the names of the objects in this collection as a Set of Strings.</p>
-     *
-     * <p>The set of names is in <em>natural ordering</em>.</p>
+     * Returns the names of the objects in this collection as a Set of Strings.
+     * <p>
+     * The set of names is in <em>natural ordering</em>.
+     * <p>
+     * This operation is lazy and pending elements of this collection will not be realized.
      *
      * @return The names. Returns an empty set if this collection is empty.
      */
@@ -121,6 +125,8 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
 
     /**
      * Locates an object by name, returning null if there is no such object.
+     * <p>
+     * This operation is eager and will cause the returned element, if any, to be realized.
      *
      * @param name The object name
      * @return The object with the given name, or null if there is no such object in this collection.
@@ -130,6 +136,8 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
 
     /**
      * Locates an object by name, failing if there is no such object.
+     * <p>
+     * This operation is eager and will cause the returned element to be realized.
      *
      * @param name The object name
      * @return The object with the given name. Never returns null.
@@ -140,6 +148,8 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
     /**
      * Locates an object by name, failing if there is no such object. The given configure closure is executed against
      * the object before it is returned from this method. The object is passed to the closure as its delegate.
+     * <p>
+     * This operation is eager and will cause the returned element to be realized.
      *
      * @param name The object name
      * @param configureClosure The closure to use to configure the object.
@@ -151,6 +161,8 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
     /**
      * Locates an object by name, failing if there is no such object. The given configure action is executed against
      * the object before it is returned from this method.
+     * <p>
+     * This operation is eager and will cause the returned element to be realized.
      *
      * @param name The object name
      * @param configureAction The action to use to configure the object.
@@ -163,6 +175,8 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
     /**
      * Locates an object by name, failing if there is no such object. This method is identical to {@link
      * #getByName(String)}. You can call this method in your build script by using the groovy {@code []} operator.
+     * <p>
+     * This operation is eager and will cause the returned element to be realized.
      *
      * @param name The object name
      * @return The object with the given name. Never returns null.
@@ -216,7 +230,8 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      * Returns a collection containing the objects with names matching the provided filter.
      * The returned collection is live, so that when matching objects are added to this collection,
      * they are also visible in the filtered collection.
-     * This method will NOT cause any pending objects in this container to be realized.
+     * <p>
+     * This method is an intermediate operation. It does not change the realized/unrealized state of the elements in the collection.
      *
      * @param nameFilter The specification to test names against.
      * @return The collection of objects with names satisfying the filter. Returns an empty collection if there are no such objects in this collection.
@@ -242,7 +257,9 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
     NamedDomainObjectCollection<T> matching(Closure spec);
 
     /**
-     * Locates a object by name, without triggering its creation or configuration, failing if there is no such object.
+     * Locates a object by name, failing if there is no such object.
+     * <p>
+     * This method is lazy and will not cause the returned element to be realized.
      *
      * @param name The object's name
      * @return A {@link Provider} that will return the object when queried. The object may be created and configured at this point, if not already.
@@ -252,8 +269,10 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
     NamedDomainObjectProvider<T> named(String name) throws UnknownDomainObjectException;
 
     /**
-     * Locates a object by name, without triggering its creation or configuration, failing if there is no such object.
+     * Locates a object by name, failing if there is no such object.
      * The given configure action is executed against the object before it is returned from the provider.
+     * <p>
+     * This method is lazy and will not cause the returned element to be realized.
      *
      * @param name The object's name
      * @return A {@link Provider} that will return the object when queried. The object may be created and configured at this point, if not already.
@@ -263,7 +282,9 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
     NamedDomainObjectProvider<T> named(String name, Action<? super T> configurationAction) throws UnknownDomainObjectException;
 
     /**
-     * Locates a object by name and type, without triggering its creation or configuration, failing if there is no such object.
+     * Locates a object by name and type, failing if there is no such object.
+     * <p>
+     * This method is lazy and will not cause the returned element to be realized.
      *
      * @param name The object's name
      * @param type The object's type
@@ -274,8 +295,10 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
     <S extends T> NamedDomainObjectProvider<S> named(String name, Class<S> type) throws UnknownDomainObjectException;
 
     /**
-     * Locates a object by name and type, without triggering its creation or configuration, failing if there is no such object.
+     * Locates a object by name and type, failing if there is no such object.
      * The given configure action is executed against the object before it is returned from the provider.
+     * <p>
+     * This method is lazy and will not cause the returned element to be realized.
      *
      * @param name The object's name
      * @param type The object's type

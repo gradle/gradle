@@ -33,8 +33,8 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.util.internal.DeferredUtil;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Set;
@@ -78,7 +78,7 @@ public class UnpackingVisitor {
             return;
         }
         if (includeBuildable && (element instanceof Buildable || element instanceof TaskDependencyContainer)) {
-            visitor.accept(new BuildableElementFileCollection(element, resolver, patternSetFactory));
+            visitor.accept(new BuildableElementFileCollection(element, resolver, taskDependencyFactory, patternSetFactory));
             return;
         }
 
@@ -143,12 +143,11 @@ public class UnpackingVisitor {
     private static class BuildableElementFileCollection extends CompositeFileCollection {
         private final Object element;
         private final PathToFileResolver resolver;
-        private final Factory<PatternSet> patternSetFactory;
 
-        public BuildableElementFileCollection(Object element, PathToFileResolver resolver, Factory<PatternSet> patternSetFactory) {
+        public BuildableElementFileCollection(Object element, PathToFileResolver resolver, TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory) {
+            super(taskDependencyFactory, patternSetFactory);
             this.element = element;
             this.resolver = resolver;
-            this.patternSetFactory = patternSetFactory;
         }
 
         @Override

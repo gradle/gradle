@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
-import org.gradle.api.resources.MissingResourceException;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
 import org.gradle.internal.build.event.types.AbstractOperationResult;
@@ -39,9 +38,9 @@ import org.gradle.tooling.events.OperationType;
 import org.gradle.tooling.internal.protocol.events.InternalOperationFinishedProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalOperationStartedProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalProgressEvent;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -91,13 +90,13 @@ public class FileDownloadOperationMapper implements BuildOperationMapper<Externa
         return new DefaultOperationFinishedProgressEvent(endTime, descriptor, result);
     }
 
-    @Nonnull
+    @NonNull
     private static AbstractOperationResult createFileDownloadResult(ExternalResourceReadBuildOperationType.Result operationResult, Throwable failure, long startTime, long endTime) {
+        if (operationResult.isMissing()) {
+            return new NotFoundFileDownloadSuccessResult(startTime, endTime);
+        }
         if (failure == null) {
             return new DefaultFileDownloadSuccessResult(startTime, endTime, operationResult.getBytesRead());
-        }
-        if (failure instanceof MissingResourceException) {
-            return new NotFoundFileDownloadSuccessResult(startTime, endTime);
         }
         return new DefaultFileDownloadFailureResult(startTime, endTime, singletonList(DefaultFailure.fromThrowable(failure)), operationResult.getBytesRead());
     }

@@ -34,11 +34,19 @@ trait CodeNarcTestFixture {
         file("src/test/groovy/org/gradle/testclass2.groovy") << "package org.gradle; class testclass2 { }"
     }
 
-    def TestFile report(String sourceSet, String ext = 'html') {
-        file("build/reports/codenarc/${sourceSet}.${ext}")
+    TestFile report(String sourceSet, String ext = 'html') {
+        file(reportPath(sourceSet, ext))
     }
 
-    def TestFile writeRuleFile() {
+    TestFile report(File projectDir, String sourceSet, String ext = 'html') {
+        new TestFile(projectDir, reportPath(sourceSet, ext))
+    }
+
+    private String reportPath(String sourceSet, String ext) {
+        return "build/reports/codenarc/${sourceSet}.${ext}"
+    }
+
+    TestFile writeRuleFile() {
         file("config/codenarc/codenarc.xml") << """
             <ruleset xmlns="http://codenarc.org/ruleset/1.0"
                     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"

@@ -31,6 +31,7 @@ import org.objectweb.asm.Opcodes.ACC_SYNTHETIC
 import org.objectweb.asm.Opcodes.ACC_VARARGS
 import org.objectweb.asm.Type
 import org.objectweb.asm.TypePath
+import org.objectweb.asm.TypeReference
 import org.objectweb.asm.signature.SignatureReader
 import org.objectweb.asm.signature.SignatureVisitor
 import org.objectweb.asm.tree.AnnotationNode
@@ -39,7 +40,6 @@ import org.objectweb.asm.tree.MethodNode
 import java.io.Closeable
 import java.io.File
 import java.util.ArrayDeque
-import javax.annotation.Nullable
 
 
 fun apiTypeProviderFor(
@@ -48,7 +48,6 @@ fun apiTypeProviderFor(
     incubatingAnnotationTypeDescriptor: String,
     classPath: List<File>,
     classPathDependencies: List<File> = emptyList(),
-    parameterNamesSupplier: ParameterNamesSupplier = { null },
 ): ApiTypeProvider =
 
     ApiTypeProvider(
@@ -58,21 +57,12 @@ fun apiTypeProviderFor(
             platformClassLoader,
             classPath,
             classPathDependencies,
-        ),
-        parameterNamesSupplier
+        )
     )
 
 
 private
 typealias ApiTypeSupplier = () -> ApiType
-
-
-typealias ParameterNamesSupplier = (String) -> List<String>?
-
-
-private
-fun ParameterNamesSupplier.parameterNamesFor(typeName: String, functionName: String, parameterTypeNames: List<String>): List<String>? =
-    this("$typeName.$functionName(${parameterTypeNames.joinToString(",")})")
 
 
 /**
@@ -90,12 +80,11 @@ fun ParameterNamesSupplier.parameterNamesFor(typeName: String, functionName: Str
 class ApiTypeProvider internal constructor(
     private val asmLevel: Int,
     private val incubatingAnnotationTypeDescriptor: String,
-    private val repository: ClassBytesRepository,
-    parameterNamesSupplier: ParameterNamesSupplier
+    private val repository: ClassBytesRepository
 ) : Closeable {
 
     private
-    val context = Context(this, parameterNamesSupplier)
+    val context = Context(this)
 
     private
     val apiTypesBySourceName = mutableMapOf<String, ApiTypeSupplier?>()
@@ -138,20 +127,17 @@ class ApiTypeProvider internal constructor(
     }
 
     private
-    fun <T> open(action: () -> T): T =
-        if (closed) throw IllegalStateException("ApiTypeProvider closed!")
-        else action()
+    fun <T> open(action: () -> T): T {
+        check(!closed) { "ApiTypeProvider closed!" }
+        return action()
+    }
 
     internal
     class Context(
         private val typeProvider: ApiTypeProvider,
-        private val parameterNamesSupplier: ParameterNamesSupplier
     ) {
         fun type(sourceName: String): ApiType? =
             typeProvider.type(sourceName)
-
-        fun parameterNamesFor(typeName: String, functionName: String, parameterTypeNames: List<String>): List<String>? =
-            parameterNamesSupplier.parameterNamesFor(typeName, functionName, parameterTypeNames)
     }
 }
 
@@ -227,6 +213,7 @@ class ApiType internal constructor(
             candidate.desc == methodNode.desc && candidate.signature == methodNode.signature
         }
 
+        @Suppress("LoopWithTooManyJumpStatements")
         while (superTypeStack.isNotEmpty()) {
             val superTypeName = superTypeStack.pop()
 
@@ -295,7 +282,7 @@ class ApiFunction internal constructor(
     }
 
     val parameters: List<ApiFunctionParameter> by unsafeLazy {
-        context.apiFunctionParametersFor(this, delegate, visitedSignature)
+        context.apiFunctionParametersFor(delegate, visitedSignature)
     }
 
     val returnType: ApiTypeUsage by unsafeLazy {
@@ -315,7 +302,7 @@ class ApiFunction internal constructor(
 }
 
 
-data class ApiTypeUsage internal constructor(
+data class ApiTypeUsage(
     val sourceName: String,
     internal val isNullable: Boolean = false,
     val type: ApiType? = null,
@@ -356,7 +343,7 @@ enum class Variance {
 }
 
 
-data class ApiFunctionParameter internal constructor(
+data class ApiFunctionParameter(
     internal val index: Int,
     internal val isVarargs: Boolean,
     private val nameSupplier: () -> String?,
@@ -413,17 +400,10 @@ fun ApiTypeProvider.Context.apiTypeParametersFor(visitedSignature: BaseSignature
 
 
 private
-fun ApiTypeProvider.Context.apiFunctionParametersFor(function: ApiFunction, delegate: MethodNode, visitedSignature: MethodSignatureVisitor?) =
-    delegate.visibleParameterAnnotations?.map { it.has<Nullable>() }.let { parametersNullability ->
+fun ApiTypeProvider.Context.apiFunctionParametersFor(delegate: MethodNode, visitedSignature: MethodSignatureVisitor?) =
+    delegate.visibleParameterAnnotations?.map { it.hasNullableAnnotation() }.let { parametersNullability ->
         val parameterTypesBinaryNames = visitedSignature?.parameters?.map { if (it.isArray) "${it.typeArguments.single().binaryName}[]" else it.binaryName }
             ?: Type.getArgumentTypes(delegate.desc).map { it.className }
-        val names by unsafeLazy {
-            parameterNamesFor(
-                function.owner.sourceName,
-                function.name,
-                parameterTypesBinaryNames
-            )
-        }
         parameterTypesBinaryNames.mapIndexed { idx, parameterTypeBinaryName ->
             val isNullable = parametersNullability?.get(idx) == true
             val signatureParameter = visitedSignature?.parameters?.get(idx)
@@ -434,7 +414,7 @@ fun ApiTypeProvider.Context.apiFunctionParametersFor(function: ApiFunction, dele
                 index = idx,
                 isVarargs = idx == parameterTypesBinaryNames.lastIndex && delegate.access.isVarargs,
                 nameSupplier = {
-                    names?.get(idx) ?: delegate.parameters?.get(idx)?.name
+                    delegate.parameters?.get(idx)?.name
                 },
                 typeBinaryName = parameterTypeBinaryName,
                 type = apiTypeUsageFor(parameterTypeName, isNullable, variance, typeArguments)
@@ -446,11 +426,22 @@ fun ApiTypeProvider.Context.apiFunctionParametersFor(function: ApiFunction, dele
 private
 fun ApiTypeProvider.Context.apiTypeUsageForReturnType(delegate: MethodNode, returnType: TypeSignatureVisitor?) =
     apiTypeUsageFor(
-        returnType?.binaryName ?: Type.getReturnType(delegate.desc).className,
-        delegate.visibleAnnotations.has<Nullable>(),
-        returnType?.variance ?: Variance.INVARIANT,
-        returnType?.typeArguments ?: emptyList()
+        binaryName = returnType?.binaryName ?: Type.getReturnType(delegate.desc).className,
+        isNullable = delegate.isReturnTypeNullable,
+        variance = returnType?.variance ?: Variance.INVARIANT,
+        typeArguments = returnType?.typeArguments ?: emptyList()
     )
+
+
+private
+val MethodNode.isReturnTypeNullable: Boolean
+    get() = visibleAnnotations.hasNullableAnnotation() ||
+        visibleTypeAnnotations?.filter { TypeReference(it.typeRef).sort == TypeReference.METHOD_RETURN }.hasNullableAnnotation()
+
+
+private
+fun List<AnnotationNode>?.hasNullableAnnotation() =
+    has<org.jspecify.annotations.Nullable>()
 
 
 private
@@ -621,7 +612,7 @@ val mappedTypeStrings =
         "java.lang.Number" to "kotlin.Number",
         "java.lang.Throwable" to "kotlin.Throwable",
         // Collections
-        "java.util.Iterable" to "kotlin.collections.Iterable",
+        "java.lang.Iterable" to "kotlin.collections.Iterable",
         "java.util.Iterator" to "kotlin.collections.Iterator",
         "java.util.ListIterator" to "kotlin.collections.ListIterator",
         "java.util.Collection" to "kotlin.collections.Collection",
@@ -631,7 +622,7 @@ val mappedTypeStrings =
         "java.util.HashSet" to "kotlin.collections.HashSet",
         "java.util.LinkedHashSet" to "kotlin.collections.LinkedHashSet",
         "java.util.Map" to "kotlin.collections.Map",
-        "java.util.Map.Entry" to "kotlin.collections.Map.Entry",
+        "java.util.Map\$Entry" to "kotlin.collections.Map.Entry",
         "java.util.HashMap" to "kotlin.collections.HashMap",
         "java.util.LinkedHashMap" to "kotlin.collections.LinkedHashMap"
     )

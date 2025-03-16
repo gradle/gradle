@@ -40,7 +40,7 @@ import java.util.List;
  * }
  * </pre>
  *
- * <h3>Thread safety information</h3>
+ * <h2>Thread safety information</h2>
  *
  * <p>All implementations of {@code ProjectConnection} are thread-safe, and may be shared by any number of threads.</p>
  *

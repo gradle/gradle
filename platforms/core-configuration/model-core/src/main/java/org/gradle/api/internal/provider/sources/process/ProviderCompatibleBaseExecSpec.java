@@ -18,8 +18,8 @@ package org.gradle.api.internal.provider.sources.process;
 
 import org.gradle.process.BaseExecSpec;
 import org.gradle.process.ProcessForkOptions;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;

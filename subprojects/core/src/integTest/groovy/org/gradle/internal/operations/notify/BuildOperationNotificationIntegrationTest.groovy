@@ -32,10 +32,13 @@ import org.gradle.initialization.NotifyProjectsEvaluatedBuildOperationType
 import org.gradle.initialization.NotifyProjectsLoadedBuildOperationType
 import org.gradle.initialization.buildsrc.BuildBuildSrcBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.internal.taskgraph.CalculateTreeTaskGraphBuildOperationType
 import org.gradle.launcher.exec.RunBuildBuildOperationType
 import org.gradle.operations.lifecycle.RunRequestedWorkBuildOperationType
+
+import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 
 class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec {
 
@@ -53,7 +56,7 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         def init = executer.gradleUserHomeDir.file("init.d/init.gradle") << """
         """
         addSettingsListener()
-        buildScript """
+        buildFile """
             task t
         """
 
@@ -73,7 +76,7 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
     def "can emit notifications from start of build"() {
         when:
         addSettingsListener()
-        buildScript """
+        buildFile """
             task t
         """
 
@@ -109,6 +112,7 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         notifications.finished(ExecuteTaskBuildOperationType.Result, [actionable: false, originExecutionTime: null, cachingDisabledReasonMessage: "Cacheability was not determined", upToDateMessages: [], cachingDisabledReasonCategory: "UNKNOWN", skipMessage: "UP-TO-DATE", originBuildInvocationId: null])
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "can emit notifications for nested builds"() {
         when:
         file("buildSrc/build.gradle") << ""
@@ -117,7 +121,7 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         file("a/settings.gradle") << ""
         file("settings.gradle") << "includeBuild 'a'"
         addSettingsListener()
-        buildScript """
+        buildFile """
             task t {
                 dependsOn gradle.includedBuild("a").task(":t")
             }
@@ -240,7 +244,7 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
             }
         """
         settingsFile << "rootProject.name = 'parent'"
-        buildScript """
+        buildFile """
             task t(type: GradleBuild) {
                 tasks = ["o"]
             }

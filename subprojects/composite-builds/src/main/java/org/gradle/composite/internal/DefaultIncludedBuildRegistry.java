@@ -37,8 +37,8 @@ import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.util.Path;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -109,7 +109,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     }
 
     @Override
-    public IncludedBuildState addIncludedBuild(BuildDefinition buildDefinition) {
+    public IncludedBuildState addIncludedBuild(BuildDefinition buildDefinition, BuildState referrer) {
         return registerBuild(buildDefinition, false, null);
     }
 
@@ -271,13 +271,6 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
 
     private static boolean isPrefix(File prefix, File toCheck) {
         return toCheck.toPath().toAbsolutePath().startsWith(prefix.toPath().toAbsolutePath());
-    }
-
-    @Override
-    public void resetStateForAllBuilds() {
-        for (BuildState build : buildsByIdentifier.values()) {
-            build.resetModel();
-        }
     }
 
     @Override

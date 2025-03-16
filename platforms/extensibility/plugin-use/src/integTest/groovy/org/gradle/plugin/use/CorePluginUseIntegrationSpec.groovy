@@ -27,7 +27,7 @@ class CorePluginUseIntegrationSpec extends AbstractIntegrationSpec {
 
     void "can resolve core plugins"() {
         when:
-        buildScript """
+        buildFile """
             plugins {
               id 'java'
             }
@@ -39,7 +39,7 @@ class CorePluginUseIntegrationSpec extends AbstractIntegrationSpec {
 
     void "can resolve qualified core plugins"() {
         when:
-        buildScript """
+        buildFile """
             plugins {
               id 'org.gradle.java'
             }
@@ -51,7 +51,7 @@ class CorePluginUseIntegrationSpec extends AbstractIntegrationSpec {
 
     void "core plugins cannot have a version number"() {
         given:
-        buildScript """
+        buildFile """
             plugins {
                 id "java" version "1.0"
             }
@@ -69,7 +69,7 @@ class CorePluginUseIntegrationSpec extends AbstractIntegrationSpec {
 
     void "qualified core plugins cannot have a version number"() {
         given:
-        buildScript """
+        buildFile """
             plugins {
                 id "org.gradle.java" version "1.0"
             }
@@ -87,7 +87,7 @@ class CorePluginUseIntegrationSpec extends AbstractIntegrationSpec {
 
     void "core plugins cannot be used with apply false"() {
         given:
-        buildScript """
+        buildFile """
             plugins {
                 id "java" apply false
             }
@@ -105,7 +105,7 @@ class CorePluginUseIntegrationSpec extends AbstractIntegrationSpec {
 
     def "cant ask for same plugin twice"() {
         given:
-        buildScript """
+        buildFile """
             plugins {
                 id "java"
                 id "java"
@@ -123,7 +123,7 @@ class CorePluginUseIntegrationSpec extends AbstractIntegrationSpec {
 
     def "cant ask for same plugin twice with other plugins applied"() {
         given:
-        buildScript """
+        buildFile """
             plugins {
                 id "base"
                 id "java"
@@ -142,7 +142,7 @@ class CorePluginUseIntegrationSpec extends AbstractIntegrationSpec {
 
     def "can reapply core plugin applied via plugins block"() {
         when:
-        buildScript """
+        buildFile """
             plugins {
                 id "java"
             }
@@ -158,7 +158,7 @@ class CorePluginUseIntegrationSpec extends AbstractIntegrationSpec {
 
     def "can reapply core plugin applied via qualified id in plugins block"() {
         when:
-        buildScript """
+        buildFile """
             plugins {
                 id "org.gradle.java"
             }
@@ -174,7 +174,7 @@ class CorePluginUseIntegrationSpec extends AbstractIntegrationSpec {
 
     def "can use qualified and unqualified ids to detect core plugins"() {
         when:
-        buildScript """
+        buildFile """
             plugins {
                 id "$pluginId"
             }
@@ -201,7 +201,7 @@ class CorePluginUseIntegrationSpec extends AbstractIntegrationSpec {
 
     def "can use apply method to load core plugins qualified or unqualified"() {
         when:
-        buildScript """
+        buildFile """
             apply plugin: "${pluginId}"
         """
 
@@ -214,7 +214,7 @@ class CorePluginUseIntegrationSpec extends AbstractIntegrationSpec {
 
     def "can use apply method with other form of core plugin without problem"() {
         when:
-        buildScript """
+        buildFile """
             plugins {
                 id "${plugins[0]}"
             }

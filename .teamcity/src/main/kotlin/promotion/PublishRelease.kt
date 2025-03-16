@@ -24,16 +24,16 @@ abstract class PublishRelease(
     promoteTask: String,
     requiredConfirmationCode: String,
     promotedBranch: String,
-    init: PublishRelease.() -> Unit = {}
+    init: PublishRelease.() -> Unit = {},
 ) : PublishGradleDistributionFullBuild(
-    promotedBranch = promotedBranch,
-    prepTask = prepTask,
-    promoteTask = promoteTask,
-    triggerName = "ReadyforRelease",
-    gitUserEmail = "%gitUserEmail%",
-    gitUserName = "%gitUserName%",
-    extraParameters = "-PconfirmationCode=%confirmationCode%"
-) {
+        promotedBranch = promotedBranch,
+        prepTask = prepTask,
+        promoteTask = promoteTask,
+        triggerName = "ReadyforRelease",
+        gitUserEmail = "%gitUserEmail%",
+        gitUserName = "%gitUserName%",
+        extraParameters = "-PconfirmationCode=%confirmationCode%",
+    ) {
     init {
         params {
             text(
@@ -42,7 +42,7 @@ abstract class PublishRelease(
                 label = "Git user.email Configuration",
                 description = "Enter the git 'user.email' configuration to commit change under",
                 display = ParameterDisplay.PROMPT,
-                allowEmpty = true
+                allowEmpty = true,
             )
             text(
                 "confirmationCode",
@@ -50,7 +50,7 @@ abstract class PublishRelease(
                 label = "Confirmation Code",
                 description = "Enter the value '$requiredConfirmationCode' (no quotes) to confirm the promotion",
                 display = ParameterDisplay.PROMPT,
-                allowEmpty = false
+                allowEmpty = false,
             )
             text(
                 "gitUserName",
@@ -58,7 +58,7 @@ abstract class PublishRelease(
                 label = "Git user.name Configuration",
                 description = "Enter the git 'user.name' configuration to commit change under",
                 display = ParameterDisplay.PROMPT,
-                allowEmpty = true
+                allowEmpty = true,
             )
         }
 
@@ -70,38 +70,44 @@ abstract class PublishRelease(
     }
 }
 
-class PublishFinalRelease(branch: VersionedSettingsBranch) : PublishRelease(
-    promotedBranch = branch.branchName,
-    prepTask = "prepFinalRelease",
-    promoteTask = branch.promoteFinalReleaseTaskName(),
-    requiredConfirmationCode = "final",
-    init = {
-        id("Promotion_FinalRelease")
-        name = "Release - Final"
-        description = "Promotes the latest successful change on 'release' as a new release"
-    }
-)
+class PublishFinalRelease(
+    branch: VersionedSettingsBranch,
+) : PublishRelease(
+        promotedBranch = branch.branchName,
+        prepTask = "prepFinalRelease",
+        promoteTask = branch.promoteFinalReleaseTaskName(),
+        requiredConfirmationCode = "final",
+        init = {
+            id("Promotion_FinalRelease")
+            name = "Release - Final"
+            description = "Promotes the latest successful change on 'release' as a new release"
+        },
+    )
 
-class PublishReleaseCandidate(branch: VersionedSettingsBranch) : PublishRelease(
-    promotedBranch = branch.branchName,
-    prepTask = "prepRc",
-    promoteTask = "promoteRc",
-    requiredConfirmationCode = "rc",
-    init = {
-        id("Promotion_ReleaseCandidate")
-        name = "Release - Release Candidate"
-        description = "Promotes the latest successful change on 'release' as a new release candidate"
-    }
-)
+class PublishReleaseCandidate(
+    branch: VersionedSettingsBranch,
+) : PublishRelease(
+        promotedBranch = branch.branchName,
+        prepTask = "prepRc",
+        promoteTask = "promoteRc",
+        requiredConfirmationCode = "rc",
+        init = {
+            id("Promotion_ReleaseCandidate")
+            name = "Release - Release Candidate"
+            description = "Promotes the latest successful change on 'release' as a new release candidate"
+        },
+    )
 
-class PublishMilestone(branch: VersionedSettingsBranch) : PublishRelease(
-    promotedBranch = branch.branchName,
-    prepTask = "prepMilestone",
-    promoteTask = branch.promoteMilestoneTaskName(),
-    requiredConfirmationCode = "milestone",
-    init = {
-        id("Promotion_Milestone")
-        name = "Release - Milestone"
-        description = "Promotes the latest successful change on '${branch.branchName}' as a new milestone"
-    }
-)
+class PublishMilestone(
+    branch: VersionedSettingsBranch,
+) : PublishRelease(
+        promotedBranch = branch.branchName,
+        prepTask = "prepMilestone",
+        promoteTask = branch.promoteMilestoneTaskName(),
+        requiredConfirmationCode = "milestone",
+        init = {
+            id("Promotion_Milestone")
+            name = "Release - Milestone"
+            description = "Promotes the latest successful change on '${branch.branchName}' as a new milestone"
+        },
+    )

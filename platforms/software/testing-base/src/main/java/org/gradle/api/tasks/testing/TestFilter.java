@@ -16,6 +16,7 @@
 package org.gradle.api.tasks.testing;
 
 import org.gradle.api.tasks.Input;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import java.util.Set;
 
@@ -93,6 +94,7 @@ public interface TestFilter {
      * @return included test name patterns
      */
     @Input
+    @ToBeReplacedByLazyProperty
     Set<String> getIncludePatterns();
 
     /**
@@ -104,6 +106,7 @@ public interface TestFilter {
      * @since 5.0
      */
     @Input
+    @ToBeReplacedByLazyProperty
     Set<String> getExcludePatterns();
 
     /**
@@ -153,5 +156,6 @@ public interface TestFilter {
      * The default is true.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     boolean isFailOnNoMatchingTests();
 }

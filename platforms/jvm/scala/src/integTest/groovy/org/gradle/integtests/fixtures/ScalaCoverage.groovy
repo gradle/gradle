@@ -23,13 +23,14 @@ class ScalaCoverage {
 
     static final List<String> SCALA_2 = [
         "2.11.12",
-        "2.12.18",
-        "2.13.12",
+        "2.12.19",
+        "2.13.16",
     ]
     static final List<String> SCALA_3 = [
         "3.1.3",
         "3.2.2",
-        "3.3.1",
+        "3.3.5",
+        "3.6.3",
     ]
 
 
@@ -43,7 +44,9 @@ class ScalaCoverage {
     }
 
     private static Set<String> scala2VersionsSupportedByJdk(JavaVersion javaVersion) {
-        // There are finer grained version requirements, but we don't need to worry about them here, as we use latest patch versions
+        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_24)) {
+            return VersionCoverage.versionsAtLeast(SCALA_2, "2.13.17") // Tentative, not released yet
+        }
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_1_9)) {
             // All latest patches of 2.13 work on Java 9+
             // 2.12 in theory supports it, but doesn't actually take it as a -target so we can't use it
@@ -61,7 +64,11 @@ class ScalaCoverage {
     }
 
     private static Set<String> scala3VersionsSupportedByJdk(JavaVersion javaVersion) {
+        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_24)) {
+            return VersionCoverage.versionsAtLeast(SCALA_3, "3.3.6") // Tentative, not released yet
+        }
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_20)) {
+            // Latest patches of 3.3.x work on Java 20+
             return VersionCoverage.versionsAtLeast(SCALA_3, "3.3.0")
         }
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_19)) {

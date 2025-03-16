@@ -24,11 +24,10 @@ import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.plugin.management.internal.InvalidPluginRequestException;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
-import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin;
+import org.gradle.plugin.management.internal.autoapply.AutoAppliedDevelocityPlugin;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.tracker.internal.PluginVersionTracker;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Resolves a plugin either by determining that it is already on the classpath
@@ -70,8 +69,8 @@ public class AlreadyOnClasspathPluginResolver implements PluginResolver {
             return resolveAlreadyOnClasspath(pluginId, null);
         }
 
-        if (pluginRequest.getId().equals(AutoAppliedGradleEnterprisePlugin.BUILD_SCAN_PLUGIN_ID) &&
-            isPresentOnClasspath(AutoAppliedGradleEnterprisePlugin.ID)
+        if (pluginRequest.getId().equals(AutoAppliedDevelocityPlugin.BUILD_SCAN_PLUGIN_ID) &&
+            isPresentOnClasspath(AutoAppliedDevelocityPlugin.ID)
         ) {
             // The JAR that contains the enterprise plugin also contains the build scan plugin.
             // If the user is in the process of migrating to Gradle 6 and has not yet moved away from the scan plugin,

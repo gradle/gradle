@@ -21,40 +21,44 @@ plugins {
 description = "Adds support for assembling JVM web application WAR files"
 
 dependencies {
-    api(project(":language-jvm"))
-    api(project(":base-services"))
-    api(project(":core"))
-    api(project(":core-api"))
+    api(projects.languageJvm)
+    api(projects.baseServices)
+    api(projects.core)
+    api(projects.coreApi)
 
     api(libs.groovy)
     api(libs.inject)
-    api(libs.jsr305)
+    api(libs.jspecify)
 
-    implementation(project(":dependency-management"))
-    implementation(project(":file-collections"))
-    implementation(project(":language-java"))
-    implementation(project(":logging"))
-    implementation(project(":model-core"))
-    implementation(project(":platform-base"))
-    implementation(project(":platform-jvm"))
-    implementation(project(":plugins-java"))
-    implementation(project(":plugins-jvm-test-suite"))
+    implementation(projects.stdlibJavaExtensions)
+    implementation(projects.dependencyManagement)
+    implementation(projects.fileCollections)
+    implementation(projects.fileOperations)
+    implementation(projects.languageJava)
+    implementation(projects.logging)
+    implementation(projects.modelCore)
+    implementation(projects.platformBase)
+    implementation(projects.platformJvm)
+    implementation(projects.pluginsJava)
+    implementation(projects.pluginsJvmTestSuite)
 
-    runtimeOnly(project(":plugins"))
-    runtimeOnly(project(":testing-base"))
+    runtimeOnly(projects.testingBase)
 
 
-    testImplementation(project(":plugins-java-base"))
-    testImplementation(testFixtures(project(":core")))
+    testImplementation(projects.pluginsJavaBase)
+    testImplementation(testFixtures(projects.core))
     // TODO remove this
-    testImplementation(project(":plugins-java-base"))
+    testImplementation(projects.pluginsJavaBase)
 
-    testRuntimeOnly(project(":distributions-jvm")) {
+    testRuntimeOnly(projects.distributionsJvm) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-jvm"))
+    integTestDistributionRuntimeOnly(projects.distributionsJvm)
 }
 
 packageCycles {
     excludePatterns.add("org/gradle/api/plugins/internal/*")
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

@@ -20,7 +20,6 @@ import com.google.common.collect.AbstractIterator;
 import org.gradle.api.internal.file.archive.ZipEntry;
 import org.gradle.api.internal.file.archive.ZipInput;
 import org.gradle.internal.file.FileException;
-import org.gradle.internal.io.IoFunction;
 
 import java.io.File;
 import java.io.FileInputStream;

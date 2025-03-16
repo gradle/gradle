@@ -20,7 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DownloadArtifactBuildOperationType;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.DisplayName;
@@ -32,8 +32,8 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.resolve.resolver.ComponentArtifactResolver;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -43,15 +43,15 @@ import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifac
 public class ArtifactBackedResolvedVariant implements ResolvedVariant {
     private final VariantResolveMetadata.Identifier identifier;
     private final DisplayName displayName;
-    private final AttributeContainerInternal attributes;
+    private final ImmutableAttributes attributes;
     private final ImmutableCapabilities capabilities;
     private final List<? extends ComponentArtifactMetadata> artifacts;
     private final ComponentArtifactResolver componentArtifactResolver;
 
     public ArtifactBackedResolvedVariant(
-        @Nullable VariantResolveMetadata.Identifier identifier,
+        VariantResolveMetadata.@Nullable Identifier identifier,
         DisplayName displayName,
-        AttributeContainerInternal attributes,
+        ImmutableAttributes attributes,
         ImmutableCapabilities capabilities,
         List<? extends ComponentArtifactMetadata> artifacts,
         ComponentArtifactResolver componentArtifactResolver
@@ -102,7 +102,7 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
     }
 
     @Override
-    public AttributeContainerInternal getAttributes() {
+    public ImmutableAttributes getAttributes() {
         return attributes;
     }
 

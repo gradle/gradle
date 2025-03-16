@@ -15,16 +15,17 @@
  */
 package org.gradle.api.internal;
 
+import org.gradle.api.Describable;
+import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.model.ModelContainer;
 import org.gradle.util.Path;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Represents a node in the tree of builds/projects.
  */
-public interface DomainObjectContext {
+public interface DomainObjectContext extends Describable {
 
     /**
      * Creates a path from the root of the build tree to the current context + name.
@@ -37,13 +38,16 @@ public interface DomainObjectContext {
     Path projectPath(String name);
 
     /**
-     * If this context represents a project, its path.
+     * If this context represents a project, its identity.
      */
     @Nullable
-    Path getProjectPath();
+    ProjectIdentity getProjectIdentity();
 
     /**
      * If this context represents a project, the project.
+     *
+     * NOTE: This method should be avoided if at all possible. Instead, rely on
+     * {@link #getProjectIdentity()}, or if not possible, prefer {@code getProject().getOwner()}.
      */
     @Nullable
     ProjectInternal getProject();

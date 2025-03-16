@@ -20,12 +20,15 @@ import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.execution.plan.FinalizedExecutionPlan;
 import org.gradle.execution.plan.Node;
 import org.gradle.internal.build.ExecutionResult;
+import org.jspecify.annotations.Nullable;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Set;
 import java.util.function.BiConsumer;
 
+@ServiceScope(Scope.Gradle.class)
 public interface TaskExecutionGraphInternal extends TaskExecutionGraph {
 
     /**
@@ -41,7 +44,7 @@ public interface TaskExecutionGraphInternal extends TaskExecutionGraph {
     void populate(FinalizedExecutionPlan plan);
 
     /**
-     * Executes the given work. Discards the contents of this graph when completed. Should call {@link #populate)} prior to
+     * Executes the given work. Discards the contents of this graph when completed. Should call {@link #populate(FinalizedExecutionPlan)} prior to
      * calling this method.
      */
     ExecutionResult<Void> execute(FinalizedExecutionPlan plan);

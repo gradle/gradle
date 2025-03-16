@@ -158,7 +158,7 @@ class PluginManagementWithSettingsPluginIntegrationTest extends AbstractIntegrat
             }
         """
 
-        buildScript("""
+        buildFile("""
             buildscript {
                 repositories {
                     exclusiveContent {

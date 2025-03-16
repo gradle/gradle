@@ -16,7 +16,6 @@
 
 package org.gradle.language.cpp
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
 import org.gradle.test.fixtures.file.TestFile
@@ -33,7 +32,6 @@ class CppGeneratedPublicHeadersIntegrationTest extends AbstractInstalledToolChai
         writeApp()
     }
 
-    @ToBeFixedForConfigurationCache
     @Issue("https://github.com/gradle/gradle-native/issues/994")
     def "can depends on library with generated headers"() {
         given:
@@ -60,7 +58,6 @@ class CppGeneratedPublicHeadersIntegrationTest extends AbstractInstalledToolChai
         result.assertTasksExecuted(":hello:generatePublicHeaders", ":app:compileDebugCpp")
     }
 
-    @ToBeFixedForConfigurationCache
     @Issue("https://github.com/gradle/gradle-native/issues/994")
     def "can transitively depends on library with generated headers"() {
         given:

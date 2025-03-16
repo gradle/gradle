@@ -23,6 +23,7 @@ import org.gradle.api.file.BuildLayout;
 import org.gradle.api.initialization.ConfigurableIncludedBuild;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.initialization.Settings;
+import org.gradle.api.initialization.SharedModelDefaults;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.initialization.resolve.DependencyResolutionManagement;
 import org.gradle.api.internal.FeaturePreviews.Feature;
@@ -54,8 +55,8 @@ import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.plugin.management.PluginManagementSpec;
 import org.gradle.plugin.management.internal.PluginManagementSpecInternal;
 import org.gradle.vcs.SourceControl;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
@@ -410,5 +411,14 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     @Override
     public void caches(Action<? super CacheConfigurations> cachesConfiguration) {
         cachesConfiguration.execute(getCaches());
+    }
+
+    @Override
+    @Inject
+    public abstract SharedModelDefaults getDefaults();
+
+    @Override
+    public void defaults(Action<? super SharedModelDefaults> action) {
+        action.execute(getDefaults());
     }
 }

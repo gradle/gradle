@@ -24,8 +24,6 @@ import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.ProviderFactory;
-import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.ide.visualstudio.XmlConfigFile;
@@ -40,11 +38,10 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-
-import static org.gradle.util.internal.CollectionUtils.collect;
 
 /**
  * A VisualStudio project represents a set of binaries for a component that may vary in build type and target platform.
@@ -105,20 +102,13 @@ public class DefaultVisualStudioProject implements VisualStudioProjectInternal {
     }
 
     public static String getUUID(File projectFile) {
-        return "{" + UUID.nameUUIDFromBytes(projectFile.getAbsolutePath().getBytes()).toString().toUpperCase() + "}";
+        return "{" + UUID.nameUUIDFromBytes(projectFile.getAbsolutePath().getBytes()).toString().toUpperCase(Locale.ROOT) + "}";
     }
 
-    @Internal
     public ConfigurableFileCollection getSourceFiles() {
         return sourceFiles;
     }
 
-    @Input
-    public Set<String> getSourceFilePaths() {
-        return collect(getSourceFiles().getFiles(), File::getAbsolutePath);
-    }
-
-    @Internal
     public Set<File> getResourceFiles() {
         Set<File> allResources = new LinkedHashSet<File>();
         for (VisualStudioTargetBinary binary : configurations.keySet()) {
@@ -127,22 +117,10 @@ public class DefaultVisualStudioProject implements VisualStudioProjectInternal {
         return allResources;
     }
 
-    @Input
-    public Set<String> getResourceFilePaths() {
-        return collect(getResourceFiles(), File::getAbsolutePath);
-    }
-
-    @Internal
     public ConfigurableFileCollection getHeaderFiles() {
         return headerFiles;
     }
 
-    @Input
-    public Set<String> getHeaderFilePaths() {
-        return collect(getHeaderFiles().getFiles(), File::getAbsolutePath);
-    }
-
-    @Nested
     public List<VisualStudioProjectConfiguration> getConfigurations() {
         if (configurations.isEmpty()) {
             return ImmutableList.of(new VisualStudioProjectConfiguration(this, "unbuildable", null));
@@ -176,12 +154,10 @@ public class DefaultVisualStudioProject implements VisualStudioProjectInternal {
         return name;
     }
 
-    @Internal
     public Property<VersionNumber> getVisualStudioVersion() {
         return visualStudioVersion;
     }
 
-    @Internal
     public Property<VersionNumber> getSdkVersion() {
         return sdkVersion;
     }
@@ -189,16 +165,6 @@ public class DefaultVisualStudioProject implements VisualStudioProjectInternal {
     @Override
     public IdeProjectMetadata getPublishArtifact() {
         return new VisualStudioProjectMetadata(this);
-    }
-
-    @Nested
-    public List<Action<? super XmlProvider>> getProjectFileActions() {
-        return projectFile.getXmlActions();
-    }
-
-    @Nested
-    public List<Action<? super XmlProvider>> getFiltersFileActions() {
-        return filtersFile.getXmlActions();
     }
 
     public static class DefaultConfigFile implements XmlConfigFile {

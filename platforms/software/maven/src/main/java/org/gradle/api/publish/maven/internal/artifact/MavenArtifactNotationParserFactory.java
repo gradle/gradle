@@ -153,6 +153,7 @@ public class MavenArtifactNotationParserFactory implements Factory<NotationParse
             this.sourceNotationParser = sourceNotationParser;
         }
 
+        @SuppressWarnings("UnusedMethod") //used org.gradle.internal.typeconversion.MapNotationConverter.ConvertMethodCache.findConvertMethod
         protected MavenArtifact parseMap(@MapKey("source") Object source) {
             return sourceNotationParser.parseNotation(source);
         }

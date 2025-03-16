@@ -20,7 +20,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
@@ -28,8 +27,8 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.Pair;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.lang.reflect.Array;
 import java.util.AbstractList;
 import java.util.ArrayList;
@@ -154,11 +153,11 @@ public abstract class CollectionUtils {
     }
 
     public static <T> List<T> filter(List<? extends T> list, Spec<? super T> filter) {
-        return filter(list, Lists.<T>newArrayListWithCapacity(list.size()), filter);
+        return filter(list, new ArrayList<>(list.size()), filter);
     }
 
     public static <T> List<T> filter(T[] array, Spec<? super T> filter) {
-        return filter(Arrays.asList(array), Lists.<T>newArrayListWithCapacity(array.length), filter);
+        return filter(Arrays.asList(array), new ArrayList<>(array.length), filter);
     }
 
 
@@ -548,14 +547,14 @@ public abstract class CollectionUtils {
     }
 
     /**
-     * Provides a “diff report” of how the two sets are similar and how they are different, comparing the entries by some aspect.
+     * Provides a "diff report" of how the two sets are similar and how they are different, comparing the entries by some aspect.
      *
      * The transformer is used to generate the value to use to compare the entries by. That is, the entries are not compared by equals by an attribute or characteristic.
      *
      * The transformer is expected to produce a unique value for each entry in a single set. Behaviour is undefined if this condition is not met.
      *
-     * @param left The set on the “left” side of the comparison.
-     * @param right The set on the “right” side of the comparison.
+     * @param left The set on the "left" side of the comparison.
+     * @param right The set on the "right" side of the comparison.
      * @param compareBy Provides the value to compare entries from either side by
      * @param <T> The type of the entry objects
      * @return A representation of the difference

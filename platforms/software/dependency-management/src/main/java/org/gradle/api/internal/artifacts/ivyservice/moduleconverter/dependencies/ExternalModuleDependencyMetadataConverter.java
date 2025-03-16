@@ -25,8 +25,8 @@ import org.gradle.internal.component.local.model.DslOriginDependencyMetadataWrap
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 public class ExternalModuleDependencyMetadataConverter extends AbstractDependencyMetadataConverter {
@@ -45,7 +45,8 @@ public class ExternalModuleDependencyMetadataConverter extends AbstractDependenc
             DefaultModuleIdentifier.newId(nullToEmpty(dependency.getGroup()), nullToEmpty(dependency.getName())),
             ((VersionConstraintInternal) externalModuleDependency.getVersionConstraint()).asImmutable(),
             dependency.getAttributes(),
-            dependency.getRequestedCapabilities());
+            dependency.getCapabilitySelectors()
+        );
 
         List<ExcludeMetadata> excludes = convertExcludeRules(dependency.getExcludeRules());
         LocalComponentDependencyMetadata dependencyMetaData = new LocalComponentDependencyMetadata(

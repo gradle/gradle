@@ -6,15 +6,9 @@ description = "Provides plugins for configuring miscellaneous things (repositori
 
 group = "gradlebuild"
 
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(11)
-        vendor = JvmVendorSpec.ADOPTIUM
-    }
-}
-
 dependencies {
-    api(platform(project(":build-platform")))
+    api("gradlebuild:build-environment")
+    api(platform(projects.buildPlatform))
 
     implementation("com.google.guava:guava") {
         because("Used by class analysis")

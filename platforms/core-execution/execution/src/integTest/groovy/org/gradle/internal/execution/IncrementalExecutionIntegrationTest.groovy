@@ -19,7 +19,10 @@ package org.gradle.internal.execution
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.Iterables
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.problems.ProblemId
 import org.gradle.api.problems.Severity
+import org.gradle.api.problems.internal.GradleCoreProblemGroup
+import org.gradle.api.problems.internal.ProblemsProgressEventEmitterHolder
 import org.gradle.cache.Cache
 import org.gradle.cache.ManualEvictionInMemoryCache
 import org.gradle.caching.internal.controller.BuildCacheController
@@ -41,13 +44,14 @@ import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.id.UniqueId
-import org.gradle.internal.operations.TestBuildOperationExecutor
+import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.snapshot.SnapshotVisitorUtil
 import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -81,7 +85,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
     def valueSnapshotter = new DefaultValueSnapshotter([], classloaderHierarchyHasher)
     def inputFingerprinter = new DefaultInputFingerprinter(snapshotter, fingerprinterRegistry, valueSnapshotter)
     def buildCacheController = Mock(BuildCacheController)
-    def buildOperationExecutor = new TestBuildOperationExecutor()
+    def buildOperationRunner = new TestBuildOperationRunner()
     def validationWarningReporter = Mock(ValidateStep.ValidationWarningRecorder)
 
     final outputFile = temporaryFolder.file("output-file")
@@ -110,7 +114,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
         TestExecutionEngineFactory.createExecutionEngine(
             buildId,
             buildCacheController,
-            buildOperationExecutor,
+            buildOperationRunner,
             classloaderHierarchyHasher,
             deleter,
             changeDetector,
@@ -120,6 +124,10 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
             validationWarningReporter,
             virtualFileSystem
         )
+    }
+
+    def setup() {
+        ProblemsProgressEventEmitterHolder.init(TestUtil.problemsService())
     }
 
     def "outputs are created"() {
@@ -242,8 +250,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
                 context
                     .forType(UnitOfWork, false)
                     .visitPropertyProblem {
-                        it.category("test.problem")
-                            .label("Validation problem")
+                        it.id(ProblemId.create("test-problem", "Validation problem", GradleCoreProblemGroup.validation().type()))
                             .severity(Severity.WARNING)
                             .documentedAt(Documentation.userManual("id", "section"))
                             .details("Test")
@@ -552,9 +559,8 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
                 validationContext.forType(Object, true).visitTypeProblem {
                     it
                         .withAnnotationType(Object)
-                        .label("Validation error")
+                        .id(ProblemId.create("test-problem", "Validation error", GradleCoreProblemGroup.validation().type()))
                         .documentedAt(Documentation.userManual("id", "section"))
-                        .category("test.problem")
                         .details("Test")
                         .severity(Severity.ERROR)
                 }
@@ -568,7 +574,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
         then:
         def ex = thrown WorkValidationException
         WorkValidationExceptionChecker.check(ex) {
-            hasProblem dummyValidationProblemWithLink('java.lang.Object', null, 'Validation error', 'Test').trim()
+            hasProblem dummyPropertyValidationProblemWithLink('java.lang.Object', null, 'Validation error', 'Test').trim()
         }
     }
 
@@ -587,6 +593,37 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
 
         then:
         cachedResult == "cached"
+    }
+
+    def "reports max three file changes"() {
+        given:
+        def outputDir = file("parent")
+        def files = [
+            outputDir.createFile("outFile1"),
+            outputDir.createFile("outFile2"),
+            outputDir.createFile("outFile3"),
+            outputDir.createFile("outFile4"),
+            outputDir.createFile("outFile5"),
+            outputDir.createFile("outFile6")
+        ]
+        def unitOfWork = builder.withOutputDirs(outputDir).withWork { ->
+            files.each { it.createFile() }
+            UnitOfWork.WorkResult.DID_WORK
+        }.build()
+        execute(unitOfWork)
+
+        when:
+        outputDir.deleteDir()
+        def result = execute(unitOfWork)
+
+        then:
+        def executionReasons = [
+            "Output property 'defaultDir0' file ${outputDir.absolutePath} has been removed.",
+            "Output property 'defaultDir0' file ${files[0].absolutePath} has been removed.",
+            "Output property 'defaultDir0' file ${files[1].absolutePath} has been removed.",
+            "and more..."
+        ]
+        result.executionReasons as List<String> == executionReasons
     }
 
     List<String> inputFilesRemoved(Map<String, List<File>> removedFiles) {

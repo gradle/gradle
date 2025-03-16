@@ -23,12 +23,7 @@ abstract class AbstractJvmLibraryInitIntegrationSpec extends AbstractInitIntegra
 
     def setup() {
         executer.beforeExecute { e ->
-            // The init task may not necessarily create a build that uses the current JVM, either because the test "user" selects a different one or uses the default, which may be different.
-            //
-            // Enable discovery and download so the test builds can find the correct JVM, and to better approximate what a real user would experience, which is important in this
-            // particular case because the init task may be the first experience a developer has of Gradle
             e.withToolchainDetectionEnabled()
-            e.withToolchainDownloadEnabled()
         }
     }
 }

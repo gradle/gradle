@@ -19,15 +19,15 @@ package org.gradle.internal.declarativedsl.analysis
 import org.gradle.declarative.dsl.model.annotations.Adding
 import org.gradle.internal.declarativedsl.demo.resolve
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.Test
 import kotlin.reflect.KClass
-import kotlin.test.Test
-import kotlin.test.assertTrue
 
 
-object LambdaTest {
+class LambdaTest {
     @Test
     fun `if a lambda is required, missing lambda is reported as an error`() {
-        schema.resolve("lambdaRequired(0)").isError(ErrorReason.MissingConfigureLambda::class)
+        schema.resolve("lambdaRequired(0)").isError(ErrorReason.UnresolvedFunctionCallSignature::class)
     }
 
     @Test
@@ -52,7 +52,7 @@ object LambdaTest {
 
     @Test
     fun `if a lambda is not allowed, a lambda is reported as an error`() {
-        schema.resolve("lambdaNotAllowed(0) { }").isError(ErrorReason.UnusedConfigureLambda::class)
+        schema.resolve("lambdaNotAllowed(0) { }").isError(ErrorReason.UnresolvedFunctionCallSignature::class)
     }
 
     private

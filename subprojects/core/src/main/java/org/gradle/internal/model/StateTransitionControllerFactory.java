@@ -17,19 +17,36 @@
 package org.gradle.internal.model;
 
 import org.gradle.internal.DisplayName;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.operations.BuildOperationsParameters;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.internal.work.Synchronizer;
+import org.gradle.internal.work.WaitBuildOperationFiringSynchronizer;
 import org.gradle.internal.work.WorkerLeaseService;
 
-@ServiceScope(Scopes.BuildSession.class)
+@ServiceScope(Scope.BuildSession.class)
 public class StateTransitionControllerFactory {
-    private final WorkerLeaseService workerLeaseService;
 
-    public StateTransitionControllerFactory(WorkerLeaseService workerLeaseService) {
+    private final WorkerLeaseService workerLeaseService;
+    private final BuildOperationsParameters buildOperationsParameters;
+    private final BuildOperationRunner buildOperationRunner;
+
+    public StateTransitionControllerFactory(
+        WorkerLeaseService workerLeaseService,
+        BuildOperationsParameters buildOperationsParameters,
+        BuildOperationRunner buildOperationRunner
+    ) {
         this.workerLeaseService = workerLeaseService;
+        this.buildOperationsParameters = buildOperationsParameters;
+        this.buildOperationRunner = buildOperationRunner;
     }
 
     public <T extends StateTransitionController.State> StateTransitionController<T> newController(DisplayName displayName, T initialState) {
-        return new StateTransitionController<>(displayName, initialState, workerLeaseService.newResource());
+        Synchronizer synchronizer = workerLeaseService.newResource();
+        if (buildOperationsParameters.isVerbose()) {
+            synchronizer = new WaitBuildOperationFiringSynchronizer(displayName, synchronizer, buildOperationRunner);
+        }
+        return new StateTransitionController<>(displayName, initialState, synchronizer);
     }
 }

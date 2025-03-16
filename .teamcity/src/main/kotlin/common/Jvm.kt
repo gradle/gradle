@@ -23,12 +23,33 @@ interface Jvm {
 
 data class DefaultJvm(
     override val version: JvmVersion,
-    override val vendor: JvmVendor
+    override val vendor: JvmVendor,
 ) : Jvm
 
 object BuildToolBuildJvm : Jvm {
     override val version: JvmVersion
-        get() = JvmVersion.java11
+        get() = JvmVersion.JAVA_17
     override val vendor: JvmVendor
-        get() = JvmVendor.openjdk
+        get() = JvmVendor.OPENJDK
+}
+
+object OpenJdk8 : Jvm {
+    override val version: JvmVersion
+        get() = JvmVersion.JAVA_8
+    override val vendor: JvmVendor
+        get() = JvmVendor.OPENJDK
+}
+
+object OpenJdk11 : Jvm {
+    override val version: JvmVersion
+        get() = JvmVersion.JAVA_11
+    override val vendor: JvmVendor
+        get() = JvmVendor.OPENJDK
+}
+
+object OpenJdk17 : Jvm {
+    override val version: JvmVersion
+        get() = JvmVersion.JAVA_17
+    override val vendor: JvmVendor
+        get() = JvmVendor.OPENJDK
 }

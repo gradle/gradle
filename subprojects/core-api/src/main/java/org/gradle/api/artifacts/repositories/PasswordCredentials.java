@@ -15,7 +15,7 @@
  */
 package org.gradle.api.artifacts.repositories;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A username/password credentials that can be used to login to password-protected remote repository.

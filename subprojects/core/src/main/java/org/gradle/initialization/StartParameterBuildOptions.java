@@ -36,54 +36,52 @@ import org.gradle.internal.watch.registry.WatchMode;
 
 import java.io.File;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInternal> {
 
-    private static List<BuildOption<StartParameterInternal>> options;
-
-    static {
-        List<BuildOption<StartParameterInternal>> options = new ArrayList<>();
-        options.add(new ProjectCacheDirOption());
-        options.add(new RerunTasksOption());
-        options.add(new ProfileOption());
-        options.add(new ContinueOption());
-        options.add(new OfflineOption());
-        options.add(new RefreshDependenciesOption());
-        options.add(new DryRunOption());
-        options.add(new ContinuousOption());
-        options.add(new ContinuousBuildQuietPeriodOption());
-        options.add(new NoProjectDependenciesRebuildOption());
-        options.add(new InitScriptOption());
-        options.add(new ExcludeTaskOption());
-        options.add(new IncludeBuildOption());
-        options.add(new ConfigureOnDemandOption());
-        options.add(new BuildCacheOption());
-        options.add(new BuildCacheDebugLoggingOption());
-        options.add(new WatchFileSystemOption());
-        options.add(new WatchFileSystemDebugLoggingOption());
-        options.add(new VfsVerboseLoggingOption());
-        options.add(new BuildScanOption());
-        options.add(new DependencyLockingWriteOption());
-        options.add(new DependencyVerificationWriteOption());
-        options.add(new DependencyVerificationModeOption());
-        options.add(new DependencyLockingUpdateOption());
-        options.add(new RefreshKeysOption());
-        options.add(new ExportKeysOption());
-        options.add(new ConfigurationCacheProblemsOption());
-        options.add(new ConfigurationCacheOption());
-        options.add(new ConfigurationCacheIgnoreInputsInTaskGraphSerialization());
-        options.add(new ConfigurationCacheMaxProblemsOption());
-        options.add(new ConfigurationCacheIgnoredFileSystemCheckInputs());
-        options.add(new ConfigurationCacheDebugOption());
-        options.add(new ConfigurationCacheRecreateOption());
-        options.add(new ConfigurationCacheQuietOption());
-        options.add(new IsolatedProjectsOption());
-        StartParameterBuildOptions.options = Collections.unmodifiableList(options);
-    }
+    private static List<BuildOption<StartParameterInternal>> options = Arrays.asList(
+        new ProjectCacheDirOption(),
+        new RerunTasksOption(),
+        new ProfileOption(),
+        new ContinueOption(),
+        new OfflineOption(),
+        new RefreshDependenciesOption(),
+        new DryRunOption(),
+        new ContinuousOption(),
+        new ContinuousBuildQuietPeriodOption(),
+        new NoProjectDependenciesRebuildOption(),
+        new InitScriptOption(),
+        new ExcludeTaskOption(),
+        new IncludeBuildOption(),
+        new ConfigureOnDemandOption(),
+        new BuildCacheOption(),
+        new BuildCacheDebugLoggingOption(),
+        new WatchFileSystemOption(),
+        new VfsVerboseLoggingOption(),
+        new BuildScanOption(),
+        new DependencyLockingWriteOption(),
+        new DependencyVerificationWriteOption(),
+        new DependencyVerificationModeOption(),
+        new DependencyLockingUpdateOption(),
+        new RefreshKeysOption(),
+        new ExportKeysOption(),
+        new ConfigurationCacheProblemsOption(),
+        new ConfigurationCacheOption(),
+        new ConfigurationCacheIgnoreInputsDuringStore(),
+        new ConfigurationCacheMaxProblemsOption(),
+        new ConfigurationCacheIgnoredFileSystemCheckInputs(),
+        new ConfigurationCacheDebugOption(),
+        new ConfigurationCacheParallelOption(),
+        new ConfigurationCacheRecreateOption(),
+        new ConfigurationCacheQuietOption(),
+        new ConfigurationCacheEntriesPerKeyOption(),
+        new IsolatedProjectsOption(),
+        new ProblemReportGenerationOption(),
+        new PropertyUpgradeReportOption()
+    );
 
     @Override
     public List<? extends BuildOption<? super StartParameterInternal>> getAllOptions() {
@@ -321,19 +319,6 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         }
     }
 
-    public static class WatchFileSystemDebugLoggingOption extends BooleanBuildOption<StartParameterInternal> {
-        public static final String GRADLE_PROPERTY = "org.gradle.vfs.watch.debug";
-
-        public WatchFileSystemDebugLoggingOption() {
-            super(GRADLE_PROPERTY);
-        }
-
-        @Override
-        public void applyTo(boolean value, StartParameterInternal startParameter, Origin origin) {
-            startParameter.setWatchFileSystemDebugLogging(value);
-        }
-    }
-
     public static class VfsVerboseLoggingOption extends BooleanBuildOption<StartParameterInternal> {
         public static final String GRADLE_PROPERTY = "org.gradle.vfs.verbose";
 
@@ -529,17 +514,17 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         }
     }
 
-    public static class ConfigurationCacheIgnoreInputsInTaskGraphSerialization extends BooleanBuildOption<StartParameterInternal> {
+    public static class ConfigurationCacheIgnoreInputsDuringStore extends BooleanBuildOption<StartParameterInternal> {
 
         public static final String PROPERTY_NAME = "org.gradle.configuration-cache.inputs.unsafe.ignore.in-serialization";
 
-        public ConfigurationCacheIgnoreInputsInTaskGraphSerialization() {
+        public ConfigurationCacheIgnoreInputsDuringStore() {
             super(PROPERTY_NAME);
         }
 
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
-            settings.setConfigurationCacheIgnoreInputsInTaskGraphSerialization(value);
+            settings.setConfigurationCacheIgnoreInputsDuringStore(value);
         }
     }
 
@@ -552,6 +537,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         public ConfigurationCacheMaxProblemsOption() {
             super(PROPERTY_NAME, DEPRECATED_PROPERTY_NAME);
         }
+
         @Override
         public void applyTo(int value, StartParameterInternal settings, Origin origin) {
             settings.setConfigurationCacheMaxProblems(value);
@@ -588,6 +574,34 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         }
     }
 
+    public static class ConfigurationCacheParallelOption extends BooleanBuildOption<StartParameterInternal> {
+
+        public static final String PROPERTY_NAME = "org.gradle.configuration-cache.parallel";
+
+        public ConfigurationCacheParallelOption() {
+            super(PROPERTY_NAME);
+        }
+
+        @Override
+        public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
+            settings.setConfigurationCacheParallel(value);
+        }
+    }
+
+    public static class ConfigurationCacheEntriesPerKeyOption extends IntegerBuildOption<StartParameterInternal> {
+
+        public static final String PROPERTY_NAME = "org.gradle.configuration-cache.entries-per-key";
+
+        public ConfigurationCacheEntriesPerKeyOption() {
+            super(PROPERTY_NAME);
+        }
+
+        @Override
+        public void applyTo(int value, StartParameterInternal settings, Origin origin) {
+            settings.setConfigurationCacheEntriesPerKey(value);
+        }
+    }
+
     public static class ConfigurationCacheRecreateOption extends BooleanBuildOption<StartParameterInternal> {
 
         public static final String PROPERTY_NAME = "org.gradle.configuration-cache.internal.recreate-cache";
@@ -616,6 +630,35 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
             settings.setConfigurationCacheQuiet(value);
+        }
+    }
+
+    public static class PropertyUpgradeReportOption extends EnabledOnlyBooleanBuildOption<StartParameterInternal> {
+
+        public static final String LONG_OPTION = "property-upgrade-report";
+
+        public PropertyUpgradeReportOption() {
+            super(null, CommandLineOptionConfiguration.create(LONG_OPTION, "(Experimental) Runs build with experimental property upgrade report."));
+        }
+
+        @Override
+        public void applyTo(StartParameterInternal settings, Origin origin) {
+            settings.setPropertyUpgradeReportEnabled(true);
+        }
+    }
+
+    public static class ProblemReportGenerationOption extends BooleanBuildOption<StartParameterInternal> {
+
+        public static final String LONG_OPTION = "problems-report";
+        public static final String GRADLE_PROPERTY = "org.gradle.problems.report";
+
+        public ProblemReportGenerationOption() {
+            super(GRADLE_PROPERTY, BooleanCommandLineOptionConfiguration.create(LONG_OPTION, "(Experimental) enables HTML problems report", "(Experimental) disables HTML problems report"));
+        }
+
+        @Override
+        public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
+            settings.enableProblemReportGeneration(value);
         }
     }
 }

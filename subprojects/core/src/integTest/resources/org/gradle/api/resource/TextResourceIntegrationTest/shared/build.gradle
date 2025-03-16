@@ -12,9 +12,10 @@ class MyTask extends DefaultTask {
 }
 
 def generateConfigFile = tasks.register("generateConfigFile") {
-    outputs.file "config.txt"
+    def outputFile = file("config.txt")
+    outputs.file outputFile
     doLast {
-        file("config.txt").text = "my config"
+        outputFile.text = "my config"
     }
 }
 

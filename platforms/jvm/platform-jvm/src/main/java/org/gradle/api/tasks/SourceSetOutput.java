@@ -17,8 +17,9 @@
 package org.gradle.api.tasks;
 
 import org.gradle.api.file.FileCollection;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeMigratedToLazy;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Map;
 
@@ -82,6 +83,7 @@ import java.util.Map;
  *
  * Find more information in {@link #dir(Object)} and {@link #getDirs()}
  */
+@NotToBeMigratedToLazy
 public interface SourceSetOutput extends FileCollection {
 
     /**

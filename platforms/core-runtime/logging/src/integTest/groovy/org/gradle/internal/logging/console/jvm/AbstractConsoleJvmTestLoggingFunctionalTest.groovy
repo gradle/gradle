@@ -18,7 +18,6 @@ package org.gradle.internal.logging.console.jvm
 
 import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 
 abstract class AbstractConsoleJvmTestLoggingFunctionalTest extends AbstractIntegrationSpec {
@@ -132,15 +131,15 @@ abstract class AbstractConsoleJvmTestLoggingFunctionalTest extends AbstractInteg
         matchesTaskOutput(taskOutput, testLogEventRegex(TestLogEvent.FAILED.consoleMarker))
     }
 
-    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/24613")
     def "can group output from custom test listener with task"() {
         buildFile << """
             test {
+                def taskLogger = logger
                 beforeTest { descriptor ->
-                    logger.quiet 'Starting test: ' + descriptor.className + ' > ' + descriptor.name
+                    taskLogger.quiet 'Starting test: ' + descriptor.className + ' > ' + descriptor.name
                 }
                 afterTest { descriptor, result ->
-                    logger.quiet 'Finishing test: ' + descriptor.className + ' > ' + descriptor.name
+                    taskLogger.quiet 'Finishing test: ' + descriptor.className + ' > ' + descriptor.name
                 }
             }
         """
@@ -156,7 +155,37 @@ abstract class AbstractConsoleJvmTestLoggingFunctionalTest extends AbstractInteg
         taskOutput.contains('Finishing test: MyTest > testExpectation')
     }
 
-    static String javaProject() {
+    def "can use setOf() in Kotlin DSL to configure logging no events"() {
+        given:
+        buildKotlinFile << testLoggingStandardStreamWithEmptyEventSet()
+
+        file(JAVA_TEST_FILE_PATH) << javaTestClass {
+            """
+                System.out.println("standard output");
+                System.err.println("standard error");
+            """
+        }
+
+        when:
+        executer.withConsole(consoleType)
+        succeeds(TEST_TASK_NAME)
+
+        then:
+        if (result.groupedOutput.hasTask(TEST_TASK_PATH)) {
+            def taskOutput = getTaskOutput(result).readLines().findAll { !it.isBlank() }.join('\n')
+            assert !taskOutput.contains("""MyTest > testExpectation ${TestLogEvent.STANDARD_OUT.consoleMarker}
+    standard output""")
+            assert !taskOutput.contains("""MyTest > testExpectation ${TestLogEvent.STANDARD_ERROR.consoleMarker}
+    standard error""")
+        } else {
+            outputDoesNotContain("""MyTest > testExpectation ${TestLogEvent.STANDARD_OUT.consoleMarker}
+    standard output""")
+            outputDoesNotContain("""MyTest > testExpectation ${TestLogEvent.STANDARD_ERROR.consoleMarker}
+    standard error""")
+        }
+    }
+
+    private static String javaProject() {
         """
             apply plugin: 'java'
 
@@ -168,17 +197,17 @@ abstract class AbstractConsoleJvmTestLoggingFunctionalTest extends AbstractInteg
         """
     }
 
-    static String testLoggingEvents(String... events) {
+    private static String testLoggingEvents(String... events) {
         """
             test {
                 testLogging {
-                    events ${events.collect { "'$it'" }.join(', ')}
+                    events(${events.collect { "'$it'" }.join(', ')})
                 }
             }
         """
     }
 
-    static String testLoggingStandardStream() {
+    private static String testLoggingStandardStream() {
         """
             test {
                 testLogging {
@@ -188,7 +217,16 @@ abstract class AbstractConsoleJvmTestLoggingFunctionalTest extends AbstractInteg
         """
     }
 
-    static String javaTestClass(Closure<String> testMethodBody) {
+    private static String testLoggingStandardStreamWithEmptyEventSet() {
+        """
+            test {
+                showStandardStreams = true
+                testLogging.events = setOf()
+            }
+        """
+    }
+
+    private static String javaTestClass(Closure<String> testMethodBody) {
         """
             import org.junit.Test;
 
@@ -201,15 +239,15 @@ abstract class AbstractConsoleJvmTestLoggingFunctionalTest extends AbstractInteg
         """
     }
 
-    static String getTaskOutput(ExecutionResult result) {
+    private static String getTaskOutput(ExecutionResult result) {
         result.groupedOutput.task(TEST_TASK_PATH).output.trim()
     }
 
-    static boolean matchesTaskOutput(String taskOutput, String regexToFind) {
+    private static boolean matchesTaskOutput(String taskOutput, String regexToFind) {
         (taskOutput =~ /(?ms)($regexToFind)/).matches()
     }
 
-    static String testLogEventRegex(String event) {
+    private static String testLogEventRegex(String event) {
         "MyTest > testExpectation.*$event.*"
     }
 

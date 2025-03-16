@@ -19,11 +19,14 @@ package org.gradle.integtests.tooling.r81
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.test.fixtures.Flaky
+import org.gradle.internal.os.OperatingSystem
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.tooling.BuildActionFailureException
+import org.gradle.util.GradleVersion
 
 @ToolingApiVersion(">=8.1")
-@Flaky(because='https://github.com/gradle/gradle-private/issues/3829')
+@Requires(IntegTestPreconditions.NotEmbeddedExecutor)
 class ToolchainsParallelActionExecutionCrossVersionSpec extends ToolingApiSpecification {
 
     def setup() {
@@ -81,7 +84,13 @@ class ToolchainsParallelActionExecutionCrossVersionSpec extends ToolingApiSpecif
         then:
         def e = thrown(BuildActionFailureException)
         def root = rootCause(e)
-        root.message.startsWith('No locally installed toolchains match')
+        def message = 'No locally installed toolchains match'
+        if (targetVersion >= GradleVersion.version("8.13")) {
+            message = "Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=99, vendor=any vendor, implementation=vendor-specific}. No matching toolchain could be found in the configured toolchain download repositories."
+        } else if (targetVersion >= GradleVersion.version("8.8")) {
+            message = 'No matching toolchain could be found in the locally installed toolchains'
+        }
+        root.message.startsWith(message)
     }
 
     def rootCause(Exception e) {

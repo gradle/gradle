@@ -27,9 +27,10 @@ public class GradlePropertiesGenerator implements BuildContentGenerator {
 
     @Override
     public void generate(InitSettings settings, BuildContentGenerationContext buildContentGenerationContext) {
-        if (!settings.isUseIncubatingAPIs()) {
-            return;
-        }
+        generate(settings);
+    }
+
+    public static void generate(InitSettings settings) {
         File file = settings.getTarget().file("gradle.properties").getAsFile();
         try (PrintWriter writer = new PrintWriter(new FileWriter(file))) {
             if (settings.isWithComments()) {
@@ -37,8 +38,11 @@ public class GradlePropertiesGenerator implements BuildContentGenerator {
                 writer.println("# https://docs.gradle.org/current/userguide/build_environment.html#sec:gradle_configuration_properties");
                 writer.println();
             }
-            writer.println("org.gradle.parallel=true");
-            writer.println("org.gradle.caching=true");
+            writer.println("org.gradle.configuration-cache=true");
+            if (settings.isUseIncubatingAPIs()) {
+                writer.println("org.gradle.parallel=true");
+                writer.println("org.gradle.caching=true");
+            }
             writer.println();
         } catch (IOException e) {
             throw new UncheckedIOException(e);

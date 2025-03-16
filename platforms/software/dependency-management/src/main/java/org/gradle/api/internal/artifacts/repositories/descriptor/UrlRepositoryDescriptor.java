@@ -109,7 +109,7 @@ public abstract class UrlRepositoryDescriptor extends RepositoryDescriptor {
         }
 
         protected String calculateId(
-            Class<? extends ExternalResourceResolver<?>> implementation,
+            Class<? extends ExternalResourceResolver> implementation,
             List<ResourcePattern> metadataResources,
             List<ResourcePattern> artifactResources,
             List<String> metadataSources,

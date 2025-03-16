@@ -19,9 +19,9 @@ package org.gradle.api.publish.ivy.internal.artifact;
 import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskDependency;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.Serializable;
 
@@ -108,7 +108,7 @@ public class NormalizedIvyArtifact implements IvyArtifactInternal, Serializable 
         throw new IllegalStateException();
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public TaskDependency getBuildDependencies() {
         throw new IllegalStateException();

@@ -21,21 +21,14 @@ import org.gradle.tooling.TestAssertionFailure;
 
 import java.util.List;
 
-public class DefaultTestAssertionFailure implements TestAssertionFailure {
-
-    private final String message;
-    private final String description;
-    private final List<? extends Failure> causes;
-
+public class DefaultTestAssertionFailure extends DefaultFailure implements TestAssertionFailure {
     private final String expected;
     private final String actual;
     private final String stacktrace;
     private final String className;
 
     public DefaultTestAssertionFailure(String message, String description, String expected, String actual, List<? extends Failure> causes, String className, String stacktrace) {
-        this.message = message;
-        this.description = description;
-        this.causes = causes;
+        super(message, description, causes);
         this.expected = expected;
         this.actual = actual;
         this.className = className;
@@ -60,20 +53,5 @@ public class DefaultTestAssertionFailure implements TestAssertionFailure {
     @Override
     public String getStacktrace() {
         return stacktrace;
-    }
-
-    @Override
-    public String getMessage() {
-        return message;
-    }
-
-    @Override
-    public String getDescription() {
-        return description;
-    }
-
-    @Override
-    public List<? extends Failure> getCauses() {
-        return causes;
     }
 }

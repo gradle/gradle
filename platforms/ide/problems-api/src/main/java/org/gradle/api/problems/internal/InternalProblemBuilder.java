@@ -16,28 +16,37 @@
 
 package org.gradle.api.problems.internal;
 
+import org.gradle.api.Action;
+import org.gradle.api.problems.AdditionalData;
+import org.gradle.api.problems.DocLink;
+import org.gradle.api.problems.Problem;
+import org.gradle.api.problems.ProblemGroup;
+import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.Severity;
 
 public interface InternalProblemBuilder extends InternalProblemSpec {
 
     /**
-     * Creates the new problem. Calling this method won't report the problem via build operations, it can be done separately by calling {@link org.gradle.api.problems.internal.InternalProblemReporter#report(ProblemReport)}.
+     * Creates the new problem. Calling this method won't report the problem via build operations, it can be done separately by calling {@link org.gradle.api.problems.internal.InternalProblemReporter#report(Problem)}.
      *
      * @return the new problem
      */
-    ProblemReport build();
+    InternalProblem build();
 
     @Override
-    InternalProblemBuilder taskPathLocation(String buildTreePath);
+    InternalProblemBuilder id(ProblemId problemId);
 
     @Override
-    InternalProblemBuilder label(String label);
+    InternalProblemBuilder id(String name, String displayName, ProblemGroup parent);
 
     @Override
-    InternalProblemBuilder category(String category, String... details);
+    InternalProblemBuilder taskLocation(String buildTreePath);
 
     @Override
     InternalProblemBuilder documentedAt(DocLink doc);
+
+    @Override
+    InternalProblemBuilder contextualLabel(String contextualLabel);
 
     @Override
     InternalProblemBuilder documentedAt(String url);
@@ -55,9 +64,6 @@ public interface InternalProblemBuilder extends InternalProblemSpec {
     InternalProblemBuilder offsetInFileLocation(String path, int offset, int length);
 
     @Override
-    InternalProblemBuilder pluginLocation(String pluginId);
-
-    @Override
     InternalProblemBuilder stackLocation();
 
     @Override
@@ -67,11 +73,17 @@ public interface InternalProblemBuilder extends InternalProblemSpec {
     InternalProblemBuilder solution(String solution);
 
     @Override
-    InternalProblemBuilder additionalData(String key, Object value);
+    <U extends AdditionalDataSpec> InternalProblemBuilder additionalDataInternal(Class<? extends U> specType, Action<? super U> config);
+
+    // interface should be public <T> void additionalData(Class<T> type, Action<? super T> config)
+    @Override
+    <T extends AdditionalData> InternalProblemBuilder additionalData(Class<T> type, Action<? super T> config);
 
     @Override
-    InternalProblemBuilder withException(RuntimeException e);
+    InternalProblemBuilder withException(Throwable t);
 
     @Override
     InternalProblemBuilder severity(Severity severity);
+
+    ProblemsInfrastructure getInfrastructure();
 }

@@ -27,13 +27,13 @@ import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.execution.taskgraph.TaskListenerInternal
 import org.gradle.internal.operations.BuildOperationCategory
-import org.gradle.internal.operations.TestBuildOperationExecutor
+import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.util.Path
 import spock.lang.Specification
 
 class EventFiringTaskExecuterTest extends Specification {
 
-    def buildOperationExecutor = new TestBuildOperationExecutor()
+    def buildOperationRunner = new TestBuildOperationRunner()
     def taskExecutionListener = Mock(TaskExecutionListener)
     def taskListener = Mock(TaskListenerInternal)
     def delegate = Mock(TaskExecuter)
@@ -42,7 +42,7 @@ class EventFiringTaskExecuterTest extends Specification {
     def state = new TaskStateInternal()
     def executionContext = Mock(TaskExecutionContext)
 
-    def executer = new EventFiringTaskExecuter(buildOperationExecutor, taskExecutionListener, taskListener, delegate)
+    def executer = new EventFiringTaskExecuter(buildOperationRunner, taskExecutionListener, taskListener, delegate)
 
     def "notifies task listeners"() {
         when:
@@ -66,10 +66,10 @@ class EventFiringTaskExecuterTest extends Specification {
         0 * taskListener._
 
         and:
-        buildOperationExecutor.operations[0].name == ":a"
-        buildOperationExecutor.operations[0].displayName == "Task :a"
-        buildOperationExecutor.operations[0].progressDisplayName == ":a"
-        buildOperationExecutor.operations[0].metadata == BuildOperationCategory.TASK
+        buildOperationRunner.operations[0].name == ":a"
+        buildOperationRunner.operations[0].displayName == "Task :a"
+        buildOperationRunner.operations[0].progressDisplayName == ":a"
+        buildOperationRunner.operations[0].metadata == BuildOperationCategory.TASK
     }
 
     def "does not run task action when beforeExecute event fails"() {
@@ -92,7 +92,7 @@ class EventFiringTaskExecuterTest extends Specification {
         state.failure.cause == failure
 
         and:
-        def operation = buildOperationExecutor.log.records[0]
+        def operation = buildOperationRunner.log.records[0]
         operation.failure != null
     }
 
@@ -125,7 +125,7 @@ class EventFiringTaskExecuterTest extends Specification {
         state.failure == failure
 
         and:
-        def operation = buildOperationExecutor.log.records[0]
+        def operation = buildOperationRunner.log.records[0]
         operation.failure != null
     }
 
@@ -153,7 +153,7 @@ class EventFiringTaskExecuterTest extends Specification {
         state.failure.cause == failure
 
         and:
-        def operation = buildOperationExecutor.log.records[0]
+        def operation = buildOperationRunner.log.records[0]
         operation.failure != null
     }
 
@@ -185,7 +185,7 @@ class EventFiringTaskExecuterTest extends Specification {
         state.failure.causes == [failure, failure2]
 
         and:
-        def operation = buildOperationExecutor.log.records[0]
+        def operation = buildOperationRunner.log.records[0]
         operation.failure != null
     }
 }

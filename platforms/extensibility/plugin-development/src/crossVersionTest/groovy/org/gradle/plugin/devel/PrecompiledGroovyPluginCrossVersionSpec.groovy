@@ -30,7 +30,7 @@ class PrecompiledGroovyPluginCrossVersionSpec extends CrossVersionIntegrationSpe
             pluginManagement {
                 repositories {
                     maven {
-                        url '${mavenRepo.uri}'
+                        url = "${mavenRepo.uri}"
                     }
                 }
             }
@@ -113,7 +113,7 @@ class PrecompiledGroovyPluginCrossVersionSpec extends CrossVersionIntegrationSpe
             publishing {
                 repositories {
                     maven {
-                        url '${mavenRepo.uri}'
+                        url = "${mavenRepo.uri}"
                     }
                 }
             }

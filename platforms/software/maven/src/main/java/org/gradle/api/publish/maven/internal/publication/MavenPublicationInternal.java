@@ -38,11 +38,9 @@ public interface MavenPublicationInternal extends MavenPublication, PublicationI
      * Some components (e.g. Native) are published such that the module metadata references the original file name,
      * rather than the Maven-standard {artifactId}-{version}-{classifier}.{extension}.
      * This method enables this behaviour for the current publication.
-     *
-     *
-     * <p>Note: This internal API is used by KMP:
-     * <a href="https://github.com/JetBrains/kotlin/blob/5424c54fae7b4836506ec711edc0135392b445d6/libraries/tools/kotlin-gradle-plugin/src/common/kotlin/org/jetbrains/kotlin/gradle/plugin/mpp/Publishing.kt#L50">Usage</a></a>
-     * </p>
+     * <p>
+     * Note: This internal API is used by KMP:
+     * <a href="https://github.com/JetBrains/kotlin/blob/5424c54fae7b4836506ec711edc0135392b445d6/libraries/tools/kotlin-gradle-plugin/src/common/kotlin/org/jetbrains/kotlin/gradle/plugin/mpp/Publishing.kt#L50">Usage</a>
      */
     void publishWithOriginalFileName();
 }

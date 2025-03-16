@@ -16,15 +16,28 @@
 
 package org.gradle.util
 
-
+import groovy.transform.stc.ClosureParams
+import groovy.transform.stc.SimpleType
 import org.gradle.api.attributes.Attribute
-import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
+import org.gradle.api.attributes.AttributesSchema
+import org.gradle.api.internal.attributes.AttributeSchemaServices
+import org.gradle.api.internal.attributes.AttributeValueIsolator
+import org.gradle.api.internal.attributes.AttributesSchemaInternal
+import org.gradle.api.internal.attributes.DefaultAttributesFactory
+import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.attributes.ImmutableAttributes
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory
+import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema
+import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchemaFactory
+import org.gradle.api.internal.attributes.immutable.artifact.ImmutableArtifactTypeRegistryFactory
 
 class AttributeTestUtil {
-    static ImmutableAttributesFactory attributesFactory() {
-        return new DefaultImmutableAttributesFactory(SnapshotTestUtil.isolatableFactory(), TestUtil.objectInstantiator())
+
+    static AttributeValueIsolator attributeValueIsolator() {
+        return new AttributeValueIsolator(SnapshotTestUtil.isolatableFactory(), TestUtil.objectInstantiator())
+    }
+
+    static DefaultAttributesFactory attributesFactory() {
+        return new DefaultAttributesFactory(attributeValueIsolator(), SnapshotTestUtil.isolatableFactory(), TestUtil.objectInstantiator(), TestUtil.propertyFactory())
     }
 
     /**
@@ -64,5 +77,36 @@ class AttributeTestUtil {
 
     static <T> T named(Class<T> clazz, String value) {
         TestUtil.objectInstantiator().named(clazz, value)
+    }
+
+    /**
+     * Creates a mutable attribute schema, configuring it with the provided action.
+     */
+    static AttributesSchemaInternal mutableSchema(@DelegatesTo(AttributesSchema) @ClosureParams(value = SimpleType, options = ["org.gradle.api.attributes.AttributesSchema"]) Closure<?> action = {}) {
+        def attributesSchema = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
+
+        action.delegate = attributesSchema
+        action(attributesSchema)
+
+        return attributesSchema
+    }
+
+    /**
+     * Creates an immutable attribute schema, configuring it with the provided action.
+     */
+    static ImmutableAttributesSchema immutableSchema(@DelegatesTo(AttributesSchema) @ClosureParams(value = SimpleType, options = ["org.gradle.api.attributes.AttributesSchema"]) Closure<?> action = {}) {
+        def mutable = mutableSchema(action)
+        return services().getSchemaFactory().create(mutable)
+    }
+
+    /**
+     * Creates a service factory, used for creating attribute matchers and variant transformers.
+     */
+    static AttributeSchemaServices services() {
+        new AttributeSchemaServices(
+            new ImmutableAttributesSchemaFactory(TestUtil.inMemoryCacheFactory()),
+            new ImmutableArtifactTypeRegistryFactory(TestUtil.inMemoryCacheFactory(), attributesFactory()),
+            TestUtil.inMemoryCacheFactory()
+        )
     }
 }

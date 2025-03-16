@@ -17,8 +17,9 @@
 package org.gradle.buildinit.plugins.internal;
 
 import com.google.common.collect.Sets;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.catalog.DefaultVersionCatalogBuilder;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Locale;
@@ -31,7 +32,7 @@ import java.util.regex.Pattern;
 /**
  * Tracks plugins, libraries and their versions used during build generation.
  */
-@NonNullApi
+@NullMarked
 public class VersionCatalogDependencyRegistry {
     private static final Pattern RESERVED_LIBRARY_PREFIX = Pattern.compile("^(" + String.join("|", DefaultVersionCatalogBuilder.FORBIDDEN_LIBRARY_ALIAS_PREFIX) + ")[- ]");
     private static final Pattern RESERVED_ALIAS_COMPONENT = Pattern.compile("(^|-)(" + String.join("|", Sets.union(DefaultVersionCatalogBuilder.RESERVED_ALIAS_NAMES, DefaultVersionCatalogBuilder.RESERVED_JAVA_NAMES)) + ")($|[- ])");
@@ -64,10 +65,18 @@ public class VersionCatalogDependencyRegistry {
         return "libs." + libraryEntry.alias.replaceAll("-", ".");
     }
 
-    public String registerPlugin(String pluginId, String version) {
-        String alias = fullyQualifiedAliases ? coordinatesToAlias(pluginId) : pluginIdToAlias(pluginId);
+    public String registerPlugin(String pluginId, String version, @Nullable String pluginAlias) {
+        String alias = pluginAliasOf(pluginId, pluginAlias);
         PluginEntry pluginEntry = findOrCreatePluginEntry(alias, pluginId, version);
         return "libs.plugins." + pluginEntry.alias.replaceAll("-", ".");
+    }
+
+    private String pluginAliasOf(String pluginId, @Nullable String pluginAlias) {
+        if (fullyQualifiedAliases) {
+            return coordinatesToAlias(pluginId);
+        }
+
+        return pluginAlias != null ? pluginAlias : pluginIdToAlias(pluginId);
     }
 
     private VersionEntry findOrCreateVersionEntry(String alias, String module, String version) {
@@ -118,7 +127,8 @@ public class VersionCatalogDependencyRegistry {
 
     private static String pluginIdToAlias(String pluginId) {
         String[] pluginIdComponents = pluginId.split("\\.");
-        return coordinatesToAlias(pluginIdComponents[pluginIdComponents.length - 1]);
+        String pluginIdLastComponent = pluginIdComponents[pluginIdComponents.length - 1];
+        return coordinatesToAlias(pluginIdLastComponent);
     }
 
     private static String moduleToAlias(String module) {
@@ -147,14 +157,14 @@ public class VersionCatalogDependencyRegistry {
         return nextKey;
     }
 
-    @NonNullApi
+    @NullMarked
     public static class VersionEntry {
         String alias;
         String module;
         String version;
     }
 
-    @NonNullApi
+    @NullMarked
     public static class LibraryEntry {
         String alias;
         String module;
@@ -162,7 +172,7 @@ public class VersionCatalogDependencyRegistry {
         String versionRef;
     }
 
-    @NonNullApi
+    @NullMarked
     public static class PluginEntry {
         String alias;
         String pluginId;

@@ -19,7 +19,6 @@ package org.gradle.integtests.resolve.catalog
 import org.gradle.api.internal.catalog.problems.VersionCatalogErrorMessages
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemTestFor
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.resolve.PluginDslSupport
 import spock.lang.Issue
 
@@ -117,6 +116,17 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
             inCatalog("libs")
             alias("my.great.lib")
         })
+
+        and:
+        verifyAll(receivedProblem) {
+            fqid == 'dependency-version-catalog:alias-not-finished'
+            contextualLabel == 'Problem: In version catalog libs, dependency alias builder \'my.great.lib\' was not finished.'
+            details == 'A version was not set or explicitly declared as not wanted'
+            solutions == [
+                'Call `.version()` to give the alias a version',
+                'Call `.withoutVersion()` to explicitly declare that the alias should not have a version',
+            ]
+        }
     }
 
     def "logs contain a message indicating if an unfinished builder is overwritten with one that finishes"() {
@@ -820,7 +830,7 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
         """
         file("buildSrc/build.gradle") << """
             repositories {
-                maven { url "${mavenHttpRepo.uri}" }
+                maven { url = "${mavenHttpRepo.uri}" }
             }
 
             dependencies {
@@ -881,7 +891,7 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
 
             dependencyResolutionManagement {
                 repositories {
-                    maven { url "${mavenHttpRepo.uri}" }
+                    maven { url = "${mavenHttpRepo.uri}" }
                 }
                 versionCatalogs {
                     libs {
@@ -1213,14 +1223,14 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module('org.gradle.test:lib:1.1') {
+                edge('org.gradle.test:lib:{strictly 1.1}', 'org.gradle.test:lib:1.1') {
                     variant('enforced-platform-runtime', [
                         'org.gradle.status': 'release',
                         'org.gradle.usage': 'java-runtime',
                         'org.gradle.category': 'enforced-platform'])
                     noArtifacts()
                 }
-                module('org.gradle.test:lib.subgroup:1.1') {
+                edge('org.gradle.test:lib.subgroup:{strictly 1.1}', 'org.gradle.test:lib.subgroup:1.1') {
                     variant('enforced-platform-runtime', [
                         'org.gradle.status': 'release',
                         'org.gradle.usage': 'java-runtime',
@@ -1937,6 +1947,14 @@ Second: 1.1"""
             reservedAliases "extensions", "convention"
         })
 
+        and:
+        verifyAll(receivedProblem) {
+            fqid == 'dependency-version-catalog:reserved-alias-name'
+            contextualLabel == "Problem: In version catalog libs, alias '$reserved' is not a valid alias."
+            details == "Alias '$reserved' is a reserved name in Gradle which prevents generation of accessors."
+            solutions == [ 'Use a different alias which doesn\'t contain any of \'convention\' or \'extensions\'.' ]
+        }
+
         where:
         reserved << [
             "extensions",
@@ -1970,6 +1988,14 @@ Second: 1.1"""
             reservedNames "class"
         })
 
+        and:
+        verifyAll(receivedProblem) {
+            fqid == 'dependency-version-catalog:reserved-alias-name'
+            contextualLabel == "Problem: In version catalog libs, alias '$reserved' is not a valid alias."
+            details == "Alias '$reserved' is a reserved name in Gradle which prevents generation of accessors."
+            solutions == [ 'Use a different alias which doesn\'t contain \'class\'.' ]
+        }
+
         where:
         reserved << [
             "class",
@@ -2002,6 +2028,14 @@ Second: 1.1"""
             alias(reservedName).shouldNotBeEqualTo(prefix)
             reservedAliasPrefix('bundles', 'plugins', 'versions')
         })
+
+        and:
+        verifyAll(receivedProblem) {
+            fqid == 'dependency-version-catalog:reserved-alias-name'
+            contextualLabel == "Problem: In version catalog libs, alias '$reservedName' is not a valid alias."
+            details == "Prefix for dependency shouldn\'t be equal to '$prefix'"
+            solutions == [ 'Use a different alias which prefix is not equal to \'bundles\', \'plugins\', or \'versions\'' ]
+        }
 
         where:
         reservedName  | prefix
@@ -2318,119 +2352,5 @@ Second: 1.1"""
         "versions.myVersion" | "1.0"
         "plugins.myPlugin"   | "org.gradle.test:1.0"
         "bundles.myBundle"   | "[org.gradle.test:lib:3.0.5]"
-    }
-
-    @Issue("https://github.com/gradle/gradle/issues/23096")
-    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
-    def 'all properties of version catalog dependencies are copied when the dependency is copied'() {
-        disableProblemsApiCheck()
-        given:
-        buildFile << """
-            configurations {
-                implementation
-                destination1
-                destination2
-            }
-
-            dependencies {
-                implementation(libs.test1) {
-                    because("reason1")
-
-                    exclude(group: "test-group", module: "test-module")
-                    artifact {
-                        name = "test-name"
-                        classifier = "test-classifier"
-                        extension = "test-ext"
-                        type = "test-type"
-                        url = "test-url"
-                    }
-                    transitive = true
-                    endorseStrictVersions()
-
-                    version {
-                        branch = "branch"
-                        strictly("123")
-                        prefer("789")
-                        reject("aaa")
-                    }
-
-                    changing = true
-                }
-                implementation(libs.test2) {
-                    transitive = false
-                    targetConfiguration = "abc"
-                    doNotEndorseStrictVersions()
-
-                    version {
-                        require("456")
-                    }
-
-                    changing = false
-                }
-                implementation(libs.test3) {
-                    attributes {
-                        attribute(Attribute.of('foo', String), 'bar')
-                    }
-                    capabilities {
-                        requireCapability("org:test-cap:1.1")
-                    }
-                }
-            }
-
-            def verifyDep(original, copied) {
-                // Dependency
-                assert original.group == copied.group
-                assert original.name == copied.name
-                assert original.version == copied.version
-                assert original.reason == copied.reason
-
-                // ModuleDependency
-                assert original.excludeRules == copied.excludeRules
-                assert original.artifacts == copied.artifacts
-                assert original.transitive == copied.transitive
-                assert original.targetConfiguration == copied.targetConfiguration
-                assert original.attributes == copied.attributes
-                assert original.requestedCapabilities == copied.requestedCapabilities
-                assert original.endorsingStrictVersions == copied.endorsingStrictVersions
-
-                // ExternalDependency + ExternalModuleDependency
-                assert original.changing == copied.changing
-                assert original.versionConstraint == copied.versionConstraint
-            }
-
-            def getOriginal(dep) {
-                configurations.implementation.dependencies.find { it.name == dep.name }
-            }
-
-            task copyAndVerifyDependencies {
-                configurations.implementation.dependencies.each {
-                    project.dependencies.add("destination1", it)
-                    configurations.destination2.dependencies.add(it)
-                }
-
-                doLast {
-                    configurations.destination1.dependencies.each {
-                        verifyDep(getOriginal(it), it)
-                    }
-
-                    configurations.destination2.dependencies.each {
-                        verifyDep(getOriginal(it), it)
-                    }
-
-                    configurations.implementation.copy().dependencies.each {
-                        verifyDep(getOriginal(it), it)
-                    }
-                }
-            }
-        """
-
-        file("gradle/libs.versions.toml") << """[libraries]
-test1 = { module = 'org:test1', version = '1.0' }
-test2 = { module = 'org:test2', version = '1.0' }
-test3 = { module = 'org:test3', version = '1.0' }
-"""
-
-        expect:
-        succeeds "copyAndVerifyDependencies"
     }
 }

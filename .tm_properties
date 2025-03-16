@@ -1,9 +1,0 @@
-projectDirectory = "$CWD"
-exclude = "{**/build/{classes,distributions,repo,integ test,timestamp.txt,libs,tmp,*resources,checkstyle,distDocs,samples,snippets,src,stylesheets},gradlew,*.{iml,ipr,iws,bat},intTestHomeDir,out}"
-softTabs = true
-tabSize = 4
-
-TM_JAVA_SOURCE_FOLDER_REGEX=src|groovy|java|test|unit|integration|functional
-
-[ "**/build/reports/tests" ]
-include = "index.html"

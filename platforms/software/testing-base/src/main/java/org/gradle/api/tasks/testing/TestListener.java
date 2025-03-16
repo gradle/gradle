@@ -22,14 +22,14 @@ package org.gradle.api.tasks.testing;
 
 import org.gradle.internal.DeprecatedInGradleScope;
 import org.gradle.internal.service.scopes.EventScope;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 
 /**
  * Interface for listening to test execution.  The intent is to be
  * framework agnostic.  Currently this interface can support feedback
  * from JUnit and TestNG tests.
  */
-@EventScope(Scopes.Build.class)
+@EventScope(Scope.Build.class)
 @DeprecatedInGradleScope
 public interface TestListener {
     /**

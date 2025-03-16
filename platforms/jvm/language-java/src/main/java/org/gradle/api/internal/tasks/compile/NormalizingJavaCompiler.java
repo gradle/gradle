@@ -24,8 +24,8 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.internal.CollectionUtils;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 import java.util.stream.Collectors;

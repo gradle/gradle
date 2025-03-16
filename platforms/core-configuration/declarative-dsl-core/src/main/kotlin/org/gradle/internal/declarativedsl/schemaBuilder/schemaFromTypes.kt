@@ -16,23 +16,19 @@
 
 package org.gradle.internal.declarativedsl.schemaBuilder
 
-import org.gradle.declarative.dsl.model.annotations.Adding
-import org.gradle.declarative.dsl.model.annotations.Builder
-import org.gradle.declarative.dsl.model.annotations.Configuring
-import org.gradle.declarative.dsl.model.annotations.HasDefaultValue
-import org.gradle.declarative.dsl.model.annotations.Restricted
-import org.gradle.internal.declarativedsl.analysis.AnalysisSchema
-import org.gradle.internal.declarativedsl.analysis.FqName
+import org.gradle.declarative.dsl.schema.AnalysisSchema
+import org.gradle.declarative.dsl.schema.FqName
+import org.gradle.internal.declarativedsl.hasDeclarativeAnnotation
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
-import kotlin.reflect.KFunction
 import kotlin.reflect.KVisibility
 
 
+@Suppress("LongParameterList")
 fun schemaFromTypes(
     topLevelReceiver: KClass<*>,
     types: Iterable<KClass<*>>,
-    externalFunctions: List<KFunction<*>> = emptyList(),
+    externalFunctionDiscovery: TopLevelFunctionDiscovery = CompositeTopLevelFunctionDiscovery(listOf()),
     externalObjects: Map<FqName, KClass<*>> = emptyMap(),
     defaultImports: List<FqName> = emptyList(),
     configureLambdas: ConfigureLambdaHandler = kotlinFunctionAsConfigureLambda,
@@ -41,7 +37,7 @@ fun schemaFromTypes(
     typeDiscovery: TypeDiscovery = TypeDiscovery.none
 ): AnalysisSchema =
     DataSchemaBuilder(typeDiscovery, propertyExtractor, functionExtractor).schemaFromTypes(
-        topLevelReceiver, types, externalFunctions, externalObjects, defaultImports
+        topLevelReceiver, types, externalFunctionDiscovery.discoverTopLevelFunctions(), externalObjects, defaultImports
     )
 
 
@@ -52,7 +48,5 @@ val isPublic: MemberFilter = MemberFilter { member: KCallable<*> ->
 
 val isPublicAndRestricted: MemberFilter = MemberFilter { member: KCallable<*> ->
     member.visibility == KVisibility.PUBLIC &&
-        member.annotationsWithGetters.any {
-            it is Builder || it is Configuring || it is Adding || it is Restricted || it is HasDefaultValue
-        }
+        member.annotationsWithGetters.any(hasDeclarativeAnnotation)
 }

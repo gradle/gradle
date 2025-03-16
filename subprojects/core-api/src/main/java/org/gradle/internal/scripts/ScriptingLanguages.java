@@ -16,8 +16,7 @@
 package org.gradle.internal.scripts;
 
 import org.gradle.scripts.ScriptingLanguage;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -33,7 +32,7 @@ public final class ScriptingLanguages {
             Arrays.asList(
                 scriptingLanguage(".gradle", null),
                 scriptingLanguage(".gradle.kts", "org.gradle.kotlin.dsl.provider.KotlinScriptPluginFactory"),
-                scriptingLanguage(".gradle.something", "org.gradle.internal.declarativedsl.provider.DeclarativeDslScriptPluginFactory")
+                scriptingLanguage(".gradle.dcl", "org.gradle.internal.declarativedsl.provider.DeclarativeDslScriptPluginFactory")
             )
         );
 

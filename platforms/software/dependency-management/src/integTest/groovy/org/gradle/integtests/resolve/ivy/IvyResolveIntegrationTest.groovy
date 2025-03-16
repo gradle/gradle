@@ -43,7 +43,7 @@ class IvyResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
         buildFile << """
 group = 'org.gradle'
 version = '1.0'
-repositories { ivy { url "${ivyRepo.uri}" } }
+repositories { ivy { url = "${ivyRepo.uri}" } }
 configurations { compile }
 dependencies {
     compile "org.gradle:test:1.45"
@@ -83,7 +83,7 @@ dependencies {
 
         and:
         buildFile << """
-repositories { ivy { url "${ivyHttpRepo.uri}" } }
+repositories { ivy { url = "${ivyHttpRepo.uri}" } }
 configurations { compile }
 dependencies {
     compile "org.gradle:test:1.45"
@@ -128,7 +128,7 @@ dependencies {
 
         and:
         buildFile << """
-repositories { ivy { url "${ivyRepo.uri}" } }
+repositories { ivy { url = "${ivyRepo.uri}" } }
 configurations { compile }
 dependencies {
     compile "org.gradle:test:1.45:classifier"
@@ -156,7 +156,7 @@ dependencies {
         buildFile << """
 repositories {
     ivy {
-        url "${ivyRepo.uri}"
+        url = "${ivyRepo.uri}"
         metadataSources {
             ivyDescriptor()
             artifact()
@@ -192,7 +192,7 @@ dependencies {
 
         and:
         buildFile << """
-repositories { ivy { url "${ivyHttpRepo.uri}" } }
+repositories { ivy { url = "${ivyHttpRepo.uri}" } }
 configurations { compile }
 dependencies {
     compile ("org.gradle:test:1.45") {
@@ -234,7 +234,7 @@ dependencies {
         buildFile << """
 repositories {
     ivy {
-        url "${ivyHttpRepo.uri}"
+        url = "${ivyHttpRepo.uri}"
         metadataSources {
             ivyDescriptor()
             artifact()
@@ -281,7 +281,7 @@ dependencies {
 
         and:
         buildFile << """
-repositories { ivy { url "${ivyRepo.uri}" } }
+repositories { ivy { url = "${ivyRepo.uri}" } }
 configurations {
     compile
     runtime.extendsFrom compile
@@ -345,7 +345,7 @@ dependencies {
             group = 'com.acme'
             version = '1.9'
 
-            repositories { ivy { url "${ivyRepo.uri}" } }
+            repositories { ivy { url = "${ivyRepo.uri}" } }
 
             apply plugin: 'java-library'
 
@@ -389,5 +389,59 @@ dependencies {
                 constraint("org:bar:{strictly 1.0}", "org:bar:1.0")
             }
         }
+    }
+
+    def "consuming non-consumable project configuration when substituted as a transitive dependency is deprecated"() {
+        file("included/settings.gradle") << """
+            rootProject.name = "transitive"
+        """
+        file("included/build.gradle") << """
+            group = "org"
+
+            task myZip(type: Zip) {
+                archiveFileName = "transitive.zip"
+                destinationDirectory = layout.buildDirectory
+            }
+
+            configurations {
+                "default" {
+                    canBeConsumed = false
+                    outgoing {
+                        artifact(tasks.myZip)
+                    }
+                }
+            }
+        """
+
+        settingsFile << """
+            includeBuild("included")
+        """
+
+        ivyRepo.module("org", "direct")
+            .dependsOn("org", "transitive", "1.0")
+            .publish()
+
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            ${ivyTestRepository()}
+
+            dependencies {
+                implementation("org:direct:1.0")
+            }
+
+            task resolve {
+                def files = configurations.runtimeClasspath
+                files.forEach {
+                    println(it)
+                }
+            }
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("Consuming non-consumable variants from from an ivy component. This behavior has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#consuming_non_consumable_variants_from_ivy_component")
+        succeeds("resolve")
     }
 }

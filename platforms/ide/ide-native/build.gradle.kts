@@ -1,5 +1,7 @@
 plugins {
-    id("gradlebuild.distribution.api-java")
+    // Uninstrumented since it is a mix of Groovy and Java code,
+    // and additionally we don't plan to have upgrades for IDE plugins.
+    id("gradlebuild.distribution.uninstrumented.api-java")
 }
 
 description = "Plugins for integration with native projects in XCode and Visual Studio IDEs"
@@ -12,47 +14,58 @@ sourceSets {
 }
 
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":base-ide-plugins"))
-    implementation(project(":logging"))
-    implementation(project(":core-api"))
-    implementation(project(":model-core"))
-    implementation(project(":core"))
-    implementation(project(":file-collections"))
-    implementation(project(":dependency-management"))
-    implementation(project(":ide"))
-    implementation(project(":platform-base"))
-    implementation(project(":platform-native"))
-    implementation(project(":language-native"))
-    implementation(project(":testing-base"))
-    implementation(project(":testing-native"))
-    implementation(project(":test-suites-base"))
+    compileOnly(libs.jetbrainsAnnotations)
 
-    implementation(libs.groovy)
-    implementation(libs.guava)
+    api(libs.groovy)
+    api(libs.guava)
+    api(libs.inject)
+    api(libs.jspecify)
+    api(libs.plist)
+    api(projects.baseIdePlugins)
+    api(projects.baseServices)
+    api(projects.core)
+    api(projects.coreApi)
+    api(projects.fileCollections)
+    api(projects.ide)
+    api(projects.stdlibJavaExtensions)
+    api(projects.languageNative)
+    api(projects.platformBase)
+    api(projects.platformNative)
+    api(projects.serviceProvider)
+
+    implementation(projects.modelCore)
+    implementation(projects.testingNative)
+    implementation(projects.loggingApi)
+    implementation(projects.serviceLookup)
+    implementation(projects.functional)
     implementation(libs.commonsLang)
-    implementation(libs.inject)
-    implementation(libs.plist)
+    implementation(libs.jsr305)
 
-    testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":platform-native")))
-    testImplementation(testFixtures(project(":language-native")))
-    testImplementation(testFixtures(project(":version-control")))
+    runtimeOnly(projects.dependencyManagement)
+    runtimeOnly(projects.testingBase)
 
-    integTestImplementation(project(":native"))
+    testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.platformNative))
+    testImplementation(testFixtures(projects.languageNative))
+    testImplementation(testFixtures(projects.versionControl))
+
+    integTestImplementation(projects.native)
     integTestImplementation(libs.commonsIo)
     integTestImplementation(libs.jgit)
 
-    testFixturesApi(testFixtures(project(":ide")))
+    testFixturesApi(testFixtures(projects.ide))
     testFixturesImplementation(libs.plist)
     testFixturesImplementation(libs.guava)
     testFixturesImplementation(libs.groovyXml)
-    testFixturesImplementation(testFixtures(project(":ide")))
+    testFixturesImplementation(testFixtures(projects.ide))
 
-    testRuntimeOnly(project(":distributions-core")) {
+    testRuntimeOnly(projects.distributionsCore) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-native"))
+    integTestDistributionRuntimeOnly(projects.distributionsNative)
 }
 
 integTest.usesJavadocCodeSnippets = true
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

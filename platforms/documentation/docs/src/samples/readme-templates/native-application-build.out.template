@@ -1,3 +1,4 @@
+Calculating task graph as no cached configuration is available for tasks: build
 > Task :${subprojectName.raw}:compileDebug${language.raw}
 > Task :${subprojectName.raw}:relocateMainForTest
 > Task :${subprojectName.raw}:linkDebug
@@ -13,3 +14,4 @@
 
 BUILD SUCCESSFUL in 0s
 8 actionable tasks: 8 executed
+Configuration cache entry stored.

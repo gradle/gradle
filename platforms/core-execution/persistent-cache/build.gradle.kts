@@ -1,5 +1,6 @@
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.publish-public-libraries")
 }
 
 description = """Persistent caches on disk and cross process locking.
@@ -7,44 +8,44 @@ description = """Persistent caches on disk and cross process locking.
     | Also contains implementations for in-memory caches in front of the disk cache.
 """.trimMargin()
 
-errorprone {
-    disabledChecks.addAll(
-        "EmptyBlockTag", // 2 occurrences
-        "LockNotBeforeTry", // 3 occurrences
-        "NonAtomicVolatileUpdate", // 1 occurrences
-        "StringCaseLocaleUsage", // 1 occurrences
-        "ThreadLocalUsage", // 1 occurrences
-        "UnnecessaryLambda", // 1 occurrences
-        "UnusedMethod", // 2 occurrences
-        "UnusedVariable", // 1 occurrences
-        "WaitNotInLoop", // 1 occurrences
-    )
-}
-
 dependencies {
-    api(project(":base-annotations"))
-    api(project(":enterprise-logging"))
-    api(project(":base-services"))
-    api(project(":messaging"))
-    api(project(":native"))
-    api(project(":files"))
-    api(project(":logging"))
+    api(projects.buildOperations)
+    api(projects.concurrent)
+    api(projects.files)
+    api(projects.logging) {
+        because("Because GradleVersion temporarily lives in the logging project until 9.0")
+    }
+    api(projects.messaging)
+    api(projects.serialization)
+    api(projects.stdlibJavaExtensions)
 
-    api(libs.jsr305)
-    api(libs.guava)
+    api(libs.jspecify)
 
-    implementation(project(":build-operations"))
+    implementation(projects.classloaders)
+    implementation(projects.buildProcessServices)
+    implementation(projects.functional)
+    implementation(projects.io)
+    implementation(projects.time)
 
+    implementation(libs.guava)
+    implementation(libs.jsr305)
     implementation(libs.slf4jApi)
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
 
-    testImplementation(project(":core-api"))
-    testImplementation(project(":functional"))
-    testImplementation(testFixtures(project(":core")))
+    testImplementation(projects.messaging)
+    testImplementation(projects.coreApi)
+    testImplementation(projects.functional)
+    testImplementation(testFixtures(projects.core))
 
-    testRuntimeOnly(project(":distributions-core")) {
+    testRuntimeOnly(projects.distributionsCore) {
         because("DefaultPersistentDirectoryCacheTest instantiates DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-core"))
+
+    integTestImplementation(projects.messaging)
+
+    integTestDistributionRuntimeOnly(projects.distributionsCore)
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

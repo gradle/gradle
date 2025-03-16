@@ -97,7 +97,7 @@ class NativeAlignmentWithJavaPlatformResolveIntegrationTest extends AbstractModu
                 apply plugin: 'maven-publish'
                 publishing {
                    repositories {
-                       maven { url = "${escapeString(mavenRepo.rootDir)}" }
+                       maven { url = file("${escapeString(mavenRepo.rootDir)}") }
                    }
                 }
             }
@@ -152,7 +152,7 @@ class NativeAlignmentWithJavaPlatformResolveIntegrationTest extends AbstractModu
         buildFile.text = """
             apply plugin: 'java-library'
             repositories {
-                maven { url = "${mavenHttpRepo.uri}" }
+                maven { url = uri("${mavenHttpRepo.uri}") }
             }
             dependencies {
                 implementation("com.acme.foo:core:1.0")

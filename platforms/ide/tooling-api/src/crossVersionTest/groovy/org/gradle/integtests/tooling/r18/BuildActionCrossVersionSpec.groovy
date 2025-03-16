@@ -81,7 +81,7 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
         assertHasConfigureFailedLogging()
     }
 
-    @TargetGradleVersion(">=2.6 <5.1")
+    @TargetGradleVersion(">=3.0 <5.1")
     def "client receives the exception thrown by the build action for version that does not log failure"() {
         when:
         withConnection {
@@ -112,7 +112,7 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
         assertHasConfigureFailedLogging()
     }
 
-    @TargetGradleVersion(">=2.6 <5.1")
+    @TargetGradleVersion(">=3.0 <5.1")
     def "client receives the exception thrown when action requests unknown model for version that does not log failure"() {
         when:
         withConnection {
@@ -125,7 +125,7 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
         e.cause instanceof UnknownModelException
     }
 
-    @TargetGradleVersion(">=2.6 <7.3")
+    @TargetGradleVersion(">=3.0 <7.3")
     def "does not run action when configuration fails"() {
         given:
         buildFile << 'throw new RuntimeException("broken")'

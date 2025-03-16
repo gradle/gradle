@@ -21,14 +21,14 @@ class SigningPublicationsSpec extends SigningProjectSpec {
 
     def setup() {
         applyPlugin()
-        apply plugin: "maven-publish"
+        project.apply plugin: "maven-publish"
         useJavadocAndSourceJars()
-        publishing {
+        project.publishing {
             publications {
                 maven(MavenPublication) {
-                    from components.java
-                    artifact sourcesJar
-                    artifact javadocJar
+                    from project.components.java
+                    artifact project.sourcesJar
+                    artifact project.javadocJar
                 }
             }
         }
@@ -38,36 +38,36 @@ class SigningPublicationsSpec extends SigningProjectSpec {
         given:
         def signTasks = []
         signing {
-            signTasks = sign publishing.publications
+            signTasks = sign project.publishing.publications
         }
 
         when:
-        publishing.publications {
+        project.publishing.publications {
             another(MavenPublication) {
-                from components.java
+                from project.components.java
             }
         }
 
         then:
-        tasks.findByName('signMavenPublication') != null
-        tasks.findByName('signAnotherPublication') != null
+        project.tasks.findByName('signMavenPublication') != null
+        project.tasks.findByName('signAnotherPublication') != null
 
         and:
-        signTasks == [signMavenPublication, signAnotherPublication]
+        signTasks == [project.signMavenPublication, project.signAnotherPublication]
     }
 
     def "publication removed from container after signing is specified"() {
         given:
         def signTasks = []
         signing {
-            signTasks = sign publishing.publications
+            signTasks = sign project.publishing.publications
         }
 
         when:
-        publishing.publications.clear()
+        project.publishing.publications.clear()
 
         then:
-        !tasks.findByName('signMavenPublication').enabled
+        !project.tasks.named('signMavenPublication').get().enabled
 
         and:
         signTasks.isEmpty()
@@ -76,10 +76,10 @@ class SigningPublicationsSpec extends SigningProjectSpec {
     def "sign task has description"() {
         when:
         signing {
-            sign publishing.publications
+            sign project.publishing.publications
         }
 
         then:
-        signMavenPublication.description == "Signs all artifacts in the 'maven' publication."
+        project.signMavenPublication.description == "Signs all artifacts in the 'maven' publication."
     }
 }

@@ -26,7 +26,7 @@ class ResolveTaskMutationsBuildOperationTypeIntegrationTest extends AbstractInte
 
     def "emits operation for task execution"() {
         when:
-        buildScript """
+        buildFile """
             task t {}
         """
         succeeds "t"
@@ -37,7 +37,7 @@ class ResolveTaskMutationsBuildOperationTypeIntegrationTest extends AbstractInte
 
     def "emits operation for failed task execution"() {
         when:
-        buildScript """
+        buildFile """
             task t {
                 doLast {
                     throw new RuntimeException("BOOM!")
@@ -52,7 +52,7 @@ class ResolveTaskMutationsBuildOperationTypeIntegrationTest extends AbstractInte
 
     def "emits operation when resolving mutations fails"() {
         when:
-        buildScript """
+        buildFile """
             task t {
                 outputs.files({ -> throw new RuntimeException("BOOM!") })
             }

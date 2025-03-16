@@ -23,6 +23,7 @@ import org.gradle.api.internal.AbstractBuildableComponentSpec;
 import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 public abstract class AbstractLanguageSourceSet extends AbstractBuildableComponentSpec implements LanguageSourceSetInternal {
@@ -83,7 +84,7 @@ public abstract class AbstractLanguageSourceSet extends AbstractBuildableCompone
     @Override
     public String getDisplayName() {
         String languageName = getLanguageName();
-        if (languageName.toLowerCase().endsWith("resources")) {
+        if (languageName.toLowerCase(Locale.ROOT).endsWith("resources")) {
             return languageName + " '" + getIdentifier().getPath() + "'";
         }
         return languageName + " source '" + getIdentifier().getPath() + "'";

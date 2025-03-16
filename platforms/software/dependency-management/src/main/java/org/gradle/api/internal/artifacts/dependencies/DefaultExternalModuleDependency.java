@@ -20,8 +20,8 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.MutableVersionConstraint;
-
-import javax.annotation.Nullable;
+import org.gradle.internal.deprecation.DeprecationLogger;
+import org.jspecify.annotations.Nullable;
 
 public class DefaultExternalModuleDependency extends AbstractExternalModuleDependency implements ExternalModuleDependency {
 
@@ -39,13 +39,21 @@ public class DefaultExternalModuleDependency extends AbstractExternalModuleDepen
 
     @Override
     public ExternalModuleDependency copy() {
-        DefaultExternalModuleDependency copiedModuleDependency = new DefaultExternalModuleDependency(getGroup(), getName(), getVersion(), getTargetConfiguration());
+        DefaultExternalModuleDependency copiedModuleDependency = new DefaultExternalModuleDependency(getModule(), new DefaultMutableVersionConstraint(getVersionConstraint()), getTargetConfiguration());
         copyTo(copiedModuleDependency);
         return copiedModuleDependency;
     }
 
     @Override
+    @Deprecated
     public boolean contentEquals(Dependency dependency) {
+
+        DeprecationLogger.deprecateMethod(Dependency.class, "contentEquals(Dependency)")
+            .withAdvice("Use Object.equals(Object) instead")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecated_content_equals")
+            .nagUser();
+
         if (this == dependency) {
             return true;
         }
@@ -56,11 +64,5 @@ public class DefaultExternalModuleDependency extends AbstractExternalModuleDepen
         ExternalModuleDependency that = (ExternalModuleDependency) dependency;
         return isContentEqualsFor(that);
 
-    }
-
-    @Override
-    public String toString() {
-        return String.format("DefaultExternalModuleDependency{group='%s', name='%s', version='%s', configuration='%s'}",
-                getGroup(), getName(), getVersion(), getTargetConfiguration() != null ? getTargetConfiguration() : Dependency.DEFAULT_CONFIGURATION);
     }
 }

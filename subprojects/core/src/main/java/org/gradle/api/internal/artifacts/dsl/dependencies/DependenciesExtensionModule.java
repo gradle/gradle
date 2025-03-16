@@ -21,6 +21,7 @@ import groovy.lang.Closure;
 import groovy.transform.stc.ClosureParams;
 import groovy.transform.stc.SecondParam;
 import groovy.transform.stc.SimpleType;
+import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyConstraint;
@@ -37,8 +38,8 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
 import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.ConfigureUtil;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.Set;
 
@@ -51,7 +52,6 @@ import java.util.Set;
  * <li>exposing an instance of {@link DependencyCollector} to add dependencies without explicitly calling {@link DependencyCollector#addConstraint(DependencyConstraint)} or {@link DependencyCollector#addConstraint(Provider)}</li>
  * <li>exposing an instance of {@link DependencyModifier} to modify dependencies without explicitly calling {@link DependencyModifier#modify(ModuleDependency)}</li>
  * </ul>
- * </p>
  *
  * <p>
  * There are {@code call(...)} equivalents for all the {@code add(...)} and {@code addConstraint(...)} methods in {@link DependencyCollector}.
@@ -110,7 +110,7 @@ public class DependenciesExtensionModule {
 
     @Nullable
     private static String extract(Map<String, CharSequence> map, String key) {
-        return (map.containsKey(key)) ? map.get(key).toString() : null;
+        return map.containsKey(key) ? map.get(key).toString() : null;
     }
 
     /**
@@ -132,6 +132,7 @@ public class DependenciesExtensionModule {
      * @return the modified dependency
      * @since 8.0
      */
+    @Incubating
     public static Provider<? extends MinimalExternalModuleDependency> call(DependencyModifier self, ProviderConvertible<? extends MinimalExternalModuleDependency> providerConvertibleToDependency) {
         return self.modify(providerConvertibleToDependency);
     }
@@ -203,6 +204,7 @@ public class DependenciesExtensionModule {
      *
      * @param externalModule external module to add as a dependency
      */
+    @Incubating
     public static void call(DependencyCollector self, ProviderConvertible<? extends MinimalExternalModuleDependency> externalModule) {
         self.add(externalModule);
     }
@@ -213,6 +215,7 @@ public class DependenciesExtensionModule {
      * @param externalModule external module to add as a dependency
      * @param configuration an action to configure the dependency
      */
+    @Incubating
     public static void call(DependencyCollector self, ProviderConvertible<? extends MinimalExternalModuleDependency> externalModule, @ClosureParams(value = SimpleType.class, options = "org.gradle.api.artifacts.ExternalModuleDependency") Closure<?> configuration) {
         self.add(externalModule, ConfigureUtil.configureUsing(configuration));
     }

@@ -17,7 +17,6 @@
 package org.gradle.ide.visualstudio
 
 import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.test.precondition.Requires
@@ -54,7 +53,6 @@ class VisualStudioFileCustomizationIntegrationTest extends AbstractVisualStudioI
     }
 
     @Requires(IntegTestPreconditions.IsEmbeddedExecutor)
-    @ToBeFixedForConfigurationCache
     def "can specify location of generated files"() {
         when:
         hostGradleWrapperFile << "dummy wrapper"
@@ -102,7 +100,6 @@ class VisualStudioFileCustomizationIntegrationTest extends AbstractVisualStudioI
         mainSolution.file.assertDoesNotExist()
     }
 
-    @ToBeFixedForConfigurationCache
     def "can add xml configuration to generated project files"() {
         when:
         buildFile << """
@@ -112,7 +109,7 @@ class VisualStudioFileCustomizationIntegrationTest extends AbstractVisualStudioI
                 projectFile.withXml { xml ->
                     Node globals = xml.asNode().PropertyGroup.find({it.'@Label' == 'Globals'}) as Node
                     globals.appendNode("ExtraInfo", "Some extra info")
-                    globals.appendNode("ProjectName", project.name)
+                    globals.appendNode("ProjectName", "mainExe")
                 }
             }
         }
@@ -127,7 +124,6 @@ class VisualStudioFileCustomizationIntegrationTest extends AbstractVisualStudioI
         projectFile.globals.ProjectName[0].text() == "mainExe"
     }
 
-    @ToBeFixedForConfigurationCache
     def "can add xml configuration to generated filter files"() {
         when:
         buildFile << '''
@@ -135,7 +131,7 @@ class VisualStudioFileCustomizationIntegrationTest extends AbstractVisualStudioI
         visualStudio {
             projects.all { project ->
                 filtersFile.withXml { xml ->
-                    xml.asNode().appendNode("ExtraContent", "Filter - ${project.name}")
+                    xml.asNode().appendNode("ExtraContent", "Filter - mainExe")
                 }
             }
         }
@@ -149,7 +145,6 @@ class VisualStudioFileCustomizationIntegrationTest extends AbstractVisualStudioI
         filtersFile.xml.ExtraContent[0].text() == "Filter - mainExe"
     }
 
-    @ToBeFixedForConfigurationCache
     def "can add text content to generated solution files"() {
         when:
         buildFile << '''
@@ -157,11 +152,10 @@ class VisualStudioFileCustomizationIntegrationTest extends AbstractVisualStudioI
         visualStudio {
             solution { solution ->
                 solution.solutionFile.withContent { content ->
-                    String projectList = projects.collect({it.name}).join(',')
                     int insertPos = text.lastIndexOf("EndGlobal")
                     content.text = content.text.replace("EndGlobal", """
     GlobalSection(MyGlobalSection)
-       Project-list: ${projectList}
+       Project-list: mainExe
     EndGlobalSection
 EndGlobal
 """)
@@ -180,13 +174,12 @@ EndGlobal
         solutionFile.content.contains "Project-list: mainExe"
     }
 
-    @ToBeFixedForConfigurationCache
     def "can configure gradle command line"() {
         when:
         buildFile << """
 tasks.withType(GenerateProjectFileTask) {
-    it.gradleExe "myCustomGradleExe"
-    it.gradleArgs "--configure-on-demand --another"
+    it.gradleExe = "myCustomGradleExe"
+    it.gradleArgs = "--configure-on-demand --another"
 }
 """
         and:

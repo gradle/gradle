@@ -24,14 +24,15 @@ import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerific
 import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifier;
 import org.gradle.internal.xml.SimpleMarkupWriter;
 import org.gradle.internal.xml.SimpleXmlWriter;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.net.URI;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -121,7 +122,7 @@ public class DependencyVerificationsXmlWriter {
             return;
         }
         writer.startElement(KEYRING_FORMAT);
-        writer.write(String.valueOf(keyRingFormat).toLowerCase());
+        writer.write(String.valueOf(keyRingFormat).toLowerCase(Locale.ROOT));
         writer.endElement();
     }
 

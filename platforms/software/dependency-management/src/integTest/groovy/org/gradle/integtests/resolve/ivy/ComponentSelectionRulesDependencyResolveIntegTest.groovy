@@ -315,7 +315,7 @@ Required by:
 
         buildFile << """
             repositories {
-                ivy { url "${ivyRepo2.uri}" }
+                ivy { url = "${ivyRepo2.uri}" }
             }
 
             dependencies {

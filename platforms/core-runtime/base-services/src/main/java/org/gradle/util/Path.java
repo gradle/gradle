@@ -17,14 +17,16 @@
 package org.gradle.util;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.AbstractIterator;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.util.internal.GUtil;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 
 import static java.util.Arrays.asList;
@@ -68,11 +70,14 @@ public class Path implements Comparable<Path> {
 
     private final String[] segments;
     private final boolean absolute;
-    private String fullPath;
+    private final int hashCode;
+    private volatile String fullPath;
 
     private Path(String[] segments, boolean absolute) {
         this.segments = segments;
         this.absolute = absolute;
+
+        this.hashCode = computeHashCode(absolute, segments);
     }
 
     @Override
@@ -146,7 +151,14 @@ public class Path implements Comparable<Path> {
 
     @Override
     public int hashCode() {
-        int result = Arrays.hashCode(segments);
+        return hashCode;
+    }
+
+    private static int computeHashCode(boolean absolute, String[] segments) {
+        int result = 0;
+        for (Object element : segments) {
+            result = 31 * result + element.hashCode();
+        }
         result = 31 * result + (absolute ? 1 : 0);
         return result;
     }
@@ -301,5 +313,42 @@ public class Path implements Comparable<Path> {
             return this;
         }
         return new Path(Arrays.copyOfRange(segments, 0, Math.min(n, segmentCount())), absolute);
+    }
+
+    /**
+     * Iterate over all ancestors of this path, starting with the root path (if absolute) or the first segment (if relative) and not including this path.
+     *
+     * <p>
+     * For example, the path {@code :a:b:c} has the ancestors {@code :}, {@code :a}, and {@code :a:b}.
+     * The path {@code a:b:c} has the ancestors {@code a}, and {@code a:b}.
+     * </p>
+     *
+     * @since 8.13
+     */
+    @Incubating
+    public Iterable<Path> ancestors() {
+        return new Iterable<Path>() {
+            @Override
+            public Iterator<Path> iterator() {
+                return new AbstractIterator<Path>() {
+                    private int segmentsToInclude = absolute ? 0 : 1;
+
+                    @Nullable
+                    @Override
+                    protected Path computeNext() {
+                        if (segmentsToInclude >= segments.length) {
+                            return endOfData();
+                        }
+                        if (segmentsToInclude == 0) {
+                            segmentsToInclude++;
+                            return Path.ROOT;
+                        }
+                        int segments = segmentsToInclude;
+                        segmentsToInclude++;
+                        return takeFirstSegments(segments);
+                    }
+                };
+            }
+        };
     }
 }

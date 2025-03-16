@@ -21,40 +21,26 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def setup() {
-        createDirs("child")
         settingsFile << "include 'child'"
         buildFile << """
-            allprojects {
-                configurations {
-                    compile
-                    create('default').extendsFrom compile
-                }
+            configurations {
+                compile
+                create('default').extendsFrom compile
             }
             task useCompileConfiguration {
                 inputs.files configurations.compile
                 outputs.file file('output.txt')
                 doLast { }
             }
-"""
+        """
     }
 
     def "configuration views used as task input build required files"() {
         buildFile << '''
-            allprojects {
-                task lib
-                task jar
-            }
+            task lib
             dependencies {
                 compile project(':child')
                 compile files('main-lib.jar') { builtBy lib }
-            }
-            project(':child') {
-                artifacts {
-                    compile file: file('child.jar'), builtBy: jar
-                }
-                dependencies {
-                    compile files('child-lib.jar') { builtBy lib }
-                }
             }
             task direct { inputs.files configurations.compile }
             task fileCollection { inputs.files configurations.compile.fileCollection { true } }
@@ -64,10 +50,26 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
             task incomingDependencies { dependsOn configurations.compile.incoming.dependencies }
             task copy { inputs.files configurations.compile.copy() }
             task filteredTree { inputs.files configurations.compile.asFileTree.matching { true } }
-'''
+        '''
+
+        file("child/build.gradle") << """
+            task lib
+            task jar
+            configurations {
+                compile
+                create('default').extendsFrom compile
+            }
+            artifacts {
+                compile file: file('child.jar'), builtBy: jar
+            }
+            dependencies {
+                compile files('child-lib.jar') { builtBy lib }
+            }
+        """
 
         when:
-        run taskName
+        executer.expectDocumentedDeprecationWarning("The Configuration.fileCollection(Closure) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration.getIncoming().artifactView(Action) with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
+        succeeds(taskName)
 
         then:
         executed ":lib", ":child:jar", ":child:lib", ":$taskName"
@@ -89,29 +91,37 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
 
         // A graph from root compile -> child default -> root default, so not an actual cycle here
         // Graph includes artifact and file dependencies on each node, should build all of them
-        buildFile << """
-            allprojects {
-                task jar
-                task lib
-                artifacts {
-                    compile file: file("\${project.name}.jar"), builtBy: jar
-                }
-                dependencies {
-                    compile files("\${project.name}-lib.jar") { builtBy lib }
-                }
+        def header = """
+            task jar
+            task lib
+            artifacts {
+                compile file: file("\${project.name}.jar"), builtBy: jar
             }
+            dependencies {
+                compile files("\${project.name}-lib.jar") { builtBy lib }
+            }
+        """
+
+        buildFile << """
+            $header
             dependencies {
                 compile project(':child')
             }
-            project(':child') {
-                dependencies {
-                    compile project(':') // references 'default' not 'compile' so there is not _actually_ a cycle here
-                }
+        """
+
+        file("child/build.gradle") << """
+            configurations {
+                compile
+                create('default').extendsFrom compile
             }
-"""
+            $header
+            dependencies {
+                compile project(':') // references 'default' not 'compile' so there is not _actually_ a cycle here
+            }
+        """
 
         when:
-        run("useCompileConfiguration")
+        succeeds("useCompileConfiguration")
 
         then:
         executed ":jar", ":lib", ":child:jar", ":child:lib", ":useCompileConfiguration"
@@ -125,33 +135,43 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
 
         // A graph from root compile -> child default -> root compile
         // Graph includes artifact and file dependencies on each node, should build all of them
-        buildFile << """
-            allprojects {
-                task jar
-                task lib
-                configurations {
-                    conf
-                }
-                artifacts {
-                    conf file: file("\${project.name}.jar"), builtBy: jar
-                }
-                dependencies {
-                    conf files("\${project.name}-lib.jar") { builtBy lib }
-                }
+        def header = """
+            task jar
+            task lib
+            configurations {
+                conf
             }
+            artifacts {
+                conf file: file("\${project.name}.jar"), builtBy: jar
+            }
+            dependencies {
+                conf files("\${project.name}-lib.jar") { builtBy lib }
+            }
+        """
+
+        buildFile << """
+            $header
             dependencies {
                 compile project(path: ':child', configuration: 'conf')
                 conf project(path: ':child', configuration: 'conf')
             }
-            project(':child') {
-                dependencies {
-                    conf project(path: ':', configuration: 'conf')
-                }
+        """
+
+        file("child/build.gradle") << """
+            $header
+            configurations {
+                conf
+                compile
+                create('default').extendsFrom compile
             }
-"""
+            dependencies {
+                conf project(path: ':', configuration: 'conf')
+            }
+
+        """
 
         when:
-        run("useCompileConfiguration")
+        succeeds("useCompileConfiguration")
 
         then:
         executed ":jar", ":lib", ":child:jar", ":child:lib", ":useCompileConfiguration"
@@ -166,12 +186,17 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
             dependencies {
                 compile project(':child')
             }
-            project(':child') {
-                artifacts {
-                    compile file: file('thing.txt'), builtBy: { throw new RuntimeException('broken') }
-                }
+        """
+
+        file("child/build.gradle") << """
+            configurations {
+                compile
+                create('default').extendsFrom compile
             }
-"""
+            artifacts {
+                compile file: file('thing.txt'), builtBy: { throw new RuntimeException('broken') }
+            }
+        """
 
         expect:
         executer.withArgument("--dry-run")
@@ -193,12 +218,17 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
             dependencies {
                 compile project(':child')
             }
-            project(':child') {
-                dependencies {
-                    compile files({ throw new RuntimeException('broken') })
-                }
+        """
+
+        file("child/build.gradle") << """
+            configurations {
+                compile
+                create('default').extendsFrom compile
             }
-"""
+            dependencies {
+                compile files({ throw new RuntimeException('broken') })
+            }
+        """
 
         expect:
         executer.withArgument("--dry-run")
@@ -220,22 +250,29 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
             dependencies {
                 compile project(':child')
             }
-            project(':child') {
-                configurations.default.canBeConsumed = false
+        """
+
+        file("child/build.gradle") << """
+            configurations {
+                compile
+                create('default').extendsFrom compile
             }
-"""
+            configurations.default.canBeConsumed = false
+        """
 
         expect:
         executer.withArgument("--dry-run")
         fails("useCompileConfiguration")
         failure.assertHasDescription("Could not determine the dependencies of task ':useCompileConfiguration'.")
-        failure.assertHasCause("Could not resolve all task dependencies for configuration ':compile'.")
-        failure.assertHasCause("Selected configuration 'default' on 'project :child' but it can't be used as a project dependency because it isn't intended for consumption by other components.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
+        failure.assertHasCause("""Unable to find a matching variant of project :child:
+  - No variants exist.""")
 
         fails("useCompileConfiguration")
         failure.assertHasDescription("Could not determine the dependencies of task ':useCompileConfiguration'.")
-        failure.assertHasCause("Could not resolve all task dependencies for configuration ':compile'.")
-        failure.assertHasCause("Selected configuration 'default' on 'project :child' but it can't be used as a project dependency because it isn't intended for consumption by other components.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
+        failure.assertHasCause("""Unable to find a matching variant of project :child:
+  - No variants exist.""")
 
         where:
         fluid << [true, false]
@@ -247,24 +284,29 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
             dependencies {
                 compile project(':child')
             }
-            project(':child') {
-                configurations.default.outgoing.variants {
-                    v1 { }
-                    v2 { }
-                }
+        """
+
+        file("child/build.gradle") << """
+            configurations {
+                compile
+                create('default').extendsFrom compile
             }
-"""
+            configurations.default.outgoing.variants {
+                v1 { }
+                v2 { }
+            }
+        """
 
         expect:
         executer.withArgument("--dry-run")
         fails("useCompileConfiguration")
         failure.assertHasDescription("Could not determine the dependencies of task ':useCompileConfiguration'.")
-        failure.assertHasCause("Could not resolve all task dependencies for configuration ':compile'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
         failure.assertHasCause("More than one variant of project :child matches the consumer attributes:")
 
         fails("useCompileConfiguration")
         failure.assertHasDescription("Could not determine the dependencies of task ':useCompileConfiguration'.")
-        failure.assertHasCause("Could not resolve all task dependencies for configuration ':compile'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
         failure.assertHasCause("More than one variant of project :child matches the consumer attributes:")
 
         where:
@@ -274,22 +316,29 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
     def "reports failure to find build dependencies for broken external component when using fluid dependencies"() {
         def module = mavenHttpRepo.module("test", "test", "1.0").publish()
         makeFluid(true)
-        buildFile << """
-            allprojects {
+        settingsFile << """
+            dependencyResolutionManagement {
                 repositories {
-                    maven { url '$mavenHttpRepo.uri' }
+                    maven { url = '$mavenHttpRepo.uri' }
                 }
             }
+        """
 
+        buildFile << """
             dependencies {
                 compile project(':child')
             }
-            project(':child') {
-                dependencies {
-                    compile 'test:test:1.0'
-                }
+        """
+
+        file("child/build.gradle") << """
+            configurations {
+                compile
+                create('default').extendsFrom compile
             }
-"""
+            dependencies {
+                compile 'test:test:1.0'
+            }
+        """
 
         expect:
         module.pom.expectGetBroken()
@@ -297,14 +346,14 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
         executer.withArgument("--dry-run")
         fails("useCompileConfiguration")
         failure.assertHasDescription("Could not determine the dependencies of task ':useCompileConfiguration'.")
-        failure.assertHasCause("Could not resolve all task dependencies for configuration ':compile'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
         failure.assertHasCause("Could not resolve test:test:1.0.")
         failure.assertHasCause("Could not get resource '${module.pom.uri}'")
 
         module.pom.expectGetBroken()
         fails("useCompileConfiguration")
         failure.assertHasDescription("Could not determine the dependencies of task ':useCompileConfiguration'.")
-        failure.assertHasCause("Could not resolve all task dependencies for configuration ':compile'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
         failure.assertHasCause("Could not resolve test:test:1.0.")
         failure.assertHasCause("Could not get resource '${module.pom.uri}'")
     }
@@ -312,32 +361,39 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
     @ToBeFixedForConfigurationCache
     def "does not download anything when task dependencies are calculated for configuration that is used as a task input"() {
         def module = mavenHttpRepo.module("test", "test", "1.0").publish()
-        buildFile << """
-            allprojects {
+        settingsFile << """
+            dependencyResolutionManagement {
                 repositories {
-                    maven { url '$mavenHttpRepo.uri' }
+                    maven { url = '$mavenHttpRepo.uri' }
                 }
             }
-
+        """
+        buildFile << """
             dependencies {
                 compile project(':child')
             }
-            project(':child') {
-                task jar {
-                    outputs.files file('thing.jar')
-                }
-                artifacts {
-                    compile file: jar.outputs.files.singleFile, builtBy: jar
-                }
-                dependencies {
-                    compile 'test:test:1.0'
-                }
+        """
+
+        file("child/build.gradle") << """
+            task jar {
+                outputs.files file('thing.jar')
             }
-"""
+            configurations {
+                compile
+                create('default').extendsFrom compile
+            }
+            artifacts {
+                compile file: jar.outputs.files.singleFile, builtBy: jar
+            }
+            dependencies {
+                compile 'test:test:1.0'
+            }
+
+        """
 
         when:
         executer.withArgument("--dry-run")
-        run 'useCompileConfiguration'
+        succeeds('useCompileConfiguration')
 
         then:
         server.resetExpectations()
@@ -346,7 +402,7 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
         // Expect downloads when task executed
         module.pom.expectGet()
         module.artifact.expectGet()
-        run 'useCompileConfiguration'
+        succeeds('useCompileConfiguration')
 
         then:
         executed ":child:jar", ":useCompileConfiguration"
@@ -356,33 +412,39 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
     def "does not download artifacts when task dependencies are calculated for configuration that is used as a task input when using fluid dependencies"() {
         def module = mavenHttpRepo.module("test", "test", "1.0").publish()
         makeFluid(true)
-        buildFile << """
-            allprojects {
+        settingsFile << """
+            dependencyResolutionManagement {
                 repositories {
-                    maven { url '$mavenHttpRepo.uri' }
+                    maven { url = '$mavenHttpRepo.uri' }
                 }
             }
-
+        """
+        buildFile << """
             dependencies {
                 compile project(':child')
             }
-            project(':child') {
-                task jar {
-                    outputs.files file('thing.jar')
-                }
-                artifacts {
-                    compile file: jar.outputs.files.singleFile, builtBy: jar
-                }
-                dependencies {
-                    compile 'test:test:1.0'
-                }
+        """
+
+        file("child/build.gradle") << """
+            task jar {
+                outputs.files file('thing.jar')
             }
-"""
+            configurations {
+                compile
+                create('default').extendsFrom compile
+            }
+            artifacts {
+                compile file: jar.outputs.files.singleFile, builtBy: jar
+            }
+            dependencies {
+                compile 'test:test:1.0'
+            }
+        """
 
         when:
         module.pom.expectGet()
         executer.withArgument("--dry-run")
-        run 'useCompileConfiguration'
+        succeeds('useCompileConfiguration')
 
         then:
         server.resetExpectations()
@@ -390,7 +452,7 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
         when:
         // Expect downloads when task executed
         module.artifact.expectGet()
-        run 'useCompileConfiguration'
+        succeeds('useCompileConfiguration')
 
         then:
         executed ":child:jar", ":useCompileConfiguration"
@@ -399,8 +461,10 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
     void makeFluid(boolean fluid) {
         if (fluid) {
             buildFile << """
-allprojects { configurations.all { resolutionStrategy.assumeFluidDependencies() } }
-"""
+                configurations.all {
+                    resolutionStrategy.assumeFluidDependencies()
+                }
+            """
         }
     }
 }

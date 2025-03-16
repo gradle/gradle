@@ -18,7 +18,7 @@ package org.gradle.internal.classpath
 
 
 import org.gradle.internal.classpath.transforms.InstrumentingClassTransform
-import org.gradle.internal.classpath.types.InstrumentingTypeRegistry
+import org.gradle.internal.classpath.types.InstrumentationTypeRegistry
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter
 
 import java.util.function.Predicate
@@ -30,17 +30,16 @@ class InstrumentedClasses {
     private final TestInstrumentedClassLoader loader
 
     InstrumentedClasses(
-        ClassLoader source,
-        Predicate<String> shouldInstrumentClassByName,
-        BytecodeInterceptorFilter interceptorFilter,
-        InstrumentingTypeRegistry typeRegistry
+            ClassLoader source,
+            Predicate<String> shouldInstrumentClassByName,
+            BytecodeInterceptorFilter interceptorFilter,
+            InstrumentationTypeRegistry typeRegistry
     ) {
         this.shouldInstrumentClassByName = shouldInstrumentClassByName
         loader = new TestInstrumentedClassLoader(
             source,
             shouldInstrumentClassByName,
-            new InstrumentingClassTransform(interceptorFilter),
-            typeRegistry
+            new InstrumentingClassTransform(interceptorFilter, typeRegistry)
         )
     }
 

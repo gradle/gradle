@@ -51,7 +51,7 @@ class MavenPomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
 
         and:
         buildFile << """
-repositories { maven { url '${mavenHttpRepo.uri}' } }
+repositories { maven { url = '${mavenHttpRepo.uri}' } }
 configurations { compile }
 dependencies { compile 'groupA:projectA:1.2' }
 """
@@ -98,7 +98,7 @@ dependencies { compile 'groupA:projectA:1.2' }
         and:
         buildFile << """
             repositories {
-                maven { url "${mavenHttpRepo.uri}" }
+                maven { url = "${mavenHttpRepo.uri}" }
             }
             configurations { compile }
             dependencies {
@@ -152,7 +152,7 @@ dependencies { compile 'groupA:projectA:1.2' }
 
         and:
         buildFile << """
-repositories { maven { url '${mavenHttpRepo.uri}' } }
+repositories { maven { url = '${mavenHttpRepo.uri}' } }
 configurations {
     first
     second
@@ -196,7 +196,7 @@ task retrieve {
 
         and:
         buildFile << """
-repositories { maven { url '${mavenHttpRepo.uri}' } }
+repositories { maven { url = '${mavenHttpRepo.uri}' } }
 configurations {
     conf
 }

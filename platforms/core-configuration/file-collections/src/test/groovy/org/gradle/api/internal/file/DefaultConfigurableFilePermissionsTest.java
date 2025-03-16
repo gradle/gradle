@@ -17,7 +17,6 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.file.ConfigurableUserClassFilePermissions;
-import org.gradle.util.TestUtil;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -50,11 +49,21 @@ public class DefaultConfigurableFilePermissionsTest {
             for (int g = 0; g <= 7; g++) {
                 for (int o = 0; o <= 7; o++) {
                     String numericNotation = String.format("%d%d%d", u, g, o);
-                    int mode = u * 64 + g * 8 + o;
-                    assertEquals(mode, newUnixPermission(numericNotation).toUnixNumeric());
+                    int unixNumeric = u * 64 + g * 8 + o;
+                    assertEquals(unixNumeric, newUnixPermission(numericNotation).toUnixNumeric());
+                    assertEquals(unixNumeric, newUnixPermission(unixNumeric).toUnixNumeric());
                 }
             }
         }
+
+        assertInvalidUnixNumericPermissionRejected(Integer.MIN_VALUE);
+        assertInvalidUnixNumericPermissionRejected(-100);
+        assertInvalidUnixNumericPermissionRejected(-10);
+        assertInvalidUnixNumericPermissionRejected(-1);
+        assertInvalidUnixNumericPermissionRejected(512);
+        assertInvalidUnixNumericPermissionRejected(513);
+        assertInvalidUnixNumericPermissionRejected(1024);
+        assertInvalidUnixNumericPermissionRejected(Integer.MAX_VALUE);
     }
 
     @Test
@@ -113,8 +122,25 @@ public class DefaultConfigurableFilePermissionsTest {
         return permissions;
     }
 
+    private static DefaultConfigurableFilePermissions newUnixPermission(int unixNumeric) {
+        DefaultConfigurableFilePermissions permissions = newPermission(false);
+        permissions.unix(unixNumeric);
+        return permissions;
+    }
+
+    private static void assertInvalidUnixNumericPermissionRejected(int unixNumeric) {
+        DefaultConfigurableFilePermissions permissions;
+        try {
+            permissions = newPermission(false);
+            permissions.unix(unixNumeric);
+            fail("Expected exception not thrown");
+        } catch (IllegalArgumentException e) {
+            assertEquals(unixNumeric + " is not a valid unix numeric permission from the range of [0, 512)", e.getMessage());
+        }
+    }
+
     private static DefaultConfigurableFilePermissions newPermission(boolean isDirectory) {
-        return new DefaultConfigurableFilePermissions(TestUtil.objectFactory(), DefaultConfigurableFilePermissions.getDefaultUnixNumeric(isDirectory));
+        return new DefaultConfigurableFilePermissions(DefaultConfigurableFilePermissions.getDefaultUnixNumeric(isDirectory));
     }
 
     private static void assertPermissions(ConfigurableUserClassFilePermissions permission, boolean read, boolean write, boolean execute) {

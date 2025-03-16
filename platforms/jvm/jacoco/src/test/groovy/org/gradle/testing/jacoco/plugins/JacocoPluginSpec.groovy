@@ -107,4 +107,15 @@ class JacocoPluginSpec extends AbstractProjectBuilderSpec {
         jacocoTestReportTask.description == 'Generates code coverage report for the test task.'
         jacocoTestCoverageVerificationTask.description == 'Verifies code coverage metrics based on specified rules for the test task.'
     }
+
+    def "declares task property values for sourceEncoding without default value"() {
+        given:
+        project.apply plugin: 'java'
+
+        expect:
+        def jacocoTestReportTask = project.tasks.getByName('jacocoTestReport')
+        def jacocoTestCoverageVerificationTask = project.tasks.getByName('jacocoTestCoverageVerification')
+        !jacocoTestReportTask.sourceEncoding.isPresent()
+        !jacocoTestCoverageVerificationTask.sourceEncoding.isPresent()
+    }
 }

@@ -28,4 +28,9 @@ public interface WorkerControl {
      * Requests that the worker complete all work and stop. Blocks until the worker process has stopped.
      */
     ExecResult stop();
+
+    /**
+     * Requests that the worker stop immediately, without waiting for it to complete its work.
+     */
+    void stopNow();
 }

@@ -17,6 +17,7 @@
 package org.gradle.internal.build.event;
 
 import com.google.common.collect.ImmutableList;
+import com.google.errorprone.annotations.concurrent.GuardedBy;
 import org.gradle.BuildAdapter;
 import org.gradle.BuildResult;
 import org.gradle.api.internal.GradleInternal;
@@ -49,25 +50,26 @@ import org.gradle.tooling.events.task.internal.DefaultTaskOperationDescriptor;
 import org.gradle.tooling.internal.consumer.parameters.BuildProgressListenerAdapter;
 import org.gradle.tooling.internal.protocol.events.InternalTaskDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalTaskResult;
-import org.gradle.util.internal.CollectionUtils;
 
 import java.io.Closeable;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 
 public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRegistry, BuildEventListenerRegistryInternal {
     private final BuildEventListenerFactory factory;
     private final ListenerManager listenerManager;
     private final BuildOperationListenerManager buildOperationListenerManager;
+    @GuardedBy("subscriptions")
     private final Map<Provider<?>, AbstractListener<?>> subscriptions = new LinkedHashMap<>();
-    private final List<Object> listeners = new ArrayList<>();
     private final ExecutorFactory executorFactory;
 
     public DefaultBuildEventsListenerRegistry(
@@ -85,7 +87,9 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
 
     @Override
     public List<Provider<?>> getSubscriptions() {
-        return ImmutableList.copyOf(subscriptions.keySet());
+        synchronized (subscriptions) {
+            return ImmutableList.copyOf(subscriptions.keySet());
+        }
     }
 
     @Override
@@ -100,57 +104,77 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
 
     @Override
     public void onOperationCompletion(Provider<? extends BuildOperationListener> listenerProvider) {
-        if (subscriptions.containsKey(listenerProvider)) {
-            return;
-        }
+        addSubscriptionIfNotExists(listenerProvider, this::makeBuildOperationSubscription);
+    }
 
+    private ForwardingBuildOperationListener makeBuildOperationSubscription(Provider<? extends BuildOperationListener> listenerProvider) {
         ForwardingBuildOperationListener subscription = new ForwardingBuildOperationListener(listenerProvider, executorFactory);
-        keepAliveIfBuildService(listenerProvider);
-        subscriptions.put(listenerProvider, subscription);
+        processIfBuildService(listenerProvider);
         buildOperationListenerManager.addListener(subscription);
-        listeners.add(subscription);
+        return subscription;
     }
 
     @Override
     public void onTaskCompletion(Provider<? extends OperationCompletionListener> listenerProvider) {
-        if (subscriptions.containsKey(listenerProvider)) {
-            return;
-        }
+        addSubscriptionIfNotExists(listenerProvider, this::makeTaskCompletionSubscription);
+    }
 
+    private ForwardingBuildEventConsumer makeTaskCompletionSubscription(Provider<? extends OperationCompletionListener> listenerProvider) {
         ForwardingBuildEventConsumer subscription = new ForwardingBuildEventConsumer(listenerProvider, executorFactory);
-        keepAliveIfBuildService(listenerProvider);
-        subscriptions.put(listenerProvider, subscription);
+        processIfBuildService(listenerProvider);
 
-        BuildEventSubscriptions eventSubscriptions = new BuildEventSubscriptions(Collections.singleton(OperationType.TASK));
-        // TODO - share these listeners here and with the tooling api client, where possible
-        Iterable<Object> listeners = factory.createListeners(eventSubscriptions, subscription);
-        CollectionUtils.addAll(this.listeners, listeners);
-        for (Object listener : listeners) {
+        for (Object listener : subscription.getListeners()) {
             listenerManager.addListener(listener);
             if (listener instanceof BuildOperationListener) {
                 buildOperationListenerManager.addListener((BuildOperationListener) listener);
             }
         }
+        return subscription;
     }
 
-    private void keepAliveIfBuildService(Provider<?> listenerProvider) {
-        if (listenerProvider instanceof RegisteredBuildServiceProvider) {
-            ((RegisteredBuildServiceProvider) listenerProvider).keepAlive();
+    private <T> void addSubscriptionIfNotExists(Provider<T> listenerProvider, Function<Provider<T>, ? extends AbstractListener<?>> factoryFunction) {
+        synchronized (subscriptions) {
+            subscriptions.computeIfAbsent(listenerProvider, Cast.uncheckedNonnullCast(factoryFunction));
+        }
+    }
+
+    private void processIfBuildService(Provider<?> listenerProvider) {
+        if (listenerProvider instanceof RegisteredBuildServiceProvider<?, ?>) {
+            RegisteredBuildServiceProvider<?, ?> serviceProvider = Cast.uncheckedCast(listenerProvider);
+            serviceProvider.beforeStopping(this::unsubscribeProvider);
+            serviceProvider.keepAlive();
+        }
+    }
+
+    private void unsubscribeProvider(Provider<?> listenerProvider) {
+        AbstractListener<?> subscription;
+        synchronized (subscriptions) {
+            subscription = subscriptions.remove(listenerProvider);
+        }
+        if (subscription != null) {
+            subscription.getListeners().forEach(this::unsubscribe);
+            subscription.close();
         }
     }
 
     private void unsubscribeAll() {
-        try {
-            for (Object listener : listeners) {
-                listenerManager.removeListener(listener);
-                if (listener instanceof BuildOperationListener) {
-                    buildOperationListenerManager.removeListener((BuildOperationListener) listener);
-                }
-            }
-            CompositeStoppable.stoppable(subscriptions.values()).stop();
-        } finally {
-            listeners.clear();
+        Collection<AbstractListener<?>> subscribed;
+
+        synchronized (subscriptions) {
+            subscribed = ImmutableList.copyOf(subscriptions.values());
             subscriptions.clear();
+        }
+
+        subscribed.stream()
+            .flatMap(it -> it.getListeners().stream())
+            .forEach(this::unsubscribe);
+        CompositeStoppable.stoppable(subscribed).stop();
+    }
+
+    private void unsubscribe(Object listener) {
+        listenerManager.removeListener(listener);
+        if (listener instanceof BuildOperationListener) {
+            buildOperationListenerManager.removeListener((BuildOperationListener) listener);
         }
     }
 
@@ -162,7 +186,7 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
 
         public AbstractListener(ExecutorFactory executorFactory) {
             this.executor = executorFactory.create("build event listener");
-            executor.submit(this::run);
+            Future<?> ignored = executor.submit(this::run);
         }
 
         private void run() {
@@ -189,6 +213,8 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
         }
 
         protected abstract void handle(T message);
+
+        public abstract List<Object> getListeners();
 
         protected void queue(T message) {
             if (failure.get() == null) {
@@ -233,14 +259,23 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
         protected void handle(Pair<BuildOperationDescriptor, OperationFinishEvent> message) {
             listenerProvider.get().finished(message.left, message.right);
         }
+
+        @Override
+        public List<Object> getListeners() {
+            return ImmutableList.of(this);
+        }
     }
 
-    private static class ForwardingBuildEventConsumer extends AbstractListener<DefaultTaskFinishedProgressEvent> implements BuildEventConsumer {
+    private class ForwardingBuildEventConsumer extends AbstractListener<DefaultTaskFinishedProgressEvent> implements BuildEventConsumer {
         private final Provider<? extends OperationCompletionListener> listenerProvider;
+        private final ImmutableList<Object> listeners;
 
         public ForwardingBuildEventConsumer(Provider<? extends OperationCompletionListener> listenerProvider, ExecutorFactory executorFactory) {
             super(executorFactory);
             this.listenerProvider = listenerProvider;
+            BuildEventSubscriptions eventSubscriptions = new BuildEventSubscriptions(Collections.singleton(OperationType.TASK));
+            // TODO - share these listeners here and with the tooling api client, where possible
+            listeners = ImmutableList.copyOf(factory.createListeners(eventSubscriptions, this));
         }
 
         @Override
@@ -259,6 +294,11 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
             TaskOperationResult result = BuildProgressListenerAdapter.toTaskResult(providerResult);
             DefaultTaskFinishEvent finishEvent = new DefaultTaskFinishEvent(providerEvent.getEventTime(), providerEvent.getDisplayName(), descriptor, result);
             listenerProvider.get().onFinish(finishEvent);
+        }
+
+        @Override
+        public List<Object> getListeners() {
+            return listeners;
         }
     }
 

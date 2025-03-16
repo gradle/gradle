@@ -17,13 +17,27 @@
 package org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks
 
 import org.gradle.StartParameter
-import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.artifacts.ArtifactCollection
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ConfigurationContainer
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier
+import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.FileCollection
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.internal.StartParameterInternal
+import org.gradle.api.internal.artifacts.DependencyManagementServices
+import org.gradle.api.internal.artifacts.dependencies.DefaultFileCollectionDependency
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal.ClassPathNotation
+import org.gradle.api.internal.file.FileCollectionFactory
+import org.gradle.api.internal.initialization.ScriptClassPathResolver
+import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateRegistry
+import org.gradle.api.invocation.Gradle
+import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.IgnoreEmptyDirectories
@@ -41,9 +55,9 @@ import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.initialization.DefaultProjectDescriptor
 import org.gradle.internal.Try
 import org.gradle.internal.build.NestedRootBuildRunner.createNestedBuildTree
-import org.gradle.internal.classpath.CachedClasspathTransformer
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
+import org.gradle.internal.component.local.model.OpaqueComponentIdentifier
 import org.gradle.internal.concurrent.CompositeStoppable.stoppable
 import org.gradle.internal.exceptions.LocationAwareException
 import org.gradle.internal.hash.HashCode
@@ -79,7 +93,7 @@ import javax.inject.Inject
 
 
 internal
-const val strictModeSystemPropertyName = "org.gradle.kotlin.dsl.precompiled.accessors.strict"
+const val STRICT_MODE_SYSTEM_PROPERTY_NAME = "org.gradle.kotlin.dsl.precompiled.accessors.strict"
 
 
 @CacheableTask
@@ -104,7 +118,15 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
 
     @get:InputFiles
     @get:Classpath
-    abstract val runtimeClassPathFiles: ConfigurableFileCollection
+    val runtimeClassPathFiles: FileCollection
+        get() = runtimeClassPathArtifactCollection.get().artifactFiles
+
+    /**
+     * Tracked via [runtimeClassPathFiles].
+     */
+    @get:Internal
+    internal
+    abstract val runtimeClassPathArtifactCollection: Property<ArtifactCollection>
 
     @get:OutputDirectory
     abstract val metadataOutputDir: DirectoryProperty
@@ -116,14 +138,14 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
 
     @get:Internal
     internal
-    lateinit var plugins: List<PrecompiledScriptPlugin>
+    abstract val plugins: ListProperty<PrecompiledScriptPlugin>
 
     @get:InputFiles
     @get:IgnoreEmptyDirectories
     @get:PathSensitive(PathSensitivity.RELATIVE)
     @Suppress("unused")
     internal
-    val scriptFiles: Set<File>
+    val scriptFiles: Provider<Set<File>>
         get() = scriptPluginFilesOf(plugins)
 
     @get:Input
@@ -196,7 +218,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
             it.scriptPlugin.id
         }
 
-        val pluginGraph = plugins.associate {
+        val pluginGraph = plugins.get().associate {
             it.id to pluginsAppliedBy(it, scriptPluginsById)
         }
 
@@ -264,7 +286,8 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
     private
     fun validationErrorFor(pluginRequest: PluginRequestInternal): String? {
         if (pluginRequest.version != null) {
-            return "Invalid plugin request $pluginRequest. Plugin requests from precompiled scripts must not include a version number. Please remove the version from the offending request and make sure the module containing the requested plugin '${pluginRequest.id}' is an implementation dependency of $projectDesc."
+            return "Invalid plugin request $pluginRequest. Plugin requests from precompiled scripts must not include a version number. " +
+                "Please remove the version from the offending request and make sure the module containing the requested plugin '${pluginRequest.id}' is an implementation dependency of $projectDesc."
         }
         // TODO:kotlin-dsl validate apply false
         return null
@@ -299,7 +322,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
         plugin.compiledScriptTypeName.replace('.', '/') + ".class"
 
     private
-    fun selectProjectScriptPlugins() = plugins.filter { it.scriptType == KotlinScriptType.PROJECT }
+    fun selectProjectScriptPlugins() = plugins.get().filter { it.scriptType == KotlinScriptType.PROJECT }
 
     private
     fun createPluginsClassLoader(): ClassLoader =
@@ -340,7 +363,6 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
      */
     private
     fun projectSchemaFor(plugins: PluginRequests): Try<TypedProjectSchema> {
-        val buildLogicClassPath = buildLogicClassPath()
         val projectDir = uniqueTempDirectory()
         val startParameter = projectSchemaBuildStartParameterFor(projectDir)
         return createNestedBuildTree("$path:${projectDir.name}", startParameter, services).run { controller ->
@@ -350,7 +372,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
                     val baseScope = classLoaderScopeRegistry.coreAndPluginsScope.createChild("accessors-classpath", null).apply {
                         // we export the build logic classpath to the base scope here so that all referenced plugins
                         // can be resolved in the root project scope created below.
-                        export(buildLogicClassPath)
+                        export(buildLogicClassPath(gradle))
                         lock()
                     }
                     val rootProjectScope = baseScope.createChild("accessors-root-project", null)
@@ -363,7 +385,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
                     rootProject.projectEvaluationBroadcaster.beforeEvaluate(rootProject)
                     rootProject.run {
                         applyPlugins(plugins)
-                        serviceOf<ProjectSchemaProvider>().schemaFor(this)
+                        serviceOf<ProjectSchemaProvider>().schemaFor(this, classLoaderScope)!!
                     }
                 }
             }
@@ -409,11 +431,50 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
     }
 
     private
-    fun buildLogicClassPath(): ClassPath =
-        services.get<CachedClasspathTransformer>().transform(
-            DefaultClassPath.of(runtimeClassPathFiles),
-            CachedClasspathTransformer.StandardTransform.BuildLogic
+    fun buildLogicClassPath(gradle: Gradle): ClassPath {
+        // Ideally we would pass already instrumented classpath to a task and then just export it to the classloader.
+        // But since we do some artifact transform caching via BuildService,
+        // that would add some complexity when wiring GeneratePrecompiledScriptPluginAccessors task.
+        val dependencyManagementServices = gradle.serviceOf<DependencyManagementServices>()
+        val dependencyResolutionServices = dependencyManagementServices.newDetachedResolver(
+            StandaloneDomainObjectContext.PLUGINS
         )
+
+        val dependencies = dependencyResolutionServices.dependencyHandler
+        val configurations = dependencyResolutionServices.configurationContainer
+        val fileCollectionFactory = gradle.serviceOf<FileCollectionFactory>()
+        val configuration = createBuildLogicClassPathConfiguration(dependencies, configurations, fileCollectionFactory)
+
+        val resolver = gradle.serviceOf<ScriptClassPathResolver>()
+        val resolutionContext = resolver.prepareDependencyHandler(dependencies)
+        resolver.prepareClassPath(configuration, resolutionContext)
+        return resolver.resolveClassPath(configuration, resolutionContext)
+    }
+
+    private
+    fun createBuildLogicClassPathConfiguration(
+        dependencyHandler: DependencyHandler,
+        configurations: ConfigurationContainer,
+        fileCollectionFactory: FileCollectionFactory
+    ): Configuration {
+        val dependencies = runtimeClassPathArtifactCollection.get().artifacts.map {
+            when (val componentIdentifier = it.id.componentIdentifier) {
+                is OpaqueComponentIdentifier -> DefaultFileCollectionDependency(
+                    componentIdentifier,
+                    fileCollectionFactory.fixed(it.file)
+                )
+                is ProjectComponentIdentifier -> DefaultFileCollectionDependency(
+                    OpaqueComponentIdentifier(ClassPathNotation.LOCAL_PROJECT_AS_OPAQUE_DEPENDENCY),
+                    fileCollectionFactory.fixed(componentIdentifier.displayName, it.file)
+                )
+                else -> {
+                    dependencyHandler.create(fileCollectionFactory.fixed(it.file))
+                }
+            }
+        }.toTypedArray()
+        @Suppress("SpreadOperator")
+        return configurations.detachedConfiguration(*dependencies)
+    }
 
     private
     fun uniqueTempDirectory() =

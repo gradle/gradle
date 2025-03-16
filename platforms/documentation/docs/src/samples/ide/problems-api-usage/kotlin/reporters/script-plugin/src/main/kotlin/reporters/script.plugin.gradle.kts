@@ -1,13 +1,17 @@
 package reporters
-import org.gradle.api.internal.GradleInternal
+import org.gradle.api.problems.ProblemGroup
+import org.gradle.api.problems.ProblemId
 import org.gradle.kotlin.dsl.registering
 
-val gradleInternal = gradle as GradleInternal
-val problems = gradleInternal.services.get(Problems::class.java)
+interface Injected {
+    @get:Inject val problems: Problems
+}
 
-problems.forNamespace("buildscript").reporting {
-    label("Deprecated script plugin 'demo-script-plugin'")
-        .category("deprecation", "plugin")
+val problems = project.objects.newInstance<Injected>().problems
+val problemGroup = ProblemGroup.create("root", "Root Group")
+
+problems.getReporter().report(ProblemId.create("adhoc-script-deprecation", "Deprecated script plugin", problemGroup)) {
+    contextualLabel("Deprecated script plugin 'demo-script-plugin'")
         .severity(Severity.WARNING)
         .solution("Please use 'standard-plugin-2' instead of this plugin")
 }
@@ -15,9 +19,8 @@ problems.forNamespace("buildscript").reporting {
 tasks {
     val warningTask by registering {
         doLast {
-            problems.forNamespace("buildscript").reporting {
-                label("Task 'warningTask' is deprecated")
-                    .category("deprecation", "task")
+            problems.getReporter().report(ProblemId.create("adhoc-task-deprecation", "Deprecated task", problemGroup)) {
+                contextualLabel("Task 'warningTask' is deprecated")
                     .severity(Severity.WARNING)
                     .solution("Please use 'warningTask2' instead of this task")
             }
@@ -26,11 +29,9 @@ tasks {
 
     val failingTask by registering {
         doLast {
-            problems.forNamespace("buildscript").throwing {
-                label("Task 'failingTask' should not be called")
-                    .category("deprecation", "task")
+            problems.getReporter().throwing(RuntimeException("The 'failingTask' should not be called"), ProblemId.create("broken-task", "Task should not be called", problemGroup)) {
+                    contextualLabel("Task 'failingTask' should not be called")
                     .severity(Severity.ERROR)
-                    .withException(RuntimeException("The 'failingTask' should not be called"))
                     .solution("Please use 'successfulTask' instead of this task")
             }
         }

@@ -17,15 +17,16 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessorFactory;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
-import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
+import org.gradle.api.internal.artifacts.ivyservice.CacheExpirationControl;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState;
-import org.gradle.internal.model.CalculatedValueContainerFactory;
+import org.gradle.api.internal.attributes.AttributeSchemaServices;
+import org.gradle.api.internal.attributes.AttributesFactory;
+import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
+import org.gradle.internal.component.external.model.ExternalModuleComponentGraphResolveState;
+import org.gradle.internal.model.CalculatedValueFactory;
 import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
@@ -37,22 +38,24 @@ public class UserResolverChain implements ComponentResolvers {
     private final RepositoryChainArtifactResolver artifactResolver;
     private final ComponentSelectionRulesInternal componentSelectionRules;
 
-    public UserResolverChain(VersionComparator versionComparator,
-                             ComponentSelectionRulesInternal componentSelectionRules,
-                             VersionParser versionParser,
-                             AttributeContainer consumerAttributes,
-                             AttributesSchema attributesSchema,
-                             ImmutableAttributesFactory attributesFactory,
-                             ComponentMetadataProcessorFactory componentMetadataProcessor,
-                             ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor,
-                             CalculatedValueContainerFactory calculatedValueContainerFactory,
-                             CachePolicy cachePolicy
+    public UserResolverChain(
+        VersionComparator versionComparator,
+        ComponentSelectionRulesInternal componentSelectionRules,
+        VersionParser versionParser,
+        AttributeContainer consumerAttributes,
+        ImmutableAttributesSchema consumerSchema,
+        AttributesFactory attributesFactory,
+        AttributeSchemaServices attributeSchemaServices,
+        ComponentMetadataProcessorFactory componentMetadataProcessor,
+        ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor,
+        CalculatedValueFactory calculatedValueFactory,
+        CacheExpirationControl cacheExpirationControl
     ) {
         this.componentSelectionRules = componentSelectionRules;
-        VersionedComponentChooser componentChooser = new DefaultVersionedComponentChooser(versionComparator, versionParser, componentSelectionRules, attributesSchema);
-        componentIdResolver = new RepositoryChainDependencyToComponentIdResolver(componentChooser, versionParser, consumerAttributes, attributesFactory, componentMetadataProcessor, componentMetadataSupplierRuleExecutor, cachePolicy);
-        componentResolver = new RepositoryChainComponentMetaDataResolver(componentChooser, calculatedValueContainerFactory);
-        artifactResolver = new RepositoryChainArtifactResolver(calculatedValueContainerFactory);
+        VersionedComponentChooser componentChooser = new DefaultVersionedComponentChooser(versionComparator, versionParser, attributeSchemaServices, componentSelectionRules, consumerSchema);
+        componentIdResolver = new RepositoryChainDependencyToComponentIdResolver(componentChooser, versionParser, consumerAttributes, attributesFactory, componentMetadataProcessor, componentMetadataSupplierRuleExecutor, cacheExpirationControl);
+        componentResolver = new RepositoryChainComponentMetaDataResolver(componentChooser, calculatedValueFactory);
+        artifactResolver = new RepositoryChainArtifactResolver(calculatedValueFactory);
     }
 
     @Override
@@ -74,7 +77,7 @@ public class UserResolverChain implements ComponentResolvers {
         return componentSelectionRules;
     }
 
-    public void add(ModuleComponentRepository<ModuleComponentGraphResolveState> repository) {
+    public void add(ModuleComponentRepository<ExternalModuleComponentGraphResolveState> repository) {
         componentIdResolver.add(repository);
         componentResolver.add(repository);
         artifactResolver.add(repository);

@@ -1,6 +1,11 @@
 package org.gradle.internal.declarativedsl.analysis
 
-import org.gradle.internal.declarativedsl.language.DataType
+import org.gradle.declarative.dsl.evaluation.OperationGenerationId
+import org.gradle.declarative.dsl.schema.AnalysisSchema
+import org.gradle.declarative.dsl.schema.DataType
+import org.gradle.declarative.dsl.schema.DataType.ParameterizedTypeInstance.TypeArgument
+import org.gradle.declarative.dsl.schema.DataTypeRef
+import org.gradle.declarative.dsl.schema.FqName
 import org.gradle.internal.declarativedsl.language.LanguageTreeElement
 import org.gradle.internal.declarativedsl.language.LocalValue
 import java.util.concurrent.atomic.AtomicLong
@@ -48,6 +53,7 @@ class AnalysisScope(
 
 interface TypeRefContext {
     fun resolveRef(dataTypeRef: DataTypeRef): DataType
+    fun maybeResolveRef(dataTypeRef: DataTypeRef): DataType?
 }
 
 
@@ -60,17 +66,78 @@ interface AnalysisContextView : TypeRefContext {
 
 
 class SchemaTypeRefContext(val schema: AnalysisSchema) : TypeRefContext {
-    override fun resolveRef(dataTypeRef: DataTypeRef): DataType = when (dataTypeRef) {
-        is DataTypeRef.Name -> schema.dataClassesByFqName.getValue(dataTypeRef.fqName)
+    /**
+     * "Reconstruction" here and below is the process of making sure that the implementation of the interface like [TypeArgument] or [DataTypeRef] used
+     * as the map key is the _current implementation_, as opposed to a [java.lang.reflect.Proxy] provided by the TAPI implementing those interfaces.
+     *
+     * This is needed to ensure that the keys used in the map match the keys passed during lookup.
+     * When the proxies are stored as keys in the map, they will not match proper instances constructed by the client code, including the resolver code.
+     */
+    private fun reconstructTypeArgument(typeArgument: TypeArgument): TypeArgument = when (typeArgument) {
+        is TypeArgument.ConcreteTypeArgument -> TypeArgumentInternal.DefaultConcreteTypeArgument(reconstructTypeRef(typeArgument.type))
+        is TypeArgument.StarProjection -> TypeArgumentInternal.DefaultStarProjection()
+    }
+
+    private fun reconstructTypeRef(dataTypeRef: DataTypeRef): DataTypeRef {
+        return when (dataTypeRef) {
+            is DataTypeRef.Name -> DataTypeRefInternal.DefaultName(dataTypeRef.fqName)
+            is DataTypeRef.NameWithArgs -> DataTypeRefInternal.DefaultNameWithArgs(
+                dataTypeRef.fqName,
+                dataTypeRef.typeArguments.map { reconstructTypeArgument(it) }
+            )
+            is DataTypeRef.Type -> DataTypeRefInternal.DefaultType(dataTypeRef.dataType)
+        }
+    }
+
+    /**
+     * The construction of this map has been made lazy to ensure compatibility with past Gradle versions.
+     *
+     * What makes it incompatible with past Gradle versions is that it uses [AnalysisSchema.genericInstantiationsByFqName],
+     * which is not available from the schema in past versions.
+     *
+     * By making initialization lazy and because it's used only by code added in the same version, the
+     * incompatibility problem can be avoided.
+     *
+     * @since 8.14
+     */
+    private val reconstructedGenericInstantiations by lazy {
+        schema.genericInstantiationsByFqName.mapValues { (_, values) ->
+            values.mapKeys { (typeArgs, _) -> typeArgs.map(::reconstructTypeArgument) }
+        }
+    }
+
+    override fun maybeResolveRef(dataTypeRef: DataTypeRef): DataType? = when (dataTypeRef) {
+        is DataTypeRef.Name ->
+            schema.dataClassTypesByFqName[dataTypeRef.fqName]
+
+        is DataTypeRef.NameWithArgs ->
+            reconstructedGenericInstantiations[dataTypeRef.fqName]?.get(dataTypeRef.typeArguments.map(::reconstructTypeArgument))
+
         is DataTypeRef.Type -> dataTypeRef.dataType
     }
+
+    override fun resolveRef(dataTypeRef: DataTypeRef): DataType =
+        maybeResolveRef(dataTypeRef)
+            ?: interpretationFailure("cannot resolve a type reference to '$dataTypeRef'")
+}
+
+
+/**
+ * Represents a unique operation within a particular generation.  The invocation id should be unique within a single
+ * interpretation step, but not across generations (i.e. two operations in different generations may have the same
+ * invocation id).  Operations in different generations with the same invocation id have no relationship to each
+ * other except by coincidence.
+ */
+data class OperationId(val invocationId: Long, val generationId: OperationGenerationId) {
+    override fun toString(): String = "${generationId.ordinal}:$invocationId"
 }
 
 
 class AnalysisContext(
     override val schema: AnalysisSchema,
     override val imports: Map<String, FqName>,
-    val errorCollector: ErrorCollector
+    val errorCollector: ErrorCollector,
+    private val generationId: OperationGenerationId
 ) : AnalysisContextView {
 
     // TODO: thread safety?
@@ -81,7 +148,9 @@ class AnalysisContext(
     private
     val nextInstant = AtomicLong(1)
     private
-    val mutableAdditions = mutableListOf<DataAddition>()
+    val mutableAdditions = mutableListOf<DataAdditionRecord>()
+    private
+    val mutableNestedObjectAccess = mutableListOf<NestedObjectAccessRecord>()
 
     override val currentScopes: List<AnalysisScope>
         get() = mutableScopes
@@ -89,29 +158,37 @@ class AnalysisContext(
     override val assignments: List<AssignmentRecord>
         get() = mutableAssignments
 
-    val additions: List<DataAddition>
+    val additions: List<DataAdditionRecord>
         get() = mutableAdditions
+
+    val nestedObjectAccess: List<NestedObjectAccessRecord>
+        get() = mutableNestedObjectAccess
 
     private
     val typeRefContext = SchemaTypeRefContext(schema)
 
     override fun resolveRef(dataTypeRef: DataTypeRef): DataType = typeRefContext.resolveRef(dataTypeRef)
+    override fun maybeResolveRef(dataTypeRef: DataTypeRef): DataType? = typeRefContext.maybeResolveRef(dataTypeRef)
 
     fun enterScope(newScope: AnalysisScope) {
         mutableScopes.add(newScope)
     }
 
-    fun recordAssignment(resolvedTarget: PropertyReferenceResolution, resolvedRhs: ObjectOrigin, assignmentMethod: AssignmentMethod, originElement: LanguageTreeElement): AssignmentRecord {
-        val result = AssignmentRecord(resolvedTarget, resolvedRhs, nextInstant(), assignmentMethod, originElement)
+    fun recordAssignment(resolvedTarget: PropertyReferenceResolution, resolvedRhs: TypedOrigin, assignmentMethod: AssignmentMethod, originElement: LanguageTreeElement): AssignmentRecord {
+        val result = AssignmentRecord(resolvedTarget, resolvedRhs.objectOrigin, nextCallId(), assignmentMethod, originElement)
         mutableAssignments.add(result)
         return result
     }
 
     fun recordAddition(container: ObjectOrigin, dataObject: ObjectOrigin) {
-        mutableAdditions += DataAddition(container, dataObject)
+        mutableAdditions += DataAdditionRecord(container, dataObject)
     }
 
-    fun nextInstant(): Long = nextInstant.incrementAndGet()
+    fun recordNestedObjectAccess(container: ObjectOrigin, dataObject: ObjectOrigin.AccessAndConfigureReceiver) {
+        mutableNestedObjectAccess += NestedObjectAccessRecord(container, dataObject)
+    }
+
+    fun nextCallId(): OperationId = OperationId(nextInstant.incrementAndGet(), generationId)
 
     fun leaveScope(scope: AnalysisScope) {
         check(mutableScopes.last() === scope)

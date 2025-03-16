@@ -47,7 +47,7 @@ class RuleSourcePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         }
 
         and:
-        buildScript """
+        buildFile """
             plugins { id '$PLUGIN_ID' version '$VERSION' }
         """
 

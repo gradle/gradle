@@ -15,11 +15,15 @@
  */
 package org.gradle.tooling.internal.protocol.events;
 
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
+
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  *
  * @since 2.4
  */
+@NullMarked
 public interface InternalJvmTestDescriptor extends InternalTestDescriptor {
 
     String KIND_SUITE = "SUITE";
@@ -37,6 +41,7 @@ public interface InternalJvmTestDescriptor extends InternalTestDescriptor {
      *
      * @return The name of the test suite, can be null.
      */
+    @Nullable
     String getSuiteName();
 
     /**
@@ -44,6 +49,7 @@ public interface InternalJvmTestDescriptor extends InternalTestDescriptor {
      *
      * @return The name of the test class, can be null.
      */
+    @Nullable
     String getClassName();
 
     /**
@@ -51,6 +57,7 @@ public interface InternalJvmTestDescriptor extends InternalTestDescriptor {
      *
      * @return The name of the test method, can be null.
      */
+    @Nullable
     String getMethodName();
 
 }

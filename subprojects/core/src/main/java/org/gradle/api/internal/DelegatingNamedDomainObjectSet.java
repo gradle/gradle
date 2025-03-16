@@ -25,15 +25,20 @@ import org.gradle.api.Namer;
 import org.gradle.api.Rule;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.Internal;
+import org.gradle.internal.metaobject.MethodAccess;
+import org.gradle.internal.metaobject.MethodMixIn;
+import org.gradle.internal.metaobject.PropertyAccess;
+import org.gradle.internal.metaobject.PropertyMixIn;
 
 import java.util.List;
 import java.util.SortedMap;
 import java.util.SortedSet;
 
 /**
- * A {@Link NamedDomainObjectSet} which delegates all methods to a provided delegate.
+ * A {@link NamedDomainObjectSet} which delegates all methods to a provided delegate.
  */
-public class DelegatingNamedDomainObjectSet<T> extends DelegatingDomainObjectSet<T> implements NamedDomainObjectSet<T> {
+public class DelegatingNamedDomainObjectSet<T> extends DelegatingDomainObjectSet<T> implements NamedDomainObjectSet<T>, MethodMixIn, PropertyMixIn {
 
     public DelegatingNamedDomainObjectSet(NamedDomainObjectSet<T> backingSet) {
         super(backingSet);
@@ -149,4 +154,15 @@ public class DelegatingNamedDomainObjectSet<T> extends DelegatingDomainObjectSet
         return getDelegate().getRules();
     }
 
+    @Internal
+    @Override
+    public MethodAccess getAdditionalMethods() {
+        return ((MethodMixIn) getDelegate()).getAdditionalMethods();
+    }
+
+    @Internal
+    @Override
+    public PropertyAccess getAdditionalProperties() {
+        return ((PropertyMixIn) getDelegate()).getAdditionalProperties();
+    }
 }

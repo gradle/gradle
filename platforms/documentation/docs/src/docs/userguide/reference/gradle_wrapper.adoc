@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Gradle, Inc.
+// Copyright (C) 2024 Gradle, Inc.
 //
 // Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
@@ -266,7 +266,7 @@ With the configuration in place, running `./gradlew wrapper --gradle-version {gr
 distributionUrl=https\://services.gradle.org/distributions/gradle-{gradleVersion}-all.zip
 ----
 
-Check out the link:{javadocPath}/org/gradle/package-summary.html[API documentation] for a more detailed description of the available configuration options. You can also find link:{javadocPath}/org/gradle/api/tasks/wrapper/Wrapper.html[various samples for configuring the Wrapper] in the Gradle distribution.
+Check out the link:{javadocPath}/org/gradle/api/tasks/wrapper/Wrapper.html[API documentation] for a more detailed description of the available configuration options. You can also find various samples for configuring the Wrapper in the Gradle distribution.
 
 [[sec:authenticated_download]]
 === Authenticated Gradle distribution download
@@ -367,7 +367,7 @@ $ curl --location --output gradle-wrapper.jar.sha256 \
        https://services.gradle.org/distributions/gradle-{gradleVersion}-wrapper.jar.sha256
 ----
 ----
-$ echo "gradle-wrapper.jar" >> gradle-wrapper.jar.sha256
+$ echo " gradle-wrapper.jar" >> gradle-wrapper.jar.sha256
 ----
 ----
 $ sha256sum --check gradle-wrapper.jar.sha256
@@ -387,7 +387,7 @@ $ curl --location --output gradle-wrapper.jar.sha256 \
        https://services.gradle.org/distributions/gradle-{gradleVersion}-wrapper.jar.sha256
 ----
 ----
-$ echo "gradle-wrapper.jar" >> gradle-wrapper.jar.sha256
+$ echo " gradle-wrapper.jar" >> gradle-wrapper.jar.sha256
 ----
 ----
 $ shasum --check gradle-wrapper.jar.sha256

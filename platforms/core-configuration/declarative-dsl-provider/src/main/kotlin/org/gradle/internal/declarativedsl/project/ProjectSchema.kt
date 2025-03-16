@@ -16,68 +16,31 @@
 
 package org.gradle.internal.declarativedsl.project
 
-import org.gradle.api.internal.initialization.ClassLoaderScope
-import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilter
-import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
-import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchema
-import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequence
-import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequenceStep
-import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationSchema
-import org.gradle.internal.declarativedsl.evaluationSchema.plus
-import org.gradle.internal.declarativedsl.plugins.PluginsInterpretationSequenceStep
-import org.gradle.internal.declarativedsl.plugins.PluginsTopLevelReceiver
-import org.gradle.internal.declarativedsl.plugins.isPluginsCall
+import org.gradle.internal.declarativedsl.analysis.analyzeEverything
+import org.gradle.internal.declarativedsl.common.dependencyCollectors
+import org.gradle.internal.declarativedsl.common.gradleDslGeneralSchema
+import org.gradle.internal.declarativedsl.evaluationSchema.DefaultInterpretationSequence
+import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationAndConversionSchema
+import org.gradle.internal.declarativedsl.evaluationSchema.ifConversionSupported
+import org.gradle.internal.declarativedsl.evaluator.conversion.EvaluationAndConversionSchema
+import org.gradle.internal.declarativedsl.software.softwareTypesComponent
+import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 
 
 internal
 fun projectInterpretationSequence(
-    target: ProjectInternal,
-    targetScope: ClassLoaderScope,
-    scriptSource: ScriptSource
-) = InterpretationSequence(
-    listOf(
-        step1Plugins(target, targetScope, scriptSource),
-        step2Project(target, targetScope)
-    )
-)
+    softwareTypeRegistry: SoftwareTypeRegistry
+) = DefaultInterpretationSequence(listOf(projectInterpretationSequenceStep(softwareTypeRegistry)))
 
 
-private
-fun step1Plugins(target: ProjectInternal, targetScope: ClassLoaderScope, scriptSource: ScriptSource): InterpretationSequenceStep<PluginsTopLevelReceiver> =
-    PluginsInterpretationSequenceStep(target, targetScope, scriptSource, ProjectInternal::getServices)
-
-
-private
-fun step2Project(target: ProjectInternal, targetScope: ClassLoaderScope) = object : InterpretationSequenceStep<ProjectInternal> {
-    override val stepIdentifier: String = "project"
-
-    override fun evaluationSchemaForStep(): EvaluationSchema = buildEvaluationSchema(
-        ProjectTopLevelReceiver::class,
-        projectEvaluationSchemaComponent(target, targetScope),
-        analysisStatementFilter = analyzeEverythingExceptPluginsBlock,
-    )
-
-    override fun topLevelReceiver(): ProjectInternal = target
-
-    override fun whenEvaluated(resultReceiver: ProjectInternal) = Unit
-}
-
-
-private
-fun projectEvaluationSchemaComponent(
-    target: ProjectInternal,
-    targetScope: ClassLoaderScope
-) = gradleDslGeneralSchemaComponent() +
-    ThirdPartyProjectExtensionsComponent(target) +
-    DependencyConfigurationsComponent(target) +
-    TypesafeProjectAccessorsComponent(targetScope)
-
-
-private
-val analyzeEverythingExceptPluginsBlock = AnalysisStatementFilter { statement, scopes ->
-    if (scopes.last().receiver is ObjectOrigin.TopLevelReceiver) {
-        !isPluginsCall(statement)
-    } else true
+fun projectEvaluationSchema(
+    softwareTypeRegistry: SoftwareTypeRegistry,
+): EvaluationAndConversionSchema {
+    return buildEvaluationAndConversionSchema(ProjectTopLevelReceiver::class, analyzeEverything) {
+        gradleDslGeneralSchema()
+        dependencyCollectors()
+        ifConversionSupported {
+            softwareTypesComponent(ProjectTopLevelReceiver::class, softwareTypeRegistry, withDefaultsApplication = true)
+        }
+    }
 }

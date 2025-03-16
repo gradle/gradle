@@ -72,7 +72,10 @@ public abstract class WindowsResourceCompile extends DefaultTask {
     private ConfigurableFileCollection source;
     private Map<String, String> macros = new LinkedHashMap<String, String>();
     private final ListProperty<String> compilerArgs;
-    private final IncrementalCompilerBuilder.IncrementalCompiler incrementalCompiler;
+    // Don't serialize the compiler. It holds state that is mostly only required at execution time and that can be calculated from the other fields of this task
+    // after being deserialized. However, it is also required to calculate the producers of the header files to calculate the work graph.
+    // It would be better to provide some way for a task to express these things separately.
+    private transient IncrementalCompilerBuilder.IncrementalCompiler incrementalCompiler;
 
     public WindowsResourceCompile() {
         ObjectFactory objectFactory = getProject().getObjects();
@@ -81,7 +84,6 @@ public abstract class WindowsResourceCompile extends DefaultTask {
         this.compilerArgs = getProject().getObjects().listProperty(String.class);
         this.targetPlatform = objectFactory.property(NativePlatform.class);
         this.toolChain = objectFactory.property(NativeToolChain.class);
-        incrementalCompiler = getIncrementalCompilerBuilder().newCompiler(this, source, includes, macros, Providers.FALSE);
         getInputs().property("outputType", new Callable<String>() {
             @Override
             public String call() {
@@ -90,6 +92,13 @@ public abstract class WindowsResourceCompile extends DefaultTask {
                 return NativeToolChainInternal.Identifier.identify(nativeToolChain, nativePlatform);
             }
         });
+    }
+
+    private IncrementalCompilerBuilder.IncrementalCompiler getIncrementalCompiler() {
+        if (incrementalCompiler == null) {
+            incrementalCompiler = getIncrementalCompilerBuilder().newCompiler(this, source, includes, macros, Providers.FALSE);
+        }
+        return incrementalCompiler;
     }
 
     @Inject
@@ -126,7 +135,7 @@ public abstract class WindowsResourceCompile extends DefaultTask {
     private <T extends NativeCompileSpec> WorkResult doCompile(T spec, PlatformToolProvider platformToolProvider) {
         Class<T> specType = Cast.uncheckedCast(spec.getClass());
         Compiler<T> baseCompiler = platformToolProvider.newCompiler(specType);
-        Compiler<T> incrementalCompiler = this.incrementalCompiler.createCompiler(baseCompiler);
+        Compiler<T> incrementalCompiler = getIncrementalCompiler().createCompiler(baseCompiler);
         Compiler<T> loggingCompiler = BuildOperationLoggingCompilerDecorator.wrap(incrementalCompiler);
         return CompilerUtil.castCompiler(loggingCompiler).execute(spec);
     }
@@ -230,6 +239,6 @@ public abstract class WindowsResourceCompile extends DefaultTask {
     @InputFiles
     @PathSensitive(PathSensitivity.NAME_ONLY)
     protected FileCollection getHeaderDependencies() {
-        return incrementalCompiler.getHeaderFiles();
+        return getIncrementalCompiler().getHeaderFiles();
     }
 }

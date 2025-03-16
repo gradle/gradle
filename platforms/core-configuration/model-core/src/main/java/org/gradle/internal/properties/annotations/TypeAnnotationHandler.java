@@ -17,9 +17,12 @@
 package org.gradle.internal.properties.annotations;
 
 import org.gradle.internal.reflect.validation.TypeValidationContext;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.lang.annotation.Annotation;
 
+@ServiceScope(Scope.Global.class)
 public interface TypeAnnotationHandler {
     /**
      * The annotation type which this handler is responsible for.

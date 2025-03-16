@@ -17,15 +17,16 @@ package org.gradle.api.tasks.scala;
 
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
-import org.gradle.api.tasks.compile.AbstractOptions;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 /**
  * Options for the ScalaDoc tool.
  */
-public abstract class ScalaDocOptions extends AbstractOptions {
+@SuppressWarnings("deprecation")
+public abstract class ScalaDocOptions extends org.gradle.api.tasks.compile.AbstractOptions {
     private boolean deprecation = true;
     private boolean unchecked = true;
     private String windowTitle;
@@ -40,6 +41,7 @@ public abstract class ScalaDocOptions extends AbstractOptions {
      * Tells whether to generate deprecation information.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public boolean isDeprecation() {
         return deprecation;
     }
@@ -55,6 +57,7 @@ public abstract class ScalaDocOptions extends AbstractOptions {
      * Tells whether to generate unchecked information.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public boolean isUnchecked() {
         return unchecked;
     }
@@ -69,6 +72,7 @@ public abstract class ScalaDocOptions extends AbstractOptions {
     /**
      * Returns the text to appear in the window title.
      */
+    @ToBeReplacedByLazyProperty
     @Nullable @Optional @Input
     public String getWindowTitle() {
         return windowTitle;
@@ -84,6 +88,7 @@ public abstract class ScalaDocOptions extends AbstractOptions {
     /**
      * Returns the HTML text to appear in the main frame title.
      */
+    @ToBeReplacedByLazyProperty
     @Nullable @Optional @Input
     public String getDocTitle() {
         return docTitle;
@@ -99,6 +104,7 @@ public abstract class ScalaDocOptions extends AbstractOptions {
     /**
      * Returns the HTML text to appear in the header for each page.
      */
+    @ToBeReplacedByLazyProperty
     @Nullable @Optional @Input
     public String getHeader() {
         return header;
@@ -114,6 +120,7 @@ public abstract class ScalaDocOptions extends AbstractOptions {
     /**
      * Returns the HTML text to appear in the footer for each page.
      */
+    @ToBeReplacedByLazyProperty
     @Nullable @Optional @Input
     public String getFooter() {
         return footer;
@@ -129,6 +136,7 @@ public abstract class ScalaDocOptions extends AbstractOptions {
     /**
      * Returns the HTML text to appear in the top text for each page.
      */
+    @ToBeReplacedByLazyProperty
     @Nullable @Optional @Input
     public String getTop() {
         return top;
@@ -144,6 +152,7 @@ public abstract class ScalaDocOptions extends AbstractOptions {
     /**
      * Returns the HTML text to appear in the bottom text for each page.
      */
+    @ToBeReplacedByLazyProperty
     @Nullable @Optional @Input
     public String getBottom() {
         return bottom;
@@ -160,6 +169,7 @@ public abstract class ScalaDocOptions extends AbstractOptions {
      * Returns the additional parameters passed to the compiler.
      * Each parameter starts with '-'.
      */
+    @ToBeReplacedByLazyProperty
     @Nullable @Optional @Input
     public List<String> getAdditionalParameters() {
         return additionalParameters;
@@ -172,9 +182,4 @@ public abstract class ScalaDocOptions extends AbstractOptions {
     public void setAdditionalParameters(@Nullable List<String> additionalParameters) {
         this.additionalParameters = additionalParameters;
     }
-
-    private String toOnOffString(boolean value) {
-        return value ? "on" : "off";
-    }
-
 }

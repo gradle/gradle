@@ -33,33 +33,33 @@ import org.gradle.groovy.scripts.internal.CompileOperation;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Factory;
 import org.gradle.internal.logging.LoggingManagerInternal;
-import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.CloseableServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.model.dsl.internal.transform.ClosureCreationInterceptingVerifier;
+import org.gradle.plugin.management.internal.PluginHandler;
 import org.gradle.plugin.management.internal.PluginRequests;
-import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
 import org.gradle.plugin.use.internal.PluginsAwareScript;
 
 public class DefaultScriptPluginFactory implements ScriptPluginFactory {
-
     private final ServiceRegistry scriptServices;
     private final ScriptCompilerFactory scriptCompilerFactory;
     private final Factory<LoggingManagerInternal> loggingFactoryManager;
-    private final AutoAppliedPluginHandler autoAppliedPluginHandler;
+    private final PluginHandler pluginHandler;
     private final PluginRequestApplicator pluginRequestApplicator;
     private final CompileOperationFactory compileOperationFactory;
     private ScriptPluginFactory scriptPluginFactory;
 
     public DefaultScriptPluginFactory(
         ServiceRegistry scriptServices, ScriptCompilerFactory scriptCompilerFactory, Factory<LoggingManagerInternal> loggingFactoryManager,
-        AutoAppliedPluginHandler autoAppliedPluginHandler, PluginRequestApplicator pluginRequestApplicator,
+        PluginHandler pluginHandler, PluginRequestApplicator pluginRequestApplicator,
         CompileOperationFactory compileOperationFactory
     ) {
         this.scriptServices = scriptServices;
         this.scriptCompilerFactory = scriptCompilerFactory;
         this.loggingFactoryManager = loggingFactoryManager;
-        this.autoAppliedPluginHandler = autoAppliedPluginHandler;
+        this.pluginHandler = pluginHandler;
         this.pluginRequestApplicator = pluginRequestApplicator;
         this.compileOperationFactory = compileOperationFactory;
         this.scriptPluginFactory = this;
@@ -96,11 +96,16 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
 
         @Override
         public void apply(final Object target) {
-            DefaultServiceRegistry services = new DefaultServiceRegistry(scriptServices);
-            services.add(ScriptPluginFactory.class, scriptPluginFactory);
-            services.add(ClassLoaderScope.class, baseScope);
-            services.add(LoggingManagerInternal.class, loggingFactoryManager.create());
-            services.add(ScriptHandler.class, scriptHandler);
+            CloseableServiceRegistry services = ServiceRegistryBuilder.builder()
+                .displayName("script plugin services")
+                .parent(scriptServices)
+                .provider(registration -> {
+                    registration.add(ScriptPluginFactory.class, scriptPluginFactory);
+                    registration.add(ClassLoaderScope.class, baseScope);
+                    registration.add(LoggingManagerInternal.class, loggingFactoryManager.create());
+                    registration.add(ScriptHandler.class, scriptHandler);
+                })
+                .build();
 
             final ScriptTarget initialPassScriptTarget = initialPassTarget(target);
 
@@ -112,12 +117,11 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             ScriptRunner<? extends BasicScript, ?> initialRunner = compiler.compile(scriptType, target, baseScope, initialOperation, Actions.doNothing());
             initialRunner.run(target, services);
 
-            PluginRequests initialPluginRequests = getInitialPluginRequests(initialRunner);
-
             PluginManagerInternal pluginManager = topLevelScript ? initialPassScriptTarget.getPluginManager() : null;
-            PluginRequests autoAppliedPlugins = autoAppliedPluginHandler.getAutoAppliedPlugins(initialPluginRequests, target);
-            PluginRequests allPlugins = initialPluginRequests.mergeWith(autoAppliedPlugins);
-            pluginRequestApplicator.applyPlugins(allPlugins, scriptHandler, pluginManager, targetScope);
+            PluginRequests initialPluginRequests = getInitialPluginRequests(initialRunner);
+            PluginRequests allPluginRequests = pluginHandler.getAllPluginRequests(initialPluginRequests, target);
+            pluginRequestApplicator.applyPlugins(allPluginRequests, scriptHandler, pluginManager, targetScope);
+
             // Pass 2, compile everything except buildscript {}, pluginManagement{}, and plugin requests, then run
             final ScriptTarget scriptTarget = secondPassTarget(target);
             scriptType = scriptTarget.getScriptClass();

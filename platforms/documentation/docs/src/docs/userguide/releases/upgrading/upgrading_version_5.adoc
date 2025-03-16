@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Gradle, Inc.
+// Copyright (C) 2024 Gradle, Inc.
 //
 // Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
@@ -91,7 +91,7 @@ In Gradle 5.4 we introduced a new API for implementing <<custom_tasks.adoc#incre
 
 Forcing dependency versions using `force = true` on a first-level dependency has been deprecated.
 
-Force has both a semantic and ordering issue which can be avoided by using a <<rich_versions.adoc#rich-version-constraints, strict version constraint>>.
+Force has both a semantic and ordering issue which can be avoided by using a <<dependency_versions.adoc#sec:rich-version-constraints, strict version constraint>>.
 
 ==== Search upwards related APIs in `StartParameter` have been deprecated
 
@@ -188,9 +188,9 @@ The previous behavior was problematic as it caused different names to be used at
 
 ==== buildSrc is now reserved as a project and subproject build name
 
-Previously, Gradle did not prevent using the name “buildSrc” for a subproject of a multi-project build or as the name of an included build.
+Previously, Gradle did not prevent using the name "buildSrc" for a subproject of a multi-project build or as the name of an included build.
 Now, this is not allowed.
-The name “buildSrc” is now reserved for the conventional buildSrc project that builds extra build logic.
+The name "buildSrc" is now reserved for the conventional buildSrc project that builds extra build logic.
 
 Typical use of buildSrc is unaffected by this change.
 You will only be affected if your settings file specifies `include("buildSrc")` or `includeBuild("buildSrc")`.
@@ -255,9 +255,9 @@ The traditional metadata file will contain a marker so that Gradle knows that th
 The following rules are verified when publishing Gradle Module Metadata:
 
 * Variant names must be unique,
-* Each variant must have at least <<variant_attributes.adoc#variant_attributes,one attribute>>,
-* Two variants cannot have the <<variant_model.adoc#understanding-variant-selection,exact same attributes and capabilities>>,
-* If there are dependencies, at least one, across all variants, must carry <<rich_versions.adoc#rich-version-constraints,version information>>.
+* Each variant must have at least <<variant_attributes.adoc#variant-attributes,one attribute>>,
+* Two variants cannot have the <<variant_aware_resolution.adoc#sec:understanding-variant-selection,exact same attributes and capabilities>>,
+* If there are dependencies, at least one, across all variants, must carry <<dependency_versions.adoc#sec:rich-version-constraints,version information>>.
 
 These are documented in the link:https://github.com/gradle/gradle/blob/master/platforms/documentation/docs/src/docs/design/gradle-module-metadata-latest-specification.md[specification] as well.
 
@@ -270,7 +270,7 @@ For dynamic versions, the `maven-metadata.xml` for the corresponding module need
 Previously, Gradle would also look for a default artifact (`.jar`).
 This behavior often caused a large number of unnecessary requests when using multiple repositories that slowed builds down.
 
-You can opt into the old behavior for selected repositories by adding the `artifact()` <<declaring_repositories.adoc#sec:supported_metadata_sources,metadata source>>.
+You can opt into the old behavior for selected repositories by adding the `artifact()` <<supported_metadata_formats.adoc#sec:supported-metadata-sources,metadata source>>.
 
 ==== Changing the pom `packaging` property no longer changes the artifact extension
 
@@ -478,7 +478,7 @@ They are also free to add a method annotated with `@TaskAction` using an `InputC
 * When <<groovy_plugin.adoc#sec:incremental_groovy_compilation,incremental Groovy compilation>> is enabled, a wrong configuration of the source roots or enabling Java annotation for Groovy now fails the build.
   Disable incremental Groovy compilation when you want to compile in those cases.
 * `ComponentSelectionRule` no longer can inject the metadata or ivy descriptor.
-  Use the methods on the <<dynamic_versions.adoc#sec:component_selection_rules,`ComponentSelection` parameter>> instead.
+  Use the methods on the <<resolution_rules.adoc#sec:component-selection-rules,`ComponentSelection` parameter>> instead.
 * Declaring an <<custom_tasks.adoc#incremental_tasks,incremental task>> without declaring outputs is now an error.
   Declare file outputs or use link:{javadocPath}/org/gradle/api/tasks/TaskOutputs.html#upToDateWhen-groovy.lang.Closure-[TaskOutputs.upToDateWhen()] instead.
 * The `getEffectiveAnnotationProcessorPath()` method is removed from the `JavaCompile` and `ScalaCompile` tasks.
@@ -486,7 +486,7 @@ They are also free to add a method annotated with `@TaskAction` using an `InputC
 * The `isLegacyLayout()` method is removed from `SourceSetOutput`.
 * The map returned by `TaskInputs.getProperties()` is now unmodifiable.
   Trying to modify it will result in an `UnsupportedOperationException` being thrown.
-* There are slight changes in the incubating <<dependency_capability_conflict.adoc#sub:selecting-between-candidates,capabilities resolution>> API, which has been introduced in 5.6, to also allow variant selection based on variant name
+* There are slight changes in the incubating <<component_capabilities.adoc#sec:selecting-between-candidates,capabilities resolution>> API, which has been introduced in 5.6, to also allow variant selection based on variant name
 
 [[changes_5.6]]
 == Upgrading from 5.5 and earlier
@@ -595,7 +595,7 @@ configurations.all {
 }
 ```
 
-See <<dependency_capability_conflict.adoc#sub:capabilities, the capabilities section of the documentation>> for more options.
+See <<component_capabilities.adoc#capabilities, the capabilities section of the documentation>> for more options.
 
 ==== File removal operations don't follow symlinked directories
 

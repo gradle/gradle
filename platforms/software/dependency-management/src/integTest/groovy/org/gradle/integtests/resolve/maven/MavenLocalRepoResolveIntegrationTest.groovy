@@ -27,6 +27,11 @@ import static org.gradle.integtests.fixtures.SuggestionsMessages.repositoryHint
 
 class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionTest {
 
+    def runRetrieveTask() {
+        executer.withArgument("--no-problems-report")
+        run 'retrieve'
+    }
+
     def setup() {
         using m2
         buildFile << """
@@ -53,7 +58,7 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
         def moduleA = m2.mavenRepo().module('group', 'projectA', '1.2').publish()
 
         when:
-        run 'retrieve'
+        runRetrieveTask()
 
         then:
         hasArtifact(moduleA)
@@ -66,7 +71,7 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
         def moduleA = artifactRepo.module('group', 'projectA', '1.2').publish()
 
         when:
-        run 'retrieve'
+        runRetrieveTask()
 
         then:
         hasArtifact(moduleA)
@@ -79,7 +84,7 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
         def moduleA = sysPropRepo.module('group', 'projectA', '1.2').publish()
 
         when:
-        run 'retrieve'
+        runRetrieveTask()
 
         then:
         hasArtifact(moduleA)
@@ -91,8 +96,8 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
         def moduleA = artifactRepo.module('group', 'projectA', '1.2').publish()
 
         when:
-        args "-Dmaven.repo.local=${artifactRepo.rootDir.getAbsolutePath()}"
-        run 'retrieve'
+        executer.withArgument("-Dmaven.repo.local=${artifactRepo.rootDir.getAbsolutePath()}")
+        runRetrieveTask()
 
         then:
         hasArtifact(moduleA)
@@ -107,7 +112,7 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
         globalRepo.module('group', 'projectA', '1.2').publishWithChangedContent()
 
         when:
-        run 'retrieve'
+        runRetrieveTask()
 
         then:
         hasArtifact(moduleA)
@@ -122,8 +127,8 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
         userRepo.module('group', 'projectA', '1.2').publishWithChangedContent()
 
         when:
-        args "-Dmaven.repo.local=${sysPropRepo.rootDir.getAbsolutePath()}"
-        run 'retrieve'
+        executer.withArgument("-Dmaven.repo.local=${sysPropRepo.rootDir.getAbsolutePath()}")
+        runRetrieveTask()
 
         then:
         hasArtifact(moduleA)
@@ -148,12 +153,12 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
         and:
         buildFile << """
         repositories{
-            maven { url "${anotherRepo.uri}" }
+            maven { url = "${anotherRepo.uri}" }
         }
         """
 
         when:
-        run 'retrieve'
+        runRetrieveTask()
 
         then:
         hasArtifact(moduleA)
@@ -206,12 +211,12 @@ Required by:
         and:
         buildFile << """
         repositories{
-            maven { url "${anotherRepo.uri}" }
+            maven { url = "${anotherRepo.uri}" }
         }
         """
 
         when:
-        run 'retrieve'
+        runRetrieveTask()
 
         then:
         hasArtifact(moduleARemote)
@@ -227,7 +232,7 @@ Required by:
         pomModule.publish()
 
         when:
-        run 'retrieve'
+        runRetrieveTask()
 
         then:
         def buildDir = file('build')
@@ -243,7 +248,7 @@ Required by:
         pomModule.publishPom()
 
         when:
-        run 'retrieve'
+        runRetrieveTask()
 
         then:
         def buildDir = file('build')
@@ -315,7 +320,7 @@ Required by:
         buildFile.text = """
                 repositories {
                     mavenLocal()
-                    maven { url "${anotherRepo.uri}" }
+                    maven { url = "${anotherRepo.uri}" }
                 }
                 configurations { compile }
                 dependencies {
@@ -329,7 +334,7 @@ Required by:
         """
 
         when:
-        run 'retrieve'
+        runRetrieveTask()
 
         then:
         hasArtifact(moduleARemote)
@@ -346,7 +351,7 @@ Required by:
         buildFile.text = """
                 repositories {
                     mavenLocal()
-                    maven { url "${anotherRepo.uri}" }
+                    maven { url = "${anotherRepo.uri}" }
                 }
                 configurations { compile }
                 dependencies {
@@ -360,7 +365,7 @@ Required by:
         """
 
         when:
-        run 'retrieve'
+        runRetrieveTask()
 
         then:
         hasArtifact(moduleARemote)
@@ -389,7 +394,7 @@ Required by:
         """
 
         when:
-        run 'retrieve'
+        runRetrieveTask()
 
         then:
         hasArtifact(module)

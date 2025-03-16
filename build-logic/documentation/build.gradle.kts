@@ -9,7 +9,7 @@ dependencies {
     implementation("gradlebuild:basics")
     implementation("gradlebuild:module-identity")
 
-    implementation(project(":build-update-utils"))
+    implementation(projects.buildUpdateUtils)
 
     implementation("com.github.javaparser:javaparser-core")
     implementation("com.google.guava:guava")
@@ -23,6 +23,7 @@ dependencies {
     implementation("org.asciidoctor:asciidoctorj-pdf")
     implementation("dev.adamko.dokkatoo:dokkatoo-plugin")
     implementation("org.jetbrains.dokka:dokka-core")
+    implementation("org.jspecify:jspecify")
 
     testImplementation(gradleTestKit())
 }

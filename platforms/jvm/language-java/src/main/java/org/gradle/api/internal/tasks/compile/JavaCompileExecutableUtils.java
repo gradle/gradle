@@ -16,32 +16,34 @@
 
 package org.gradle.api.internal.tasks.compile;
 
-import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.tasks.compile.ForkOptions;
 import org.gradle.api.tasks.compile.JavaCompile;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.SpecificInstallationToolchainSpec;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 
 public class JavaCompileExecutableUtils {
 
     @Nullable
-    public static JavaToolchainSpec getExecutableOverrideToolchainSpec(JavaCompile task, ObjectFactory objectFactory) {
+    public static JavaToolchainSpec getExecutableOverrideToolchainSpec(JavaCompile task, PropertyFactory propertyFactory) {
         if (!task.getOptions().isFork()) {
             return null;
         }
 
         ForkOptions forkOptions = task.getOptions().getForkOptions();
-        File customJavaHome = forkOptions.getJavaHome();
+        @SuppressWarnings("deprecation")
+        File customJavaHome = DeprecationLogger.whileDisabled(forkOptions::getJavaHome);
         if (customJavaHome != null) {
-            return SpecificInstallationToolchainSpec.fromJavaHome(objectFactory, customJavaHome);
+            return SpecificInstallationToolchainSpec.fromJavaHome(propertyFactory, customJavaHome);
         }
 
         String customExecutable = forkOptions.getExecutable();
         if (customExecutable != null) {
-            return SpecificInstallationToolchainSpec.fromJavaExecutable(objectFactory, customExecutable);
+            return SpecificInstallationToolchainSpec.fromJavaExecutable(propertyFactory, customExecutable);
         }
 
         return null;

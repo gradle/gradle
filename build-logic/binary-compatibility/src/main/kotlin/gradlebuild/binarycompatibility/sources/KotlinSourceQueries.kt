@@ -30,6 +30,7 @@ import javassist.CtConstructor
 import javassist.CtField
 import javassist.CtMember
 import javassist.CtMethod
+import javassist.Modifier
 import org.jetbrains.kotlin.kdoc.psi.api.KDoc
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtClassOrObject
@@ -64,7 +65,7 @@ object KotlinSourceQueries {
                 is CtField -> ktFile.isDocumentedAsSince(version, ctDeclaringClass, ctMember)
                 is CtConstructor -> ktFile.isDocumentedAsSince(version, ctDeclaringClass, ctMember)
                 is CtMethod -> ktFile.isDocumentedAsSince(version, ctDeclaringClass, ctMember)
-                else -> throw IllegalStateException("Unsupported japicmp member type '${member::class}'")
+                else -> error("Unsupported japicmp member type '${member::class}'")
             }
         }
     }
@@ -135,6 +136,7 @@ fun KtFile.collectKtFunctionsFor(qualifiedBaseName: String, method: CtMethod): L
         if (!(extensionCandidate || ktFunction.valueParameters.size == paramCount)) {
             return@collectDescendantsOfType false
         }
+        val isVarargs = Modifier.isVarArgs(method.modifiers)
 
         // Parameter type check
         method.parameterTypes
@@ -144,7 +146,7 @@ fun KtFile.collectKtFunctionsFor(qualifiedBaseName: String, method: CtMethod): L
             .withIndex()
             .all<IndexedValue<CtClass>> {
                 val ktParamType = ktFunction.valueParameters[it.index].typeReference!!
-                it.value.isLikelyEquivalentTo(ktParamType)
+                it.value.isLikelyEquivalentTo(ktParamType) || (isVarargs && it.value.componentType.isLikelyEquivalentTo(ktParamType))
             }
     }
 }
@@ -223,7 +225,7 @@ val JApiCompatibility.newCtMember: CtClassOrCtMember
         is JApiConstructor -> newConstructor.get()
         is JApiField -> newFieldOptional.get()
         is JApiMethod -> newMethod.get()
-        else -> throw IllegalStateException("Unsupported japicmp member type '${this::class}'")
+        else -> error("Unsupported japicmp member type '${this::class}'")
     }
 
 
@@ -239,7 +241,7 @@ val CtClassOrCtMember.declaringClass: CtClass
     get() = when (this) {
         is CtClass -> declaringClass ?: this
         is CtMember -> declaringClass
-        else -> throw IllegalStateException("Unsupported javassist member type '${this::class}'")
+        else -> error("Unsupported javassist member type '${this::class}'")
     }
 
 
@@ -272,7 +274,7 @@ fun CtClass.isLikelyEquivalentTo(ktTypeReference: KtTypeReference): Boolean {
         .trimEnd('?') // nullability is not part of JVM types
         .substringBefore('<') // generics are not part of parameter types in JVM method signatures
 
-    val thisTypeAsKt = primitiveTypeStrings[name] ?: name
+    val thisTypeAsKt = name.mapJavaTypeToKotlinType()
     return thisTypeAsKt.endsWith(ktTypeRawName)
 }
 
@@ -290,6 +292,13 @@ fun KtDeclaration.isDocumentedAsSince(version: String) =
 private
 fun KDoc.isSince(version: String) =
     text.contains("@since $version")
+
+
+private
+fun String.mapJavaTypeToKotlinType(): String {
+    val javaTypeName = this
+    return primitiveTypeStrings[javaTypeName] ?: collectionTypeStrings[javaTypeName] ?: javaTypeName
+}
 
 
 // TODO:kotlin-dsl dedupe with KotlinTypeStrings.primitiveTypeStrings
@@ -314,4 +323,24 @@ val primitiveTypeStrings =
         "float" to "Float",
         "java.lang.Double" to "Double",
         "double" to "Double"
+    )
+
+
+// See `org.gradle.kotlin.dsl.internal.sharedruntime.codegen.ApiTypeProviderKt.mappedTypeStrings`
+private
+val collectionTypeStrings =
+    mapOf(
+        "java.lang.Iterable" to "kotlin.collections.Iterable",
+        "java.util.Iterator" to "kotlin.collections.Iterator",
+        "java.util.ListIterator" to "kotlin.collections.ListIterator",
+        "java.util.Collection" to "kotlin.collections.Collection",
+        "java.util.List" to "kotlin.collections.List",
+        "java.util.ArrayList" to "kotlin.collections.ArrayList",
+        "java.util.Set" to "kotlin.collections.Set",
+        "java.util.HashSet" to "kotlin.collections.HashSet",
+        "java.util.LinkedHashSet" to "kotlin.collections.LinkedHashSet",
+        "java.util.Map" to "kotlin.collections.Map",
+        "java.util.Map\$Entry" to "kotlin.collections.Map.Entry",
+        "java.util.HashMap" to "kotlin.collections.HashMap",
+        "java.util.LinkedHashMap" to "kotlin.collections.LinkedHashMap"
     )

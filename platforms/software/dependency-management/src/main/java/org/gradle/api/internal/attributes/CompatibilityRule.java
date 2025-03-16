@@ -15,8 +15,24 @@
  */
 package org.gradle.api.internal.attributes;
 
-import org.gradle.api.Action;
+public interface CompatibilityRule<T>  {
 
-public interface CompatibilityRule<T> extends Action<CompatibilityCheckResult<T>> {
+    /* private */ CompatibilityRule<Object> DO_NOTHING = new CompatibilityRule<Object>() {
+        @Override
+        public boolean doesSomething() {
+            return false;
+        }
+
+        @Override
+        public void execute(CompatibilityCheckResult<Object> t) { }
+    };
+
+    @SuppressWarnings("unchecked")
+    static <E> CompatibilityRule<E> doNothing() {
+        return (CompatibilityRule<E>) DO_NOTHING;
+    }
+
     boolean doesSomething();
+
+    void execute(CompatibilityCheckResult<T> tCompatibilityCheckResult);
 }

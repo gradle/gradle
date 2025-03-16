@@ -4,78 +4,71 @@ plugins {
 
 description = "Plugins and model builders for integration with Eclipse and IntelliJ IDEs"
 
-errorprone {
-    disabledChecks.addAll(
-        "AlreadyChecked", // 2 occurrences
-        "EmptyBlockTag", // 1 occurrences
-        "LoopOverCharArray", // 1 occurrences
-        "ObjectEqualsForPrimitives", // 3 occurrences
-        "StringCaseLocaleUsage", // 2 occurrences
-        "StringSplitter", // 1 occurrences
-        "UnusedMethod", // 1 occurrences
-        "UnusedVariable", // 2 occurrences
-    )
-}
-
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":logging"))
-    implementation(project(":process-services"))
-    implementation(project(":file-collections"))
-    implementation(project(":core-api"))
-    implementation(project(":model-core"))
-    implementation(project(":core"))
-    implementation(project(":base-services-groovy"))
-    implementation(project(":dependency-management"))
-    implementation(project(":plugins"))
-    implementation(project(":plugins-java"))
-    implementation(project(":plugins-java-base"))
-    implementation(project(":platform-base"))
-    implementation(project(":platform-jvm"))
-    implementation(project(":language-jvm"))
-    implementation(project(":language-java"))
-    implementation(project(":scala"))
-    implementation(project(":ear"))
-    implementation(project(":war"))
-    implementation(project(":tooling-api"))
-    implementation(project(":testing-base"))
-    implementation(project(":testing-jvm"))
+    api(projects.baseServices)
+    api(projects.core)
+    api(projects.coreApi)
+    api(projects.dependencyManagement)
+    api(projects.fileCollections)
+    api(projects.fileOperations)
+    api(projects.jvmServices)
+    api(projects.stdlibJavaExtensions)
+    api(projects.modelCore)
+    api(projects.platformJvm)
+    api(projects.serviceProvider)
+    api(projects.toolingApi)
 
-    implementation(libs.groovy)
+    api(libs.guava)
+    api(libs.groovy)
+    api(libs.inject)
+    api(libs.jspecify)
+
+    implementation(projects.baseServicesGroovy)
+    implementation(projects.ear)
+    implementation(projects.languageJava)
+    implementation(projects.loggingApi)
+    implementation(projects.platformBase)
+    implementation(projects.pluginsJava)
+    implementation(projects.pluginsJavaBase)
+    implementation(projects.serviceLookup)
+    implementation(projects.war)
+
     implementation(libs.groovyXml)
     implementation(libs.slf4jApi)
-    implementation(libs.guava)
-    implementation(libs.commonsLang)
     implementation(libs.commonsIo)
-    implementation(libs.inject)
+    implementation(libs.commonsLang3)
 
-    testFixturesApi(project(":base-services")) {
+    runtimeOnly(projects.languageJvm)
+    runtimeOnly(projects.testingBase)
+    runtimeOnly(projects.testingJvm)
+
+    testFixturesApi(projects.baseServices) {
         because("test fixtures export the Action class")
     }
-    testFixturesApi(project(":logging")) {
+    testFixturesApi(projects.logging) {
         because("test fixtures export the ConsoleOutput class")
     }
-    testFixturesApi(project(":tooling-api")) {
+    testFixturesApi(projects.toolingApi) {
         because("test fixtures export the EclipseWorkspace and EclipseWorkspaceProject classes")
     }
-    testFixturesImplementation(project(":dependency-management"))
-    testFixturesImplementation(project(":internal-integ-testing"))
-    testFixturesImplementation(project(":model-core"))
+    testFixturesImplementation(projects.dependencyManagement)
+    testFixturesImplementation(projects.internalIntegTesting)
+    testFixturesImplementation(projects.modelCore)
     testFixturesImplementation(libs.groovyXml)
     testFixturesImplementation(libs.xmlunit)
 
-    testImplementation(project(":dependency-management"))
+    testImplementation(projects.dependencyManagement)
     testImplementation(libs.xmlunit)
     testImplementation(libs.equalsverifier)
-    testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":dependency-management")))
-    testImplementation(testFixtures(project(":language-groovy")))
+    testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.dependencyManagement))
+    testImplementation(testFixtures(projects.languageGroovy))
 
-    testRuntimeOnly(project(":distributions-jvm")) {
+    testRuntimeOnly(projects.distributionsJvm) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-jvm"))
-    crossVersionTestDistributionRuntimeOnly(project(":distributions-jvm"))
+    integTestDistributionRuntimeOnly(projects.distributionsJvm)
+    crossVersionTestDistributionRuntimeOnly(projects.distributionsJvm)
 }
 
 strictCompile {
@@ -92,3 +85,6 @@ packageCycles {
 
 integTest.usesJavadocCodeSnippets = true
 testFilesCleanup.reportOnly = true
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

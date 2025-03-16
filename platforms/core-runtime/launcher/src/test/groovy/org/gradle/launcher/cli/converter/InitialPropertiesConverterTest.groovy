@@ -17,9 +17,15 @@
 package org.gradle.launcher.cli.converter
 
 import org.gradle.cli.CommandLineParser
+import org.gradle.util.SetSystemProperties
+import org.junit.Rule
 import spock.lang.Specification
 
 class InitialPropertiesConverterTest extends Specification {
+    @Rule final SetSystemProperties systemProperties = new SetSystemProperties([
+        "file.encoding": "UTF-8"
+    ])
+
     def "collects -D command-line options"() {
         def converter = new InitialPropertiesConverter()
         def parser = new CommandLineParser()
@@ -28,8 +34,8 @@ class InitialPropertiesConverterTest extends Specification {
         def result = converter.convert(commandLine)
 
         expect:
-        result.requestedSystemProperties.size() == 2
         result.requestedSystemProperties.get("one") == "12"
         result.requestedSystemProperties.get("two") == ""
+        result.requestedSystemProperties.get("file.encoding") == "UTF-8"
     }
 }

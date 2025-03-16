@@ -21,8 +21,8 @@ import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.plugins.ExtensionAware;
-
-import javax.annotation.Nullable;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeMigratedToLazy;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A {@code SourceSet} represents a logical group of Java source and resource files. They
@@ -47,6 +47,7 @@ import javax.annotation.Nullable;
  * }
  * </pre>
  */
+@NotToBeMigratedToLazy
 public interface SourceSet extends ExtensionAware {
     /**
      * The name of the main source set.

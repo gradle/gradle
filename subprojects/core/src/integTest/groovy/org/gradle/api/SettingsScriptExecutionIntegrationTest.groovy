@@ -75,7 +75,7 @@ class SettingsScriptExecutionIntegrationTest extends AbstractIntegrationSpec {
         if (OperatingSystem.current().windows) {
             scriptFile << """
                 def message = providers.exec {
-                    commandLine "cmd", "/c", "type", "message"
+                    commandLine "cmd.exe", "/d", "/c", "type", "message"
                 }.standardOutput.asText.get()
                 print message
             """

@@ -22,6 +22,7 @@ import org.custommonkey.xmlunit.Diff
 import org.custommonkey.xmlunit.ElementNameAndAttributeQualifier
 import org.custommonkey.xmlunit.XMLAssert
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
+import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.plugins.ide.AbstractIdeIntegrationTest
@@ -32,7 +33,7 @@ import org.junit.Test
 
 import java.util.regex.Pattern
 
-class IdeaIntegrationTest extends AbstractIdeIntegrationTest {
+class IdeaIntegrationTest extends AbstractIdeIntegrationTest implements StableConfigurationCacheDeprecations {
     @Rule
     public final TestResources testResources = new TestResources(testDirectoryProvider)
 
@@ -74,7 +75,7 @@ class IdeaIntegrationTest extends AbstractIdeIntegrationTest {
         assertHasExpectedContents('root.iml')
         assertHasExpectedContents('api/api.iml')
         assertHasExpectedContents('webservice/webservice.iml')
-
+        expectTaskGetProjectDeprecations(3)
         executer.withTasks('cleanIdea').run()
     }
 
@@ -188,7 +189,7 @@ apply plugin: "java"
 apply plugin: "idea"
 
 repositories {
-    maven { url "${repoDir.toURI()}" }
+    maven { url = "${repoDir.toURI()}" }
 }
 
 dependencies {
@@ -213,7 +214,7 @@ dependencies {
     apply plugin: "idea"
 
     repositories {
-        maven { url "${repoDir.toURI()}" }
+        maven { url = "${repoDir.toURI()}" }
     }
 
     idea {
@@ -292,7 +293,7 @@ apply plugin: 'java'
 apply plugin: 'idea'
 
 repositories {
-    maven { url "${repoDir.toURI()}" }
+    maven { url = "${repoDir.toURI()}" }
 }
 
 configurations {
@@ -321,7 +322,7 @@ apply plugin: 'java'
 apply plugin: 'idea'
 
 repositories {
-    maven { url "${repoDir.toURI()}" }
+    maven { url = "${repoDir.toURI()}" }
 }
 
 dependencies {
@@ -469,7 +470,7 @@ idea.project {
         def expectedXml = expectedFile.text
 
         def homeDir = executer.gradleUserHomeDir.absolutePath.replace(File.separator, '/')
-        def pattern = Pattern.compile(Pattern.quote(homeDir) + "/caches/${CacheLayout.ROOT.getKey()}/${CacheLayout.FILE_STORE.getKey()}/([^/]+/[^/]+/[^/]+)/[a-z0-9]+/")
+        def pattern = Pattern.compile(Pattern.quote(homeDir) + "/caches/${CacheLayout.MODULES.getKey()}/${CacheLayout.FILE_STORE.getKey()}/([^/]+/[^/]+/[^/]+)/[a-z0-9]+/")
         def actualXml = actualFile.text.replaceAll(pattern, '@CACHE_DIR@/$1/@SHA1@/')
 
         Diff diff = new Diff(expectedXml, actualXml)

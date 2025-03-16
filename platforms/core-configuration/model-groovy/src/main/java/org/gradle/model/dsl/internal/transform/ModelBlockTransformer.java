@@ -25,8 +25,8 @@ import org.codehaus.groovy.syntax.SyntaxException;
 import org.gradle.groovy.scripts.internal.AbstractScriptTransformer;
 import org.gradle.groovy.scripts.internal.AstUtils;
 import org.gradle.groovy.scripts.internal.ScriptBlock;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
@@ -62,7 +62,7 @@ public class ModelBlockTransformer extends AbstractScriptTransformer {
         This means we actually have to execute the code block in order to find the rule information within.
         This is also problematic because it means we have to serialize this information into some form that fits into annotations.
 
-        Later, we will extract all the “up-front” information we need to know during compile time.
+        Later, we will extract all the "up-front" information we need to know during compile time.
         This will mean that we only need to execute the rules themselves, and not any code to actually register the rules.
      */
 

@@ -21,9 +21,9 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.problems.buildtree.ProblemStream;
+import org.jspecify.annotations.Nullable;
 
 import javax.annotation.CheckReturnValue;
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 
@@ -92,13 +92,7 @@ public class DeprecationLogger {
     @CheckReturnValue
     @SuppressWarnings("rawtypes")
     public static DeprecationMessageBuilder<?> deprecate(final String feature) {
-        return new DeprecationMessageBuilder() {
-            @Override
-            DeprecationMessage build() {
-                setSummary(feature + " has been deprecated.");
-                return super.build();
-            }
-        };
+        return new ExplicitDeprecationMessageBuilder(feature);
     }
 
     /**
@@ -141,7 +135,7 @@ public class DeprecationLogger {
         return new DeprecationMessageBuilder.WithDeprecationTimeline(new DeprecationMessageBuilder() {
             @Override
             DeprecationMessage build() {
-                return new DeprecationMessage(behaviour + ". This behavior is deprecated.", "", advice, null, Documentation.NO_DOCUMENTATION, DeprecatedFeatureUsage.Type.USER_CODE_INDIRECT);
+                return new DeprecationMessage(behaviour + ". This behavior is deprecated.", "", advice, null, null, DeprecatedFeatureUsage.Type.USER_CODE_INDIRECT, problemIdDisplayName, problemId);
             }
         }); // TODO: it is not ok that NO_DOCUMENTATION is hardcoded here
     }
@@ -334,7 +328,6 @@ public class DeprecationLogger {
      */
     private static <E extends Exception> Runnable toUncheckedThrowingRunnable(final ThrowingRunnable<E> throwingRunnable) {
         return new Runnable() {
-            @Nullable
             @Override
             public void run() {
                 @SuppressWarnings("unchecked")
@@ -346,5 +339,22 @@ public class DeprecationLogger {
 
     private synchronized static void nagUserWith(DeprecatedFeatureUsage usage) {
         DEPRECATED_FEATURE_HANDLER.featureUsed(usage);
+    }
+
+    private static class ExplicitDeprecationMessageBuilder extends DeprecationMessageBuilder<ExplicitDeprecationMessageBuilder> {
+        private final String feature;
+
+        public ExplicitDeprecationMessageBuilder(String feature) {
+            this.feature = feature;
+            setSummary(feature + " has been deprecated.");
+        }
+
+        @Override
+        DeprecationMessage build() {
+            if(problemId == null) {
+                setProblemId(createDefaultDeprecationId(feature));
+            }
+            return super.build();
+        }
     }
 }

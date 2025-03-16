@@ -21,7 +21,7 @@ import org.gradle.internal.remote.internal.RemoteConnection
 import org.gradle.launcher.daemon.protocol.CloseInput
 import org.gradle.launcher.daemon.protocol.ForwardInput
 import org.gradle.launcher.daemon.protocol.Message
-import org.gradle.launcher.daemon.server.api.StdinHandler
+import org.gradle.internal.daemon.clientinput.StdinHandler
 import org.gradle.util.ConcurrentSpecification
 
 import java.util.concurrent.CountDownLatch

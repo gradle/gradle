@@ -30,7 +30,7 @@ class SameCacheUsageCrossVersionIntegrationTest extends AbstractCacheReuseCrossV
         server.sendSha1Header = false
         buildFile << """
 repositories {
-    maven { url '${mavenHttpRepo.uri}' }
+    maven { url = '${mavenHttpRepo.uri}' }
 }
 configurations { compile }
 dependencies {

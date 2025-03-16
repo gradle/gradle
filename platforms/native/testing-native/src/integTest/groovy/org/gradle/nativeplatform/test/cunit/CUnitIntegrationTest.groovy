@@ -89,7 +89,6 @@ model {
         return OperatingSystem.current().getStaticLibraryName("cunit")
     }
 
-    @ToBeFixedForConfigurationCache
     def "can build and run cunit test suite"() {
         given:
         useConventionalSourceLocations()
@@ -111,7 +110,6 @@ model {
         testResults.checkAssertions(3, 3, 0)
     }
 
-    @ToBeFixedForConfigurationCache
     def "assemble does not build or run tests"() {
         given:
         useConventionalSourceLocations()
@@ -126,7 +124,6 @@ model {
     }
 
     @Issue("GRADLE-3225")
-    @ToBeFixedForConfigurationCache
     def "can build and run cunit test suite with C and C++"() {
         given:
         useConventionalSourceLocations()
@@ -142,7 +139,6 @@ model {
             ":linkHelloTestCUnitExe", ":helloTestCUnitExe", ":runHelloTestCUnitExe"
     }
 
-    @ToBeFixedForConfigurationCache
     def "can configure via testSuite component"() {
         given:
         useConventionalSourceLocations()
@@ -236,7 +232,6 @@ model {
         )
     }
 
-    @ToBeFixedForConfigurationCache
     def "can supply cCompiler macro to cunit sources"() {
         given:
         useConventionalSourceLocations()
@@ -260,7 +255,6 @@ model {
         testResults.checkAssertions(1, 1, 0)
     }
 
-    @ToBeFixedForConfigurationCache
     def "can configure location of cunit test sources"() {
         given:
         useStandardConfig()
@@ -287,7 +281,6 @@ model {
         file("build/test-results/helloTest/CUnitAutomated-Listing.xml").assertExists()
     }
 
-    @ToBeFixedForConfigurationCache
     def "can configure location of cunit test sources before component is declared"() {
         given:
         app.library.writeSources(file("src/hello"))
@@ -314,7 +307,6 @@ model {
         file("build/test-results/helloTest/CUnitAutomated-Listing.xml").assertExists()
     }
 
-    @ToBeFixedForConfigurationCache
     def "variant-dependent sources are included in test binary"() {
         given:
         app.library.headerFiles*.writeToDir(file("src/hello"))
@@ -355,7 +347,6 @@ model {
         file("build/test-results/helloTest/CUnitAutomated-Listing.xml").assertExists()
     }
 
-    @ToBeFixedForConfigurationCache
     def "can configure variant-dependent test sources"() {
         given:
         useStandardConfig()
@@ -386,7 +377,6 @@ model {
         file("build/test-results/helloTest/CUnitAutomated-Listing.xml").assertExists()
     }
 
-    @ToBeFixedForConfigurationCache
     def "test suite skipped after successful run"() {
         given:
         useStandardConfig()
@@ -401,7 +391,6 @@ model {
         skipped ":helloTestCUnitExe", ":runHelloTestCUnitExe"
     }
 
-    @ToBeFixedForConfigurationCache
     def "can build and run cunit failing test suite"() {
         when:
         useStandardConfig()
@@ -427,7 +416,6 @@ model {
         file("build/test-results/helloTest/CUnitAutomated-Listing.xml").assertExists()
     }
 
-    @ToBeFixedForConfigurationCache
     def "build does not break for failing tests if ignoreFailures is true"() {
         when:
         useStandardConfig()
@@ -448,7 +436,6 @@ tasks.withType(RunTestExecutable) {
         file("build/test-results/helloTest/CUnitAutomated-Listing.xml").assertExists()
     }
 
-    @ToBeFixedForConfigurationCache
     def "test suite not skipped after failing run"() {
         given:
         useStandardConfig()
@@ -496,7 +483,6 @@ tasks.withType(RunTestExecutable) {
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "non-buildable binaries are not attached to check task"() {
         given:
         useConventionalSourceLocations()
@@ -527,7 +513,6 @@ model {
         executedAndNotSkipped ":runHelloTestCUnitExe"
     }
 
-    @ToBeFixedForConfigurationCache
     def "cunit run task is properly wired to binaries check tasks and lifecycle check task"() {
         given:
         useStandardConfig()

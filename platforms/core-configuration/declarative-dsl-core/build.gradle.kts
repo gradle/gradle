@@ -18,14 +18,21 @@ tasks.withType<KotlinCompile>().configureEach {
 }
 
 dependencies {
-    api(libs.futureKotlin("compiler-embeddable"))
-    api(libs.futureKotlin("stdlib"))
+    api(projects.declarativeDslToolingModels)
 
-    implementation(project(":declarative-dsl-api"))
-    implementation(libs.futureKotlin("reflect"))
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.6.2")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
+    api(libs.kotlinStdlib)
+    api(libs.kotlinCompilerEmbeddable)
 
-    testImplementation(libs.futureKotlin("test-junit5"))
+    implementation(projects.declarativeDslApi)
+    implementation(libs.kotlinReflect)
+    implementation(libs.kotlinxSerializationCore)
+    implementation(libs.kotlinxSerializationJson)
+
+    testImplementation(projects.coreApi)
     testImplementation("org.jetbrains:annotations:24.0.1")
+
+    integTestDistributionRuntimeOnly(projects.distributionsFull)
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

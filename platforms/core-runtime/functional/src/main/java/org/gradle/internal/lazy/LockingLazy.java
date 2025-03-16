@@ -31,7 +31,8 @@ package org.gradle.internal.lazy;
  * limitations under the License.
  */
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.function.Supplier;
 

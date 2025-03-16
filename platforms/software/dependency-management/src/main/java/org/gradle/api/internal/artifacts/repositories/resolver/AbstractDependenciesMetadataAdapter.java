@@ -17,19 +17,20 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependenciesMetadata;
 import org.gradle.api.artifacts.DependencyMetadata;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.external.model.GradleDependencyMetadata;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Map;
@@ -37,9 +38,9 @@ import java.util.Map;
 public abstract class AbstractDependenciesMetadataAdapter<T extends DependencyMetadata<T>, E extends T> extends ArrayList<T> implements DependenciesMetadata<T> {
     private final Instantiator instantiator;
     private final NotationParser<Object, T> dependencyNotationParser;
-    private final ImmutableAttributesFactory attributesFactory;
+    private final AttributesFactory attributesFactory;
 
-    public AbstractDependenciesMetadataAdapter(ImmutableAttributesFactory attributesFactory, Instantiator instantiator, NotationParser<Object, T> dependencyNotationParser) {
+    public AbstractDependenciesMetadataAdapter(AttributesFactory attributesFactory, Instantiator instantiator, NotationParser<Object, T> dependencyNotationParser) {
         this.attributesFactory = attributesFactory;
         this.instantiator = instantiator;
         this.dependencyNotationParser = dependencyNotationParser;
@@ -103,7 +104,7 @@ public abstract class AbstractDependenciesMetadataAdapter<T extends DependencyMe
     }
 
     private E adapt(T details) {
-        ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(details.getModule(), DefaultImmutableVersionConstraint.of(details.getVersionConstraint()), details.getAttributes(), ImmutableList.of());
+        ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(details.getModule(), DefaultImmutableVersionConstraint.of(details.getVersionConstraint()), details.getAttributes(), ImmutableSet.of());
         GradleDependencyMetadata dependencyMetadata = new GradleDependencyMetadata(selector, Collections.emptyList(), isConstraint(), isEndorsingStrictVersions(details), details.getReason(), false, null);
         return instantiator.newInstance(adapterImplementationType(), attributesFactory, dependencyMetadata);
     }

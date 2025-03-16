@@ -18,6 +18,11 @@ package org.gradle.integtests.resolve.constraints
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
+import static org.gradle.integtests.fixtures.SuggestionsMessages.GET_HELP
+import static org.gradle.integtests.fixtures.SuggestionsMessages.INFO_DEBUG
+import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
+import static org.gradle.integtests.fixtures.SuggestionsMessages.STACKTRACE_MESSAGE
+
 /**
  * These test cases document the current behavior when dependency constraints are combined
  * with other dependency management mechanisms. They do not represent recommended use cases.
@@ -33,7 +38,7 @@ class DependencyConstraintsAndResolutionStrategiesIntegrationTest extends Abstra
         resolve.addDefaultVariantDerivationStrategy()
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 conf
@@ -93,8 +98,14 @@ class DependencyConstraintsAndResolutionStrategiesIntegrationTest extends Abstra
         fails 'checkDeps'
 
         then:
-        failure.assertHasCause """Conflict found for the following module:
-  - org:foo between versions 1.1 and 1.0"""
+        failure.assertHasCause """Conflict found for module 'org:foo': between versions 1.1 and 1.0"""
+        failure.assertHasResolutions("Run with :dependencyInsight --configuration conf " +
+            "--dependency org:foo to get more insight on how to solve the conflict.",
+            STACKTRACE_MESSAGE,
+            INFO_DEBUG,
+            SCAN,
+            GET_HELP
+        )
     }
 
     void "dependency substitution rules are applied to dependency constraints"() {

@@ -18,11 +18,10 @@ package org.gradle.api.file;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.Transformer;
 import org.gradle.api.provider.Property;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.regex.Pattern;
 
 /**
@@ -56,7 +55,7 @@ public interface CopyProcessingSpec extends ContentFilterable {
      * @param renamer rename function
      * @return this
      */
-    CopyProcessingSpec rename(Transformer<@org.jetbrains.annotations.Nullable String, String> renamer);
+    CopyProcessingSpec rename(Transformer<@Nullable String, String> renamer);
 
     /**
      * Renames files based on a regular expression.  Uses java.util.regex type of regular expressions.  Note that the
@@ -91,9 +90,10 @@ public interface CopyProcessingSpec extends ContentFilterable {
      *
      * @return The file permissions, or {@code null} if existing permissions should be preserved.
      *
-     * @apiNote Consider using {@link #getFilePermissions()} instead.
+     * @deprecated Use {@link #getFilePermissions()} instead. This method is scheduled for removal in Gradle 9.0.
      */
     @Nullable
+    @Deprecated
     Integer getFileMode();
 
     /**
@@ -104,8 +104,9 @@ public interface CopyProcessingSpec extends ContentFilterable {
      * @param mode The file permissions.
      * @return this
      *
-     * @apiNote Consider using {@link #filePermissions(Action)} instead.
+     * @deprecated Use {@link #filePermissions(Action)} instead. This method is scheduled for removal in Gradle 9.0.
      */
+    @Deprecated
     CopyProcessingSpec setFileMode(@Nullable Integer mode);
 
     /**
@@ -115,9 +116,10 @@ public interface CopyProcessingSpec extends ContentFilterable {
      *
      * @return The directory permissions, or {@code null} if existing permissions should be preserved.
      *
-     * @apiNote Consider using {@link #getDirPermissions()} instead.
+     * @deprecated Use {@link #getDirPermissions()} instead. This method is scheduled for removal in Gradle 9.0.
      */
     @Nullable
+    @Deprecated
     Integer getDirMode();
 
     /**
@@ -128,17 +130,20 @@ public interface CopyProcessingSpec extends ContentFilterable {
      * @param mode The directory permissions.
      * @return this
      *
-     * @apiNote Consider using {@link #dirPermissions(Action)} instead.
+     * @deprecated Use {@link #dirPermissions(Action)} instead. This method is scheduled for removal in Gradle 9.0.
      */
+    @Deprecated
     CopyProcessingSpec setDirMode(@Nullable Integer mode);
 
     /**
-     * Property for configuring file access permissions.
+     * Property for querying and configuring file access permissions.
+     * If the property has no value set, that means that existing permissions are preserved.
+     * It is dependent on the copy action implementation whether these permissions will actually be applied.
+     *
      * For details see {@link ConfigurableFilePermissions}.
      *
      * @since 8.3
      */
-    @Incubating
     Property<ConfigurableFilePermissions> getFilePermissions();
 
     /**
@@ -147,16 +152,17 @@ public interface CopyProcessingSpec extends ContentFilterable {
      *
      * @since 8.3
      */
-    @Incubating
     CopyProcessingSpec filePermissions(Action<? super ConfigurableFilePermissions> configureAction);
 
     /**
-     * Property for configuring directory access permissions.
+     * Property for querying and configuring directory access permissions.
+     * If the property has no value set, that means that existing permissions are preserved.
+     * It is dependent on the copy action implementation whether these permissions will actually be applied.
+     *
      * For details see {@link ConfigurableFilePermissions}.
      *
      * @since 8.3
      */
-    @Incubating
     Property<ConfigurableFilePermissions> getDirPermissions();
 
     /**
@@ -165,7 +171,6 @@ public interface CopyProcessingSpec extends ContentFilterable {
      *
      * @since 8.3
      */
-    @Incubating
     CopyProcessingSpec dirPermissions(Action<? super ConfigurableFilePermissions> configureAction);
 
     /**

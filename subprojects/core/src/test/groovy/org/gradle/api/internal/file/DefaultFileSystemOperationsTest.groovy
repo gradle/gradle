@@ -16,14 +16,17 @@
 
 package org.gradle.api.internal.file
 
-import org.gradle.api.model.ObjectFactory
+import groovy.transform.CompileStatic
+import org.gradle.api.Action
+import org.gradle.api.file.SyncSpec
+import org.gradle.internal.reflect.Instantiator
 import spock.lang.Specification
 
 class DefaultFileSystemOperationsTest extends Specification {
 
     private FileOperations fileOperations = Mock()
-    private ObjectFactory objectFactory = Mock()
-    private DefaultFileSystemOperations fileSystemOperations = new DefaultFileSystemOperations(objectFactory, fileOperations)
+    private Instantiator instantiator = Mock()
+    private DefaultFileSystemOperations fileSystemOperations = new DefaultFileSystemOperations(instantiator, fileOperations)
 
     def 'copySpec forwards to FileOperations::copySpec'() {
         when:
@@ -31,5 +34,21 @@ class DefaultFileSystemOperationsTest extends Specification {
 
         then:
         1 * fileOperations.copySpec()
+    }
+
+    @CompileStatic
+    def 'sync uses syncSpec'() {
+        setup:
+        Action<SyncSpec> action = { SyncSpec s ->
+            s.preserve {
+                it.include('**/*.java')
+            }
+        }
+
+        when:
+        fileSystemOperations.sync(action)
+
+        then:
+        1 * fileOperations.sync(action)
     }
 }

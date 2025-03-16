@@ -17,7 +17,7 @@
 /**
  * Classes for reporting
  */
-@NonNullApi
+@NullMarked
 package org.gradle.api.reporting;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;

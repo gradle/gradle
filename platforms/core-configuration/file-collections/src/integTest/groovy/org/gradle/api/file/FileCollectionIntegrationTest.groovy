@@ -16,6 +16,10 @@
 
 package org.gradle.api.file
 
+import org.gradle.api.artifacts.transform.InputArtifact
+import org.gradle.api.artifacts.transform.TransformAction
+import org.gradle.api.artifacts.transform.TransformOutputs
+import org.gradle.api.artifacts.transform.TransformParameters
 import org.gradle.api.tasks.TasksWithInputsAndOutputs
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
@@ -23,6 +27,7 @@ import spock.lang.Issue
 import static org.gradle.util.internal.TextUtil.escapeString
 
 class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements TasksWithInputsAndOutputs {
+
     def "can use 'as' operator with #type"() {
         buildFile << """
             def fileCollection = files("input.txt")
@@ -44,7 +49,7 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
             def elements = files.elements
 
             def name = 'a'
-            files.withActualValue { it.from(name) }
+            files.from(name)
 
             assert elements.get().asFile == [file('b'), file('a')]
         """
@@ -506,5 +511,177 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
             " Problematic paths in 'file collection' are: '$path'." +
             " Add the individual files to the file collection instead." +
             " Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#file_collection_to_classpath")
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/29147')
+    def "can connect transformed incoming elements of a configuration to task input ListProperty"() {
+        withZipArtifactProducingSubprojects 'p1', 'p2'
+        withIdentityTransform()
+        buildFile '''
+            apply plugin: 'base'
+            configurations {
+                implementation
+            }
+            dependencies {
+                registerTransform(IdentityTransform) {
+                    from.attribute(artifactType, 'zip')
+                    to.attribute(artifactType, 'jar')
+                }
+                implementation(project(':p1'))
+                implementation(project(':p2'))
+            }
+
+            abstract class InputFilesTask extends DefaultTask {
+                @InputFiles abstract ListProperty<FileSystemLocation> getInFiles()
+                @OutputFile abstract RegularFileProperty getOutFile()
+                @TaskAction def go() {
+                    outFile.get().asFile.text = inFiles.get()*.asFile.name.sort().join(',')
+                }
+            }
+            task merge(type: InputFilesTask) {
+// TODO: test with `incoming.files.elements` directly
+//                inFiles.set(configurations.implementation.incoming.files.elements)
+                inFiles.set(
+                    configurations.implementation.incoming.artifactView {
+                        attributes { attribute(artifactType, 'jar') }
+                    }.files.elements
+                )
+                outFile = file("merge.txt")
+            }
+        '''
+
+        when:
+        run 'merge'
+
+        then:
+        outputContains 'Transforming p1.zip'
+        outputContains 'Transforming p2.zip'
+        result.assertTasksExecuted ':p1:produce', ':p1:zip', ':p2:produce', ':p2:zip', ':merge'
+        file('merge.txt').text == 'p1.zip,p2.zip'
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/29147')
+    def "can connect transformed incoming files of a configuration to task input ListProperty"() {
+        withZipArtifactProducingSubprojects 'p1', 'p2'
+        withIdentityTransform()
+        buildFile '''
+            apply plugin: 'base'
+            configurations {
+                implementation
+            }
+            dependencies {
+                registerTransform(IdentityTransform) {
+                    from.attribute(artifactType, 'zip')
+                    to.attribute(artifactType, 'jar')
+                }
+                implementation(project(':p1'))
+                implementation(project(':p2'))
+            }
+
+            abstract class InputFilesTask extends DefaultTask {
+                @InputFiles abstract ConfigurableFileCollection getInFiles()
+                @OutputFile abstract RegularFileProperty getOutFile()
+                @TaskAction def go() {
+                    outFile.get().asFile.text = inFiles.files*.name.sort().join(',')
+                }
+            }
+            task merge(type: InputFilesTask) {
+// TODO: test with `incoming.files` directly
+//                inFiles.set(configurations.implementation.incoming.files)
+                inFiles.from(
+                   configurations.implementation.incoming.artifactView {
+                       attributes { attribute(artifactType, 'jar') }
+                   }.files
+                )
+                outFile = file("merge.txt")
+            }
+        '''
+
+        when:
+        run 'merge'
+
+        then:
+        outputContains 'Transforming p1.zip'
+        outputContains 'Transforming p2.zip'
+        result.assertTasksExecuted ':p1:produce', ':p1:zip', ':p2:produce', ':p2:zip', ':merge'
+        file('merge.txt').text == 'p1.zip,p2.zip'
+    }
+
+    def "ignores null as an argument for ConfigurableFileCollection.#api"() {
+        buildFile("""
+            abstract class FooTask extends DefaultTask {
+                @InputFiles
+                abstract ConfigurableFileCollection getIncoming()
+
+                @TaskAction
+                void foo() {
+                    println("Incoming: \${incoming.files.toSorted()}")
+                }
+            }
+
+            tasks.register("foo", FooTask) {
+                incoming.$api(
+                    provider { "a.txt" },
+                    provider { "b.txt" },
+                    null
+                )
+            }
+        """)
+        when:
+        run "foo"
+
+        then:
+        def files = ["a.txt", "b.txt"]
+        outputContains("Incoming: ${files.collect { testDirectory.file(it) }.toSorted()}")
+
+        where:
+        api << ["setFrom", "convention", "from"]
+    }
+
+    private void withSubprojects(String... subprojects) {
+        subprojects.each {
+            createDir it
+            settingsFile "include '$it'\n"
+        }
+    }
+
+    private void withZipArtifactProducingSubprojects(String... subprojects) {
+        withSubprojects subprojects
+        taskTypeWithOutputFileProperty()
+        buildFile '''
+            def artifactType = Attribute.of('artifactType', String)
+            subprojects {
+                apply plugin: 'base'
+                task produce(type: FileProducer) {
+                    output = file("out.txt")
+                    content = project.name
+                }
+                task zip(type: Zip) {
+                    from(produce)
+                }
+                configurations {
+                    'default' {
+                        attributes {
+                            attribute(artifactType, 'zip')
+                        }
+                    }
+                }
+                artifacts {
+                    'default' zip
+                }
+            }
+        '''
+    }
+
+    private void withIdentityTransform() {
+        buildFile """
+            abstract class IdentityTransform implements $TransformAction.name<${TransformParameters.name}.None> {
+                @$InputArtifact.name abstract Provider<FileSystemLocation> getInputArtifact()
+                @Override void transform($TransformOutputs.name outputs) {
+                    println('Transforming ' + inputArtifact.get().asFile.name)
+                    outputs.file(inputArtifact)
+                }
+            }
+        """
     }
 }

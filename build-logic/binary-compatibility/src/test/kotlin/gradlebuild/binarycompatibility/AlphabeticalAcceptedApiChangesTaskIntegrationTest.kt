@@ -23,7 +23,7 @@ class AlphabeticalAcceptedApiChangesTaskIntegrationTest : AbstractAcceptedApiCha
     @Test
     fun `verify AlphabeticalAcceptedApiChangesTask detects misordered changes`() {
         //language=JSON
-        acceptedApiChangesFile.writeText(
+        firstAcceptedApiChangesFile.writeText(
             """
                 {
                     "acceptedApiChanges": [
@@ -80,12 +80,39 @@ class AlphabeticalAcceptedApiChangesTaskIntegrationTest : AbstractAcceptedApiCha
             """.trimIndent()
         )
 
+        secondAcceptedApiChangesFile.writeText(
+            """
+                {
+                    "acceptedApiChanges": [
+                        {
+                            "type": "org.gradle.api.tasks.testing.Test",
+                            "member": "Method org.gradle.api.tasks.testing.Test.setOutputDir(java.io.File)",
+                            "acceptation": "Deprecated method removed",
+                            "changes": [
+                                "Method has been removed"
+                            ]
+                        },
+                        {
+                            "type": "org.gradle.api.tasks.compile.JavaCompile",
+                            "member": "Method org.gradle.api.tasks.compile.JavaCompile.getSources()",
+                            "acceptation": "Deprecated method removed",
+                            "changes": [
+                                "Method has been removed"
+                            ]
+                        }
+                    ]
+                }
+            """.trimIndent()
+        )
+
         assertHasMisorderedChanges(
             listOf(
                 Change("org.gradle.api.tasks.AbstractExecTask", "Method org.gradle.api.tasks.AbstractExecTask.getExecResult()"),
                 Change("org.gradle.api.AntBuilder", "Class org.gradle.api.AntBuilder"),
                 Change("org.gradle.api.file.SourceDirectorySet", "Method org.gradle.api.file.SourceDirectorySet.getOutputDir()"),
-                Change("org.gradle.api.file.SourceDirectorySet", "Method org.gradle.api.file.SourceDirectorySet.setOutputDir(java.io.File)")
+                Change("org.gradle.api.file.SourceDirectorySet", "Method org.gradle.api.file.SourceDirectorySet.setOutputDir(java.io.File)"),
+                Change("org.gradle.api.tasks.testing.Test", "Method org.gradle.api.tasks.testing.Test.setOutputDir(java.io.File)"),
+                Change("org.gradle.api.tasks.compile.JavaCompile", "Method org.gradle.api.tasks.compile.JavaCompile.getSources()"),
             )
         )
     }
@@ -93,7 +120,7 @@ class AlphabeticalAcceptedApiChangesTaskIntegrationTest : AbstractAcceptedApiCha
     @Test
     fun `verify AlphabeticalAcceptedApiChangesTask accepts properly ordered changes`() {
         //language=JSON
-        acceptedApiChangesFile.writeText(
+        firstAcceptedApiChangesFile.writeText(
             """
                 {
                     "acceptedApiChanges": [
@@ -116,6 +143,31 @@ class AlphabeticalAcceptedApiChangesTaskIntegrationTest : AbstractAcceptedApiCha
                         {
                             "type": "org.gradle.api.file.SourceDirectorySet",
                             "member": "Method org.gradle.api.file.SourceDirectorySet.setOutputDir(org.gradle.api.provider.Provider)",
+                            "acceptation": "Deprecated method removed",
+                            "changes": [
+                                "Method has been removed"
+                            ]
+                        }
+                    ]
+                }
+            """.trimIndent()
+        )
+
+        secondAcceptedApiChangesFile.writeText(
+            """
+                {
+                    "acceptedApiChanges": [
+                        {
+                            "type": "org.gradle.api.tasks.compile.JavaCompile",
+                            "member": "Method org.gradle.api.tasks.compile.JavaCompile.getSources()",
+                            "acceptation": "Deprecated method removed",
+                            "changes": [
+                                "Method has been removed"
+                            ]
+                        },
+                        {
+                            "type": "org.gradle.api.tasks.testing.Test",
+                            "member": "Method org.gradle.api.tasks.testing.Test.setOutputDir(java.io.File)",
                             "acceptation": "Deprecated method removed",
                             "changes": [
                                 "Method has been removed"

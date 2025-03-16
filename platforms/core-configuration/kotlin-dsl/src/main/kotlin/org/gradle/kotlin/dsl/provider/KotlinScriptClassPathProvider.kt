@@ -27,6 +27,8 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.internal.classloader.ClassLoaderVisitor
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
+import org.gradle.internal.service.scopes.Scope
+import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.kotlin.dsl.support.isGradleKotlinDslJar
 import org.gradle.kotlin.dsl.support.isGradleKotlinDslJarName
 import org.gradle.kotlin.dsl.support.serviceOf
@@ -65,6 +67,7 @@ internal
 typealias JarsProvider = () -> Collection<File>
 
 
+@ServiceScope(Scope.Build::class)
 class KotlinScriptClassPathProvider(
     private val moduleRegistry: ModuleRegistry,
     private val classPathRegistry: ClassPathRegistry,
@@ -202,7 +205,7 @@ private
 fun toURI(url: URL): URI =
     try {
         url.toURI()
-    } catch (e: URISyntaxException) {
+    } catch (_: URISyntaxException) {
         URL(
             url.protocol,
             url.host,

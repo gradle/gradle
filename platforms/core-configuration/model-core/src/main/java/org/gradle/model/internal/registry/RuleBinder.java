@@ -16,14 +16,13 @@
 
 package org.gradle.model.internal.registry;
 
-import javax.annotation.concurrent.NotThreadSafe;
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.model.internal.core.ModelAction;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
-import java.util.ArrayList;
+import javax.annotation.concurrent.NotThreadSafe;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 @NotThreadSafe
@@ -81,13 +80,13 @@ public class RuleBinder {
 
     private static List<ModelBinding> inputBindings(List<BindingPredicate> inputReferences, ModelRuleDescriptor descriptor, Action<ModelBinding> inputBindAction) {
         if (inputReferences.isEmpty()) {
-            return Collections.emptyList();
+            return ImmutableList.of();
         }
-        List<ModelBinding> bindings = new ArrayList<ModelBinding>(inputReferences.size());
+        ImmutableList.Builder<ModelBinding> bindings = ImmutableList.builderWithExpectedSize(inputReferences.size());
         for (BindingPredicate inputReference : inputReferences) {
             bindings.add(binding(inputReference, descriptor, false, inputBindAction));
         }
-        return bindings;
+        return bindings.build();
     }
 
     private static ModelBinding binding(BindingPredicate reference, ModelRuleDescriptor descriptor, boolean writable, Action<ModelBinding> bindAction) {

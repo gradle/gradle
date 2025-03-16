@@ -27,7 +27,7 @@ import org.gradle.api.internal.file.copy.DefaultCopySpec
 import org.gradle.api.internal.file.temp.DefaultTemporaryFileProvider
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.api.internal.resources.DefaultResourceHandler
-import org.gradle.cache.internal.TestCaches
+import org.gradle.cache.internal.TestDecompressionCoordinators
 import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.test.fixtures.file.TestFile
@@ -66,14 +66,14 @@ class DefaultFileOperationsTest extends Specification {
             fileHasher,
             resourceHandlerFactory,
             fileCollectionFactory,
-            TestUtil.objectFactory(),
+            TestUtil.propertyFactory(),
             TestFiles.fileSystem(),
             TestFiles.patternSetFactory,
             TestFiles.deleter(),
             TestFiles.documentationRegistry(),
             TestFiles.taskDependencyFactory(),
             TestUtil.providerFactory(),
-            TestCaches.decompressionCache(temporaryFileProvider.newTemporaryDirectory("cache")),
+            TestDecompressionCoordinators.decompressionCoordinator(temporaryFileProvider.newTemporaryDirectory("cache")),
             null
         )
     }

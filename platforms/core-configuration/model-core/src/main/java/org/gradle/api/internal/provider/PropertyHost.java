@@ -16,10 +16,12 @@
 
 package org.gradle.api.internal.provider;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.state.ModelObject;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
-
+@ServiceScope({Scope.Global.class, Scope.Project.class})
 public interface PropertyHost {
     PropertyHost NO_OP = producer -> null;
 

@@ -22,8 +22,8 @@ import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ComponentMetadataListerDetails;
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
-import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.artifacts.repositories.MavenRepositoryContentDescriptor;
@@ -57,7 +57,6 @@ import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
-import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.maven.MutableMavenModuleResolveMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
@@ -70,8 +69,8 @@ import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveRe
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
+import org.jspecify.annotations.NonNull;
 
-import javax.annotation.Nonnull;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -204,7 +203,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     @Override
     public void artifactUrls(Object... urls) {
         invalidateDescriptor();
-        additionalUrls.addAll(Lists.newArrayList(urls));
+        additionalUrls.addAll(ImmutableList.copyOf(urls));
     }
 
     @Override
@@ -242,7 +241,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         return builder.build();
     }
 
-    @Nonnull
+    @NonNull
     protected URI validateUrl() {
         return urlArtifactRepository.validateUrl();
     }
@@ -460,8 +459,8 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         }
 
         @Override
-        public void listModuleVersions(ModuleDependencyMetadata dependency, ModuleIdentifier module, List<ResourcePattern> ivyPatterns, List<ResourcePattern> artifactPatterns, VersionLister versionLister, BuildableModuleVersionListingResolveResult result) {
-            delegate.listModuleVersions(dependency, module, ivyPatterns, artifactPatterns, versionLister, result);
+        public void listModuleVersions(ModuleComponentSelector selector, ComponentOverrideMetadata overrideMetadata, List<ResourcePattern> ivyPatterns, List<ResourcePattern> artifactPatterns, VersionLister versionLister, BuildableModuleVersionListingResolveResult result) {
+            delegate.listModuleVersions(selector, overrideMetadata, ivyPatterns, artifactPatterns, versionLister, result);
         }
     }
 }

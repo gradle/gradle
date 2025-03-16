@@ -18,27 +18,27 @@ package org.gradle.launcher.daemon.client;
 
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.internal.invocation.BuildAction;
-import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.serialize.Serializer;
+import org.gradle.internal.service.Provides;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.tooling.internal.provider.action.BuildActionSerializer;
 
 /**
  * Global services shared by all Gradle daemon clients in a given process.
  */
-public class DaemonClientGlobalServices {
+public class DaemonClientGlobalServices implements ServiceRegistrationProvider {
+    @Provides
     Serializer<BuildAction> createBuildActionSerializer() {
         return BuildActionSerializer.create();
     }
 
-    JvmVersionValidator createJvmVersionValidator(JvmVersionDetector jvmVersionDetector) {
-        return new JvmVersionValidator(jvmVersionDetector);
-    }
-
+    @Provides
     DaemonGreeter createDaemonGreeter(DocumentationRegistry documentationRegistry) {
         return new DaemonGreeter(documentationRegistry);
     }
 
+    @Provides
     DaemonClientFactory createClientFactory(ServiceRegistry sharedServices) {
         return new DaemonClientFactory(sharedServices);
     }

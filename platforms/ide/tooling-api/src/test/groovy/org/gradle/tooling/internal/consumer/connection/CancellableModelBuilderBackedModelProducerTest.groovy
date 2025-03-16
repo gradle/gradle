@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.internal.consumer.connection
 
-import org.gradle.internal.Transformers
 import org.gradle.tooling.UnknownModelException
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
 import org.gradle.tooling.internal.adapter.ViewBuilder
@@ -30,10 +29,10 @@ import spock.lang.Specification
 
 class CancellableModelBuilderBackedModelProducerTest extends Specification {
 
-    def adapter = Mock(ProtocolToModelAdapter);
-    def versionDetails = Mock(VersionDetails);
-    def mapping = Mock(ModelMapping);
-    def transformer = Transformers.noOpTransformer()
+    def adapter = Mock(ProtocolToModelAdapter)
+    def versionDetails = Mock(VersionDetails)
+    def mapping = Mock(ModelMapping)
+    def transformer = CancellationExceptionTransformer.transformerFor(VersionDetails.from("4.8"))
     def builder = Mock(InternalCancellableConnection)
 
     def modelProducer

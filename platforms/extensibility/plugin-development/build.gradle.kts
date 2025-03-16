@@ -7,74 +7,88 @@ description = "Gradle plugin development plugins"
 errorprone {
     disabledChecks.addAll(
         "DefaultCharset", // 1 occurrences
-        "LoopOverCharArray", // 1 occurrences
     )
 }
 
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":logging"))
-    implementation(project(":process-services"))
-    implementation(project(":files"))
-    implementation(project(":core-api"))
-    implementation(project(":model-core"))
-    implementation(project(":execution"))
-    implementation(project(":core"))
-    implementation(project(":dependency-management"))
-    implementation(project(":maven"))
-    implementation(project(":ivy"))
-    implementation(project(":platform-jvm"))
-    implementation(project(":reporting"))
-    implementation(project(":testing-base"))
-    implementation(project(":testing-jvm"))
-    implementation(project(":test-suites-base"))
-    implementation(project(":plugins"))
-    implementation(project(":plugins-groovy"))
-    implementation(project(":plugins-java"))
-    implementation(project(":plugins-java-base"))
-    implementation(project(":plugins-java-library"))
-    implementation(project(":plugins-jvm-test-suite"))
-    implementation(project(":language-java"))
-    implementation(project(":plugin-use"))
-    implementation(project(":publish"))
-    implementation(project(":messaging"))
-    implementation(project(":workers"))
-    implementation(project(":model-groovy"))
-    implementation(project(":resources"))
-    implementation(project(":toolchains-jvm"))
-    implementation(project(":language-jvm"))
+    api(projects.baseServices)
+    api(projects.core)
+    api(projects.coreApi)
+    api(projects.daemonServerWorker)
+    api(projects.files)
+    api(projects.logging)
+    api(projects.modelReflect)
+    api(projects.platformJvm)
+    api(projects.problemsApi)
+    api(projects.resources)
+    api(projects.stdlibJavaExtensions)
+    api(projects.toolchainsJvmShared)
+    api(projects.workers)
 
-    implementation(libs.groovy)
-    implementation(libs.guava)
-    implementation(libs.inject)
+    api(libs.groovy)
+    api(libs.gson)
+    api(libs.jspecify)
+    api(libs.inject)
+
+    implementation(projects.classloaders)
+    implementation(projects.serviceLookup)
+    implementation(projects.serviceProvider)
+    implementation(projects.serviceRegistryBuilder)
+    implementation(projects.buildOption)
+    implementation(projects.dependencyManagement)
+    implementation(projects.execution)
+    implementation(projects.fileOperations)
+    implementation(projects.hashing)
+    implementation(projects.ivy)
+    implementation(projects.languageJava)
+    implementation(projects.languageJvm)
+    implementation(projects.loggingApi)
+    implementation(projects.maven)
+    implementation(projects.messaging)
+    implementation(projects.modelCore)
+    implementation(projects.modelGroovy)
+    implementation(projects.persistentCache)
+    implementation(projects.pluginsGroovy)
+    implementation(projects.pluginsJava)
+    implementation(projects.pluginsJavaBase)
+    implementation(projects.pluginsJavaLibrary)
+    implementation(projects.pluginsJvmTestSuite)
+    implementation(projects.pluginUse)
+    implementation(projects.publish)
+    implementation(projects.testingJvm)
+    implementation(projects.toolchainsJvm)
+
     implementation(libs.asm)
-    implementation(libs.gson)
+    implementation(libs.guava)
 
-    testImplementation(project(":file-collections"))
-    testImplementation(project(":enterprise-operations"))
-    testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":logging")))
+    testImplementation(projects.fileCollections)
+    testImplementation(projects.enterpriseOperations)
 
-    integTestImplementation(project(":base-services-groovy"))
-    integTestImplementation(libs.jetbrainsAnnotations)
-    integTestImplementation(testFixtures(project(":model-core")))
+    testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.logging))
+
+    integTestImplementation(projects.baseServicesGroovy)
+
+    integTestImplementation(testFixtures(projects.modelReflect))
+    integTestImplementation(testFixtures(projects.toolingApi))
+
     integTestImplementation(libs.groovyTest)
-    integTestImplementation(testFixtures(project(":tooling-api")))
+    integTestImplementation(libs.jetbrainsAnnotations)
 
-    integTestLocalRepository(project(":tooling-api")) {
+    integTestLocalRepository(projects.toolingApi) {
         because("Required by GradleImplDepsCompatibilityIntegrationTest")
     }
 
-    testRuntimeOnly(project(":distributions-basics")) {
+    testRuntimeOnly(projects.distributionsBasics) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-basics"))
-    crossVersionTestDistributionRuntimeOnly(project(":distributions-basics"))
+    integTestDistributionRuntimeOnly(projects.distributionsBasics)
+    crossVersionTestDistributionRuntimeOnly(projects.distributionsBasics)
 
-    testFixturesImplementation(project(":model-core"))
-    testFixturesImplementation(project(":logging"))
+    testFixturesImplementation(projects.modelCore)
+    testFixturesImplementation(projects.logging)
     testFixturesImplementation(libs.gson)
-    testFixturesImplementation(project(":base-services"))
+    testFixturesImplementation(projects.baseServices)
 }
 
 integTest.usesJavadocCodeSnippets = true
@@ -82,8 +96,6 @@ integTest.usesJavadocCodeSnippets = true
 strictCompile {
     ignoreDeprecations()
 }
-
-// Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
-tasks.configCacheIntegTest {
-    systemProperties["org.gradle.configuration-cache.internal.test-disable-load-after-store"] = "true"
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

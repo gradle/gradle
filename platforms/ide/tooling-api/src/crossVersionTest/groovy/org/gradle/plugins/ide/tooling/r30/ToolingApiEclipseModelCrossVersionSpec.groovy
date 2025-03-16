@@ -16,15 +16,12 @@
 
 package org.gradle.plugins.ide.tooling.r30
 
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.tooling.model.eclipse.EclipseProject
 
-@ToolingApiVersion('>=3.0')
-@TargetGradleVersion(">=3.0")
 class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification implements WithOldConfigurationsSupport {
 
     String localMaven
@@ -32,7 +29,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification imp
     def setup() {
         def mavenRepo = new MavenFileRepository(file("maven-repo"))
         mavenRepo.module("org.example", "example-lib", "1.0").publish()
-        localMaven = "maven { url '${mavenRepo.uri}' }"
+        localMaven = "maven { url = '${mavenRepo.uri}' }"
     }
 
     // TODO (donat) add more coverage after all classpath entry types are exposed via the TAPI

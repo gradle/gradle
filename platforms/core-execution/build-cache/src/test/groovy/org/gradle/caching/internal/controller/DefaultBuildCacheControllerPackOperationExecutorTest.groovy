@@ -32,7 +32,7 @@ import org.gradle.internal.file.TreeType
 import org.gradle.internal.file.impl.DefaultFileMetadata
 import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.operations.BuildOperationContext
-import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.operations.CallableBuildOperation
 import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.internal.snapshot.DirectorySnapshot
@@ -57,8 +57,8 @@ class DefaultBuildCacheControllerPackOperationExecutorTest extends Specification
     def originFactory = Mock(OriginMetadataFactory)
     def stringInterner = new StringInterner()
     def buildOperationContext = Mock(BuildOperationContext)
-    def buildOperationExecutor = Mock(BuildOperationExecutor)
-    PackOperationExecutor packOperationExecutor = new PackOperationExecutor(buildOperationExecutor, packer, originFactory, stringInterner)
+    def buildOperationRunner = Mock(BuildOperationRunner)
+    PackOperationExecutor packOperationExecutor = new PackOperationExecutor(buildOperationRunner, packer, originFactory, stringInterner)
 
     def key = new DefaultBuildCacheKey(TestHashCodes.hashCodeFrom(1234))
 
@@ -88,7 +88,7 @@ class DefaultBuildCacheControllerPackOperationExecutorTest extends Specification
         def result = packOperationExecutor.unpack(key, entity, input)
 
         then:
-        1 * buildOperationExecutor.call(_) >> { CallableBuildOperation action -> action.call(buildOperationContext)}
+        1 * buildOperationRunner.call(_) >> { CallableBuildOperation action -> action.call(buildOperationContext)}
         1 * originFactory.createReader() >> originReader
 
         then:
@@ -117,7 +117,7 @@ class DefaultBuildCacheControllerPackOperationExecutorTest extends Specification
         packOperationExecutor.unpack(key, entity, input)
 
         then:
-        1 * buildOperationExecutor.call(_) >> { CallableBuildOperation action -> action.call(buildOperationContext)}
+        1 * buildOperationRunner.call(_) >> { CallableBuildOperation action -> action.call(buildOperationContext)}
         1 * originFactory.createReader() >> originReader
 
         then:
@@ -142,7 +142,7 @@ class DefaultBuildCacheControllerPackOperationExecutorTest extends Specification
         packOperationExecutor.pack(output, key, entity, outputSnapshots, Duration.ofMillis(421L))
 
         then:
-        1 * buildOperationExecutor.run(_) >> { RunnableBuildOperation action -> action.run(buildOperationContext)}
+        1 * buildOperationRunner.run(_) >> { RunnableBuildOperation action -> action.run(buildOperationContext)}
         1 * originFactory.createWriter(entity.identity, entity.type, TestHashCodes.hashCodeFrom(1234), Duration.ofMillis(421L)) >> originWriter
 
         then:

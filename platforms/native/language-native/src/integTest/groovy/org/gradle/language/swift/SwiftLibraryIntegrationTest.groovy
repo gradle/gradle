@@ -24,10 +24,12 @@ import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.SwiftLib
 import org.gradle.nativeplatform.fixtures.app.SwiftSingleFileLib
+import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 
 import static org.gradle.util.Matchers.containsText
 
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
+@DoesNotSupportNonAsciiPaths(reason = "swiftc does not support these paths")
 class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def "skip compile and link tasks when no source"() {
         given:
@@ -76,6 +78,7 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":assembleDebug")
         file("build/modules/main/debug/${lib.moduleName}.swiftmodule").assertIsFile()
         sharedLibrary("build/lib/main/debug/${lib.moduleName}").assertExists()
+        sharedLibrary("build/lib/main/debug/${lib.moduleName}").assertHasDebugSymbolsFor(lib.sourceFileNames)
 
         when:
         succeeds "assembleRelease"
@@ -84,7 +87,7 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         result.assertTasksExecuted(":compileReleaseSwift", ":linkRelease", ":extractSymbolsRelease", ":stripSymbolsRelease", ":assembleRelease")
         file("build/modules/main/release/${lib.moduleName}.swiftmodule").assertIsFile()
         sharedLibrary("build/lib/main/release/${lib.moduleName}").assertExists()
-        sharedLibrary("build/lib/main/release/${lib.moduleName}").assertHasStrippedDebugSymbolsFor(["greeter.o", "sum.o", "multiply.o"])
+        sharedLibrary("build/lib/main/release/${lib.moduleName}").assertHasStrippedDebugSymbolsFor(lib.sourceFileNames)
     }
 
     def "can use link file as task dependency"() {
@@ -294,9 +297,9 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
 
         result.assertTasksExecuted(":log:compileReleaseSwift", ":log:linkRelease", ":log:stripSymbolsRelease", ":hello:compileReleaseSwift", ":hello:linkRelease", ":hello:extractSymbolsRelease", ":hello:stripSymbolsRelease", ":hello:assembleRelease")
         sharedLibrary("hello/build/lib/main/release/Hello").assertExists()
-        sharedLibrary("hello/build/lib/main/release/Hello").assertHasStrippedDebugSymbolsFor(['greeter.o'])
+        sharedLibrary("hello/build/lib/main/release/Hello").assertHasStrippedDebugSymbolsFor(app.library.sourceFileNames)
         sharedLibrary("log/build/lib/main/release/Log").assertExists()
-        sharedLibrary("log/build/lib/main/release/Log").assertHasDebugSymbolsFor(['log.o'])
+        sharedLibrary("log/build/lib/main/release/Log").assertHasDebugSymbolsFor(app.logLibrary.sourceFileNames)
     }
 
     def "can change default module name and successfully link against library"() {

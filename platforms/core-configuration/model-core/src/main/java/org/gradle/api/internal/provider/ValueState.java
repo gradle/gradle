@@ -19,18 +19,20 @@ package org.gradle.api.internal.provider;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.internal.Cast;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.state.ModelObject;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
+import java.util.function.Function;
 
 /**
  * Provides a state pattern implementation for values that are finalizable and support conventions.
  *
- * <h3>Finalization</h3>
+ * <h2>Finalization</h2>
  * See {@link org.gradle.api.provider.HasConfigurableValue} and {@link HasConfigurableValueInternal}.
  *
- * <h3>Conventions</h3>
+ * <h2>Conventions</h2>
  * See {@link org.gradle.api.provider.SupportsConvention}.
  *
  * @param <S> the type of the value
@@ -38,8 +40,21 @@ import javax.annotation.Nullable;
 public abstract class ValueState<S> {
     private static final ValueState<Object> FINALIZED_VALUE = new FinalizedValue<>();
 
+    /**
+     * Creates a new non-finalized state.
+     */
     public static <S> ValueState<S> newState(PropertyHost host) {
-        return new ValueState.NonFinalizedValue<>(host);
+        return new ValueState.NonFinalizedValue<>(host, Function.identity());
+    }
+
+    /**
+     * Creates a new non-finalized state.
+     *
+     * @param copier when the value is mutable, a shallow-copying function should be provided to avoid
+     * sharing of mutable state between effective values and convention values
+     */
+    public static <S> ValueState<S> newState(PropertyHost host, Function<S, S> copier) {
+        return new ValueState.NonFinalizedValue<>(host, copier);
     }
 
     public abstract boolean shouldFinalize(Describable displayName, @Nullable ModelObject producer);
@@ -65,7 +80,7 @@ public abstract class ValueState<S> {
     /**
      * Marks this value state as being explicitly assigned. Does not remember the given value in any way.
      *
-     * @param value
+     * @param value the new explicitly assigned value
      * @return the very <code>value</code> given
      */
     //TODO-RC rename this or the overload as they have significantly different semantics
@@ -78,8 +93,8 @@ public abstract class ValueState<S> {
      * A default value is a fallback value that is sensible to the caller, in the absence of the explicit value.
      * The default value is not related in any way to the convention value.
      *
-     * @param value
-     * @param defaultValue
+     * @param value the current explicit value
+     * @param defaultValue the default value
      * @return the given value, if this value state is not explicit, or given default value
      */
     //TODO-RC rename this or the overload as they have significantly different semantics
@@ -92,8 +107,8 @@ public abstract class ValueState<S> {
      *
      * This is similar to calling {@link #setConvention(Object)} followed by {@link #explicitValue(Object, Object)}.
      *
-     * @param value
-     * @param convention
+     * @param value the current explicit value
+     * @param convention the new convention
      * @return the given value, if this value state is not explicit, otherwise the new convention value
      */
     public abstract S applyConvention(S value, S convention);
@@ -101,6 +116,8 @@ public abstract class ValueState<S> {
     /**
      * Marks this value state as being non-explicit. Returns the convention, if any.
      */
+    public abstract S implicitValue(S convention);
+
     public abstract S implicitValue();
 
     public abstract boolean maybeFinalizeOnRead(Describable displayName, @Nullable ModelObject producer, ValueSupplier.ValueConsumer consumer);
@@ -149,16 +166,26 @@ public abstract class ValueState<S> {
      */
     public abstract S setToConventionIfUnset(S value);
 
+    public abstract void markAsUpgradedPropertyValue();
+
+    public abstract boolean isUpgradedPropertyValue();
+
+    public abstract void warnOnUpgradedPropertyValueChanges();
+
     private static class NonFinalizedValue<S> extends ValueState<S> {
         private final PropertyHost host;
+        private final Function<S, S> copier;
         private boolean explicitValue;
         private boolean finalizeOnNextGet;
         private boolean disallowChanges;
         private boolean disallowUnsafeRead;
+        private boolean isUpgradedPropertyValue;
+        private boolean warnOnUpgradedPropertyChanges;
         private S convention;
 
-        public NonFinalizedValue(PropertyHost host) {
+        public NonFinalizedValue(PropertyHost host, Function<S, S> copier) {
             this.host = host;
+            this.copier = copier;
         }
 
         @Override
@@ -201,6 +228,13 @@ public abstract class ValueState<S> {
         public void beforeMutate(Describable displayName) {
             if (disallowChanges) {
                 throw new IllegalStateException(String.format("The value for %s cannot be changed any further.", displayName.getDisplayName()));
+            } else if (warnOnUpgradedPropertyChanges) {
+                String shownDisplayName = displayName.getDisplayName();
+                DeprecationLogger.deprecateBehaviour("Changing property value of " + shownDisplayName + " at execution time.")
+                    .startingWithGradle9("changing property value of " + shownDisplayName + " at execution time is deprecated and will fail in Gradle 10")
+                    // TODO add documentation
+                    .undocumented()
+                    .nagUser();
             }
         }
 
@@ -238,7 +272,11 @@ public abstract class ValueState<S> {
         @Override
         public S setToConvention() {
             explicitValue = true;
-            return convention;
+            return shallowCopy(convention);
+        }
+
+        private S shallowCopy(S toCopy) {
+            return copier.apply(toCopy);
         }
 
         @Override
@@ -247,6 +285,21 @@ public abstract class ValueState<S> {
                 return setToConvention();
             }
             return value;
+        }
+
+        @Override
+        public void markAsUpgradedPropertyValue() {
+            isUpgradedPropertyValue = true;
+        }
+
+        @Override
+        public boolean isUpgradedPropertyValue() {
+            return isUpgradedPropertyValue;
+        }
+
+        @Override
+        public void warnOnUpgradedPropertyValueChanges() {
+            warnOnUpgradedPropertyChanges = true;
         }
 
         @Override
@@ -266,14 +319,20 @@ public abstract class ValueState<S> {
         @Override
         public S implicitValue() {
             explicitValue = false;
-            return convention;
+            return shallowCopy(convention);
+        }
+
+        @Override
+        public S implicitValue(S newConvention) {
+            setConvention(newConvention);
+            return implicitValue();
         }
 
         @Override
         public S applyConvention(S value, S convention) {
             this.convention = convention;
             if (!explicitValue) {
-                return convention;
+                return shallowCopy(convention);
             } else {
                 return value;
             }
@@ -361,6 +420,11 @@ public abstract class ValueState<S> {
         }
 
         @Override
+        public S implicitValue(S defaultValue) {
+            throw unexpected();
+        }
+
+        @Override
         public boolean isFinalizing() {
             return true;
         }
@@ -383,6 +447,21 @@ public abstract class ValueState<S> {
         @Override
         public S setToConventionIfUnset(S value) {
             throw unexpected();
+        }
+
+        @Override
+        public void markAsUpgradedPropertyValue() {
+            // No special behaviour is needed for already finalized values, so let's ignore
+        }
+
+        @Override
+        public boolean isUpgradedPropertyValue() {
+            return false;
+        }
+
+        @Override
+        public void warnOnUpgradedPropertyValueChanges() {
+            // No special behaviour is needed for already finalized values, so let's ignore
         }
 
         @Override

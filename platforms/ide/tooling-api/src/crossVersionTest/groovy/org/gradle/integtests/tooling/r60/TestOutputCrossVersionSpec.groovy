@@ -18,7 +18,6 @@ package org.gradle.integtests.tooling.r60
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.test.Destination
@@ -26,20 +25,8 @@ import org.gradle.tooling.events.test.JvmTestOperationDescriptor
 import org.gradle.tooling.events.test.TestFinishEvent
 import org.gradle.tooling.events.test.TestOutputEvent
 
-@ToolingApiVersion('>=6.0')
 @TargetGradleVersion('>=6.0')
 class TestOutputCrossVersionSpec extends ToolingApiSpecification implements WithOldConfigurationsSupport {
-
-    @ToolingApiVersion('>=3.0 <6.0')
-    def "test output not exposed to old clients"() {
-        when:
-        runTestAndCollectProgressEvents()
-
-        then:
-        !progressEvents.empty
-        !progressEvents.find { it.getClass().getName() == 'org.gradle.tooling.events.test.internal.DefaultTestOutput' }
-    }
-
 
     def "test execution exposes test output"() {
         when:

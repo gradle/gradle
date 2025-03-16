@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
+import org.gradle.api.internal.artifacts.capability.CapabilitySelectorSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.CapabilitySerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentIdentifierSerializer;
@@ -40,7 +41,7 @@ import org.gradle.api.internal.artifacts.metadata.ComponentFileArtifactIdentifie
 import org.gradle.api.internal.artifacts.metadata.ModuleComponentFileArtifactIdentifierSerializer;
 import org.gradle.api.internal.artifacts.metadata.PublishArtifactLocalArtifactMetadataSerializer;
 import org.gradle.api.internal.artifacts.metadata.TransformedComponentFileArtifactIdentifierSerializer;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier;
@@ -81,15 +82,17 @@ public class DependencyManagementValueSnapshotterSerializerRegistry extends Defa
 
     public DependencyManagementValueSnapshotterSerializerRegistry(
         ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-        ImmutableAttributesFactory immutableAttributesFactory,
+        AttributesFactory attributesFactory,
         NamedObjectInstantiator namedObjectInstantiator,
         ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory
     ) {
         super(true);
 
+        CapabilitySelectorSerializer capabilitySelectorSerializer = new CapabilitySelectorSerializer();
         ComponentIdentifierSerializer componentIdentifierSerializer = new ComponentIdentifierSerializer();
-        AttributeContainerSerializer attributeContainerSerializer = new DesugaringAttributeContainerSerializer(immutableAttributesFactory, namedObjectInstantiator);
+        AttributeContainerSerializer attributeContainerSerializer = new DesugaringAttributeContainerSerializer(attributesFactory, namedObjectInstantiator);
         ModuleVersionIdentifierSerializer moduleVersionIdentifierSerializer = new ModuleVersionIdentifierSerializer(moduleIdentifierFactory);
+        Serializer<ComponentSelector> componentSelectorSerializer = new ComponentSelectorSerializer(attributeContainerSerializer, capabilitySelectorSerializer);
 
         register(Capability.class, new CapabilitySerializer());
         register(ModuleVersionIdentifier.class, moduleVersionIdentifierSerializer);
@@ -105,10 +108,9 @@ public class DependencyManagementValueSnapshotterSerializerRegistry extends Defa
         register(ComponentSelectionDescriptor.class, new ComponentSelectionDescriptorSerializer(componentSelectionDescriptorFactory));
         ComponentSelectionReasonSerializer componentSelectionReasonSerializer = new ComponentSelectionReasonSerializer(componentSelectionDescriptorFactory);
         register(ComponentSelectionReason.class, componentSelectionReasonSerializer);
-        registerWithFactory(ComponentSelector.class, () -> new ComponentSelectorSerializer(attributeContainerSerializer));
+        register(ComponentSelector.class, componentSelectorSerializer);
         registerWithFactory(ResolvedComponentResult.class, () -> {
             ResolvedVariantResultSerializer resolvedVariantResultSerializer = new ResolvedVariantResultSerializer(componentIdentifierSerializer, attributeContainerSerializer);
-            ComponentSelectorSerializer componentSelectorSerializer = new ComponentSelectorSerializer(attributeContainerSerializer);
             return new ResolvedComponentResultSerializer(moduleVersionIdentifierSerializer, componentIdentifierSerializer, componentSelectorSerializer, resolvedVariantResultSerializer, componentSelectionReasonSerializer);
         });
     }

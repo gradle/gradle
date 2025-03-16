@@ -21,11 +21,6 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import spock.lang.Issue
 
-import static org.gradle.integtests.fixtures.SuggestionsMessages.GET_HELP
-import static org.gradle.integtests.fixtures.SuggestionsMessages.INFO_DEBUG
-import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
-import static org.gradle.integtests.fixtures.SuggestionsMessages.STACKTRACE_MESSAGE
-
 class ScriptDependencyResolveIntegrationTest extends AbstractDependencyResolutionTest {
 
     @LeaksFileHandles("Puts gradle user home in integration test dir")
@@ -48,7 +43,7 @@ group = 'org.gradle'
 version = '1.0'
 
 buildscript {
-    repositories { maven { url "${mavenRepo().uri}" } }
+    repositories { maven { url = "${mavenRepo().uri}" } }
     dependencies {
         classpath "org.gradle:test:1.45"
     }
@@ -79,7 +74,7 @@ task check {
         and:
         settingsFile << """
 buildscript {
-    repositories { maven { url "${mavenRepo().uri}" } }
+    repositories { maven { url = "${mavenRepo().uri}" } }
     configurations.classpath {
         resolutionStrategy {
             failOnVersionConflict()
@@ -95,13 +90,7 @@ rootProject.name = 'testproject'
 """
         expect:
         fails "help"
-        failureHasCause("Conflict found for the following module:")
-        failure.assertHasResolutions("Run with :dependencyInsight --configuration classpath " +
-            "--dependency org.gradle:test to get more insight on how to solve the conflict.",
-            STACKTRACE_MESSAGE,
-            INFO_DEBUG,
-            SCAN,
-            GET_HELP)
+        failureHasCause("Conflict found for module 'org.gradle:test': between versions 1.46 and 1.45")
     }
 
     @Issue("gradle/gradle#19300")
@@ -112,7 +101,7 @@ rootProject.name = 'testproject'
         and:
         settingsFile << """
             buildscript {
-                repositories { maven { url "${mavenRepo().uri}" } }
+                repositories { maven { url = "${mavenRepo().uri}" } }
                 dependencies {
                     classpath "org.apache.logging.log4j:log4j-core"
                 }
@@ -123,7 +112,7 @@ rootProject.name = 'testproject'
 
         buildFile << """
             buildscript {
-                repositories { maven { url "${mavenRepo().uri}" } }
+                repositories { maven { url = "${mavenRepo().uri}" } }
                 dependencies {
                     classpath "org.apache.logging.log4j:log4j-core"
                 }
@@ -144,7 +133,7 @@ rootProject.name = 'testproject'
 
         buildFile << """
             buildscript {
-                repositories { maven { url "${mavenRepo().uri}" } }
+                repositories { maven { url = "${mavenRepo().uri}" } }
                 dependencies {
                     classpath "org.apache.logging.log4j:log4j-core:2.14.1!!"
                 }
@@ -162,7 +151,7 @@ rootProject.name = 'testproject'
         mavenRepo().module('org.apache.logging.log4j', 'log4j-core', '3.1.0').publish()
         buildFile << """
             buildscript {
-                repositories { maven { url "${mavenRepo().uri}" } }
+                repositories { maven { url = "${mavenRepo().uri}" } }
                 dependencies {
                     classpath "org.apache.logging.log4j:log4j-core:3.1.0"
                 }
@@ -178,13 +167,13 @@ rootProject.name = 'testproject'
         buildFile << """
             buildscript {
                 configurations {
-                    foo {
+                    classpath {
                         attributes {
                             attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, "bar"))
                         }
                     }
                 }
-                assert configurations.foo.attributes.getAttribute(Category.CATEGORY_ATTRIBUTE).name == "bar"
+                assert configurations.classpath.attributes.getAttribute(Category.CATEGORY_ATTRIBUTE).name == "bar"
             }
 
             assert configurations.empty
@@ -198,13 +187,13 @@ rootProject.name = 'testproject'
         buildKotlinFile << """
             buildscript {
                 configurations {
-                    create("foo") {
+                    named("classpath") {
                         attributes {
                             attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>("bar"))
                         }
                     }
                 }
-                assert(configurations.named("foo").get().attributes.getAttribute(Category.CATEGORY_ATTRIBUTE)?.name == "bar")
+                assert(configurations.named("classpath").get().attributes.getAttribute(Category.CATEGORY_ATTRIBUTE)?.name == "bar")
             }
 
             assert(configurations.isEmpty())

@@ -16,13 +16,12 @@
 
 package org.gradle.testkit.runner.internal;
 
-import org.gradle.api.specs.Spec;
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.BuildTask;
 import org.gradle.testkit.runner.TaskOutcome;
 import org.gradle.util.internal.CollectionUtils;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 
@@ -48,12 +47,7 @@ public class DefaultBuildResult implements BuildResult {
 
     @Override
     public List<BuildTask> tasks(final TaskOutcome outcome) {
-        return Collections.unmodifiableList(CollectionUtils.filter(tasks, new Spec<BuildTask>() {
-            @Override
-            public boolean isSatisfiedBy(BuildTask element) {
-                return element.getOutcome() == outcome;
-            }
-        }));
+        return Collections.unmodifiableList(CollectionUtils.filter(tasks, element -> element.getOutcome() == outcome));
     }
 
     @Override

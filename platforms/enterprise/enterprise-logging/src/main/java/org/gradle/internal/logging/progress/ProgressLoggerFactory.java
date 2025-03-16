@@ -17,10 +17,13 @@
 package org.gradle.internal.logging.progress;
 
 import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * Thread-safe, however the progress logger instances created are not.
  */
+@ServiceScope(Scope.Global.class)
 public interface ProgressLoggerFactory {
     /**
      * Creates a new long-running operation which has not been started.

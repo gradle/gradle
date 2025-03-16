@@ -56,7 +56,7 @@ class BuildCacheOutputOriginIntegrationTest extends AbstractIntegrationSpec impl
 
     def "exposes origin build id when reusing cached outputs"() {
         given:
-        buildScript """
+        buildFile """
             apply plugin: "base"
             def write = tasks.create("write", WriteProperties) {
                 destinationFile = file("build/out.properties")

@@ -175,11 +175,11 @@ public class ModuleLibrary implements Dependency {
             && Objects.equal(sources, that.sources);
     }
 
-    private boolean scopeEquals(String lhs, String rhs) {
+    private static boolean scopeEquals(String lhs, String rhs) {
         if ("COMPILE".equals(lhs)) {
             return isNullOrEmpty(rhs) || "COMPILE".equals(rhs);
         } else if ("COMPILE".equals(rhs)) {
-            return isNullOrEmpty(lhs) || "COMPILE".equals(lhs);
+            return isNullOrEmpty(lhs);
         } else {
             return Objects.equal(lhs, rhs);
         }

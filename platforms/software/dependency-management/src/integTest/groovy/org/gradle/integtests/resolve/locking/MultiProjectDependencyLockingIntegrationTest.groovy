@@ -23,40 +23,44 @@ class MultiProjectDependencyLockingIntegrationTest  extends AbstractDependencyRe
     def firstLockFileFixture = new LockfileFixture(testDirectory: testDirectory.file('first'))
 
     def setup() {
-        createDirs("first", "second")
         settingsFile << """
-rootProject.name = 'multiDepLock'
-include 'first', 'second'
-"""
+            rootProject.name = 'multiDepLock'
+            include 'first', 'second'
+        """
     }
 
     def 'does not apply lock defined in a dependent project'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
 
-        buildFile << """
-allprojects {
-    apply plugin: 'java-library'
-    repositories {
-        maven { url "${mavenRepo.uri}" }
-    }
-}
+        settingsFile << """
+            dependencyResolutionManagement {
+                ${mavenTestRepository()}
+            }
+        """
 
-project(':first') {
-    configurations.all {
-        resolutionStrategy.activateDependencyLocking()
-    }
-    dependencies {
-        api 'org:foo:[1.0,2.0)'
-    }
-}
+        file("first/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+            configurations.all {
+                resolutionStrategy.activateDependencyLocking()
+            }
+            dependencies {
+                api 'org:foo:[1.0,2.0)'
+            }
 
-project(':second') {
-    dependencies {
-        implementation project(':first')
-    }
-}
-"""
+        """
+
+        file("second/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+            dependencies {
+                implementation project(':first')
+            }
+        """
+
         firstLockFileFixture.createLockfile('compileClasspath', ['org:foo:1.0'], false)
 
         when:
@@ -76,29 +80,34 @@ project(':second') {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
 
-        buildFile << """
-allprojects {
-    apply plugin: 'java-library'
-    repositories {
-        maven { url "${mavenRepo.uri}" }
-    }
-}
+        settingsFile << """
+            dependencyResolutionManagement {
+                ${mavenTestRepository()}
+            }
+        """
 
-project(':first') {
-    configurations.all {
-        resolutionStrategy.activateDependencyLocking()
-    }
-    dependencies {
-        implementation project(':second')
-    }
-}
+        file("first/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+            configurations.all {
+                resolutionStrategy.activateDependencyLocking()
+            }
+            dependencies {
+                implementation project(':second')
+            }
 
-project(':second') {
-    dependencies {
-        api 'org:foo:[1.0,2.0)'
-    }
-}
-"""
+        """
+
+        file("second/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+            dependencies {
+                api 'org:foo:[1.0,2.0)'
+            }
+        """
+
         firstLockFileFixture.createLockfile('compileClasspath', ['org:foo:1.0'], false)
 
         when:
@@ -118,29 +127,34 @@ project(':second') {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
 
-        buildFile << """
-allprojects {
-    apply plugin: 'java-library'
-    repositories {
-        maven { url "${mavenRepo.uri}" }
-    }
-}
+        settingsFile << """
+            dependencyResolutionManagement {
+                ${mavenTestRepository()}
+            }
+        """
 
-project(':first') {
-    configurations.all {
-        resolutionStrategy.activateDependencyLocking()
-    }
-    dependencies {
-        implementation project(':second')
-    }
-}
+        file("first/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+            configurations.all {
+                resolutionStrategy.activateDependencyLocking()
+            }
+            dependencies {
+                implementation project(':second')
+            }
+        """
 
-project(':second') {
-    dependencies {
-        api 'org:foo:[1.0,2.0)'
-    }
-}
-"""
+        file("second/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+            dependencies {
+                api 'org:foo:[1.0,2.0)'
+            }
+        """
+
+
         when:
         succeeds ':first:dependencies', '--configuration', 'compileClasspath', '--write-locks'
 

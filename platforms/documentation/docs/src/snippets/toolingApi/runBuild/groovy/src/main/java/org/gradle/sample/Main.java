@@ -20,8 +20,7 @@ public class Main {
 
         connector.forProjectDirectory(new File("."));
 
-        ProjectConnection connection = connector.connect();
-        try {
+        try (ProjectConnection connection = connector.connect()) {
             // Configure the build
             BuildLauncher launcher = connection.newBuild();
             launcher.forTasks("help");
@@ -30,9 +29,6 @@ public class Main {
 
             // Run the build
             launcher.run();
-        } finally {
-            // Clean up
-            connection.close();
         }
     }
 }

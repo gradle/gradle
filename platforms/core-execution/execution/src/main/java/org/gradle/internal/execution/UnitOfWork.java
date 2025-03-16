@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.Describable;
 import org.gradle.api.file.FileCollection;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
+import org.gradle.internal.execution.caching.CachingDisabledReasonCategory;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
@@ -32,9 +33,9 @@ import org.gradle.internal.properties.InputBehavior;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.File;
 import java.time.Duration;
 import java.util.Map;
@@ -42,6 +43,8 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 public interface UnitOfWork extends Describable {
+
+    CachingDisabledReason NOT_WORTH_CACHING = new CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Not worth caching.");
 
     /**
      * Identifier of the type of the work used in build operations.
@@ -285,7 +288,7 @@ public interface UnitOfWork extends Describable {
 
         public static OutputFileValueSupplier fromStatic(File root, FileCollection fileCollection) {
             return new OutputFileValueSupplier(fileCollection) {
-                @Nonnull
+                @NonNull
                 @Override
                 public File getValue() {
                     return root;
@@ -295,7 +298,7 @@ public interface UnitOfWork extends Describable {
 
         public static OutputFileValueSupplier fromSupplier(Supplier<File> root, FileCollection fileCollection) {
             return new OutputFileValueSupplier(fileCollection) {
-                @Nonnull
+                @NonNull
                 @Override
                 public File getValue() {
                     return root.get();
@@ -303,7 +306,7 @@ public interface UnitOfWork extends Describable {
             };
         }
 
-        @Nonnull
+        @NonNull
         @Override
         abstract public File getValue();
 

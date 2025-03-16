@@ -43,10 +43,9 @@ import org.gradle.api.tasks.javadoc.GroovydocAccess;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
-
 import java.util.function.Supplier;
 
 import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;

@@ -18,6 +18,7 @@ package org.gradle.caching.http.internal;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.GradleException;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.authentication.Authentication;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheServiceFactory;
@@ -48,12 +49,14 @@ public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFac
     private final SslContextFactory sslContextFactory;
     private final HttpBuildCacheRequestCustomizer requestCustomizer;
     private final HttpClientHelper.Factory httpClientHelperFactory;
+    private final ObjectFactory objectFactory;
 
     @Inject
-    public DefaultHttpBuildCacheServiceFactory(SslContextFactory sslContextFactory, HttpBuildCacheRequestCustomizer requestCustomizer, HttpClientHelper.Factory httpClientHelperFactory) {
+    public DefaultHttpBuildCacheServiceFactory(ObjectFactory objectFactory, SslContextFactory sslContextFactory, HttpBuildCacheRequestCustomizer requestCustomizer, HttpClientHelper.Factory httpClientHelperFactory) {
         this.sslContextFactory = sslContextFactory;
         this.requestCustomizer = requestCustomizer;
         this.httpClientHelperFactory = httpClientHelperFactory;
+        this.objectFactory = objectFactory;
     }
 
     @Override
@@ -66,7 +69,7 @@ public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFac
 
         HttpBuildCacheCredentials credentials = configuration.getCredentials();
         if (!credentialsPresent(credentials) && url.getUserInfo() != null) {
-            credentials = extractCredentialsFromUserInfo(url);
+            credentials = extractCredentialsFromUserInfo(objectFactory, url);
         }
 
         Collection<Authentication> authentications = Collections.emptyList();
@@ -126,8 +129,8 @@ public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFac
     }
 
     @VisibleForTesting
-    static HttpBuildCacheCredentials extractCredentialsFromUserInfo(URI url) {
-        HttpBuildCacheCredentials credentials = new HttpBuildCacheCredentials();
+    static HttpBuildCacheCredentials extractCredentialsFromUserInfo(ObjectFactory objectFactory, URI url) {
+        HttpBuildCacheCredentials credentials = objectFactory.newInstance(HttpBuildCacheCredentials.class);
         String userInfo = url.getUserInfo();
         int indexOfSeparator = userInfo.indexOf(':');
         if (indexOfSeparator > -1) {

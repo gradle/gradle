@@ -19,8 +19,10 @@ package org.gradle.api.tasks.compile;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
+import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 
 /**
@@ -45,6 +47,7 @@ public abstract class ForkOptions extends ProviderAwareCompilerDaemonForkOptions
     @Nullable
     @Optional
     @Input
+    @ToBeReplacedByLazyProperty
     public String getExecutable() {
         return executable;
     }
@@ -67,9 +70,15 @@ public abstract class ForkOptions extends ProviderAwareCompilerDaemonForkOptions
      *
      * @since 3.5
      */
+    @Deprecated
     @Internal
     @Nullable
     public File getJavaHome() {
+        DeprecationLogger.deprecateMethod(ForkOptions.class, "getJavaHome()")
+            .withAdvice("The 'javaHome' property of ForkOptions is deprecated and will be removed in Gradle 9. Use JVM toolchains or the 'executable' property instead.")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecated_fork_options_java_home")
+            .nagUser();
         return javaHome;
     }
 
@@ -80,7 +89,13 @@ public abstract class ForkOptions extends ProviderAwareCompilerDaemonForkOptions
      *
      * @since 3.5
      */
+    @Deprecated
     public void setJavaHome(@Nullable File javaHome) {
+        DeprecationLogger.deprecateMethod(ForkOptions.class, "setJavaHome(File)")
+            .withAdvice("The 'javaHome' property of ForkOptions is deprecated and will be removed in Gradle 9. Use JVM toolchains or the 'executable' property instead.")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecated_fork_options_java_home")
+            .nagUser();
         this.javaHome = javaHome;
     }
 
@@ -91,6 +106,7 @@ public abstract class ForkOptions extends ProviderAwareCompilerDaemonForkOptions
      */
     @Internal
     @Nullable
+    @ToBeReplacedByLazyProperty
     public String getTempDir() {
         return tempDir;
     }

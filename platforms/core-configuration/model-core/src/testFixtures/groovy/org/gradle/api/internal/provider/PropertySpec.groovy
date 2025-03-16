@@ -24,6 +24,8 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.specs.Spec
 import org.gradle.internal.Describables
 import org.gradle.internal.DisplayName
+import org.gradle.internal.evaluation.CircularEvaluationException
+import org.gradle.internal.evaluation.EvaluationContext
 import org.gradle.internal.state.Managed
 import org.gradle.internal.state.ModelObject
 import org.gradle.util.internal.TextUtil
@@ -63,6 +65,16 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
     }
 
     def host = Mock(PropertyHost)
+
+    protected void assertPropertyValueIs(T expected, PropertyInternal<?> property) {
+        assert property.present
+        T actual = property.get()
+        assertEqualValues(expected, actual)
+    }
+
+    protected void assertEqualValues(T expected, T actual) {
+        assert actual == expected
+    }
 
     def "cannot get value when it has none"() {
         given:
@@ -194,6 +206,25 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         property.getOrNull() == someValue()
         property.getOrElse(someOtherValue()) == someValue()
         property.getOrElse(null) == someValue()
+    }
+
+
+    def "property is restored to initial state after unset"() {
+        given:
+        def property = propertyWithNoValue()
+        property.set(someValue())
+
+        expect:
+        assertPropertyValueIs(someValue(), property)
+        property.explicit
+
+        when:
+        property.unset()
+
+        then:
+        !property.present
+        property.getOrNull() == null
+        property.getOrElse(someOtherValue()) == someOtherValue()
     }
 
     def "fails when untyped value is set using incompatible type"() {
@@ -2912,14 +2943,14 @@ The value of this provider is derived from:
         "value" | "getOrElse"
     }
 
-    def "update to itself does not trigger cycles"() {
+    def "replace to itself does not trigger cycles"() {
         def property = providerWithNoValue()
 
         given:
         property.set(someValue())
 
         when:
-        property.update { it }
+        property.replace { it }
 
         then:
         property.get() == someValue()
@@ -3030,7 +3061,7 @@ The value of this provider is derived from:
             consumer.accept(provider)
 
             then:
-            EvaluationContext.CircularEvaluationException ex = thrown()
+            CircularEvaluationException ex = thrown()
             assertExceptionHasExpectedCycle(ex, provider, prop)
 
             where:
@@ -3049,7 +3080,7 @@ The value of this provider is derived from:
             consumer.accept(provider)
 
             then:
-            EvaluationContext.CircularEvaluationException ex = thrown()
+            CircularEvaluationException ex = thrown()
             assertExceptionHasExpectedCycle(ex, provider, prop)
 
             where:

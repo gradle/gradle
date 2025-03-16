@@ -20,7 +20,6 @@ import org.apache.maven.artifact.repository.metadata.Metadata;
 import org.apache.maven.artifact.repository.metadata.Versioning;
 import org.apache.maven.artifact.repository.metadata.io.xpp3.MetadataXpp3Reader;
 import org.apache.maven.artifact.repository.metadata.io.xpp3.MetadataXpp3Writer;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver;
 import org.gradle.api.internal.artifacts.repositories.transport.NetworkOperationBackOffAndRetry;
@@ -37,10 +36,11 @@ import org.gradle.internal.resource.ReadableContent;
 import org.gradle.internal.resource.local.ByteArrayReadableContent;
 import org.gradle.internal.resource.local.FileReadableContent;
 import org.gradle.internal.xml.XmlTransformer;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -49,7 +49,7 @@ import java.util.Locale;
 import java.util.concurrent.Callable;
 import java.util.regex.Pattern;
 
-@NonNullApi
+@NullMarked
 abstract class AbstractMavenPublisher implements MavenPublisher {
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenPublisher.class);
 
@@ -70,20 +70,39 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
         String version = publication.getVersion();
 
         ModuleArtifactPublisher artifactPublisher = new ModuleArtifactPublisher(repository, localRepo, rootUri, groupId, artifactId, version);
+        SnapshotMetadataResult snapshotMetadataResult = computeSnapshotMetadata(publication, repository, version, artifactPublisher, groupId, artifactId);
 
+        if (snapshotMetadataResult != null && !localRepo) {
+            // Use the timestamped version for all published artifacts
+            artifactPublisher.artifactVersion = snapshotMetadataResult.getVersion();
+        }
+
+        publishArtifactsAndMetadata(publication, artifactPublisher);
+
+        publishPublicationMetadata(repository, version, artifactPublisher, groupId, artifactId, snapshotMetadataResult);
+    }
+
+    @Nullable
+    private SnapshotMetadataResult computeSnapshotMetadata(MavenNormalizedPublication publication, ExternalResourceRepository repository, String version, ModuleArtifactPublisher artifactPublisher, String groupId, String artifactId) {
         if (isSnapshot(version)) {
             ExternalResourceName snapshotMetadataPath = artifactPublisher.getSnapshotMetadataLocation();
             Metadata snapshotMetadata = createSnapshotMetadata(publication, groupId, artifactId, version, repository, snapshotMetadataPath);
+            return new SnapshotMetadataResult(snapshotMetadataPath, snapshotMetadata);
+        }
+        return null;
+    }
 
-            artifactPublisher.publish(snapshotMetadataPath, writeMetadataToTmpFile(snapshotMetadata, "snapshot-maven-metadata.xml"));
-
-            if (!localRepo) {
-                // Use the timestamped version for all published artifacts:
-                // The timestamped version is hidden deep in `Metadata.versioning.snapshotVersions`
-                artifactPublisher.artifactVersion = snapshotMetadata.getVersioning().getSnapshotVersions().get(0).getVersion();
-            }
+    private void publishPublicationMetadata(ExternalResourceRepository repository, String version, ModuleArtifactPublisher artifactPublisher, String groupId, String artifactId, @Nullable SnapshotMetadataResult snapshotMetadataResult) {
+        if (snapshotMetadataResult != null) {
+            artifactPublisher.publish(snapshotMetadataResult.snapshotMetadataPath, writeMetadataToTmpFile(snapshotMetadataResult.snapshotMetadata, "snapshot-maven-metadata.xml"));
         }
 
+        ExternalResourceName externalResource = artifactPublisher.getMetadataLocation();
+        Metadata metadata = createMetadata(groupId, artifactId, version, repository, externalResource);
+        artifactPublisher.publish(externalResource, writeMetadataToTmpFile(metadata, "module-maven-metadata.xml"));
+    }
+
+    private static void publishArtifactsAndMetadata(MavenNormalizedPublication publication, ModuleArtifactPublisher artifactPublisher) {
         if (publication.getMainArtifact() != null) {
             artifactPublisher.publish(null, publication.getMainArtifact().getExtension(), publication.getMainArtifact().getFile());
         }
@@ -91,10 +110,6 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
         for (MavenArtifact artifact : publication.getAdditionalArtifacts()) {
             artifactPublisher.publish(artifact.getClassifier(), artifact.getExtension(), artifact.getFile());
         }
-
-        ExternalResourceName externalResource = artifactPublisher.getMetadataLocation();
-        Metadata metadata = createMetadata(groupId, artifactId, version, repository, externalResource);
-        artifactPublisher.publish(externalResource, writeMetadataToTmpFile(metadata, "module-maven-metadata.xml"));
     }
 
     private Metadata createMetadata(String groupId, String artifactId, String version, ExternalResourceRepository repository, ExternalResourceName metadataResource) {
@@ -176,6 +191,26 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
     }
 
     protected abstract Metadata createSnapshotMetadata(MavenNormalizedPublication publication, String groupId, String artifactId, String version, ExternalResourceRepository repository, ExternalResourceName metadataResource);
+
+    @NullMarked
+    private static class SnapshotMetadataResult {
+        public final ExternalResourceName snapshotMetadataPath;
+        public final Metadata snapshotMetadata;
+
+        public SnapshotMetadataResult(ExternalResourceName snapshotMetadataPath, Metadata snapshotMetadata) {
+            this.snapshotMetadataPath = snapshotMetadataPath;
+            this.snapshotMetadata = snapshotMetadata;
+        }
+
+        /**
+         * The timestamped version is hidden deep in `Metadata.versioning.snapshotVersions`
+         *
+         * @return The snapshot timestamped version
+         */
+        public String getVersion() {
+            return snapshotMetadata.getVersioning().getSnapshotVersions().get(0).getVersion();
+        }
+    }
 
     /**
      * Publishes artifacts for a single Maven module.

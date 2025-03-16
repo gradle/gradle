@@ -16,19 +16,19 @@
 
 package org.gradle.internal.problems;
 
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.problems.failure.Failure;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.problems.Location;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
-import java.util.List;
-
-@ServiceScope(Scopes.BuildTree.class)
+@ServiceScope(Scope.BuildSession.class)
 public interface ProblemLocationAnalyzer {
     /**
      * Calculates the location for a problem with the given stack.
+     *
      * @return A display name for the location or null for an unknown location.
      */
     @Nullable
-    Location locationForUsage(List<StackTraceElement> stack, boolean fromException);
+    Location locationForUsage(Failure failure, boolean fromException);
 }

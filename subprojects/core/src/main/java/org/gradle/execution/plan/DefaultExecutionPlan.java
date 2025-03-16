@@ -18,11 +18,11 @@ package org.gradle.execution.plan;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.AbstractCollection;
 import java.util.Collection;
@@ -44,7 +44,7 @@ import static com.google.common.collect.Sets.newIdentityHashSet;
 /**
  * The mutation methods on this implementation are NOT threadsafe, and callers must synchronize access to these methods.
  */
-@NonNullApi
+@NullMarked
 public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPlan {
     private final Set<Node> entryNodes = new LinkedHashSet<>();
     private final NodeMapping nodeMapping = new NodeMapping();

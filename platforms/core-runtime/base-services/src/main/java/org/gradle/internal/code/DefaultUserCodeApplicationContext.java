@@ -17,8 +17,8 @@
 package org.gradle.internal.code;
 
 import org.gradle.api.Action;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
 
@@ -26,6 +26,7 @@ public class DefaultUserCodeApplicationContext implements UserCodeApplicationCon
 
     private static final AtomicLong COUNTER = new AtomicLong();
 
+    @SuppressWarnings("ThreadLocalUsage")
     private final ThreadLocal<CurrentApplication> currentApplication = new ThreadLocal<CurrentApplication>();
 
     @Override
@@ -49,6 +50,7 @@ public class DefaultUserCodeApplicationContext implements UserCodeApplicationCon
     @Override
     public void gradleRuntime(Runnable runnable) {
         CurrentApplication current = currentApplication.get();
+        //noinspection ThreadLocalSetWithNull
         currentApplication.set(null);
         try {
             runnable.run();

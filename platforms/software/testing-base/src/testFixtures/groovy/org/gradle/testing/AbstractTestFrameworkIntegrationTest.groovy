@@ -16,10 +16,8 @@
 
 package org.gradle.testing
 
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.hamcrest.CoreMatchers
 import org.junit.Assume
 
@@ -43,7 +41,6 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         return testSuite
     }
 
-    @ToBeFixedForConfigurationCache(bottomSpecs = "XCTestTestFrameworkIntegrationTest")
     def "can listen for test results"() {
         given:
         createPassingFailingTest()
@@ -108,7 +105,6 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         succeeds "verifyTestResultConventions"
     }
 
-    @ToBeFixedForConfigurationCache(bottomSpecs = "XCTestTestFrameworkIntegrationTest")
     def "test results show passing and failing tests"() {
         given:
         createPassingFailingTest()
@@ -128,7 +124,6 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         testResult.testClass('SomeOtherTest').assertTestPassed(passingTestCaseName)
     }
 
-    @ToBeFixedForConfigurationCache(bottomSpecs = "XCTestTestFrameworkIntegrationTest")
     def "test results capture test output"() {
         Assume.assumeTrue(capturesTestOutput())
         given:
@@ -147,7 +142,6 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         testResult.testClass('SomeTest').assertStderr(CoreMatchers.containsString("some error output"))
     }
 
-    @ToBeFixedForConfigurationCache(bottomSpecs = "XCTestTestFrameworkIntegrationTest")
     def "failing tests cause report url to be printed"() {
         given:
         createPassingFailingTest()
@@ -159,7 +153,6 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         failure.assertHasCause("There were failing tests. See the report at:")
     }
 
-    @ToBeFixedForConfigurationCache(bottomSpecs = "XCTestTestFrameworkIntegrationTest")
     def "lack of tests produce an empty report"() {
         given:
         createEmptyProject()
@@ -174,7 +167,6 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         testResult.assertNoTestClassesExecuted()
     }
 
-    @ToBeFixedForConfigurationCache(bottomSpecs = "XCTestTestFrameworkIntegrationTest")
     def "adding and removing tests remove old tests from reports"() {
         given:
         createPassingFailingTest()
@@ -186,7 +178,6 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         testResult.assertTestClassesExecuted('SomeTest', 'NewTest')
     }
 
-    @ToBeFixedForConfigurationCache(bottomSpecs = "XCTestTestFrameworkIntegrationTest")
     def "honors test case filter from --tests flag"() {
         given:
         createPassingFailingTest()
@@ -199,7 +190,6 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         testResult.testClass('SomeOtherTest').assertTestPassed(passingTestCaseName)
     }
 
-    @ToBeFixedForConfigurationCache(bottomSpecs = "XCTestTestFrameworkIntegrationTest")
     def "honors test suite filter from --tests flag"() {
         given:
         createPassingFailingTest()
@@ -212,7 +202,6 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         testResult.testClass('SomeOtherTest').assertTestPassed(passingTestCaseName)
     }
 
-    @ToBeFixedForConfigurationCache(bottomSpecs = "XCTestTestFrameworkIntegrationTest")
     def "reports when no matching methods found"() {
         given:
         createPassingFailingTest()
@@ -231,7 +220,6 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         failure.assertHasCause("No tests found for given includes: [${testSuite('SomeTest')}.missingMethod](filter.includeTestsMatching)")
     }
 
-    @ToBeFixedForConfigurationCache(bottomSpecs = "XCTestTestFrameworkIntegrationTest")
     def "task is out of date when --tests argument changes"() {
         given:
         createPassingFailingTest()
@@ -259,7 +247,6 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         testResult.testClass("SomeTest").assertTestsExecuted(passingTestCaseName)
     }
 
-    @ToBeFixedForConfigurationCache(bottomSpecs = "XCTestTestFrameworkIntegrationTest")
     def "can select multiple tests from command line #scenario"() {
         given:
         createPassingFailingTest()
@@ -292,7 +279,6 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         return command.toArray()
     }
 
-    @ToBeFixedForConfigurationCache(bottomSpecs = "XCTestTestFrameworkIntegrationTest")
     def "can deduplicate test filters when #scenario"() {
         given:
         createPassingFailingTest()

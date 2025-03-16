@@ -16,14 +16,14 @@
 
 package org.gradle.internal.component.model;
 
+import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
-import org.gradle.api.capabilities.Capability;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
-import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 /**
  * A {@link DependencyMetadata} implementation which delegates all method calls to a provided {@code delegate}.
@@ -42,7 +42,7 @@ public abstract class DelegatingDependencyMetadata implements DependencyMetadata
     }
 
     @Override
-    public GraphVariantSelectionResult selectVariants(GraphVariantSelector variantSelector, ImmutableAttributes consumerAttributes, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities) {
+    public GraphVariantSelectionResult selectVariants(GraphVariantSelector variantSelector, ImmutableAttributes consumerAttributes, ComponentGraphResolveState targetComponentState, ImmutableAttributesSchema consumerSchema, Set<CapabilitySelector> explicitRequestedCapabilities) {
         return delegate.selectVariants(variantSelector, consumerAttributes, targetComponentState, consumerSchema, explicitRequestedCapabilities);
     }
 

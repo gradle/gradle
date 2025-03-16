@@ -22,9 +22,12 @@ import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.scopes.ScopedCacheBuilderFactory;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.Closeable;
 
+@ServiceScope({Scope.UserHome.class, Scope.BuildSession.class})
 public class CrossBuildFileHashCache implements Closeable {
 
     private final PersistentCache cache;

@@ -19,24 +19,25 @@ package org.gradle.internal.problems;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.NonNullApi;
+import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.code.UserCodeSource;
+import org.gradle.internal.problems.failure.Failure;
+import org.gradle.internal.problems.failure.FailureFactory;
 import org.gradle.problems.Location;
 import org.gradle.problems.ProblemDiagnostics;
 import org.gradle.problems.buildtree.ProblemDiagnosticsFactory;
 import org.gradle.problems.buildtree.ProblemStream;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-@NonNullApi
 public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFactory {
 
-    @NonNullApi
     private static class CopyStackTraceTransFormer implements ProblemStream.StackTraceTransformer {
         @Override
         public List<StackTraceElement> transform(StackTraceElement[] original) {
@@ -54,24 +55,36 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
         }
     };
 
+    private static final int MAX_STACKTRACE_COUNT = 50;
+    private static final int ISOLATED_PROJECTS_MAX_STACKTRACE_COUNT = 5000;
+
+    private final FailureFactory failureFactory;
     private final ProblemLocationAnalyzer locationAnalyzer;
     private final UserCodeApplicationContext userCodeContext;
     private final int maxStackTraces;
 
     @Inject
     public DefaultProblemDiagnosticsFactory(
+        FailureFactory failureFactory,
         ProblemLocationAnalyzer locationAnalyzer,
-        UserCodeApplicationContext userCodeContext
+        UserCodeApplicationContext userCodeContext,
+        BuildModelParameters buildModelParameters
     ) {
-        this(locationAnalyzer, userCodeContext, 50);
+        this(failureFactory, locationAnalyzer, userCodeContext, getMaxStackTraces(buildModelParameters));
+    }
+
+    private static int getMaxStackTraces(BuildModelParameters buildModelParameters) {
+        return buildModelParameters.isIsolatedProjects() ? ISOLATED_PROJECTS_MAX_STACKTRACE_COUNT : MAX_STACKTRACE_COUNT;
     }
 
     @VisibleForTesting
     DefaultProblemDiagnosticsFactory(
+        FailureFactory failureFactory,
         ProblemLocationAnalyzer locationAnalyzer,
         UserCodeApplicationContext userCodeContext,
         int maxStackTraces
     ) {
+        this.failureFactory = failureFactory;
         this.locationAnalyzer = locationAnalyzer;
         this.userCodeContext = userCodeContext;
         this.maxStackTraces = maxStackTraces;
@@ -102,17 +115,19 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
         }
 
         List<StackTraceElement> stackTrace = Collections.emptyList();
+        Failure stackTracingFailure = null;
         Location location = null;
         if (throwable != null) {
             stackTrace = transformer.transform(throwable.getStackTrace());
-            location = locationAnalyzer.locationForUsage(stackTrace, fromException);
+            stackTracingFailure = failureFactory.create(throwable);
+            location = locationAnalyzer.locationForUsage(stackTracingFailure, fromException);
         }
 
         UserCodeSource source = applicationContext != null ? applicationContext.getSource() : null;
-        return new DefaultProblemDiagnostics(keepException ? throwable : null, stackTrace, location, source);
+        return new DefaultProblemDiagnostics(stackTracingFailure, keepException ? throwable : null, stackTrace, location, source);
     }
 
-    @NonNullApi
+    @NullMarked
     private class DefaultProblemStream implements ProblemStream {
         private final AtomicInteger remainingStackTraces = new AtomicInteger();
 
@@ -154,23 +169,31 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
         }
     }
 
-    @NonNullApi
     private static class DefaultProblemDiagnostics implements ProblemDiagnostics {
+        private final Failure failure;
         private final Throwable exception;
         private final List<StackTraceElement> stackTrace;
         private final Location location;
         private final UserCodeSource source;
 
         public DefaultProblemDiagnostics(
+            @Nullable Failure stackTracingFailure,
             @Nullable Throwable exception,
             List<StackTraceElement> stackTrace,
             @Nullable Location location,
             @Nullable UserCodeSource source
         ) {
+            this.failure = stackTracingFailure;
             this.exception = exception;
             this.stackTrace = stackTrace;
             this.location = location;
             this.source = source;
+        }
+
+        @Nullable
+        @Override
+        public Failure getFailure() {
+            return failure;
         }
 
         @Nullable

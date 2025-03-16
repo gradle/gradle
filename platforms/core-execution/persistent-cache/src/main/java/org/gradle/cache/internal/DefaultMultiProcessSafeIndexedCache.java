@@ -20,16 +20,16 @@ import org.gradle.cache.FileIntegrityViolationException;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.MultiProcessSafeIndexedCache;
 import org.gradle.cache.internal.btree.BTreePersistentIndexedCache;
-import org.gradle.internal.Factory;
 
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class DefaultMultiProcessSafeIndexedCache<K, V> implements MultiProcessSafeIndexedCache<K, V> {
     private final FileAccess fileAccess;
-    private final Factory<BTreePersistentIndexedCache<K, V>> factory;
+    private final Supplier<BTreePersistentIndexedCache<K, V>> factory;
     private BTreePersistentIndexedCache<K, V> cache;
 
-    public DefaultMultiProcessSafeIndexedCache(Factory<BTreePersistentIndexedCache<K, V>> factory, FileAccess fileAccess) {
+    public DefaultMultiProcessSafeIndexedCache(Supplier<BTreePersistentIndexedCache<K, V>> factory, FileAccess fileAccess) {
         this.factory = factory;
         this.fileAccess = fileAccess;
     }
@@ -43,7 +43,7 @@ public class DefaultMultiProcessSafeIndexedCache<K, V> implements MultiProcessSa
     public V getIfPresent(final K key) {
         final BTreePersistentIndexedCache<K, V> cache = getCache();
         try {
-            return fileAccess.readFile((Factory<V>) () -> cache.get(key));
+            return fileAccess.readFile((Supplier<V>) () -> cache.get(key));
         } catch (FileIntegrityViolationException e) {
             return null;
         }
@@ -98,7 +98,7 @@ public class DefaultMultiProcessSafeIndexedCache<K, V> implements MultiProcessSa
         if (cache == null) {
             // Use writeFile because the cache can internally recover from datafile
             // corruption, so we don't care at this level if it's corrupt
-            fileAccess.writeFile(() -> cache = factory.create());
+            fileAccess.writeFile(() -> cache = factory.get());
         }
         return cache;
     }

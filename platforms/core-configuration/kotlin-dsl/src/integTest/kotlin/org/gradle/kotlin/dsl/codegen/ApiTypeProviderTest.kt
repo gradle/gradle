@@ -26,7 +26,7 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.PluginCollection
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.AbstractCopyTask
-import org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL
+import org.gradle.model.internal.asm.AsmConstants.ASM_LEVEL
 import org.gradle.internal.classloader.ClassLoaderUtils
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.codegen.GenericsVariance

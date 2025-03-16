@@ -23,7 +23,7 @@ import org.gradle.internal.declarativedsl.language.Assignment
 import org.gradle.internal.declarativedsl.language.Expr
 import org.gradle.internal.declarativedsl.language.LanguageTreeElement
 import org.gradle.internal.declarativedsl.language.LocalValue
-import java.util.*
+import java.util.IdentityHashMap
 
 
 interface ResolutionTrace {
@@ -51,13 +51,15 @@ class ResolutionTracer(
     private
     val assignmentResolutions = IdentityHashMap<Assignment, AssignmentRecord>()
     private
-    val expressionResolution = IdentityHashMap<Expr, ObjectOrigin>()
+    val expressionResolution = IdentityHashMap<Expr, TypedOrigin>()
     private
     val elementErrors = IdentityHashMap<LanguageTreeElement, MutableList<ResolutionError>>()
 
     override fun assignmentResolution(assignment: Assignment): ResolutionTrace.ResolutionOrErrors<AssignmentRecord> =
         assignmentResolutions[assignment]?.let { resolution ->
-            check(assignment !in elementErrors)
+            check(assignment !in elementErrors) {
+                "Assignment is both resolved and erroneous: $assignment at ${assignment.sourceData.sourceIdentifier.fileIdentifier}:${assignment.sourceData.lineRange.start}"
+            }
             Resolution(resolution)
         } ?: elementErrors[assignment]?.let { errors ->
             Errors(errors)
@@ -65,14 +67,16 @@ class ResolutionTracer(
 
     override fun expressionResolution(expr: Expr): ResolutionTrace.ResolutionOrErrors<ObjectOrigin> =
         expressionResolution[expr]?.let { resolution ->
-            check(expr !in elementErrors)
-            Resolution(resolution)
+            check(expr !in elementErrors) {
+                "Expression is both resolved and erroneous: $expr at ${expr.sourceData.sourceIdentifier.fileIdentifier}:${expr.sourceData.lineRange.start}"
+            }
+            Resolution(resolution.objectOrigin)
         } ?: elementErrors[expr]?.let { errors ->
             Errors(errors)
         } ?: NoResolution
 
-    override fun doResolveExpression(context: AnalysisContext, expr: Expr): ObjectOrigin? {
-        val result = expressionResolver.doResolveExpression(context, expr)
+    override fun doResolveExpression(context: AnalysisContext, expr: Expr, expectedType: ExpectedTypeData): TypedOrigin? {
+        val result = expressionResolver.doResolveExpression(context, expr, expectedType)
         if (result != null) {
             expressionResolution[expr] = result
         }

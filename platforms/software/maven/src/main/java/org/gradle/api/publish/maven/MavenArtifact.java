@@ -16,8 +16,8 @@
 package org.gradle.api.publish.maven;
 
 import org.gradle.api.publish.PublicationArtifact;
-
-import javax.annotation.Nullable;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.jspecify.annotations.Nullable;
 
 /**
  * An artifact published as part of a {@link MavenPublication}.
@@ -27,6 +27,7 @@ public interface MavenArtifact extends PublicationArtifact {
      * The extension used to publish the artifact file, never <code>null</code>.
      * For an artifact without an extension, this value will be an empty String.
      */
+    @ToBeReplacedByLazyProperty
     String getExtension();
 
     /**
@@ -40,6 +41,7 @@ public interface MavenArtifact extends PublicationArtifact {
      * A <code>null</code> value (the default) indicates that this artifact will be published without a classifier.
      */
     @Nullable
+    @ToBeReplacedByLazyProperty
     String getClassifier();
 
     /**

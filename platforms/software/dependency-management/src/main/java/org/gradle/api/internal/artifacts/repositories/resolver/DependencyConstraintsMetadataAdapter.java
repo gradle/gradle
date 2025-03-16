@@ -18,16 +18,17 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.api.artifacts.DependencyConstraintMetadata;
 import org.gradle.api.artifacts.DependencyConstraintsMetadata;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 
 public class DependencyConstraintsMetadataAdapter extends AbstractDependenciesMetadataAdapter<DependencyConstraintMetadata, DependencyConstraintMetadataAdapter> implements DependencyConstraintsMetadata {
 
-    public DependencyConstraintsMetadataAdapter(ImmutableAttributesFactory attributesFactory,
-                                                Instantiator instantiator,
-                                                NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintsNotationParser) {
+    public DependencyConstraintsMetadataAdapter(
+        AttributesFactory attributesFactory,
+        Instantiator instantiator,
+        NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintsNotationParser) {
         super(attributesFactory, instantiator, dependencyConstraintsNotationParser);
     }
 

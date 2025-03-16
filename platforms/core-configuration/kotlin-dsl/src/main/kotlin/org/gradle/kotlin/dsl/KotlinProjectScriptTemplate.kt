@@ -33,7 +33,6 @@ import kotlin.script.experimental.api.implicitReceivers
 import kotlin.script.templates.ScriptTemplateDefinition
 
 
-private
 class KotlinProjectScriptTemplateCompilationConfiguration : KotlinDslStandaloneScriptCompilationConfiguration({
     filePathPattern.put(".+(?<!(^|\\.)(init|settings))\\.gradle\\.kts")
     baseClass(KotlinProjectScriptTemplate::class)

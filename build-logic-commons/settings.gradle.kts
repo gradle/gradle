@@ -17,12 +17,25 @@
 dependencyResolutionManagement {
     repositories {
         gradlePluginPortal()
+
+        maven {
+            url = uri("https://repo.gradle.org/gradle/enterprise-libs-release-candidates")
+            content {
+                val rcAndMilestonesPattern = "\\d{1,2}?\\.\\d{1,2}?(\\.\\d{1,2}?)?-((rc-\\d{1,2}?)|(milestone-\\d{1,2}?))"
+                // GE plugin marker artifact
+                includeVersionByRegex("com.gradle.develocity", "com.gradle.develocity.gradle.plugin", rcAndMilestonesPattern)
+                // GE plugin jar
+                includeVersionByRegex("com.gradle", "develocity-gradle-plugin", rcAndMilestonesPattern)
+            }
+        }
     }
 }
 
 plugins {
-    id("org.gradle.toolchains.foojay-resolver-convention") version("0.8.0")
+    id("org.gradle.toolchains.foojay-resolver-convention").version("0.9.0")
 }
+
+includeBuild("../build-logic-settings")
 
 // Shared basics for all
 include("basics")
@@ -38,5 +51,8 @@ include("code-quality-rules")
 
 // Plugins to build :build-logic plugins
 include("gradle-plugin")
+
+// Plugins to publish gradle projects
+include("publishing")
 
 rootProject.name = "build-logic-commons"

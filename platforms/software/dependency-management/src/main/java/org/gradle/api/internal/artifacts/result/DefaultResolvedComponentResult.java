@@ -17,8 +17,9 @@
 package org.gradle.api.internal.artifacts.result;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.Multimap;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSetMultimap;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -28,8 +29,8 @@ import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -38,20 +39,25 @@ import java.util.Optional;
 import java.util.Set;
 
 public class DefaultResolvedComponentResult implements ResolvedComponentResultInternal {
+
     private final ModuleVersionIdentifier moduleVersion;
-    private final Set<DependencyResult> dependencies = new LinkedHashSet<>();
-    private final Set<ResolvedDependencyResult> dependents = new LinkedHashSet<>();
+    private ImmutableSet<DependencyResult> dependencies = ImmutableSet.of();
+    private Set<ResolvedDependencyResult> dependents = new LinkedHashSet<>();
     private final ComponentSelectionReason selectionReason;
     private final ComponentIdentifier componentId;
-    private final List<ResolvedVariantResult> selectedVariants;
+    private final ImmutableList<ResolvedVariantResult> selectedVariants;
     private final Map<Long, ResolvedVariantResult> selectedVariantsById;
-    private final List<ResolvedVariantResult> allVariants;
+    private final ImmutableList<ResolvedVariantResult> allVariants;
     private final String repositoryName;
-    private final Multimap<ResolvedVariantResult, DependencyResult> variantDependencies = LinkedHashMultimap.create();
+    private ImmutableSetMultimap<ResolvedVariantResult, DependencyResult> variantDependencies = ImmutableSetMultimap.of();
 
     public DefaultResolvedComponentResult(
-        ModuleVersionIdentifier moduleVersion, ComponentSelectionReason selectionReason, ComponentIdentifier componentId,
-        Map<Long, ResolvedVariantResult> selectedVariants, List<ResolvedVariantResult> allVariants, @Nullable String repositoryName
+        ModuleVersionIdentifier moduleVersion,
+        ComponentSelectionReason selectionReason,
+        ComponentIdentifier componentId,
+        ImmutableMap<Long, ResolvedVariantResult> selectedVariants,
+        ImmutableList<ResolvedVariantResult> allVariants,
+        @Nullable String repositoryName
     ) {
         this.moduleVersion = moduleVersion;
         this.selectionReason = selectionReason;
@@ -81,7 +87,7 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
 
     @Override
     public Set<DependencyResult> getDependencies() {
-        return Collections.unmodifiableSet(dependencies);
+        return dependencies;
     }
 
     @Override
@@ -89,9 +95,15 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
         return Collections.unmodifiableSet(dependents);
     }
 
-    public DefaultResolvedComponentResult addDependency(DependencyResult dependency) {
-        this.dependencies.add(dependency);
-        return this;
+    public void addDependencies(ImmutableSet<DependencyResult> dependencies) {
+        if (this.dependencies.isEmpty()) {
+            this.dependencies = dependencies;
+        } else {
+            this.dependencies = ImmutableSet.<DependencyResult>builder()
+                .addAll(this.dependencies)
+                .addAll(dependencies)
+                .build();
+        }
     }
 
     public DefaultResolvedComponentResult addDependent(ResolvedDependencyResult dependent) {
@@ -143,13 +155,21 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
         throw new InvalidUserCodeException("Variant '" + variant.getDisplayName() + "' doesn't belong to resolved component '" + this + "'. " + moreInfo + " Most likely you are using a variant from another component to get the dependencies of this component.");
     }
 
+    @Override
     @Nullable
-    public ResolvedVariantResult getVariant(Long id) {
+    public ResolvedVariantResult getVariant(long id) {
         return selectedVariantsById.get(id);
     }
 
-    public void associateDependencyToVariant(DependencyResult dependencyResult, ResolvedVariantResult fromVariant) {
-        variantDependencies.put(fromVariant, dependencyResult);
+    public void addVariantDependencies(ImmutableSetMultimap<ResolvedVariantResult, DependencyResult> variantDependencies) {
+        if (this.variantDependencies.isEmpty()) {
+            this.variantDependencies = variantDependencies;
+        } else {
+            this.variantDependencies =  ImmutableSetMultimap.<ResolvedVariantResult, DependencyResult>builder()
+                .putAll(this.variantDependencies)
+                .putAll(variantDependencies)
+                .build();
+        }
     }
 
     /**
@@ -177,5 +197,12 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
                 eachElement(((ResolvedDependencyResult) d).getSelected(), moduleAction, dependencyAction, visited);
             }
         }
+    }
+
+    /**
+     * Finalize this component, making it immutable and ensuring its contents are stored in memory-efficient data structures.
+     */
+    public void complete() {
+        dependents = ImmutableSet.copyOf(dependents);
     }
 }

@@ -19,9 +19,10 @@ package org.gradle.api.internal.artifacts.configurations;
 import java.util.function.Function;
 
 /**
- * Some value that is calculated as part of dependency resolution, but which may have a partial or different value
+ * A producer of some value that is calculated as part of dependency resolution, but which may have a partial or different value
  * when the execution graph is calculated.
- * @param <T>
+ * <p>
+ * Not actually an extension of {@link org.gradle.api.provider.Provider}, but similar in concept.
  */
 public interface ResolutionResultProvider<T> {
 

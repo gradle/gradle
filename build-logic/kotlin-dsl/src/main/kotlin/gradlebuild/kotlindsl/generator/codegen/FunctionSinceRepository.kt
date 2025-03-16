@@ -37,6 +37,12 @@ class FunctionSinceRepository(classPath: Set<File>, sourcePath: Set<File>) : Aut
     val filesWithUnsupportedAnnotations = listOf(
         "Transformer.java",
         "Provider.java",
+        "ListProperty.java",
+        "MapProperty.java",
+        "Property.java",
+        "SetProperty.java",
+        "FileComparisonTestAssertionFailure.java",
+        "TestFailureDetails.java",
     )
 
     private
@@ -51,8 +57,7 @@ class FunctionSinceRepository(classPath: Set<File>, sourcePath: Set<File>) : Aut
 
         val javaFunction = parsedJavaFunctionOf(functionSignature)
 
-        val matchingType = builder.sources
-            .flatMap { it.classes }
+        val matchingType = builder.allSourceClasses
             .singleOrNull { javaFunction.typeName == it.binaryName }
             ?: throw IllegalArgumentException("Class for function '$functionSignature' not found in since repository! See FunctionSinceRepository.kt")
 
@@ -63,6 +68,12 @@ class FunctionSinceRepository(classPath: Set<File>, sourcePath: Set<File>) : Aut
 
         return matchingFunction.since ?: matchingType.since
     }
+
+    private
+    val JavaProjectBuilder.allSourceClasses
+        get() = sources.asSequence()
+            .flatMap { it.classes }
+            .flatMap { sequenceOf(it) + it.nestedClasses }
 
     private
     fun parsedJavaFunctionOf(functionSignature: String): JavaFunction<JavaClass> =
@@ -88,13 +99,16 @@ class FunctionSinceRepository(classPath: Set<File>, sourcePath: Set<File>) : Aut
                     if (sourceFile.name in filesWithUnsupportedAnnotations) {
                         // This is a hack.
                         //
-                        // qdox doesn't understand annotations placed in generic type parameters
+                        // qdox doesn't understand type-annotations placed in generic type parameters, arrays or varargs
                         // The only place we use this is with Nullable, so this hackily removes the annotation when
                         // the source file is processed by qdox.
                         //
                         // https://github.com/paul-hammant/qdox/issues/182
                         val filteredSourceCode =
-                            sourceFile.bufferedReader().readText().replace("@org.jetbrains.annotations.Nullable", "")
+                            sourceFile.bufferedReader().readText()
+                                .replace("extends @Nullable ", "extends ")
+                                .replace("@Nullable []", "[]")
+                                .replace("@Nullable ...", "...")
                         addSource(StringReader(filteredSourceCode))
                     } else {
                         addSource(sourceFile)

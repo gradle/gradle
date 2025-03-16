@@ -18,9 +18,9 @@ package org.gradle.api.internal.provider;
 
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.specs.Spec;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.gradle.internal.evaluation.EvaluationScopeContext;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A filtering provider that uses a spec to filter the value of another provider.
@@ -46,14 +46,14 @@ public class FilteringProvider<T> extends AbstractMinimalProvider<T> {
 
     @Override
     public ValueProducer getProducer() {
-        try (EvaluationContext.ScopeContext ignored = openScope()) {
+        try (EvaluationScopeContext ignored = openScope()) {
             return provider.getProducer();
         }
     }
 
     @Override
     public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
-        try (EvaluationContext.ScopeContext context = openScope()) {
+        try (EvaluationScopeContext context = openScope()) {
             ExecutionTimeValue<? extends T> value = provider.calculateExecutionTimeValue();
             if (value.isMissing()) {
                 return value;
@@ -70,15 +70,15 @@ public class FilteringProvider<T> extends AbstractMinimalProvider<T> {
 
     @Override
     protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
-        try (EvaluationContext.ScopeContext context = openScope()) {
+        try (EvaluationScopeContext context = openScope()) {
             beforeRead(context);
             Value<? extends T> value = provider.calculateValue(consumer);
             return filterValue(context, value);
         }
     }
 
-    @Nonnull
-    protected Value<? extends T> filterValue(@SuppressWarnings("unused") EvaluationContext.ScopeContext context, Value<? extends T> value) {
+    @NonNull
+    protected Value<? extends T> filterValue(@SuppressWarnings("unused") EvaluationScopeContext context, Value<? extends T> value) {
         if (value.isMissing()) {
             return value.asType();
         }
@@ -90,7 +90,7 @@ public class FilteringProvider<T> extends AbstractMinimalProvider<T> {
         }
     }
 
-    protected void beforeRead(@SuppressWarnings("unused") EvaluationContext.ScopeContext context) {
+    protected void beforeRead(@SuppressWarnings("unused") EvaluationScopeContext context) {
         provider.getProducer().visitContentProducerTasks(producer -> {
             if (!producer.getState().getExecuted()) {
                 throw new InvalidUserCodeException(

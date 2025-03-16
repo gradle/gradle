@@ -19,12 +19,18 @@ package org.gradle.internal.remote.internal.inet;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.remote.Address;
 import org.gradle.internal.remote.internal.ConnectCompletion;
+import org.gradle.internal.remote.internal.ConnectException;
 import org.gradle.internal.remote.internal.OutgoingConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.*;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.net.SocketAddress;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.nio.channels.SocketChannel;
 import java.util.List;
 
@@ -33,7 +39,7 @@ public class TcpOutgoingConnector implements OutgoingConnector {
     private static final int CONNECT_TIMEOUT = 10000;
 
     @Override
-    public ConnectCompletion connect(Address destinationAddress) throws org.gradle.internal.remote.internal.ConnectException {
+    public ConnectCompletion connect(Address destinationAddress) throws ConnectException {
         if (!(destinationAddress instanceof InetEndpoint)) {
             throw new IllegalArgumentException(String.format("Cannot create a connection to address of unknown type: %s.", destinationAddress));
         }
@@ -64,9 +70,9 @@ public class TcpOutgoingConnector implements OutgoingConnector {
                 LOGGER.debug("Connected to address {}.", socketChannel.socket().getRemoteSocketAddress());
                 return new SocketConnectCompletion(socketChannel);
             }
-            throw new org.gradle.internal.remote.internal.ConnectException(String.format("Could not connect to server %s. Tried addresses: %s.",
+            throw new ConnectException(String.format("Could not connect to server %s. Tried addresses: %s.",
                     destinationAddress, candidateAddresses), lastFailure);
-        } catch (org.gradle.internal.remote.internal.ConnectException e) {
+        } catch (ConnectException e) {
             throw e;
         } catch (Exception e) {
             throw new RuntimeException(String.format("Could not connect to server %s. Tried addresses: %s.",
@@ -76,11 +82,11 @@ public class TcpOutgoingConnector implements OutgoingConnector {
 
     private SocketChannel tryConnect(InetEndpoint address, InetAddress candidate) throws IOException {
         SocketChannel socketChannel = SocketChannel.open();
-
         try {
             socketChannel.socket().connect(new InetSocketAddress(candidate, address.getPort()), CONNECT_TIMEOUT);
 
             if (!detectSelfConnect(socketChannel)) {
+                SocketBlockingUtil.configureNonblocking(socketChannel);
                 return socketChannel;
             }
             socketChannel.close();

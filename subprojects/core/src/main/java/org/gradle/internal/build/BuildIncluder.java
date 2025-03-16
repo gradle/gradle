@@ -17,7 +17,7 @@
 package org.gradle.internal.build;
 
 import org.gradle.initialization.IncludedBuildSpec;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.Collection;
@@ -25,7 +25,7 @@ import java.util.Collection;
 /**
  * Coordinates inclusion of builds from the current build.
  */
-@ServiceScope(Scopes.Build.class)
+@ServiceScope(Scope.Build.class)
 public interface BuildIncluder {
     /**
      * Registers an included build of the current build. An included build may provide plugins and libraries to this build and all other builds in the tree.

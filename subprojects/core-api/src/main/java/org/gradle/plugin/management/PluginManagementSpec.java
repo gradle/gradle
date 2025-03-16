@@ -21,8 +21,9 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.initialization.ConfigurableIncludedPluginBuild;
 import org.gradle.declarative.dsl.model.annotations.Adding;
 import org.gradle.declarative.dsl.model.annotations.Configuring;
-import org.gradle.declarative.dsl.model.annotations.Restricted;
 import org.gradle.internal.HasInternalProtocol;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.plugin.use.PluginDependenciesSpec;
 
 /**
@@ -30,6 +31,7 @@ import org.gradle.plugin.use.PluginDependenciesSpec;
  *
  * @since 3.5
  */
+@ServiceScope(Scope.Settings.class)
 @HasInternalProtocol
 public interface PluginManagementSpec {
 
@@ -42,7 +44,6 @@ public interface PluginManagementSpec {
     /**
      * The plugin repositories to use.
      */
-    @Restricted
     RepositoryHandler getRepositories();
 
     /**

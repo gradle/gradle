@@ -17,7 +17,6 @@
 package org.gradle.ide.visualstudio
 
 import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 
@@ -36,7 +35,6 @@ class VisualStudioIncrementalIntegrationTest extends AbstractVisualStudioIntegra
         """
     }
 
-    @ToBeFixedForConfigurationCache
     def "visual studio tasks re-execute when source files are added"() {
         app.writeSources(file("src/main"))
 
@@ -67,7 +65,6 @@ class VisualStudioIncrementalIntegrationTest extends AbstractVisualStudioIntegra
         skipped getComponentTasks("app")
     }
 
-    @ToBeFixedForConfigurationCache
     def "visual studio tasks re-execute when header files are added"() {
         app.writeSources(file("src/main"))
 
@@ -98,7 +95,6 @@ class VisualStudioIncrementalIntegrationTest extends AbstractVisualStudioIntegra
         skipped getComponentTasks("app")
     }
 
-    @ToBeFixedForConfigurationCache
     def "visual studio tasks re-execute when output file locations change"() {
         app.writeSources(file("src/main"))
 
@@ -167,7 +163,6 @@ class VisualStudioIncrementalIntegrationTest extends AbstractVisualStudioIntegra
         skipped getComponentTasks("app")
     }
 
-    @ToBeFixedForConfigurationCache
     def "visual studio tasks re-execute when compiler macros change"() {
         app.writeSources(file("src/main"))
 
@@ -189,8 +184,8 @@ class VisualStudioIncrementalIntegrationTest extends AbstractVisualStudioIntegra
         run "visualStudio"
 
         then:
-        skipped ":appVisualStudioSolution"
-        executedAndNotSkipped getComponentTasks("app")
+        skipped ":appVisualStudioSolution", getFiltersTask("app")
+        executedAndNotSkipped getProjectTask("app")
 
         and:
         final projectFile = projectFile("app.vcxproj")
@@ -206,7 +201,6 @@ class VisualStudioIncrementalIntegrationTest extends AbstractVisualStudioIntegra
         skipped getComponentTasks("app")
     }
 
-    @ToBeFixedForConfigurationCache
     def "visual studio tasks re-execute when binary output location changes"() {
         app.writeSources(file("src/main"))
 
@@ -228,8 +222,8 @@ class VisualStudioIncrementalIntegrationTest extends AbstractVisualStudioIntegra
         run "visualStudio"
 
         then:
-        skipped ":appVisualStudioSolution"
-        executedAndNotSkipped getComponentTasks("app")
+        skipped ":appVisualStudioSolution", getFiltersTask("app")
+        executedAndNotSkipped getProjectTask("app")
 
         and:
         final projectFile = projectFile("app.vcxproj")
@@ -245,7 +239,6 @@ class VisualStudioIncrementalIntegrationTest extends AbstractVisualStudioIntegra
         skipped getComponentTasks("app")
     }
 
-    @ToBeFixedForConfigurationCache
     def "visual studio tasks re-execute when new component is added"() {
         app.writeSources(file("src/main"))
 
@@ -283,7 +276,6 @@ class VisualStudioIncrementalIntegrationTest extends AbstractVisualStudioIntegra
         skipped getComponentTasks("app")
     }
 
-    @ToBeFixedForConfigurationCache
     def "visual studio tasks re-execute when metadata files are removed"() {
         app.writeSources(file("src/main"))
 
@@ -326,7 +318,6 @@ class VisualStudioIncrementalIntegrationTest extends AbstractVisualStudioIntegra
         skipped getComponentTasks("app")
     }
 
-    @ToBeFixedForConfigurationCache
     def "visual studio tasks re-execute when new project xml actions are added"() {
         app.writeSources(file("src/main"))
 
@@ -348,22 +339,22 @@ class VisualStudioIncrementalIntegrationTest extends AbstractVisualStudioIntegra
         run "visualStudio"
 
         then:
-        skipped ":appVisualStudioSolution"
-        executedAndNotSkipped getComponentTasks("app")
+        skipped ":appVisualStudioSolution", getFiltersTask("app")
+        executedAndNotSkipped getProjectTask("app")
 
         when:
         buildFile.text = buildFile.text.replace "projectFile.withXml { }", """
                     projectFile.withXml { xml ->
                         Node globals = xml.asNode().PropertyGroup.find({it.'@Label' == 'Globals'}) as Node
                         globals.appendNode("ExtraInfo", "Some extra info")
-                        globals.appendNode("ProjectName", project.name)
+                        globals.appendNode("ProjectName", "project-name")
                     }
         """
         run "visualStudio"
 
         then:
-        skipped ":appVisualStudioSolution"
-        executedAndNotSkipped getComponentTasks("app")
+        skipped ":appVisualStudioSolution", getFiltersTask("app")
+        executedAndNotSkipped getProjectTask("app")
 
         when:
         run "visualStudio"
@@ -373,7 +364,6 @@ class VisualStudioIncrementalIntegrationTest extends AbstractVisualStudioIntegra
         skipped getComponentTasks("app")
     }
 
-    @ToBeFixedForConfigurationCache
     def "visual studio tasks re-execute when new filter file xml actions are added"() {
         app.writeSources(file("src/main"))
 
@@ -395,20 +385,20 @@ class VisualStudioIncrementalIntegrationTest extends AbstractVisualStudioIntegra
         run "visualStudio"
 
         then:
-        skipped ":appVisualStudioSolution"
-        executedAndNotSkipped getComponentTasks("app")
+        skipped ":appVisualStudioSolution", getProjectTask("app")
+        executedAndNotSkipped getFiltersTask("app")
 
         when:
         buildFile.text = buildFile.text.replace "filtersFile.withXml { }", """
                     filtersFile.withXml { xml ->
-                        xml.asNode().appendNode("ExtraContent", "Filter - \${project.name}")
+                        xml.asNode().appendNode("ExtraContent", "Filter - project-name")
                     }
         """
         run "visualStudio"
 
         then:
-        skipped ":appVisualStudioSolution"
-        executedAndNotSkipped getComponentTasks("app")
+        skipped ":appVisualStudioSolution", getProjectTask("app")
+        executedAndNotSkipped getFiltersTask("app")
 
         when:
         run "visualStudio"
@@ -418,7 +408,6 @@ class VisualStudioIncrementalIntegrationTest extends AbstractVisualStudioIntegra
         skipped getComponentTasks("app")
     }
 
-    @ToBeFixedForConfigurationCache
     def "visual studio tasks re-execute when new solution content actions are added"() {
         app.writeSources(file("src/main"))
 
@@ -446,11 +435,9 @@ class VisualStudioIncrementalIntegrationTest extends AbstractVisualStudioIntegra
         when:
         buildFile.text = buildFile.text.replace "solutionFile.withContent { }", '''
                     solutionFile.withContent { content ->
-                        String projectList = projects.collect({it.name}).join(',')
-
                         content.text = content.text.replace("EndGlobal", """
                             GlobalSection(MyGlobalSection)
-                            Project-list: ${projectList}
+                            Project-list: project-a,project-b
                             EndGlobalSection
                             EndGlobal
                         """)

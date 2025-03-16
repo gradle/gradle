@@ -44,7 +44,7 @@ import org.gradle.test.fixtures.file.TestFile
 import java.util.function.Predicate
 
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.INSTRUMENTED_ATTRIBUTE
-import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.NOT_INSTRUMENTED_ATTRIBUTE_VALUE
+import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.NOT_INSTRUMENTED
 
 class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegrationSpec implements ArtifactTransformTestFixture, DirectoryBuildCacheFixture {
 
@@ -89,7 +89,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
     def buildOperations = new BuildOperationsFixture(executer, testDirectoryProvider)
 
     def setup() {
-        requireOwnGradleUserHomeDir()
+        requireOwnGradleUserHomeDir("Artifact transforms should run every time and not be shared between tests")
 
         // group name is included in the capabilities of components, which are part of the transform identity
         buildFile << """
@@ -132,7 +132,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         buildFile << """
             allprojects {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
 
                 dependencies {
@@ -387,15 +387,6 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         setupExternalDependency()
 
         buildFile << """
-            allprojects {
-                dependencies {
-                    registerTransform(MakeGreen) {
-                        from.attribute(color, 'blue')
-                        to.attribute(color, 'green')
-                    }
-                }
-            }
-
             project(":consumer") {
                 dependencies {
                     implementation project(":producer")
@@ -1291,7 +1282,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         checkExecuteTransformWorkOperations(getExecutePlannedStepOperations(1).first(), [null])
     }
 
-    def "build operation for planned steps executed non-planned"() {
+    def "no build operation for planned steps executed non-planned"() {
         createDirs("producer", "consumer")
         settingsFile << """
             include 'producer', 'consumer'
@@ -1341,20 +1332,16 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
 
         outputContains("Task-only execution plan: [PlannedTask('Task :producer:producer', deps=[]), PlannedTask('Task :consumer:resolveWithoutDependencies', deps=[Task :producer:producer])]")
 
-        result.groupedOutput.transform("MakeColor")
+        result.groupedOutput.task(":consumer:resolveWithoutDependencies")
             .assertOutputContains("processing [producer.jar]")
             .assertOutputContains("processing [producer.jar.red]")
-
-        result.groupedOutput.task(":consumer:resolveWithoutDependencies")
             .assertOutputContains("result = [producer.jar.red.green, test-4.2.jar]")
 
         getPlannedNodes(0)
-        getExecutePlannedStepOperations(2).each {
-            checkExecuteTransformWorkOperations(it, 1)
-        }
+        getExecutePlannedStepOperations(0).empty
     }
 
-    def "planned transform steps from script plugin buildscript block are captured"() {
+    def "planned transform steps from script plugin buildscript block are not captured"() {
         setupProjectTransformInBuildScriptBlock(true)
 
         when:
@@ -1367,7 +1354,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         outputContains("Task-only execution plan: [PlannedTask('Task :consumer:hello', deps=[])]")
 
         getPlannedNodes(0)
-        getExecutePlannedStepOperations(1)
+        getExecutePlannedStepOperations(0).empty
 
         // We have 4 artifact transforms: 2 MakeColor transforms and 2 from Gradle instrumentation
         buildOperations.progress(IdentifyTransformExecutionProgressDetails).size() == 4
@@ -1381,7 +1368,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         buildOperations.all(ExecuteTransformActionBuildOperationType).size() == 4
     }
 
-    def "planned transform steps from project buildscript context are captured"() {
+    def "planned transform steps from project buildscript context are not captured"() {
         setupProjectTransformInBuildScriptBlock(false)
 
         when:
@@ -1389,15 +1376,12 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         then:
         executedAndNotSkipped(":consumer:hello")
 
-        result.groupedOutput.transform("MakeColor")
-            .assertOutputContains("processing [nested-producer.jar]")
-            .assertOutputContains("processing [nested-producer.jar.red]")
-
-
+        outputContains("processing [nested-producer.jar]")
+        outputContains("processing [nested-producer.jar.red]")
         outputContains("Task-only execution plan: [PlannedTask('Task :consumer:hello', deps=[])]")
 
         getPlannedNodes(0)
-        getExecutePlannedStepOperations(4)
+        getExecutePlannedStepOperations(0).empty
 
         // We have 4 artifact transforms: 2 MakeColor transforms and 2 from Gradle instrumentation
         buildOperations.progress(IdentifyTransformExecutionProgressDetails).size() == 4
@@ -1488,13 +1472,13 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
                     classpath("test:test:1.0")
 
                     registerTransform(MakeColor) {
-                        from.attribute(artifactType, 'jar').attribute(instrumented, '${NOT_INSTRUMENTED_ATTRIBUTE_VALUE}')
-                        to.attribute(artifactType, 'red').attribute(instrumented, '${NOT_INSTRUMENTED_ATTRIBUTE_VALUE}')
+                        from.attribute(artifactType, 'jar').attribute(instrumented, '${NOT_INSTRUMENTED.value}')
+                        to.attribute(artifactType, 'red').attribute(instrumented, '${NOT_INSTRUMENTED.value}')
                         parameters.targetColor.set('red')
                     }
                     registerTransform(MakeColor) {
-                        from.attribute(artifactType, 'red').attribute(instrumented, '${NOT_INSTRUMENTED_ATTRIBUTE_VALUE}')
-                        to.attribute(artifactType, 'green').attribute(instrumented, '${NOT_INSTRUMENTED_ATTRIBUTE_VALUE}')
+                        from.attribute(artifactType, 'red').attribute(instrumented, '${NOT_INSTRUMENTED.value}')
+                        to.attribute(artifactType, 'green').attribute(instrumented, '${NOT_INSTRUMENTED.value}')
                         parameters.targetColor.set('green')
                     }
                 }

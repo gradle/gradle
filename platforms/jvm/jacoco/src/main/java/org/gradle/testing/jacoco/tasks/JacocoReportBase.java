@@ -19,14 +19,17 @@ package org.gradle.testing.jacoco.tasks;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
+import org.gradle.api.provider.Property;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.IgnoreEmptyDirectories;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
@@ -34,6 +37,7 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskCollection;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.testing.jacoco.plugins.JacocoTaskExtension;
 import org.gradle.work.DisableCachingByDefault;
@@ -57,6 +61,7 @@ public abstract class JacocoReportBase extends JacocoBase {
     private final ConfigurableFileCollection classDirectories = getProject().files();
     private final ConfigurableFileCollection additionalClassDirs = getProject().files();
     private final ConfigurableFileCollection additionalSourceDirs = getProject().files();
+    private final Property<String> sourceEncoding = getProject().getObjects().property(String.class);
 
     public JacocoReportBase() {
         onlyIf("Any of the execution data files exists", new Spec<Task>() {
@@ -142,6 +147,18 @@ public abstract class JacocoReportBase extends JacocoBase {
     }
 
     /**
+     * The character encoding of the source files.
+     *
+     * @since 8.8
+     */
+    @Incubating
+    @Optional
+    @Input
+    public Property<String> getSourceEncoding() {
+        return sourceEncoding;
+    }
+
+    /**
      * Adds execution data files to be used during coverage analysis.
      *
      * @param files one or more files to add
@@ -186,6 +203,7 @@ public abstract class JacocoReportBase extends JacocoBase {
      * @return class dirs to report coverage of
      */
     @Internal
+    @NotToBeReplacedByLazyProperty(because = "Not settable FileCollection", willBeDeprecated = true)
     public FileCollection getAllClassDirs() {
         return classDirectories.plus(getAdditionalClassDirs());
     }
@@ -197,6 +215,7 @@ public abstract class JacocoReportBase extends JacocoBase {
      * @see #getAllClassDirs()
      */
     @Internal
+    @NotToBeReplacedByLazyProperty(because = "Not settable FileCollection", willBeDeprecated = true)
     public FileCollection getAllSourceDirs() {
         return sourceDirectories.plus(getAdditionalSourceDirs());
     }

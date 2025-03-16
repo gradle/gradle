@@ -27,24 +27,25 @@ import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
+import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
+import org.gradle.api.internal.artifacts.configurations.CachePolicy;
 import org.gradle.api.internal.artifacts.dsl.ModuleVersionSelectorParsers;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
-import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.ImmutableActionSet;
-import org.gradle.internal.locking.NoOpDependencyLockingProvider;
 import org.gradle.internal.rules.SpecRuleAction;
 import org.gradle.internal.typeconversion.NormalizedTimeUnit;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.TimeUnitsParser;
 import org.gradle.vcs.internal.VcsResolver;
 
+import javax.inject.Inject;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -62,9 +63,9 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     private ConflictResolution conflictResolution = ConflictResolution.latest;
     private final DefaultComponentSelectionRules componentSelectionRules;
 
-    private final DefaultCachePolicy cachePolicy;
+    private final CachePolicy cachePolicy;
     private final DependencySubstitutionsInternal dependencySubstitutions;
-    private final DependencySubstitutionRules globalDependencySubstitutionRules;
+    private final GlobalDependencyResolutionRules globalDependencySubstitutionRules;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final VcsResolver vcsResolver;
     private final ComponentSelectorConverter componentSelectorConverter;
@@ -80,33 +81,21 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     private boolean failOnChangingVersions;
     private boolean verifyDependencies = true;
     private final Property<Boolean> useGlobalDependencySubstitutionRules;
-    private boolean returnAllVariants = false;
+    private boolean selectableVariantResults = false;
     private boolean keepStateRequiredForGraphResolution = false;
 
+    @Inject
     public DefaultResolutionStrategy(
-        DependencySubstitutionRules globalDependencySubstitutionRules,
-        VcsResolver vcsResolver,
+        CachePolicy cachePolicy,
         DependencySubstitutionsInternal dependencySubstitutions,
+        GlobalDependencyResolutionRules globalDependencySubstitutionRules,
+        VcsResolver vcsResolver,
         ImmutableModuleIdentifierFactory moduleIdentifierFactory,
         ComponentSelectorConverter componentSelectorConverter,
         DependencyLockingProvider dependencyLockingProvider,
         CapabilitiesResolutionInternal capabilitiesResolution,
         ObjectFactory objectFactory
     ) {
-        this(
-            new DefaultCachePolicy(),
-            dependencySubstitutions,
-            globalDependencySubstitutionRules,
-            vcsResolver,
-            moduleIdentifierFactory,
-            componentSelectorConverter,
-            dependencyLockingProvider,
-            capabilitiesResolution,
-            objectFactory
-        );
-    }
-
-    DefaultResolutionStrategy(DefaultCachePolicy cachePolicy, DependencySubstitutionsInternal dependencySubstitutions, DependencySubstitutionRules globalDependencySubstitutionRules, VcsResolver vcsResolver, ImmutableModuleIdentifierFactory moduleIdentifierFactory, ComponentSelectorConverter componentSelectorConverter, DependencyLockingProvider dependencyLockingProvider, CapabilitiesResolutionInternal capabilitiesResolution, ObjectFactory objectFactory) {
         this.cachePolicy = cachePolicy;
         this.dependencySubstitutions = dependencySubstitutions;
         this.globalDependencySubstitutionRules = globalDependencySubstitutionRules;
@@ -243,7 +232,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
         }
         result = result.add(dependencySubstitutions.getRuleAction());
         if (useGlobalDependencySubstitutionRules.get()) {
-            result = result.add(globalDependencySubstitutionRules.getRuleAction());
+            result = result.add(globalDependencySubstitutionRules.getDependencySubstitutionRules().getRuleAction());
         }
         return result;
     }
@@ -256,9 +245,9 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     @Override
     public boolean resolveGraphToDetermineTaskDependencies() {
         return assumeFluidDependencies
-                || dependencySubstitutions.rulesMayAddProjectDependency()
-                || useGlobalDependencySubstitutionRules.get() && globalDependencySubstitutionRules.rulesMayAddProjectDependency()
-                || vcsResolver.hasRules();
+            || dependencySubstitutions.rulesMayAddProjectDependency()
+            || (useGlobalDependencySubstitutionRules.get() && globalDependencySubstitutionRules.getDependencySubstitutionRules().rulesMayAddProjectDependency())
+            || vcsResolver.hasRules();
     }
 
     @Override
@@ -270,7 +259,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     }
 
     @Override
-    public DefaultCachePolicy getCachePolicy() {
+    public CachePolicy getCachePolicy() {
         return cachePolicy;
     }
 
@@ -357,18 +346,13 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
         if (dependencyLockingEnabled) {
             return dependencyLockingProvider;
         } else {
-            return NoOpDependencyLockingProvider.getInstance();
+            throw new IllegalStateException("Dependency locking is not enabled");
         }
     }
 
     @Override
     public boolean isDependencyLockingEnabled() {
         return dependencyLockingEnabled;
-    }
-
-    @Override
-    public void confirmUnlockedConfigurationResolved(String configurationName) {
-        dependencyLockingProvider.confirmConfigurationNotLocked(configurationName);
     }
 
     @Override
@@ -404,14 +388,14 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     }
 
     @Override
-    public void setReturnAllVariants(boolean returnAllVariants) {
+    public void setIncludeAllSelectableVariantResults(boolean selectableVariantResults) {
         mutationValidator.validateMutation(STRATEGY);
-        this.returnAllVariants = returnAllVariants;
+        this.selectableVariantResults = selectableVariantResults;
     }
 
     @Override
-    public boolean getReturnAllVariants() {
-        return this.returnAllVariants;
+    public boolean getIncludeAllSelectableVariantResults() {
+        return this.selectableVariantResults;
     }
 
     @Override

@@ -27,6 +27,7 @@ import org.gradle.nativeplatform.platform.internal.ArchitectureInternal
 import org.gradle.nativeplatform.toolchain.internal.SymbolExtractorOsConfig
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestFile.Snapshot
+import org.gradle.util.internal.VersionNumber
 
 class NativeBinaryFixture {
     final TestFile file
@@ -112,6 +113,8 @@ class NativeBinaryFixture {
     }
 
     void assertHasDebugSymbolsFor(List<String> sourceFileNames) {
+        assert !sourceFileNames.isEmpty()
+
         if (toolChain?.visualCpp) {
             // There is not a built-in tool for querying pdb files, so we just check that the debug file exists
             assertDebugFileExists()
@@ -121,8 +124,23 @@ class NativeBinaryFixture {
         } else {
             def symbols = binaryInfo.listDebugSymbols()
             def symbolNames = symbols.collect { it.name }
+            // Older versions of swift used the object file instead of source file in some cases
+            // Also, swift 6 on Linux uses object file names
+            def hasObjectNames = toolChain.meets(ToolChainRequirement.SWIFTC) && (
+                toolChain.version < VersionNumber.version(5, 10) ||
+                    (OperatingSystem.current().isLinux() && toolChain.version >= VersionNumber.version(6))
+            )
             sourceFileNames.each { sourceFileName ->
-                assert sourceFileName in symbolNames
+                if (sourceFileName in symbolNames) {
+                    return
+                }
+                if (hasObjectNames) {
+                    def objFileName = sourceFileName.replace(".swift", ".o")
+                    if (symbolNames.any { it.endsWith(objFileName) }) {
+                        return
+                    }
+                }
+                throw new AssertionError("Could not find source file '$sourceFileName' in symbols $symbolNames")
             }
         }
     }

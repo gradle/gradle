@@ -1,5 +1,5 @@
 plugins {
-    id("org.gradle.toolchains.foojay-resolver") version("0.8.0")
+    id("org.gradle.toolchains.foojay-resolver").version("0.9.0")
 }
 
 import org.gradle.api.Plugin
@@ -42,7 +42,7 @@ abstract class MadeUpPlugin: Plugin<Settings> {
     protected abstract val toolchainResolverRegistry: JavaToolchainResolverRegistry
 
     override fun apply(settings: Settings) {
-        settings.plugins.apply("jvm-toolchain-management")
+        settings.getPluginManager().apply("jvm-toolchain-management")
 
         val registry: JavaToolchainResolverRegistry = toolchainResolverRegistry
         registry.register(MadeUpResolver::class.java)

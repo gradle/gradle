@@ -17,7 +17,10 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Issue
+
+import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 
 class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
     def "can define task with abstract read-only Property<T> property"() {
@@ -97,6 +100,7 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Cannot query the value of task ':thing' property 'count' because it has no value available.")
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "reports failure to query read-only unmanaged Property<T>"() {
         given:
         file("buildSrc/src/main/java/MyTask.java") << """

@@ -1,0 +1,12 @@
+plugins {
+    id 'java-gradle-plugin'
+}
+
+gradlePlugin {
+    plugins {
+        customTest {
+            id = 'com.example.custom-test'
+            implementationClass = 'com.example.CustomTestPlugin'
+        }
+    }
+}

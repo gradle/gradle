@@ -17,14 +17,9 @@
 package org.gradle.api.plugins.jvm;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.ModuleDependency;
-import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.dsl.DependencyModifier;
 import org.gradle.api.tasks.Nested;
-import org.gradle.internal.Cast;
-import org.gradle.internal.component.external.model.DefaultImmutableCapability;
-import org.gradle.internal.component.external.model.ProjectTestFixtures;
 import org.gradle.internal.component.external.model.TestFixturesSupport;
 
 /**
@@ -63,18 +58,7 @@ public interface TestFixturesDependencyModifiers {
          */
         @Override
         protected void modifyImplementation(ModuleDependency dependency) {
-            if (dependency instanceof ExternalDependency) {
-                String group = dependency.getGroup();
-                String name = dependency.getName() + TestFixturesSupport.TEST_FIXTURES_CAPABILITY_APPENDIX;
-                dependency.capabilities(capabilities -> {
-                    capabilities.requireCapability(new DefaultImmutableCapability(group, name, null));
-                });
-            } else if (dependency instanceof ProjectDependency) {
-                ProjectDependency projectDependency = Cast.uncheckedCast(dependency);
-                projectDependency.capabilities(new ProjectTestFixtures(projectDependency.getDependencyProject()));
-            } else {
-                throw new IllegalStateException("Unknown dependency type: " + dependency.getClass());
-            }
+            dependency.capabilities(c -> c.requireFeature(TestFixturesSupport.TEST_FIXTURES_CAPABILITY_FEATURE_NAME));
         }
     }
 }

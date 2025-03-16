@@ -19,7 +19,7 @@ package org.gradle.internal.classpath.transforms
 import org.gradle.api.file.RelativePath
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.Pair
-import org.gradle.internal.classanalysis.AsmConstants
+import org.gradle.model.internal.asm.AsmConstants
 import org.gradle.internal.classloader.TransformReplacer
 import org.gradle.internal.classpath.ClassData
 import org.gradle.internal.classpath.ClasspathBuilder
@@ -27,7 +27,7 @@ import org.gradle.internal.classpath.ClasspathEntryVisitor
 import org.gradle.internal.classpath.ClasspathWalker
 import org.gradle.internal.classpath.DefaultClasspathBuilder
 import org.gradle.internal.classpath.SystemPropertyAccessingThing
-import org.gradle.internal.classpath.types.GradleCoreInstrumentingTypeRegistry
+import org.gradle.internal.classpath.types.GradleCoreInstrumentationTypeRegistry
 import org.gradle.internal.hash.Hasher
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.file.TestFile
@@ -50,7 +50,7 @@ class ClasspathElementTransformTest extends Specification {
     def testDir = testDirectoryProvider.testDirectory
     def classpathBuilder = new DefaultClasspathBuilder(TestFiles.tmpDirTemporaryFileProvider(testDirectoryProvider.createDir("tmp")))
     def classpathWalker = new ClasspathWalker(TestFiles.fileSystem())
-    def gradleCoreInstrumentingRegistry = Stub(GradleCoreInstrumentingTypeRegistry) {
+    def gradleCoreInstrumentingRegistry = Stub(GradleCoreInstrumentationTypeRegistry) {
         getInstrumentedTypesHash() >> Optional.empty()
         getUpgradedPropertiesHash() >> Optional.empty()
     }
@@ -343,7 +343,7 @@ class ClasspathElementTransformTest extends Specification {
     }
 
     private File transform(TransformFactoryType factory, File original, File target) {
-        factory.createFactory(classpathBuilder, classpathWalker).createTransformer(original, new NoOpTransformer(), gradleCoreInstrumentingRegistry).transform(target)
+        factory.createFactory(classpathBuilder, classpathWalker).createTransformer(original, new NoOpTransformer()).transform(target)
         return target
     }
 

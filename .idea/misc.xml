@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="EntryPointsManager">
+    <list size="4">
+      <item index="0" class="java.lang.String" itemvalue="com.tngtech.archunit.junit.ArchTest" />
+      <item index="1" class="java.lang.String" itemvalue="org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade" />
+      <item index="2" class="java.lang.String" itemvalue="org.gradle.internal.instrumentation.api.annotations.InterceptJvmCalls" />
+      <item index="3" class="java.lang.String" itemvalue="org.gradle.internal.service.Provides" />
+    </list>
+    <pattern value="org.gradle.internal.service.ServiceRegistrationProvider" hierarchically="true" method="configure" />
+  </component>
+  <component name="ExternalStorageConfigurationManager" enabled="true" />
+  <component name="FrameworkDetectionExcludesConfiguration">
+    <type id="web" />
+  </component>
+  <component name="NullableNotNullManager">
+    <option name="myDefaultNullable" value="javax.annotation.Nullable" />
+    <option name="myDefaultNotNull" value="javax.annotation.Nonnull" />
+    <option name="myNullables">
+      <value>
+        <list size="16">
+          <item index="0" class="java.lang.String" itemvalue="android.support.annotation.Nullable" />
+          <item index="1" class="java.lang.String" itemvalue="androidx.annotation.Nullable" />
+          <item index="2" class="java.lang.String" itemvalue="androidx.annotation.RecentlyNullable" />
+          <item index="3" class="java.lang.String" itemvalue="com.android.annotations.Nullable" />
+          <item index="4" class="java.lang.String" itemvalue="edu.umd.cs.findbugs.annotations.Nullable" />
+          <item index="5" class="java.lang.String" itemvalue="io.reactivex.annotations.Nullable" />
+          <item index="6" class="java.lang.String" itemvalue="io.reactivex.rxjava3.annotations.Nullable" />
+          <item index="7" class="java.lang.String" itemvalue="jakarta.annotation.Nullable" />
+          <item index="8" class="java.lang.String" itemvalue="javax.annotation.CheckForNull" />
+          <item index="9" class="java.lang.String" itemvalue="javax.annotation.Nullable" />
+          <item index="10" class="java.lang.String" itemvalue="org.checkerframework.checker.nullness.compatqual.NullableDecl" />
+          <item index="11" class="java.lang.String" itemvalue="org.checkerframework.checker.nullness.compatqual.NullableType" />
+          <item index="12" class="java.lang.String" itemvalue="org.checkerframework.checker.nullness.qual.Nullable" />
+          <item index="13" class="java.lang.String" itemvalue="org.eclipse.jdt.annotation.Nullable" />
+          <item index="14" class="java.lang.String" itemvalue="org.jetbrains.annotations.Nullable" />
+          <item index="15" class="java.lang.String" itemvalue="org.jspecify.annotations.Nullable" />
+        </list>
+      </value>
+    </option>
+    <option name="myNotNulls">
+      <value>
+        <list size="16">
+          <item index="0" class="java.lang.String" itemvalue="android.support.annotation.NonNull" />
+          <item index="1" class="java.lang.String" itemvalue="androidx.annotation.NonNull" />
+          <item index="2" class="java.lang.String" itemvalue="androidx.annotation.RecentlyNonNull" />
+          <item index="3" class="java.lang.String" itemvalue="com.android.annotations.NonNull" />
+          <item index="4" class="java.lang.String" itemvalue="edu.umd.cs.findbugs.annotations.NonNull" />
+          <item index="5" class="java.lang.String" itemvalue="io.reactivex.annotations.NonNull" />
+          <item index="6" class="java.lang.String" itemvalue="io.reactivex.rxjava3.annotations.NonNull" />
+          <item index="7" class="java.lang.String" itemvalue="jakarta.annotation.Nonnull" />
+          <item index="8" class="java.lang.String" itemvalue="javax.annotation.Nonnull" />
+          <item index="9" class="java.lang.String" itemvalue="lombok.NonNull" />
+          <item index="10" class="java.lang.String" itemvalue="org.checkerframework.checker.nullness.compatqual.NonNullDecl" />
+          <item index="11" class="java.lang.String" itemvalue="org.checkerframework.checker.nullness.compatqual.NonNullType" />
+          <item index="12" class="java.lang.String" itemvalue="org.checkerframework.checker.nullness.qual.NonNull" />
+          <item index="13" class="java.lang.String" itemvalue="org.eclipse.jdt.annotation.NonNull" />
+          <item index="14" class="java.lang.String" itemvalue="org.jetbrains.annotations.NotNull" />
+          <item index="15" class="java.lang.String" itemvalue="org.jspecify.annotations.NonNull" />
+        </list>
+      </value>
+    </option>
+  </component>
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_8" project-jdk-name="17" project-jdk-type="JavaSDK" />
+</project>

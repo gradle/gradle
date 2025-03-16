@@ -19,15 +19,16 @@ package org.gradle.internal.logging
 import groovy.transform.CompileStatic
 import org.gradle.internal.logging.slf4j.OutputEventListenerBackedLogger
 import org.gradle.internal.logging.slf4j.OutputEventListenerBackedLoggerContext
-import org.gradle.internal.time.MockClock
+import org.gradle.internal.time.FixedClock
+import org.slf4j.helpers.FormattingTuple
+import org.slf4j.helpers.MessageFormatter
 
 @CompileStatic
 class ToStringLogger extends OutputEventListenerBackedLogger {
-
     private final StringBuilder log = new StringBuilder()
 
     ToStringLogger() {
-        super("ToStringLogger", new OutputEventListenerBackedLoggerContext(new MockClock()), new MockClock())
+        super("ToStringLogger", new OutputEventListenerBackedLoggerContext(FixedClock.create()), FixedClock.create())
     }
 
     @Override
@@ -36,13 +37,43 @@ class ToStringLogger extends OutputEventListenerBackedLogger {
     }
 
     @Override
+    void lifecycle(String format, Object... args) {
+        FormattingTuple tuple = MessageFormatter.arrayFormat(format, args)
+        log(tuple.getMessage())
+    }
+
+    @Override
     void debug(String message) {
         log(message)
     }
 
     @Override
+    void debug(String format, Object args) {
+        FormattingTuple tuple = MessageFormatter.format(format, args)
+        log(tuple.getMessage())
+    }
+
+    @Override
+    void debug(String format, Object... args) {
+        FormattingTuple tuple = MessageFormatter.arrayFormat(format, args)
+        log(tuple.getMessage())
+    }
+
+    @Override
     void warn(String message) {
         log(message)
+    }
+
+    @Override
+    void warn(String format, Object args) {
+        FormattingTuple tuple = MessageFormatter.format(format, args)
+        log(tuple.getMessage())
+    }
+
+    @Override
+    void warn(String format, Object... args) {
+        FormattingTuple tuple = MessageFormatter.arrayFormat(format, args)
+        log(tuple.getMessage())
     }
 
     private void log(String message) {

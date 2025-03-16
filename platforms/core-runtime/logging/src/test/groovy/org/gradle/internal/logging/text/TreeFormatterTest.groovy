@@ -135,6 +135,25 @@ class TreeFormatterTest extends Specification {
   - ${longText}""")
     }
 
+    def "formats short node with single child on separate lines when asked alwaysChildrenOnNewLines = #alwaysChildrenOnNewLines"() {
+        given:
+        formatter = new TreeFormatter(alwaysChildrenOnNewLines)
+
+        when:
+        formatter.node("introduction")
+        formatter.startChildren()
+        formatter.node("hello = world")
+        formatter.endChildren()
+
+        then:
+        formatter.toString() == toPlatformLineSeparators(expectation)
+
+        where:
+        alwaysChildrenOnNewLines    || expectation
+        true                        || "introduction:\n  - hello = world"
+        false                       || "introduction: hello = world"
+    }
+
     def "formats node with trailing '.'"() {
         when:
         formatter.node("Some things.")
@@ -331,13 +350,19 @@ Some thing.''')
         formatter.toString() == toPlatformLineSeparators("thing Map<TreeFormatterTest.Thing.Nested, ? extends java.util.function.Consumer<? super T>>")
     }
 
-    def "can append method name"() {
+    def "can append methods"() {
         when:
         formatter.node("thing ")
         formatter.appendMethod(String.getMethod("length"))
+        formatter.append(" ")
+        formatter.appendMethod(String.getMethod("charAt", int.class))
+        formatter.append(" ")
+        formatter.appendMethod(String.getMethod("getBytes", String.class))
+        formatter.append(" ")
+        formatter.appendMethod(String.getMethod("getClass"))
 
         then:
-        formatter.toString() == toPlatformLineSeparators("thing String.length()")
+        formatter.toString() == toPlatformLineSeparators("thing String.length(): int String.charAt(int): char String.getBytes(String): byte[] Object.getClass(): Class<?>")
     }
 
     def "can append annoation name"() {

@@ -16,32 +16,36 @@
 
 package org.gradle.api.internal.artifacts;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.VersionConstraint;
+import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.capabilities.Capability;
+import org.gradle.api.internal.artifacts.capability.CapabilitySelectorSerializer;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector;
 
 public class ModuleComponentSelectorSerializer implements Serializer<ModuleComponentSelector> {
     private final AttributeContainerSerializer attributeContainerSerializer;
+    private final CapabilitySelectorSerializer capabilitySelectorSerializer;
 
-    public ModuleComponentSelectorSerializer(AttributeContainerSerializer attributeContainerSerializer) {
+    public ModuleComponentSelectorSerializer(
+        AttributeContainerSerializer attributeContainerSerializer,
+        CapabilitySelectorSerializer capabilitySelectorSerializer
+    ) {
         this.attributeContainerSerializer = attributeContainerSerializer;
+        this.capabilitySelectorSerializer = capabilitySelectorSerializer;
     }
 
     @Override
@@ -50,8 +54,8 @@ public class ModuleComponentSelectorSerializer implements Serializer<ModuleCompo
         String name = decoder.readString();
         VersionConstraint versionConstraint = readVersionConstraint(decoder);
         ImmutableAttributes attributes = readAttributes(decoder);
-        List<Capability> capabilities = readCapabilities(decoder);
-        return newSelector(DefaultModuleIdentifier.newId(group, name), versionConstraint, attributes, capabilities);
+        ImmutableSet<CapabilitySelector> capabilitySelectors = readCapabilitySelectors(decoder);
+        return newSelector(DefaultModuleIdentifier.newId(group, name), versionConstraint, attributes, capabilitySelectors);
     }
 
     public VersionConstraint readVersionConstraint(Decoder decoder) throws IOException {
@@ -59,7 +63,7 @@ public class ModuleComponentSelectorSerializer implements Serializer<ModuleCompo
         String preferred = decoder.readString();
         String strictly = decoder.readString();
         int cpt = decoder.readSmallInt();
-        List<String> rejects = Lists.newArrayListWithCapacity(cpt);
+        List<String> rejects = new ArrayList<>(cpt);
         for (int i = 0; i < cpt; i++) {
             rejects.add(decoder.readString());
         }
@@ -73,15 +77,15 @@ public class ModuleComponentSelectorSerializer implements Serializer<ModuleCompo
         encoder.writeString(value.getModule());
         writeVersionConstraint(encoder, value.getVersionConstraint());
         writeAttributes(encoder, ((AttributeContainerInternal)value.getAttributes()).asImmutable());
-        writeCapabilities(encoder, value.getRequestedCapabilities());
+        writeCapabilitySelectors(encoder, value.getCapabilitySelectors());
     }
 
-    public void write(Encoder encoder, String group, String module, VersionConstraint version, ImmutableAttributes attributes, Collection<Capability> capabilities) throws IOException {
+    public void write(Encoder encoder, String group, String module, VersionConstraint version, ImmutableAttributes attributes, Set<CapabilitySelector> capabilitySelectors) throws IOException {
         encoder.writeString(group);
         encoder.writeString(module);
         writeVersionConstraint(encoder, version);
         writeAttributes(encoder, attributes);
-        writeCapabilities(encoder, capabilities);
+        writeCapabilitySelectors(encoder, capabilitySelectors);
     }
 
     public void writeVersionConstraint(Encoder encoder, VersionConstraint cst) throws IOException {
@@ -104,24 +108,22 @@ public class ModuleComponentSelectorSerializer implements Serializer<ModuleCompo
         attributeContainerSerializer.write(encoder, attributes);
     }
 
-    private List<Capability> readCapabilities(Decoder decoder) throws IOException {
+    private ImmutableSet<CapabilitySelector> readCapabilitySelectors(Decoder decoder) throws IOException {
         int size = decoder.readSmallInt();
         if (size == 0) {
-            return Collections.emptyList();
+            return ImmutableSet.of();
         }
-        ImmutableList.Builder<Capability> builder = ImmutableList.builderWithExpectedSize(size);
-        for (int i=0; i<size; i++) {
-            builder.add(new DefaultImmutableCapability(decoder.readString(), decoder.readString(), decoder.readNullableString()));
+        ImmutableSet.Builder<CapabilitySelector> builder = ImmutableSet.builderWithExpectedSize(size);
+        for (int i = 0; i < size; i++) {
+            builder.add(capabilitySelectorSerializer.read(decoder));
         }
         return builder.build();
     }
 
-    private void writeCapabilities(Encoder encoder, Collection<Capability> capabilities) throws IOException {
-        encoder.writeSmallInt(capabilities.size());
-        for (Capability capability : capabilities) {
-            encoder.writeString(capability.getGroup());
-            encoder.writeString(capability.getName());
-            encoder.writeNullableString(capability.getVersion());
+    private void writeCapabilitySelectors(Encoder encoder, Set<CapabilitySelector> capabilitySelectors) throws IOException {
+        encoder.writeSmallInt(capabilitySelectors.size());
+        for (CapabilitySelector capabilitySelector : capabilitySelectors) {
+            capabilitySelectorSerializer.write(encoder, capabilitySelector);
         }
     }
 }

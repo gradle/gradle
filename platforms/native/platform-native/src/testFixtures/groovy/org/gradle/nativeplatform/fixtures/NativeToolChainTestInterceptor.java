@@ -18,7 +18,6 @@ package org.gradle.nativeplatform.fixtures;
 
 
 import com.google.common.collect.Maps;
-import org.gradle.api.specs.Spec;
 import org.gradle.integtests.fixtures.compatibility.AbstractContextualMultiVersionTestInterceptor;
 import org.gradle.util.internal.CollectionUtils;
 import org.spockframework.runtime.extension.IMethodInvocation;
@@ -56,12 +55,7 @@ public class NativeToolChainTestInterceptor extends AbstractContextualMultiVersi
     @Override
     protected Collection<AvailableToolChains.ToolChainCandidate> getAllVersions() {
         List<AvailableToolChains.ToolChainCandidate> toolChains = AvailableToolChains.getToolChains();
-        return CollectionUtils.filter(toolChains, new Spec<AvailableToolChains.ToolChainCandidate>() {
-            @Override
-            public boolean isSatisfiedBy(AvailableToolChains.ToolChainCandidate toolChain) {
-                return canUseToolChain(toolChain);
-            }
-        });
+        return CollectionUtils.filter(toolChains, this::canUseToolChain);
     }
 
     @Override

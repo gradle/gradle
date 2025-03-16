@@ -21,7 +21,7 @@ import spock.lang.Specification
 
 class GradleVersionSpecTest extends Specification {
     def "greater-than-or-equal version constraint matches all versions with specified base version and later"() {
-        def spec = GradleVersionSpec.toSpec(">=1.0")
+        def spec = new GradleVersionSpec().toSpec(">=1.0")
 
         expect:
         spec.isSatisfiedBy(GradleVersion.version("1.0"))
@@ -39,7 +39,7 @@ class GradleVersionSpecTest extends Specification {
     }
 
     def "greater-than version constraint matches all versions later than specified base version"() {
-        def spec = GradleVersionSpec.toSpec(">1.0")
+        def spec = new GradleVersionSpec().toSpec(">1.0")
 
         expect:
         !spec.isSatisfiedBy(GradleVersion.version("1.0"))
@@ -58,7 +58,7 @@ class GradleVersionSpecTest extends Specification {
     }
 
     def "less-than-or-equal version constraint matches all versions with specified base version and earlier"() {
-        def spec = GradleVersionSpec.toSpec("<=1.4")
+        def spec = new GradleVersionSpec().toSpec("<=1.4")
 
         expect:
         spec.isSatisfiedBy(GradleVersion.version("1.4"))
@@ -76,7 +76,7 @@ class GradleVersionSpecTest extends Specification {
     }
 
     def "less-than version constraint matches versions earlier than specified version"() {
-        def spec = GradleVersionSpec.toSpec("<1.4")
+        def spec = new GradleVersionSpec().toSpec("<1.4")
 
         expect:
         spec.isSatisfiedBy(GradleVersion.version("1.3"))
@@ -94,7 +94,7 @@ class GradleVersionSpecTest extends Specification {
     }
 
     def "equals version constraint matches versions with same base version"() {
-        def spec = GradleVersionSpec.toSpec("=1.4")
+        def spec = new GradleVersionSpec().toSpec("=1.4")
 
         expect:
         spec.isSatisfiedBy(GradleVersion.version("1.4"))
@@ -110,7 +110,7 @@ class GradleVersionSpecTest extends Specification {
     }
 
     def "current version constraint matches current version"() {
-        def spec = GradleVersionSpec.toSpec("current")
+        def spec = new GradleVersionSpec().toSpec("current")
 
         expect:
         spec.isSatisfiedBy(GradleVersion.current())
@@ -126,7 +126,7 @@ class GradleVersionSpecTest extends Specification {
     }
 
     def "not current version constraint matches everything other than current version"() {
-        def spec = GradleVersionSpec.toSpec("!current")
+        def spec = new GradleVersionSpec().toSpec("!current")
 
         expect:
         !spec.isSatisfiedBy(GradleVersion.current())
@@ -142,7 +142,7 @@ class GradleVersionSpecTest extends Specification {
     }
 
     def "range constraint matches all versions inside range"() {
-        def spec = GradleVersionSpec.toSpec(">=1.0 <=1.4")
+        def spec = new GradleVersionSpec().toSpec(">=1.0 <=1.4")
 
         expect:
         spec.isSatisfiedBy(GradleVersion.version("1.0"))
@@ -165,7 +165,7 @@ class GradleVersionSpecTest extends Specification {
     }
 
     def "can exclude versions"() {
-        def spec = GradleVersionSpec.toSpec("!1.1 !1.3")
+        def spec = new GradleVersionSpec().toSpec("!1.1 !1.3")
 
         expect:
         spec.isSatisfiedBy(GradleVersion.version("1.0"))
@@ -179,5 +179,35 @@ class GradleVersionSpecTest extends Specification {
 
         spec.isSatisfiedBy(GradleVersion.version("1.4"))
         spec.isSatisfiedBy(GradleVersion.version("1.4-12341010120000+1000"))
+    }
+
+    def "unsupported operator"() {
+        when:
+        new GradleVersionSpec().toSpec("-1.3")
+
+        then:
+        thrown(RuntimeException)
+    }
+
+    def "RuntimeExcpetion is thrown if a version lower than the minimal tested is specified"() {
+        given:
+        def spec = new GradleVersionSpec("3.0")
+
+        when:
+        spec.toSpec("<1.3")
+
+        then:
+        thrown(RuntimeException)
+    }
+
+    def "no RuntimeExcpetion is thrown if a version higher than the minimal tested is specified"() {
+        given:
+        def versionSpec = new GradleVersionSpec("3.0")
+
+        when:
+        def spec = versionSpec.toSpec(">=3.2")
+
+        then:
+        spec.isSatisfiedBy(GradleVersion.version("3.3"))
     }
 }

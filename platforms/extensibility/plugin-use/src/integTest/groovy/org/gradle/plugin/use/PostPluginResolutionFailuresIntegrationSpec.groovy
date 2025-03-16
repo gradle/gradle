@@ -45,7 +45,7 @@ class PostPluginResolutionFailuresIntegrationSpec extends AbstractIntegrationSpe
         pluginBuilder.addUnloadablePlugin(PLUGIN_ID)
         pluginBuilder.publishAs(GROUP, ARTIFACT, VERSION, pluginRepo, executer).allowAll()
 
-        buildScript applyPlugin()
+        buildFile applyPlugin()
 
         expect:
         fails("verify")
@@ -58,7 +58,7 @@ class PostPluginResolutionFailuresIntegrationSpec extends AbstractIntegrationSpe
         pluginBuilder.addNonConstructiblePlugin(PLUGIN_ID)
         pluginBuilder.publishAs(GROUP, ARTIFACT, VERSION, pluginRepo, executer).allowAll()
 
-        buildScript applyPlugin()
+        buildFile applyPlugin()
 
         expect:
         fails("verify")
@@ -72,7 +72,7 @@ class PostPluginResolutionFailuresIntegrationSpec extends AbstractIntegrationSpe
         pluginBuilder.addPlugin("throw new Exception('throwing plugin')", PLUGIN_ID)
         pluginBuilder.publishAs(GROUP, ARTIFACT, VERSION, pluginRepo, executer).allowAll()
 
-        buildScript applyPlugin()
+        buildFile applyPlugin()
 
         expect:
         fails("verify")

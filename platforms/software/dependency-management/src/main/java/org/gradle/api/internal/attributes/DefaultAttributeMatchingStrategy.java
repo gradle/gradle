@@ -16,30 +16,28 @@
 package org.gradle.api.internal.attributes;
 
 import org.gradle.api.attributes.AttributeMatchingStrategy;
-import org.gradle.api.attributes.CompatibilityRuleChain;
-import org.gradle.api.attributes.DisambiguationRuleChain;
 import org.gradle.internal.instantiation.InstantiatorFactory;
-import org.gradle.internal.Cast;
 import org.gradle.internal.isolation.IsolatableFactory;
 
 import java.util.Comparator;
 
 public class DefaultAttributeMatchingStrategy<T> implements AttributeMatchingStrategy<T> {
-    private final CompatibilityRuleChain<T> compatibilityRules;
-    private final DisambiguationRuleChain<T> disambiguationRules;
+    private final DefaultCompatibilityRuleChain<T> compatibilityRules;
+    private final DefaultDisambiguationRuleChain<T> disambiguationRules;
 
+    @SuppressWarnings("unchecked")
     public DefaultAttributeMatchingStrategy(InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory) {
-        compatibilityRules = Cast.uncheckedCast(instantiatorFactory.decorateLenient().newInstance(DefaultCompatibilityRuleChain.class, instantiatorFactory.inject(), isolatableFactory));
-        disambiguationRules = Cast.uncheckedCast(instantiatorFactory.decorateLenient().newInstance(DefaultDisambiguationRuleChain.class, instantiatorFactory.inject(), isolatableFactory));
+        compatibilityRules = instantiatorFactory.decorateLenient().newInstance(DefaultCompatibilityRuleChain.class, instantiatorFactory.inject(), isolatableFactory);
+        disambiguationRules = instantiatorFactory.decorateLenient().newInstance(DefaultDisambiguationRuleChain.class, instantiatorFactory.inject(), isolatableFactory);
     }
 
     @Override
-    public CompatibilityRuleChain<T> getCompatibilityRules() {
+    public DefaultCompatibilityRuleChain<T> getCompatibilityRules() {
         return compatibilityRules;
     }
 
     @Override
-    public DisambiguationRuleChain<T> getDisambiguationRules() {
+    public DefaultDisambiguationRuleChain<T> getDisambiguationRules() {
         return disambiguationRules;
     }
 

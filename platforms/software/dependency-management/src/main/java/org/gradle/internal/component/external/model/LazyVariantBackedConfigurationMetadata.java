@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
@@ -35,7 +35,7 @@ class LazyVariantBackedConfigurationMetadata extends AbstractVariantBackedConfig
 
     private List<? extends ModuleDependencyMetadata> calculatedDependencies;
 
-    LazyVariantBackedConfigurationMetadata(ModuleComponentIdentifier componentId, ComponentVariant variant, ImmutableAttributes componentLevelAttributes, ImmutableAttributesFactory attributesFactory, VariantMetadataRules variantMetadataRules) {
+    LazyVariantBackedConfigurationMetadata(ModuleComponentIdentifier componentId, ComponentVariant variant, ImmutableAttributes componentLevelAttributes, AttributesFactory attributesFactory, VariantMetadataRules variantMetadataRules) {
         super(componentId, new RuleAwareVariant(componentId, variant, attributesFactory, componentLevelAttributes, variantMetadataRules));
         this.variantMetadataRules = variantMetadataRules;
     }
@@ -55,7 +55,7 @@ class LazyVariantBackedConfigurationMetadata extends AbstractVariantBackedConfig
      */
     private static class RuleAwareVariant implements ComponentVariant {
         private final ModuleComponentIdentifier componentId;
-        private final ImmutableAttributesFactory attributesFactory;
+        private final AttributesFactory attributesFactory;
         private final ComponentVariant delegate;
         private final ImmutableAttributes componentLevelAttributes;
         private final VariantMetadataRules variantMetadataRules;
@@ -64,7 +64,7 @@ class LazyVariantBackedConfigurationMetadata extends AbstractVariantBackedConfig
         private ImmutableCapabilities computedCapabilities;
         private ImmutableList<? extends ComponentArtifactMetadata> computedArtifacts;
 
-        RuleAwareVariant(ModuleComponentIdentifier componentId, ComponentVariant delegate, ImmutableAttributesFactory attributesFactory, ImmutableAttributes componentLevelAttributes, VariantMetadataRules variantMetadataRules) {
+        RuleAwareVariant(ModuleComponentIdentifier componentId, ComponentVariant delegate, AttributesFactory attributesFactory, ImmutableAttributes componentLevelAttributes, VariantMetadataRules variantMetadataRules) {
             this.componentId = componentId;
             this.attributesFactory = attributesFactory;
             this.delegate = delegate;

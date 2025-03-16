@@ -24,7 +24,7 @@ class EnumsInManagedModelIntegrationTest extends AbstractIntegrationSpec {
 
     def "can use enums in managed model elements"() {
         when:
-        buildScript '''
+        buildFile '''
             enum Gender {
                 FEMALE, MALE, OTHER
             }

@@ -17,7 +17,7 @@ abstract public class LatestArtifactVersion extends DefaultTask {
     @TaskAction
     public void resolveLatestVersion() {
         System.out.println("Retrieving artifact " + getCoordinates().get() + " from " + getServerUrl().get());
-        // issue HTTP call and parse response
+        // Issue HTTP call and parse response
     }
 }
 // end::snippet[]

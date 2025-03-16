@@ -18,24 +18,28 @@ package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetector;
+import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
+import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
+import org.gradle.internal.service.ServiceRegistrationProvider;
+import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.gradle.process.internal.worker.child.WorkerDirectoryProvider;
 import org.gradle.workers.internal.ActionExecutionSpecFactory;
 import org.gradle.workers.internal.IsolatedClassloaderWorkerFactory;
 import org.gradle.workers.internal.WorkerDaemonFactory;
 
-public class GroovyServices extends AbstractPluginServiceRegistry {
+public class GroovyServices extends AbstractGradleModuleServices {
     @Override
     public void registerProjectServices(ServiceRegistration registration) {
         registration.addProvider(new ProjectServices());
     }
 
-    private static class ProjectServices {
+    private static class ProjectServices implements ServiceRegistrationProvider {
+        @Provides
         public GroovyCompilerFactory createGroovyCompilerFactory(
             WorkerDaemonFactory workerDaemonFactory,
             IsolatedClassloaderWorkerFactory inProcessWorkerFactory,
@@ -46,7 +50,8 @@ public class GroovyServices extends AbstractPluginServiceRegistry {
             ClassPathRegistry classPathRegistry,
             ClassLoaderRegistry classLoaderRegistry,
             ActionExecutionSpecFactory actionExecutionSpecFactory,
-            ProjectCacheDir projectCacheDir
+            ProjectCacheDir projectCacheDir,
+            InternalProblems problems
         ) {
             return new GroovyCompilerFactory(
                 workerDaemonFactory,
@@ -58,7 +63,8 @@ public class GroovyServices extends AbstractPluginServiceRegistry {
                 classPathRegistry,
                 classLoaderRegistry,
                 actionExecutionSpecFactory,
-                projectCacheDir
+                projectCacheDir,
+                problems
             );
         }
     }

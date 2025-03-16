@@ -17,10 +17,10 @@
 package org.gradle.internal.operations
 
 import org.gradle.api.GradleException
-import org.gradle.internal.concurrent.DefaultParallelismConfiguration
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.resources.ResourceLockCoordinationService
 import org.gradle.internal.work.DefaultWorkerLeaseService
+import org.gradle.internal.work.DefaultWorkerLimits
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.internal.work.WorkerLeaseService
 import spock.lang.Specification
@@ -69,7 +69,7 @@ class DefaultBuildOperationQueueTest extends Specification {
 
     void setupQueue(int threads) {
         coordinationService = new DefaultResourceLockCoordinationService()
-        workerRegistry = new DefaultWorkerLeaseService(coordinationService, new DefaultParallelismConfiguration(true, threads)) {}
+        workerRegistry = new DefaultWorkerLeaseService(coordinationService, new DefaultWorkerLimits(threads)) {}
         workerRegistry.startProjectExecution(true)
         lease = workerRegistry.startWorker()
         operationQueue = new DefaultBuildOperationQueue(false, workerRegistry, Executors.newFixedThreadPool(threads), new SimpleWorker())

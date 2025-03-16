@@ -19,8 +19,7 @@ package org.gradle.internal.snapshot.impl;
 import org.gradle.api.Named;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.Cast;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class CoercingStringValueSnapshot extends StringValueSnapshot {
     private final NamedObjectInstantiator instantiator;

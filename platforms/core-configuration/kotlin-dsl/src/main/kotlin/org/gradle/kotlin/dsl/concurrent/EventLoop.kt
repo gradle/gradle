@@ -27,7 +27,7 @@ class EventLoop<T>(
 ) {
 
     fun accept(event: T): Boolean {
-        if (q.offer(event, offerTimeoutMillis, TimeUnit.MILLISECONDS)) {
+        if (q.offer(event, OFFER_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)) {
             consumer.poke()
             return true
         }
@@ -43,13 +43,13 @@ class EventLoop<T>(
     }
 
     private
-    fun poll(): T? = q.poll(pollTimeoutMillis, TimeUnit.MILLISECONDS)
+    fun poll(): T? = q.poll(POLL_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)
 }
 
 
 private
-const val offerTimeoutMillis = 50L
+const val OFFER_TIMEOUT_MILLIS = 50L
 
 
 internal
-const val pollTimeoutMillis = 5_000L
+const val POLL_TIMEOUT_MILLIS = 5_000L

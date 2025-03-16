@@ -29,15 +29,13 @@ import java.util.function.Supplier;
 /**
  * Deletes any cache entries not accessed within the specified number of days.
  */
-public class LeastRecentlyUsedCacheCleanup extends AbstractCacheCleanup {
+public class LeastRecentlyUsedCacheCleanup extends AbstractTimeJournalAwareCacheCleanup {
     private static final Logger LOGGER = LoggerFactory.getLogger(LeastRecentlyUsedCacheCleanup.class);
 
-    private final FileAccessTimeJournal journal;
     private final Supplier<Long> removeUnusedEntriesOlderThan;
 
     public LeastRecentlyUsedCacheCleanup(FilesFinder eligibleFilesFinder, FileAccessTimeJournal journal, Supplier<Long> removeUnusedEntriesOlderThan) {
-        super(eligibleFilesFinder);
-        this.journal = journal;
+        super(eligibleFilesFinder, journal);
         this.removeUnusedEntriesOlderThan = removeUnusedEntriesOlderThan;
     }
 
@@ -50,10 +48,5 @@ public class LeastRecentlyUsedCacheCleanup extends AbstractCacheCleanup {
     @Override
     protected boolean shouldDelete(File file) {
         return journal.getLastAccessTime(file) < removeUnusedEntriesOlderThan.get();
-    }
-
-    @Override
-    protected void handleDeletion(File file) {
-        journal.deleteLastAccessTime(file);
     }
 }

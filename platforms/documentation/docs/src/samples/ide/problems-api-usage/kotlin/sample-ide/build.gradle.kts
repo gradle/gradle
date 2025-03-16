@@ -17,13 +17,14 @@ application {
 
 dependencies {
     implementation("reporters:model-builder-plugin")
-    implementation("org.gradle:gradle-tooling-api:8.6-milestone-1")
+    implementation("org.gradle:gradle-tooling-api:8.13")
 }
 
 tasks.run.configure {
     args = listOf(
         project.gradle.rootBuild().rootProject.projectDir.absolutePath, // The path of the project (this project's root)
-        ":sample-project:assemble"  // The executed task
+        ":sample-project:assemble",  // The executed task
+        ":sample-project:myFailingTask"  // The executed failing task
     )
 }
 

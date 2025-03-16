@@ -17,9 +17,9 @@ package org.gradle.api.file;
 
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
-import org.gradle.api.Incubating;
 import org.gradle.api.NonExtensible;
 import org.gradle.internal.HasInternalProtocol;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeMigratedToLazy;
 
 /**
  * <p>Provides details about a file or directory about to be copied, and allows some aspects of the destination file to
@@ -32,8 +32,9 @@ import org.gradle.internal.HasInternalProtocol;
  * </p>
  *
  */
-@HasInternalProtocol
 @NonExtensible
+@HasInternalProtocol
+@NotToBeMigratedToLazy
 public interface FileCopyDetails extends FileTreeElement, ContentFilterable, Describable {
     /**
      * Excludes this file from the copy.
@@ -66,8 +67,9 @@ public interface FileCopyDetails extends FileTreeElement, ContentFilterable, Des
      *
      * @param mode the Unix permissions, e.g. {@code 0644}.
      *
-     * @apiNote Consider using {@link #permissions(Action)} instead.
+     * @deprecated Use {@link #permissions(Action)} instead. This method is scheduled for removal in Gradle 9.0.
      */
+    @Deprecated
     void setMode(int mode);
 
     /**
@@ -76,7 +78,6 @@ public interface FileCopyDetails extends FileTreeElement, ContentFilterable, Des
      *
      * @since 8.3
      */
-    @Incubating
     void permissions(Action<? super ConfigurableFilePermissions> configureAction);
 
     /**
@@ -86,7 +87,6 @@ public interface FileCopyDetails extends FileTreeElement, ContentFilterable, Des
      *
      * @since 8.3
      */
-    @Incubating
     void setPermissions(FilePermissions permissions);
 
     /**

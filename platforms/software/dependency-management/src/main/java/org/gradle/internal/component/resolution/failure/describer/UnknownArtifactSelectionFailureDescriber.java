@@ -16,30 +16,33 @@
 
 package org.gradle.internal.component.resolution.failure.describer;
 
-import org.gradle.internal.component.ArtifactVariantSelectionException;
+import org.gradle.internal.component.resolution.failure.exception.ArtifactSelectionException;
 import org.gradle.internal.component.resolution.failure.type.UnknownArtifactSelectionFailure;
+
+import java.util.List;
 
 /**
  * A {@link ResolutionFailureDescriber} that describes an {@link UnknownArtifactSelectionFailure}.
  *
- * This type also will wrap an existing exception of unknown type into an {@link ArtifactVariantSelectionException}.  If a
- * {@link ArtifactVariantSelectionException} is already the cause of the failure, it will be returned directly, with resolution
+ * This type also will wrap an existing exception of unknown type into an {@link ArtifactSelectionException}.  If a
+ * {@link ArtifactSelectionException} is already the cause of the failure, it will be returned directly, with resolution
  * information added as necessary.
  */
-public abstract class UnknownArtifactSelectionFailureDescriber extends AbstractResolutionFailureDescriber<ArtifactVariantSelectionException, UnknownArtifactSelectionFailure> {
+public abstract class UnknownArtifactSelectionFailureDescriber extends AbstractResolutionFailureDescriber<UnknownArtifactSelectionFailure> {
     @Override
-    public ArtifactVariantSelectionException describeFailure(UnknownArtifactSelectionFailure failure) {
-        final ArtifactVariantSelectionException result;
-        if (failure.getCause() instanceof ArtifactVariantSelectionException) {
-            result = (ArtifactVariantSelectionException) failure.getCause();
+    public ArtifactSelectionException describeFailure(UnknownArtifactSelectionFailure failure) {
+        final ArtifactSelectionException result;
+        if (failure.getCause() instanceof ArtifactSelectionException) {
+            result = (ArtifactSelectionException) failure.getCause();
         } else {
-            result = new ArtifactVariantSelectionException(buildUnknownArtifactVariantFailureMsg(failure), failure.getCause());
+            String message = buildFailureMsg(failure);
+            List<String> resolutions = buildResolutions(suggestReviewAlgorithm());
+            result = new ArtifactSelectionException(message, failure, resolutions, failure.getCause());
         }
-        suggestReviewAlgorithm(result);
         return result;
     }
 
-    private String buildUnknownArtifactVariantFailureMsg(UnknownArtifactSelectionFailure failure) {
-        return String.format("Could not select a variant of %s that matches the consumer attributes.", failure.getRequestedName());
+    private String buildFailureMsg(UnknownArtifactSelectionFailure failure) {
+        return String.format("Could not select a variant of %s that matches the consumer attributes.", failure.describeRequestTarget());
     }
 }

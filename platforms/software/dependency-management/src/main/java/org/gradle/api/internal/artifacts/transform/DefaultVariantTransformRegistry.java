@@ -16,148 +16,138 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.artifacts.transform.TransformSpec;
-import org.gradle.api.artifacts.transform.VariantTransformConfigurationException;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.TransformRegistration;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolated.IsolationScheme;
 import org.gradle.internal.logging.text.TreeFormatter;
-import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.ServiceLookup;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.List;
+import javax.inject.Inject;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 public class DefaultVariantTransformRegistry implements VariantTransformRegistry {
-    private final List<TransformRegistration> registrations = new ArrayList<>();
-    private final ImmutableAttributesFactory immutableAttributesFactory;
-    private final ServiceRegistry services;
+    private final Set<TransformRegistration> registeredTransforms = new LinkedHashSet<>();
+
+    private final AttributesFactory attributesFactory;
+    private final ServiceLookup services;
     private final InstantiatorFactory instantiatorFactory;
     private final InstantiationScheme parametersInstantiationScheme;
     private final TransformRegistrationFactory registrationFactory;
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     private final IsolationScheme<TransformAction<?>, TransformParameters> isolationScheme = new IsolationScheme<TransformAction<?>, TransformParameters>((Class)TransformAction.class, TransformParameters.class, TransformParameters.None.class);
+    private final DocumentationRegistry documentationRegistry;
 
-    public DefaultVariantTransformRegistry(InstantiatorFactory instantiatorFactory, ImmutableAttributesFactory immutableAttributesFactory, ServiceRegistry services, TransformRegistrationFactory registrationFactory, InstantiationScheme parametersInstantiationScheme) {
+    public DefaultVariantTransformRegistry(
+        InstantiatorFactory instantiatorFactory,
+        AttributesFactory attributesFactory,
+        ServiceLookup services,
+        TransformRegistrationFactory registrationFactory,
+        InstantiationScheme parametersInstantiationScheme,
+        DocumentationRegistry documentationRegistry
+    ) {
         this.instantiatorFactory = instantiatorFactory;
-        this.immutableAttributesFactory = immutableAttributesFactory;
+        this.attributesFactory = attributesFactory;
         this.services = services;
         this.registrationFactory = registrationFactory;
         this.parametersInstantiationScheme = parametersInstantiationScheme;
+        this.documentationRegistry = documentationRegistry;
     }
 
     @Override
     public <T extends TransformParameters> void registerTransform(Class<? extends TransformAction<T>> actionType, Action<? super TransformSpec<T>> registrationAction) {
+        doRegisterTransform(actionType, registrationAction);
+    }
+
+    @Override
+    public Set<TransformRegistration> getRegistrations() {
+        return ImmutableSet.copyOf(registeredTransforms);
+    }
+
+    private <T extends TransformParameters> void doRegisterTransform(Class<? extends TransformAction<T>> actionType, Action<? super TransformSpec<T>> registrationAction) {
+        validateActionType((Class<? extends TransformAction<?>>) actionType);
+
         TypedRegistration<T> registration = null;
         try {
             Class<T> parameterType = isolationScheme.parameterTypeFor(actionType);
             T parameterObject = parameterType == null ? null : parametersInstantiationScheme.withServices(services).instantiator().newInstance(parameterType);
-            registration = Cast.uncheckedNonnullCast(instantiatorFactory.decorateLenient().newInstance(TypedRegistration.class, parameterObject, immutableAttributesFactory));
+            registration = Cast.uncheckedNonnullCast(instantiatorFactory.decorateLenient(services).newInstance(TypedRegistration.class, parameterObject, attributesFactory));
             registrationAction.execute(registration);
-            register(registration, actionType, parameterObject);
-        } catch (VariantTransformConfigurationException e) {
-            throw e;
-        } catch (Exception e) {
-            TreeFormatter formatter = new TreeFormatter();
-            formatter.node("Could not register artifact transform ");
-            formatter.appendType(actionType);
-            if (registration != null && !(registration.from.isEmpty() && registration.to.isEmpty())) {
-                formatter.append(" (");
-                if (!registration.from.isEmpty()) {
-                    formatter.append("from ");
-                    formatter.appendValue(registration.from);
-                }
-                if (!registration.to.isEmpty()) {
-                    if (!registration.from.isEmpty()) {
-                        formatter.append(" ");
-                    }
-                    formatter.append("to ");
-                    formatter.appendValue(registration.to);
-                }
-                formatter.append(")");
-            }
-            formatter.append(".");
-            throw new VariantTransformConfigurationException(formatter.toString(), e);
-        }
-    }
+            registration.validateAttributes();
 
-    private <T extends TransformParameters> void register(RecordingRegistration registration, Class<? extends TransformAction<?>> actionType, @Nullable T parameterObject) {
-        validateActionType(actionType);
-        try {
-            validateAttributes(registration);
             TransformRegistration finalizedRegistration = registrationFactory.create(registration.from.asImmutable(), registration.to.asImmutable(), actionType, parameterObject);
-            registrations.add(finalizedRegistration);
+            registeredTransforms.add(finalizedRegistration);
         } catch (Exception e) {
-            TreeFormatter formatter = new TreeFormatter();
-            formatter.node("Could not register artifact transform ");
-            formatter.appendType(actionType);
-            formatter.append(" (from ");
-            formatter.appendValue(registration.from);
-            formatter.append(" to ");
-            formatter.appendValue(registration.to);
-            formatter.append(").");
-            throw new VariantTransformConfigurationException(formatter.toString(), e);
+            throw new VariantTransformConfigurationException(buildFailureToRegisterMsg(registration, actionType), e, documentationRegistry);
         }
     }
 
-    private static <T> void validateActionType(@Nullable Class<T> actionType) {
+    private String buildFailureToRegisterMsg(@Nullable TypedRegistration<?> registration, Class<? extends TransformAction<?>> actionType) {
+        TreeFormatter formatter = new TreeFormatter();
+        formatter.node("Could not register artifact transform ");
+        formatter.appendType(actionType);
+        if (registration != null && !(registration.from.isEmpty() && registration.to.isEmpty())) {
+            formatter.append(" (");
+            if (!registration.from.isEmpty()) {
+                formatter.append("from ");
+                formatter.appendValue(registration.from);
+            }
+            if (!registration.to.isEmpty()) {
+                if (!registration.from.isEmpty()) {
+                    formatter.append(" ");
+                }
+                formatter.append("to ");
+                formatter.appendValue(registration.to);
+            }
+            formatter.append(")");
+        }
+        formatter.append(".");
+        return formatter.toString();
+    }
+
+    private <T> void validateActionType(@Nullable Class<T> actionType) {
         if (actionType == null) {
             throw new IllegalArgumentException("An artifact transform action type must be provided.");
         }
     }
 
-    private static void validateAttributes(RecordingRegistration registration) {
-        if (registration.to.isEmpty()) {
-            throw new IllegalArgumentException("At least one 'to' attribute must be provided.");
-        }
-        if (registration.from.isEmpty()) {
-            throw new IllegalArgumentException("At least one 'from' attribute must be provided.");
-        }
-        if (!registration.from.keySet().containsAll(registration.to.keySet())) {
-            throw new IllegalArgumentException("Each 'to' attribute must be included as a 'from' attribute.");
-        }
-    }
+    @NonExtensible
+    public static abstract class TypedRegistration<T extends TransformParameters> implements TransformSpec<T> {
+        private final AttributeContainerInternal from;
+        private final AttributeContainerInternal to;
+        private final T parameterObject;
 
-    @Override
-    public List<TransformRegistration> getRegistrations() {
-        return registrations;
-    }
+        @Inject
+        protected abstract DocumentationRegistry getDocumentationRegistry();
 
-    public static abstract class RecordingRegistration {
-        final AttributeContainerInternal from;
-        final AttributeContainerInternal to;
-
-        public RecordingRegistration(ImmutableAttributesFactory immutableAttributesFactory) {
-            from = immutableAttributesFactory.mutable();
-            to = immutableAttributesFactory.mutable();
+        public TypedRegistration(@Nullable T parameterObject, AttributesFactory attributesFactory) {
+            this.parameterObject = parameterObject;
+            this.from = attributesFactory.mutable();
+            this.to = attributesFactory.mutable();
         }
 
+        @Override
         public AttributeContainer getFrom() {
             return from;
         }
 
+        @Override
         public AttributeContainer getTo() {
             return to;
-        }
-    }
-
-    @NonExtensible
-    public static class TypedRegistration<T extends TransformParameters> extends RecordingRegistration implements TransformSpec<T> {
-        private final T parameterObject;
-
-        public TypedRegistration(@Nullable T parameterObject, ImmutableAttributesFactory immutableAttributesFactory) {
-            super(immutableAttributesFactory);
-            this.parameterObject = parameterObject;
         }
 
         @Override
@@ -174,6 +164,18 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
                 throw new IllegalStateException("Cannot configure parameters for artifact transform without parameters.");
             }
             action.execute(parameterObject);
+        }
+
+        public void validateAttributes() {
+            if (to.isEmpty()) {
+                throw new VariantTransformConfigurationException("At least one 'to' attribute must be provided.", getDocumentationRegistry());
+            }
+            if (from.isEmpty()) {
+                throw new VariantTransformConfigurationException("At least one 'from' attribute must be provided.", getDocumentationRegistry());
+            }
+            if (!from.keySet().containsAll(to.keySet())) {
+                throw new VariantTransformConfigurationException("Each 'to' attribute must be included as a 'from' attribute.", getDocumentationRegistry());
+            }
         }
     }
 }

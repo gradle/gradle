@@ -21,6 +21,8 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.internal.CollectionUtils;
 
 import java.lang.management.ManagementFactory;
@@ -28,6 +30,7 @@ import java.lang.management.MemoryManagerMXBean;
 import java.lang.management.MemoryPoolMXBean;
 import java.util.List;
 
+@ServiceScope(Scope.Global.class)
 public class GarbageCollectorMonitoringStrategy {
 
     public static final GarbageCollectorMonitoringStrategy ORACLE_PARALLEL_CMS =

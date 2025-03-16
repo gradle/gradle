@@ -22,8 +22,11 @@ import org.gradle.execution.WorkValidationWarningReporter;
 import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.time.Clock;
 
+@ServiceScope({Scope.Global.class, Scope.BuildTree.class})
 public class BuildLoggerFactory {
     private final StyledTextOutputFactory styledTextOutputFactory;
     private final WorkValidationWarningReporter workValidationWarningReporter;

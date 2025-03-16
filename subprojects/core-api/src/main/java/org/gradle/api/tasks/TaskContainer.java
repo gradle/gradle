@@ -25,8 +25,8 @@ import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.HasInternalProtocol;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 
 /**
@@ -64,31 +64,32 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * to control how the task is created. The following options are available:</p>
      *
      * <table>
+     * <caption>Permitted map keys</caption>
      *
      * <tr><th>Option</th><th>Description</th><th>Default Value</th></tr>
      *
-     * <tr><td><code>{@value org.gradle.api.Task#TASK_NAME}</code></td><td>The name of the task to create.</td><td>None.
+     * <tr><td><code>{@value Task#TASK_NAME}</code></td><td>The name of the task to create.</td><td>None.
      * Must be specified.</td></tr>
      *
-     * <tr><td><code>{@value org.gradle.api.Task#TASK_TYPE}</code></td><td>The class of the task to
+     * <tr><td><code>{@value Task#TASK_TYPE}</code></td><td>The class of the task to
      * create.</td><td>{@link org.gradle.api.DefaultTask}</td></tr>
      *
-     * <tr><td><code>{@value org.gradle.api.Task#TASK_ACTION}</code></td><td>The closure or {@link Action} to
+     * <tr><td><code>{@value Task#TASK_ACTION}</code></td><td>The closure or {@link Action} to
      * execute when the task executes. See {@link Task#doFirst(Action)}.</td><td><code>null</code></td></tr>
      *
-     * <tr><td><code>{@value org.gradle.api.Task#TASK_OVERWRITE}</code></td><td>Replace an existing
+     * <tr><td><code>{@value Task#TASK_OVERWRITE}</code></td><td>Replace an existing
      * task?</td><td><code>false</code></td></tr>
      *
-     * <tr><td><code>{@value org.gradle.api.Task#TASK_DEPENDS_ON}</code></td><td>The dependencies of the task. See <a
+     * <tr><td><code>{@value Task#TASK_DEPENDS_ON}</code></td><td>The dependencies of the task. See <a
      * href="../Task.html#dependencies">here</a> for more details.</td><td><code>[]</code></td></tr>
      *
-     * <tr><td><code>{@value org.gradle.api.Task#TASK_GROUP}</code></td><td>The group of the task.</td><td><code>null
+     * <tr><td><code>{@value Task#TASK_GROUP}</code></td><td>The group of the task.</td><td><code>null
      * </code></td></tr>
      *
-     * <tr><td><code>{@value org.gradle.api.Task#TASK_DESCRIPTION}</code></td><td>The description of the task.</td><td>
+     * <tr><td><code>{@value Task#TASK_DESCRIPTION}</code></td><td>The description of the task.</td><td>
      * <code>null</code></td></tr>
      *
-     * <tr><td><code>{@value org.gradle.api.Task#TASK_CONSTRUCTOR_ARGS}</code></td><td>The arguments to pass to the task class constructor.</td><td>
+     * <tr><td><code>{@value Task#TASK_CONSTRUCTOR_ARGS}</code></td><td>The arguments to pass to the task class constructor.</td><td>
      * <code>null</code></td></tr>
      *
      * </table>
@@ -96,15 +97,18 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * <p>After the task is added, it is made available as a property of the project, so that you can reference the task
      * by name in your build file.</p>
      *
-     * <p>If a task with the given name already exists in this container and the <code>{@value org.gradle.api.Task#TASK_OVERWRITE}</code>
+     * <p>If a task with the given name already exists in this container and the <code>{@value Task#TASK_OVERWRITE}</code>
      * option is not set to true, an exception is thrown.</p>
      *
      * @param options The task creation options.
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
-     * @throws NullPointerException If any of the values in <code>{@value org.gradle.api.Task#TASK_CONSTRUCTOR_ARGS}</code> is null.
+     * @throws NullPointerException If any of the values in <code>{@value Task#TASK_CONSTRUCTOR_ARGS}</code> is null.
      * @see Project#getProperties()  More information about how tasks are exposed by name in build scripts
+     *
+     * @deprecated Use {@link #register(String, Action)} or {@link #register(String, Class, Action)} instead. See <a href="https://docs.gradle.org/current/userguide/task_configuration_avoidance.html">documentation</a> for more information.
      */
+    @Deprecated
     Task create(Map<String, ?> options) throws InvalidUserDataException;
 
     /**
@@ -120,7 +124,10 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
      * @see Project#getProperties()  More information about how tasks are exposed by name in build scripts
+     *
+     * @deprecated Use {@link #register(String, Action)} instead. See <a href="https://docs.gradle.org/current/userguide/task_configuration_avoidance.html">documentation</a> for more information.
      */
+    @Deprecated
     Task create(Map<String, ?> options, Closure configureClosure) throws InvalidUserDataException;
 
     /**
@@ -135,7 +142,10 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
      * @see Project#getProperties()  More information about how tasks are exposed by name in build scripts
+     *
+     * @deprecated Use {@link #register(String, Action)} instead. See <a href="https://docs.gradle.org/current/userguide/task_configuration_avoidance.html">documentation</a> for more information.
      */
+    @Deprecated
     @Override
     Task create(String name, Closure configureClosure) throws InvalidUserDataException;
 
@@ -149,7 +159,10 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
      * @see Project#getProperties()  More information about how tasks are exposed by name in build scripts
+     *
+     * @deprecated Use {@link #register(String)} instead. See <a href="https://docs.gradle.org/current/userguide/task_configuration_avoidance.html">documentation</a> for more information.
      */
+    @Deprecated
     @Override
     Task create(String name) throws InvalidUserDataException;
 
@@ -164,7 +177,10 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
      * @see Project#getProperties()  More information about how tasks are exposed by name in build scripts
+     *
+     * @deprecated Use {@link #register(String, Class)} instead. See <a href="https://docs.gradle.org/current/userguide/task_configuration_avoidance.html">documentation</a> for more information.
      */
+    @Deprecated
     @Override
     <T extends Task> T create(String name, Class<T> type) throws InvalidUserDataException;
 
@@ -184,7 +200,10 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @throws NullPointerException If any of the values in {@code constructorArgs} is null.
      * @see Project#getProperties()  More information about how tasks are exposed by name in build scripts
      * @since 4.7
+     *
+     * @deprecated Use {@link #register(String, Class, Object...)} instead. See <a href="https://docs.gradle.org/current/userguide/task_configuration_avoidance.html">documentation</a> for more information.
      */
+    @Deprecated
     <T extends Task> T create(String name, Class<T> type, Object... constructorArgs) throws InvalidUserDataException;
 
     /**
@@ -199,9 +218,30 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @return The newly created task object.
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
      * @see Project#getProperties()  More information about how tasks are exposed by name in build scripts
+     *
+     * @deprecated Use {@link #register(String, Class, Action)} instead. See <a href="https://docs.gradle.org/current/userguide/task_configuration_avoidance.html">documentation</a> for more information.
      */
+    @Deprecated
     @Override
     <T extends Task> T create(String name, Class<T> type, Action<? super T> configuration) throws InvalidUserDataException;
+
+    /**
+     * <p>Creates a {@link Task} with the given name and of type {@link org.gradle.api.DefaultTask}, configures it with the given action, and adds it to this container.</p>
+     *
+     * <p>After the task is added, it is made available as a property of the project, so that you can reference the task
+     * by name in your build file.</p>
+     *
+     * @param name The name of the task to be created.
+     * @param configuration The action to configure the task with.
+     * @return The newly created task object.
+     * @throws InvalidUserDataException If a task with the given name already exists in this project.
+     * @see Project#getProperties()  More information about how tasks are exposed by name in build scripts
+     *
+     * @deprecated Use {@link #register(String, Action)} instead. See <a href="https://docs.gradle.org/current/userguide/task_configuration_avoidance.html">documentation</a> for more information.
+     */
+    @Deprecated
+    @Override
+    Task create(String name, Action<? super Task> configuration) throws InvalidUserDataException;
 
     /**
      * Defines a new task, which will be created and configured when it is required. A task is 'required' when the task is located using query methods such as {@link TaskCollection#getByName(java.lang.String)}, when the task is added to the task graph for execution or when {@link Provider#get()} is called on the return value of this method.

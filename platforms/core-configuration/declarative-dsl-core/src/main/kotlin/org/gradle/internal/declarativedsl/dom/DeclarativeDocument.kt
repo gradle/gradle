@@ -20,39 +20,55 @@ import org.gradle.internal.declarativedsl.language.SourceData
 import org.gradle.internal.declarativedsl.language.SourceIdentifier
 
 
-interface DeclarativeDocument {
-    val content: Collection<DocumentNode>
+interface DeclarativeDocument : DocumentNodeContainer {
+    override val content: List<DocumentNode>
+
+    val sourceData: SourceData
     val sourceIdentifier: SourceIdentifier
+        get() = sourceData.sourceIdentifier
 
-    sealed interface DocumentNode {
+    sealed interface Node {
         val sourceData: SourceData
+    }
 
-        sealed interface PropertyNode : DocumentNode {
+    sealed interface DocumentNode : Node {
+        override val sourceData: SourceData
+
+        interface PropertyNode : DocumentNode {
             val name: String
             val value: ValueNode
         }
 
-        sealed interface ElementNode : DocumentNode {
+        interface ElementNode : DocumentNode, DocumentNodeContainer {
             val name: String
-            val elementValues: Collection<ValueNode>
-            val content: Collection<DocumentNode>
+            val elementValues: List<ValueNode>
+            override val content: List<DocumentNode>
         }
 
-        sealed interface ErrorNode : DocumentNode {
+        interface ErrorNode : DocumentNode {
             val errors: Collection<DocumentError>
         }
     }
 
-    sealed interface ValueNode {
-        val sourceData: SourceData
+    sealed interface ValueNode : Node {
+        override val sourceData: SourceData
 
-        sealed interface LiteralValueNode : ValueNode {
+        interface LiteralValueNode : ValueNode {
             val value: Any
         }
 
-        sealed interface ValueFactoryNode : ValueNode {
+        interface NamedReferenceNode : ValueNode {
+            val referenceName: String
+        }
+
+        interface ValueFactoryNode : ValueNode {
             val factoryName: String
             val values: List<ValueNode> // TODO: restrict to a single value? or even a single literal?
         }
     }
+}
+
+
+interface DocumentNodeContainer {
+    val content: List<DeclarativeDocument.DocumentNode>
 }

@@ -22,8 +22,8 @@ import org.gradle.tooling.provider.model.UnknownModelException;
 import org.gradle.tooling.provider.model.internal.ToolingModelBuilderLookup;
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier;
 import org.gradle.tooling.provider.model.internal.ToolingModelScope;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Objects;
 
 public class DefaultBuildToolingModelController implements BuildToolingModelController {
@@ -113,7 +113,11 @@ public class DefaultBuildToolingModelController implements BuildToolingModelCont
         private final String modelName;
         private final boolean parameter;
 
-        public ProjectToolingScope(ProjectState target, String modelName, boolean parameter) {
+        public ProjectToolingScope(
+            ProjectState target,
+            String modelName,
+            boolean parameter
+        ) {
             this.target = target;
             this.modelName = modelName;
             this.parameter = parameter;

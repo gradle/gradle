@@ -17,8 +17,8 @@
 package org.gradle.internal.configuration.inputs;
 
 import com.google.common.primitives.Primitives;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -39,6 +39,8 @@ import java.util.function.Function;
 /**
  * A wrapper for {@link Properties} that notifies a listener about accesses.
  */
+@SuppressWarnings("UnsynchronizedOverridesSynchronized")
+// TODO(mlopatkin) we need a better synchronization guarantees here. Just sprinkling synchronized won't help.
 public class AccessTrackingProperties extends Properties {
     /**
      * A listener that is notified about reads and modifications of the Properties instance.
@@ -334,7 +336,7 @@ public class AccessTrackingProperties extends Properties {
 
     @Override
     public boolean contains(Object value) {
-        return delegate.contains(value);
+        return delegate.containsValue(value);
     }
 
     @Override

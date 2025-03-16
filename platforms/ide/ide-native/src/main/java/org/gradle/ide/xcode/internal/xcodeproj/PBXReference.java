@@ -20,8 +20,7 @@ import com.google.common.base.CharMatcher;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import org.gradle.api.Named;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Superclass for file, directories, and groups. Xcode's virtual file hierarchy are made of these

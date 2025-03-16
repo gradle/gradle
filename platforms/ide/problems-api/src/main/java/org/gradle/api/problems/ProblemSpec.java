@@ -16,75 +16,25 @@
 
 package org.gradle.api.problems;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 
 /**
  * Provides options to configure problems.
- * <p>
  *
  * @see ProblemReporter
  * @since 8.6
  */
 @Incubating
 public interface ProblemSpec {
-
     /**
-     * Declares a short message for this problem.
-     * <p>
-     * The label is the main, human-readable representation of the problem.
-     * It is a mandatory property to configure when emitting a problem with {@link ProblemReporter}.
+     * Declares a short, but context-dependent message for this problem.
      *
-     * @param label the short message
+     * @param contextualLabel the short message
      * @return this
-     * @since 8.6
+     * @since 8.8
      */
-    ProblemSpec label(String label);
-
-    /**
-     * A category groups related problems together.
-     * <p>
-     * Category is a mandatory property to configure when emitting a problem with {@link ProblemReporter}.
-     * <p>
-     * A category defines the following hierarchical elements to distinguish instances:
-     * <ul>
-     *     <li>namespace</li>
-     *     <li>category</li>
-     *     <li>subcategories</li>
-     * </ul>
-     * <p>
-     * The namespace provides separation for identical problems emitted from different components.
-     * Problems emitted from Gradle core will use the {@code org.gradle} namespace.
-     * Third party plugins are expected to use their plugin id for namespace.
-     * Problems emitted from build scripts should use the {@code buildscript} namespace.
-     * The namespace is bound to {@link ProblemReporter}, hence it is absent from the argument list.
-     * <p>
-     * A category should contain the most broad term describing the problem.
-     * A few examples are: {@code compilation}, {@code deprecation}, {@code task-validation}.
-     * <p>
-     * The problem category can be refined with an optional hierarchy of subcategories.
-     * For example, a problem covering a java compilation warning can be denoted with the following subcategories: {@code [java, unused-variable]}.
-     * <p>
-     * The categorization depends on the domain and don't have any constraints. Clients (i.e. IDEs) receiving problems should use the category information for
-     * properly group and sort the received instances.
-     * However, we recommend to use the same conventions as the problems emitted from Gradle core use.
-     * <ul>
-     *     <li>Entries should be all-lowercase using a dash for separator (i.e. kebab-case)</li>
-     *     <li>Should be strictly hierarchical: the category declares the domain and subcategories provide further refinement</li>
-     * </ul>
-     * A few examples with a path-like notation (i.e. {@code category:subcategory1:subcategory2}).
-     * <ul>
-     *     <li>compilation:groovy-dsl</li>
-     *     <li>compilation:java:unused-import</li>
-     *     <li>deprecation:user-code-direct</li>
-     *     <li>task-selection:no-matches</li>
-     * </ul>
-     *
-     * @param category the type name
-     * @param subcategories the type subcategories
-     * @return this
-     * @since 8.6
-     */
-    ProblemSpec category(String category, String... subcategories);
+    ProblemSpec contextualLabel(String contextualLabel);
 
     /**
      * Declares where this problem is documented.
@@ -115,7 +65,6 @@ public interface ProblemSpec {
 
     /**
      * Declares that this problem is in a file with on a line at a certain position.
-     * <p>
      *
      * @param path the file location
      * @param line the one-indexed line number
@@ -149,16 +98,7 @@ public interface ProblemSpec {
     ProblemSpec offsetInFileLocation(String path, int offset, int length);
 
     /**
-     * Declares that this problem is emitted while applying a plugin.
-     *
-     * @param pluginId the ID of the applied plugin
-     * @return this
-     * @since 8.6
-     */
-    ProblemSpec pluginLocation(String pluginId);
-
-    /**
-     * Declares that this problem should automatically collect the location information based on the current stack trace.
+     * Declares that this problem is at the same place where it's reported. The stack trace will be used to determine the location.
      *
      * @return this
      * @since 8.6
@@ -166,7 +106,10 @@ public interface ProblemSpec {
     ProblemSpec stackLocation();
 
     /**
-     * The long description of this problem.
+      Declares a long description detailing the problem.
+     * <p>
+     * Details can elaborate on the problem, and provide more information about the problem.
+     * They can be multiple lines long, but should not detail solutions; for that, use {@link #solution(String)}.
      *
      * @param details the details
      * @return this
@@ -175,7 +118,7 @@ public interface ProblemSpec {
     ProblemSpec details(String details);
 
     /**
-     * A description of how to solve this problem.
+     * Declares solutions and advice that contain context-sensitive data, e.g. the message contains references to variables, locations, etc.
      *
      * @param solution the solution.
      * @return this
@@ -184,13 +127,27 @@ public interface ProblemSpec {
     ProblemSpec solution(String solution);
 
     /**
-     * The exception causing this problem.
+     * Declares additional data attached to the problem.
      *
-     * @param e the exception.
+     * @param type The type of the additional data.
+     * This can be any type that implements {@link AdditionalData} including {@code abstract} classes and interfaces.
+     * This type will be instantiated and provided as an argument for the {@code Action} passed as the second argument.
+     *
+     * @param config The configuration action for the additional data.
+     *
      * @return this
-     * @since 8.6
+     * @since 8.13
      */
-    ProblemSpec withException(RuntimeException e);
+    <T extends AdditionalData> ProblemSpec additionalData(Class<T> type, Action<? super T> config);
+
+    /**
+     * Declares the exception causing this problem.
+     *
+     * @param t the exception.
+     * @return this
+     * @since 8.11
+     */
+    ProblemSpec withException(Throwable t);
 
     /**
      * Declares the severity of the problem.

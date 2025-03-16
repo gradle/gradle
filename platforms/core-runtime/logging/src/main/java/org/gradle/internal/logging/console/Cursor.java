@@ -26,6 +26,7 @@ public class Cursor {
     int col; // count from left of screen, 0 = left most
     int row; // count from bottom of screen, 0 = bottom most, 1 == 2nd from bottom
 
+    @SuppressWarnings("ReferenceEquality")
     public void copyFrom(Cursor position) {
         if (position == this) {
             return;

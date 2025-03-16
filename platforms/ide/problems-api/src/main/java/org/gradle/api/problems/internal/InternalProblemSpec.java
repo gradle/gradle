@@ -16,20 +16,35 @@
 
 package org.gradle.api.problems.internal;
 
+import org.gradle.api.Action;
+import org.gradle.api.problems.AdditionalData;
+import org.gradle.api.problems.DocLink;
+import org.gradle.api.problems.ProblemGroup;
+import org.gradle.api.problems.ProblemId;
+import org.gradle.api.problems.ProblemReporter;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Severity;
+import org.gradle.problems.ProblemDiagnostics;
+import org.jspecify.annotations.Nullable;
 
 public interface InternalProblemSpec extends ProblemSpec {
 
     /**
-     * Specifies arbitrary data associated with this problem.
+     * Attaches additional data describing the problem.
      * <p>
-     * The only supported value type is {@link String}. Future Gradle versions may support additional types.
+     * Only the types listed for {@link org.gradle.api.problems.AdditionalData} can be used as arguments, otherwise an invalid problem report will be created.
+     * <p>
+     * If not additional data was configured for this problem, then a new instance will be created. If additional data was already configured, then the existing instance will be used and the configuration will be applied to it.
      *
+     * @param specType the type of the additional data configurer (see the AdditionalDataSpec interface for the list of supported types)
+     * @param config  The action configuring the additional data
      * @return this
-     * @throws RuntimeException for null values and for values with unsupported type.
+     * @param <U> The type of the configurator object that will be applied to the additional data
      */
-    InternalProblemSpec additionalData(String key, Object value);
+    <U extends org.gradle.api.problems.internal.AdditionalDataSpec> InternalProblemSpec additionalDataInternal(Class<? extends U> specType, Action<? super U> config);
+
+    @Override
+    <T extends AdditionalData> InternalProblemSpec additionalData(Class<T> type, Action<? super T> config);
 
     /**
      * Declares that this problem was emitted by a task with the given path.
@@ -37,21 +52,41 @@ public interface InternalProblemSpec extends ProblemSpec {
      * @param buildTreePath the absolute path of the task within the build tree
      * @return this
      */
-    InternalProblemSpec taskPathLocation(String buildTreePath);
-
+    InternalProblemSpec taskLocation(String buildTreePath);
 
     /**
      * Declares the documentation for this problem.
      *
      * @return this
      */
-    InternalProblemSpec documentedAt(DocLink doc);
+    InternalProblemSpec documentedAt(@Nullable DocLink doc);
+
+    /**
+     * Defines the context-independent identifier for this problem.
+     * <p>
+     * It is a mandatory property to configure when emitting a problem with {@link ProblemReporter}.
+     * ProblemId instances can be created via {@link ProblemId#create(String, String, ProblemGroup)}.
+     *
+     * @param problemId the problem id
+     * @return this
+     */
+    InternalProblemSpec id(ProblemId problemId);
+
+    /**
+     * Defines simple identification for this problem.
+     * <p>
+     * It is a mandatory property to configure when emitting a problem with {@link ProblemReporter}.
+     *
+     * @param name the name of the problem. As a convention kebab-case-formatting should be used.
+     * @param displayName a human-readable representation of the problem, free of any contextual information.
+     * @param parent the container problem group.
+     * @return this
+     * @since 8.8
+     */
+    InternalProblemSpec id(String name, String displayName, ProblemGroup parent);
 
     @Override
-    InternalProblemSpec label(String label);
-
-    @Override
-    InternalProblemSpec category(String category, String... details);
+    InternalProblemSpec contextualLabel(String contextualLabel);
 
     @Override
     InternalProblemSpec documentedAt(String url);
@@ -72,9 +107,6 @@ public interface InternalProblemSpec extends ProblemSpec {
     InternalProblemSpec offsetInFileLocation(String path, int offset, int length);
 
     @Override
-    InternalProblemSpec pluginLocation(String pluginId);
-
-    @Override
     InternalProblemSpec stackLocation();
 
     @Override
@@ -84,8 +116,15 @@ public interface InternalProblemSpec extends ProblemSpec {
     InternalProblemSpec solution(String solution);
 
     @Override
-    InternalProblemSpec withException(RuntimeException e);
+    InternalProblemSpec withException(Throwable t);
 
     @Override
     InternalProblemSpec severity(Severity severity);
+
+    /**
+     * The diagnostics to determine the stacktrace and the location of the problem.
+     * <p>
+     * We pass this in when we already have a diagnostics object, for example for deprecation warnings.
+     */
+    InternalProblemSpec diagnostics(ProblemDiagnostics diagnostics);
 }

@@ -217,7 +217,7 @@ class JavaGradlePluginPluginTest extends AbstractProjectBuilderSpec {
         }
 
         then:
-        def publications = project.services.get(ProjectPublicationRegistry).getPublications(PluginPublication, project.identityPath)
+        def publications = project.services.get(ProjectPublicationRegistry).getPublicationsForProject(PluginPublication, project.identityPath)
         publications.size() == 2
         publications[0].pluginId == DefaultPluginId.of("a.plugin")
         publications[1].pluginId == DefaultPluginId.of("b.plugin")

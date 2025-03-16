@@ -19,7 +19,7 @@ package org.gradle.internal.work
 import org.gradle.internal.Factory
 
 class DefaultWorkerLeaseServiceTest extends AbstractWorkerLeaseServiceTest {
-    def workerLeaseService = workerLeaseService()
+    def workerLeaseService = workerLeaseService(1)
 
     def "can use withLocks to execute a runnable with resources locked"() {
         boolean executed = false

@@ -18,19 +18,12 @@ package org.gradle.buildinit.plugins;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
 import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.logging.Logger;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.specs.Spec;
 import org.gradle.buildinit.InsecureProtocolOption;
 import org.gradle.buildinit.tasks.InitBuild;
-import org.gradle.internal.file.RelativeFilePathResolver;
-
-import javax.annotation.Nullable;
-import java.io.File;
 
 /**
  * The build init plugin.
@@ -49,16 +42,6 @@ public abstract class BuildInitPlugin implements Plugin<Project> {
                 initBuild.setDescription("Initializes a new Gradle build.");
 
                 ProjectInternal projectInternal = (ProjectInternal) project;
-                RelativeFilePathResolver resolver = projectInternal.getFileResolver();
-                File buildFile = project.getBuildFile();
-                FileDetails buildFileDetails = FileDetails.of(buildFile, resolver);
-                File settingsFile = projectInternal.getGradle().getSettings().getSettingsScript().getResource().getLocation().getFile();
-                FileDetails settingsFileDetails = FileDetails.of(settingsFile, resolver);
-
-                initBuild.onlyIf(
-                    "There is no build script or settings script",
-                    new InitBuildOnlyIfSpec(buildFileDetails, settingsFileDetails, initBuild.getLogger())
-                );
 
                 ProjectInternal.DetachedResolver detachedResolver = projectInternal.newDetachedResolver();
                 initBuild.getProjectLayoutRegistry().getBuildConverter().configureClasspath(
@@ -66,6 +49,7 @@ public abstract class BuildInitPlugin implements Plugin<Project> {
 
                 initBuild.getUseDefaults().convention(false);
                 initBuild.getInsecureProtocol().convention(InsecureProtocolOption.WARN);
+                initBuild.getAllowFileOverwrite().convention(false);
                 initBuild.getComments().convention(getCommentsProperty(project).orElse(true));
             });
         }
@@ -73,58 +57,5 @@ public abstract class BuildInitPlugin implements Plugin<Project> {
 
     private static Provider<Boolean> getCommentsProperty(Project project) {
         return project.getProviders().gradleProperty(COMMENTS_PROPERTY).map(SerializableLambdas.transformer(Boolean::parseBoolean));
-    }
-
-    private static class InitBuildOnlyIfSpec implements Spec<Task> {
-
-        private final FileDetails buildFile;
-        private final FileDetails settingsFile;
-        private final Logger logger;
-
-        private InitBuildOnlyIfSpec(FileDetails buildFile, FileDetails settingsFile, Logger logger) {
-            this.buildFile = buildFile;
-            this.settingsFile = settingsFile;
-            this.logger = logger;
-        }
-
-        @Override
-        public boolean isSatisfiedBy(Task element) {
-            String skippedMsg = reasonToSkip(buildFile, settingsFile);
-            if (skippedMsg != null) {
-                logger.warn(skippedMsg);
-                return false;
-            }
-            return true;
-        }
-    }
-
-    private static String reasonToSkip(FileDetails buildFile, FileDetails settingsFile) {
-        if (buildFile != null && buildFile.file.exists()) {
-            return "The build file '" + buildFile.pathForDisplay + "' already exists. Skipping build initialization.";
-        }
-
-        if (settingsFile != null && settingsFile.file.exists()) {
-            return "The settings file '" + settingsFile.pathForDisplay + "' already exists. Skipping build initialization.";
-        }
-
-        return null;
-    }
-
-    private static class FileDetails {
-        final File file;
-        final String pathForDisplay;
-
-        public FileDetails(File file, String pathForDisplay) {
-            this.file = file;
-            this.pathForDisplay = pathForDisplay;
-        }
-
-        @Nullable
-        public static FileDetails of(@Nullable File file, RelativeFilePathResolver resolver) {
-            if (file == null) {
-                return null;
-            }
-            return new FileDetails(file, resolver.resolveForDisplay(file));
-        }
     }
 }

@@ -45,6 +45,7 @@ class MixedObjectiveCHelloWorldApp extends HelloWorldApp {
         return sourceFile("objc", "main.m", """
             // Simple hello world app
             #import "hello.h"
+            #include <stdio.h>
 
             int main (int argc, const char * argv[]) {
                 doGreeting();

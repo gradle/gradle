@@ -85,7 +85,9 @@ public class OutputEventListenerBackedLoggerContext implements ILoggerFactory {
 
     public void reset() {
         setLevel(DEFAULT_LOG_LEVEL);
-        OutputEventRenderer renderer = new OutputEventRenderer(clock, new DefaultUserInputReceiver());
+        DefaultUserInputReceiver userInputReceiver = new DefaultUserInputReceiver();
+        OutputEventRenderer renderer = new OutputEventRenderer(clock, userInputReceiver);
+        userInputReceiver.attachConsole(renderer);
         renderer.attachSystemOutAndErr();
         setOutputEventListener(renderer);
     }
@@ -101,6 +103,7 @@ public class OutputEventListenerBackedLoggerContext implements ILoggerFactory {
         this.level.set(level);
     }
 
+    @SuppressWarnings("OverridingMethodInconsistentArgumentNamesChecker")
     private static class NoOpLogger implements org.gradle.api.logging.Logger {
 
         private final String name;

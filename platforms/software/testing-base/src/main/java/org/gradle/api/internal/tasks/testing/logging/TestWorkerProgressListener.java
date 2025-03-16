@@ -22,6 +22,7 @@ import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
+import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.logging.progress.ProgressLogger;
@@ -30,6 +31,16 @@ import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Tracks all currently executing tests and updates the console progress logger with the test name.
+ * <p>
+ * Output text appears in the console like so:
+ * <pre>
+ * > :project-name:testTaskName > Executing test org...FooTestClassName
+ * > :project-name:testTaskName > Executing test org.example...BarTestClassName
+ * > :project-name:testTaskName > Executing test org...BazTestName
+ * </pre>
+ */
 public class TestWorkerProgressListener implements TestListenerInternal {
 
     private static final int MAX_TEST_NAME_LENGTH = 60;
@@ -74,6 +85,12 @@ public class TestWorkerProgressListener implements TestListenerInternal {
 
     @Override
     public void output(TestDescriptorInternal testDescriptor, TestOutputEvent event) {
+    }
+
+
+    @Override
+    public void metadata(TestDescriptorInternal testDescriptor, TestMetadataEvent event) {
+        // Ignore
     }
 
     /**

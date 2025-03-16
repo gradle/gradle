@@ -131,6 +131,7 @@ class DependencyHandlerExtensionsTest {
     }
 
     @Test
+    @Suppress("DEPRECATION")
     fun `given path and configuration, 'project' extension will build corresponding map`() {
 
         val dependencyHandlerMock = newDependencyHandlerMock()

@@ -15,15 +15,17 @@
  */
 package org.gradle.api.internal.project;
 
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.internal.project.antbuilder.AntBuilderDelegate;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.File;
 
 /**
  * Executes a closure against an isolated {@link org.gradle.api.AntBuilder} instance.
  */
+@ServiceScope(Scope.Build.class)
 public interface IsolatedAntBuilder {
 
     /**
@@ -40,7 +42,5 @@ public interface IsolatedAntBuilder {
      * have visible to it an isolated version of Ant, Groovy and the specified libraries (if any). Each call to this
      * method is given a separate Ant project.
      */
-    void execute(Closure antClosure);
-
     void execute(Action<AntBuilderDelegate> antBuilderAction);
 }

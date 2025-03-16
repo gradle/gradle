@@ -20,9 +20,8 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.buildinit.plugins.internal.model.Description;
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
 
+import java.util.Collections;
 import java.util.List;
-
-import static com.google.common.collect.Lists.newArrayList;
 
 public class JvmLibraryProjectInitDescriptor extends JvmProjectInitDescriptor {
 
@@ -53,12 +52,12 @@ public class JvmLibraryProjectInitDescriptor extends JvmProjectInitDescriptor {
 
     @Override
     protected List<String> getSourceTemplates(String subproject, InitSettings settings, TemplateFactory templateFactory) {
-        return newArrayList("Library");
+        return Collections.singletonList("Library");
     }
 
     @Override
     protected List<String> getTestSourceTemplates(String subproject, InitSettings settings, TemplateFactory templateFactory) {
-        return newArrayList(getUnitTestSourceTemplateName(settings));
+        return Collections.singletonList(getUnitTestSourceTemplateName(settings));
     }
 
     private static String getUnitTestSourceTemplateName(InitSettings settings) {

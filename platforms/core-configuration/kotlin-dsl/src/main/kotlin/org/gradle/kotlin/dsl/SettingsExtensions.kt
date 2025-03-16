@@ -18,6 +18,7 @@ package org.gradle.kotlin.dsl
 import org.gradle.api.Plugin
 import org.gradle.api.initialization.Settings
 import org.gradle.api.plugins.PluginAware
+import org.gradle.kotlin.dsl.support.serviceOf
 
 import kotlin.reflect.KProperty
 
@@ -39,4 +40,4 @@ inline fun <reified T : Plugin<Settings>> Settings.apply() =
  * Locates a property on [Settings].
  */
 operator fun Settings.provideDelegate(any: Any?, property: KProperty<*>): PropertyDelegate =
-    propertyDelegateFor(this, property)
+    propertyDelegateFor(serviceOf(), this, property)

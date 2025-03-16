@@ -17,14 +17,17 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.internal.fingerprint.hashing.FileSystemLocationSnapshotHasher;
-import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContextHasher;
 import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContext;
+import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContextHasher;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 
+@ServiceScope({Scope.UserHome.class, Scope.BuildSession.class})
 public interface ResourceSnapshotterCacheService {
     @Nullable
     HashCode hashFile(FileSystemLocationSnapshot snapshot, FileSystemLocationSnapshotHasher hasher, HashCode configurationHash) throws IOException;

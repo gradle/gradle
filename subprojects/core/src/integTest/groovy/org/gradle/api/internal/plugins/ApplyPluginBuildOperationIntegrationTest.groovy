@@ -18,6 +18,7 @@ package org.gradle.api.internal.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 
 class ApplyPluginBuildOperationIntegrationTest extends AbstractIntegrationSpec {
 
@@ -40,9 +41,10 @@ class ApplyPluginBuildOperationIntegrationTest extends AbstractIntegrationSpec {
         def pluginIdByClass = plugins.details.collectEntries ( { [it.pluginClass, it.pluginId ] })
         def expectedPlugins = [
             "org.gradle.api.plugins.HelpTasksPlugin": "org.gradle.help-tasks",
-            // This tests runs in :core using a reduced distribution
+            // This tests runs in :core using a reduced distribution (JVM)
             // "org.gradle.buildinit.plugins.BuildInitPlugin": "org.gradle.build-init",
             // "org.gradle.buildinit.plugins.WrapperPlugin": "org.gradle.wrapper",
+            "org.gradle.api.plugins.SoftwareReportingTasksPlugin": "org.gradle.software-reporting-tasks",
             "org.gradle.api.plugins.JavaPlugin": "org.gradle.java",
             "org.gradle.api.plugins.JavaBasePlugin": null,
             "org.gradle.api.plugins.JvmEcosystemPlugin": null,
@@ -106,6 +108,7 @@ class ApplyPluginBuildOperationIntegrationTest extends AbstractIntegrationSpec {
         op.details.targetPath == null
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Configure projects from root")
     def "uses target instead of parent"() {
         when:
         createDirs("a", "b")

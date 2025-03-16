@@ -27,6 +27,8 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 
 /**
  * A container for a set of files or artifacts. May or may not be immutable, and may require building and further resolution.
+ * <p>
+ * There are no guarantees of uniqueness of visited artifacts. This would be better named {@code ResolvedArtifactCollection}.
  */
 public interface ResolvedArtifactSet extends TaskDependencyContainer {
     /**

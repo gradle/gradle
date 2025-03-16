@@ -22,18 +22,19 @@ import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.api.tasks.testing.TestFailure
 import org.gradle.internal.id.IdGenerator
 import org.gradle.internal.time.Clock
+import org.gradle.internal.time.MockClock
 import spock.lang.Specification
 
 class TestClassExecutionEventGeneratorTest extends Specification {
     final TestResultProcessor target = Mock()
     final IdGenerator<Object> idGenerator = Mock()
-    final Clock timeProvider = Mock()
+    final Clock timeProvider = MockClock.create()
     final TestClassExecutionEventGenerator processor = new TestClassExecutionEventGenerator(target, idGenerator, timeProvider)
 
     def "fires event on test class start"() {
         given:
         idGenerator.generateId() >> 1
-        timeProvider.currentTime >> 1200
+        timeProvider.increment(1200)
 
         when:
         processor.testClassStarted("some-test")
@@ -46,12 +47,13 @@ class TestClassExecutionEventGeneratorTest extends Specification {
     def "fires event on test class finish"() {
         given:
         idGenerator.generateId() >> 1
-        timeProvider.currentTime >>> [1200, 1300]
+        timeProvider.increment(1200)
 
         and:
         processor.testClassStarted("some-test")
 
         when:
+        timeProvider.increment(100)
         processor.testClassFinished(null)
 
         then:

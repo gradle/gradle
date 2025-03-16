@@ -134,7 +134,7 @@ public class SampleIncludeProcessor extends IncludeProcessor {
 
         StringBuilder result = new StringBuilder(source.length());
 
-        boolean fullSample = tags.isEmpty() || tags.size() == 1 && DOUBLE_WILDCARD_TAG.equals(tags.get(0));
+        boolean fullSample = tags.isEmpty() || (tags.size() == 1 && DOUBLE_WILDCARD_TAG.equals(tags.get(0)));
 
         if (fullSample) {
             // filter out lines matching the tagging regex

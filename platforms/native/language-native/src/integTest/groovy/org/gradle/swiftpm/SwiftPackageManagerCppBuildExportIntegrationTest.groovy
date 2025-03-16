@@ -16,12 +16,10 @@
 
 package org.gradle.swiftpm
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.CppLib
 
 class SwiftPackageManagerCppBuildExportIntegrationTest extends AbstractSwiftPackageManagerExportIntegrationTest {
-    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def "produces manifest for single project C++ library that defines only the production targets"() {
         given:
         buildFile << """
@@ -68,7 +66,6 @@ let package = Package(
         swiftPmBuildSucceeds()
     }
 
-    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def "produces manifest for multi project C++ build"() {
         given:
         createDirs("lib1", "lib2")
@@ -150,7 +147,6 @@ let package = Package(
         swiftPmBuildSucceeds()
     }
 
-    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def "produces manifest for C++ library with shared and static linkage"() {
         given:
         buildFile << """
@@ -197,7 +193,6 @@ let package = Package(
         swiftPmBuildSucceeds()
     }
 
-    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def "honors customization of component basename"() {
         given:
         createDirs("lib1", "lib2")

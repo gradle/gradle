@@ -28,14 +28,18 @@ import org.gradle.internal.cache.MonitoredCleanupAction;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
-import org.gradle.util.internal.GFileUtils;
+import org.gradle.internal.versionedcache.VersionSpecificCacheDirectory;
+import org.gradle.internal.versionedcache.VersionSpecificCacheDirectoryScanner;
 import org.gradle.util.GradleVersion;
+import org.gradle.util.internal.GFileUtils;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullMarked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.SortedSet;
 import java.util.function.Supplier;
 
@@ -66,13 +70,13 @@ public class VersionSpecificCacheCleanupAction implements MonitoredCleanupAction
     }
 
     @Override
-    @Nonnull
+    @NullMarked
     public String getDisplayName() {
         return "Deleting unused version-specific caches in " + versionSpecificCacheDirectoryScanner.getBaseDir();
     }
 
     @Override
-    public boolean execute(@Nonnull CleanupProgressMonitor progressMonitor) {
+    public boolean execute(@NonNull CleanupProgressMonitor progressMonitor) {
         if (requiresCleanup()) {
             Timer timer = Time.startTimer();
             performCleanup(progressMonitor);
@@ -83,20 +87,20 @@ public class VersionSpecificCacheCleanupAction implements MonitoredCleanupAction
     }
 
     private boolean requiresCleanup() {
-        long lastCleanupTimestamp;
+        Instant lastCleanupTime;
 
         File gcFile = getGcFile();
         if (!gcFile.exists()) {
             if (!gcFile.getParentFile().exists()) {
                 return false;
             } else {
-                lastCleanupTimestamp = CleanupFrequency.NEVER_CLEANED;
+                lastCleanupTime = null;
             }
         } else {
-            lastCleanupTimestamp = gcFile.lastModified();
+            lastCleanupTime = Instant.ofEpochMilli(gcFile.lastModified());
         }
 
-        return cleanupFrequency.requiresCleanup(lastCleanupTimestamp);
+        return cleanupFrequency.requiresCleanup(lastCleanupTime);
     }
 
     private void markCleanedUp() {

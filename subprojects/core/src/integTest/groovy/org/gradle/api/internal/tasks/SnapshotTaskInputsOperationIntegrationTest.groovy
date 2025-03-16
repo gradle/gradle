@@ -31,12 +31,14 @@ import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginAdapter
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 
 import static com.google.common.base.CaseFormat.UPPER_CAMEL
 import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE
+import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.*
 
 class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
 
@@ -95,7 +97,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
 
     def "handles task with no outputs"() {
         when:
-        buildScript """
+        buildFile """
             task noOutputs {
                 doLast {}
             }
@@ -114,7 +116,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
 
     def "handles task with no inputs"() {
         when:
-        buildScript """
+        buildFile """
             task noInputs {
                 outputs.file "foo.txt"
                 doLast {}
@@ -134,7 +136,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
 
     def "not sent for task with no actions"() {
         when:
-        buildScript """
+        buildFile """
             task noActions {
             }
         """
@@ -144,9 +146,10 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         !operations.hasOperation(SnapshotTaskInputsBuildOperationType)
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "handles invalid implementation classloader"() {
         given:
-        buildScript """
+        buildFile """
             def classLoader = new GroovyClassLoader(this.class.classLoader)
             def clazz = classLoader.parseClass(\"\"\"${customTaskImpl()}\"\"\")
             task customTask(type: clazz){
@@ -175,11 +178,32 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         result.actionClassNames == null
         result.inputValueHashes == null
         result.outputPropertyNames == null
+
+        and:
+        verifyAll(receivedProblem(0)) {
+            fqid == 'validation:property-validation:unknown-implementation'
+            contextualLabel == 'Additional action of task \':customTask\' was loaded with an unknown classloader (class \'CustomTask_Decorated\').'
+            details == 'Gradle cannot track the implementation for classes loaded with an unknown classloader.'
+            solutions == [ 'Load your class by using one of Gradle\'s built-in ways.' ]
+            additionalData.asMap == [
+                'typeName' : 'CustomTask'
+            ]
+        }
+        verifyAll(receivedProblem(1)) {
+            fqid == 'validation:property-validation:unknown-implementation'
+            contextualLabel == 'Implementation of task \':customTask\' was loaded with an unknown classloader (class \'CustomTask_Decorated\').'
+            details == 'Gradle cannot track the implementation for classes loaded with an unknown classloader.'
+            solutions == [ 'Load your class by using one of Gradle\'s built-in ways.' ]
+            additionalData.asMap == [
+                'typeName' : 'CustomTask'
+            ]
+        }
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "handles invalid action classloader"() {
         given:
-        buildScript """
+        buildFile """
             ${customTaskCode('foo', 'bar')}
             def classLoader = new GroovyClassLoader(this.class.classLoader)
             def c = classLoader.parseClass '''
@@ -206,6 +230,18 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         result.actionClassNames == null
         result.inputValueHashes == null
         result.outputPropertyNames == null
+
+        and:
+        verifyAll(receivedProblem) {
+            fqid == 'validation:property-validation:unknown-implementation'
+            contextualLabel == 'Additional action of task \':customTask\' was loaded with an unknown classloader (class \'A\').'
+            details == 'Gradle cannot track the implementation for classes loaded with an unknown classloader.'
+            solutions == [ 'Load your class by using one of Gradle\'s built-in ways.' ]
+            additionalData.asMap == [
+                'typeName' : 'CustomTask',
+            ]
+        }
+
     }
 
     def "exposes file inputs, ignoring empty directories"() {
@@ -368,6 +404,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         }
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "exposes file inputs, not ignoring empty directories"() {
         given:
         withBuildCache()
@@ -451,7 +488,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         given:
         withBuildCache()
         file('inputFile').text = 'inputFile'
-        buildScript """
+        buildFile """
             task copy(type:Copy) {
                from 'inputFile'
                into 'destDir'
@@ -476,9 +513,10 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         }
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "handles invalid nested bean classloader"() {
         given:
-        buildScript """
+        buildFile """
             ${customTaskCode('foo', 'bar')}
             def classLoader = new GroovyClassLoader(this.class.classLoader)
             def c = classLoader.parseClass '''
@@ -506,6 +544,18 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         result.actionClassNames == null
         result.inputValueHashes == null
         result.outputPropertyNames == null
+
+        and:
+        verifyAll(receivedProblem(0)) {
+            fqid == 'validation:property-validation:unknown-implementation-nested'
+            contextualLabel == "Property 'bean' was loaded with an unknown classloader (class 'A')."
+            details == 'Gradle cannot track the implementation for classes loaded with an unknown classloader.'
+            solutions == [ 'Load your class by using one of Gradle\'s built-in ways.' ]
+            additionalData.asMap == [
+                'typeName' : 'CustomTask',
+                'propertyName' : 'bean'
+            ]
+        }
     }
 
     def "properly captures all attributes"() {

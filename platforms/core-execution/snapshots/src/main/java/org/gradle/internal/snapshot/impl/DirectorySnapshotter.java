@@ -34,9 +34,9 @@ import org.gradle.internal.snapshot.MissingFileSnapshot;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.gradle.internal.snapshot.RelativePathTracker;
 import org.gradle.internal.snapshot.SnapshottingFilter;
+import org.jspecify.annotations.Nullable;
 
 import javax.annotation.CheckReturnValue;
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -115,7 +115,7 @@ public class DirectorySnapshotter {
      */
     public FileSystemLocationSnapshot snapshot(
         String absolutePath,
-        @Nullable SnapshottingFilter.DirectoryWalkerPredicate predicate,
+        SnapshottingFilter.@Nullable DirectoryWalkerPredicate predicate,
         Map<String, ? extends FileSystemLocationSnapshot> previouslyKnownSnapshots,
         Consumer<FileSystemLocationSnapshot> unfilteredSnapshotRecorder
     ) {
@@ -268,7 +268,7 @@ public class DirectorySnapshotter {
         private final Consumer<FileSystemLocationSnapshot> unfilteredSnapshotRecorder;
 
         public PathVisitor(
-            @Nullable SnapshottingFilter.DirectoryWalkerPredicate predicate,
+            SnapshottingFilter.@Nullable DirectoryWalkerPredicate predicate,
             AtomicBoolean hasBeenFiltered,
             FileHasher hasher,
             Interner<String> stringInterner,

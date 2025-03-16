@@ -21,34 +21,71 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
+import org.gradle.api.internal.lambdas.SerializableLambdas;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.reporting.Report;
 import org.gradle.api.reporting.ReportContainer;
-import org.gradle.api.specs.Spec;
-import org.gradle.api.tasks.Internal;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.util.internal.ConfigureUtil;
 
-import javax.annotation.Nullable;
+import javax.inject.Inject;
+import java.util.Collection;
 import java.util.Map;
-import java.util.SortedMap;
 
+/**
+ * An immutable container of {@link Report} instances. Reports can be enabled or disabled.
+ * <p>
+ * The initial set of reports is configured at creation time by a {@link ReportGenerator}.
+ *
+ * @param <T> The type of report held by this container.
+ */
 public class DefaultReportContainer<T extends Report> extends DefaultNamedDomainObjectSet<T> implements ReportContainer<T> {
-    private NamedDomainObjectSet<T> enabled;
 
-    public DefaultReportContainer(Class<? extends T> type, Instantiator instantiator, CollectionCallbackActionDecorator callbackActionDecorator) {
-        super(type, instantiator, Report.NAMER, callbackActionDecorator);
+    /**
+     * The set of all enabled reports.
+     */
+    private final NamedDomainObjectSet<T> enabled;
 
-        enabled = matching(new Spec<T>() {
-            @Override
-            public boolean isSatisfiedBy(T element) {
-                return element.getRequired().get();
-            }
-        });
+    /**
+     * Create a new report container.
+     *
+     * @param objectFactory The object factory used for instantiation.
+     * @param type The type of report held by this container.
+     * @param reportGenerator The generator used to create the initial set of reports.
+     *
+     * @return A new report container.
+     *
+     * @param <T> The type of report held by this container.
+     */
+    @SuppressWarnings("unchecked")
+    public static <T extends Report> DefaultReportContainer<T> create(
+        ObjectFactory objectFactory,
+        Class<? extends T> type,
+        ReportGenerator<T> reportGenerator
+    ) {
+        return objectFactory.newInstance(DefaultReportContainer.class, type, reportGenerator);
     }
 
-    @Override
-    protected void assertMutableCollectionContents() {
-        throw new ImmutableViolationException();
+    /**
+     * Use {@link #create(ObjectFactory, Class, ReportGenerator)}.
+     */
+    @Inject
+    public DefaultReportContainer(
+        Class<? extends T> type,
+        ReportGenerator<T> reportGenerator,
+        InstantiatorFactory instantiatorFactory,
+        ServiceRegistry servicesToInject,
+        CollectionCallbackActionDecorator callbackActionDecorator
+    ) {
+        super(type, instantiatorFactory.decorateLenient(servicesToInject), Report.NAMER, callbackActionDecorator);
+        this.addAll(reportGenerator.generateReports(new DefaultReportFactory<>(getInstantiator())));
+        beforeCollectionChanges(SerializableLambdas.action(arg -> {
+            throw new ImmutableViolationException();
+        }));
+
+        this.enabled = matching(SerializableLambdas.spec(element -> element.getRequired().get()));
     }
 
     @Override
@@ -57,35 +94,46 @@ public class DefaultReportContainer<T extends Report> extends DefaultNamedDomain
     }
 
     @Override
+    public Map<String, T> getEnabledReports() {
+        return getEnabled().getAsMap();
+    }
+
+    @Override
     public ReportContainer<T> configure(Closure cl) {
         ConfigureUtil.configureSelf(cl, this);
         return this;
     }
 
-    @Nullable
-    @Internal
-    public T getFirstEnabled() {
-        SortedMap<String, T> map = enabled.getAsMap();
-        if (map.isEmpty()) {
-            return null;
-        } else {
-            return map.get(map.firstKey());
-        }
+    /**
+     * Generates the initial set of reports for this container.
+     */
+    public interface ReportGenerator<T extends Report> {
+        Collection<T> generateReports(ReportFactory<T> factory);
     }
 
-    protected <N extends T> N add(Class<N> clazz, Object... constructionArgs) {
-        N report = getInstantiator().newInstance(clazz, constructionArgs);
-        String name = report.getName();
-        if (name.equals("enabled")) {
-            throw new InvalidUserDataException("Reports that are part of a ReportContainer cannot be named 'enabled'");
-        }
-        getStore().add(report);
-        index();
-        return report;
+    /**
+     * Instantiates reports.
+     */
+    public interface ReportFactory<T extends Report> {
+        <N extends T> N instantiateReport(Class<N> clazz, Object... constructionArgs);
     }
 
-    @Override
-    public Map<String, T> getEnabledReports() {
-        return getEnabled().getAsMap();
+    static class DefaultReportFactory<T extends Report> implements ReportFactory<T> {
+
+        private final Instantiator instantiator;
+
+        public DefaultReportFactory(Instantiator instantiator) {
+            this.instantiator = instantiator;
+        }
+
+        @Override
+        public <N extends T> N instantiateReport(Class<N> clazz, Object... constructionArgs) {
+            N report = instantiator.newInstance(clazz, constructionArgs);
+            String name = report.getName();
+            if (name.equals("enabled")) {
+                throw new InvalidUserDataException("Reports that are part of a ReportContainer cannot be named 'enabled'");
+            }
+            return report;
+        }
     }
 }

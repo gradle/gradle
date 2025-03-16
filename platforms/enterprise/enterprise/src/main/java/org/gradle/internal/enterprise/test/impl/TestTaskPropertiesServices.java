@@ -16,14 +16,15 @@
 
 package org.gradle.internal.enterprise.test.impl;
 
+import org.gradle.internal.enterprise.test.TestTaskPropertiesService;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
+import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 
-public class TestTaskPropertiesServices extends AbstractPluginServiceRegistry {
+public class TestTaskPropertiesServices extends AbstractGradleModuleServices {
 
     @Override
     public void registerProjectServices(ServiceRegistration registration) {
-        registration.add(DefaultTestTaskPropertiesService.class);
+        registration.add(TestTaskPropertiesService.class, DefaultTestTaskPropertiesService.class);
     }
 
 }

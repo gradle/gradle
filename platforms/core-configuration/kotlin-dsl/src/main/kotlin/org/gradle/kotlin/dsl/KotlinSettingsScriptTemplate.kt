@@ -32,7 +32,6 @@ import kotlin.script.experimental.api.implicitReceivers
 import kotlin.script.templates.ScriptTemplateDefinition
 
 
-private
 class KotlinSettingsScriptTemplateCompilationConfiguration : KotlinDslStandaloneScriptCompilationConfiguration({
     filePathPattern.put("(?:.+\\.)?settings\\.gradle\\.kts")
     baseClass(KotlinSettingsScriptTemplate::class)

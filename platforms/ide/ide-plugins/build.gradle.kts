@@ -23,67 +23,65 @@ description = "Plugins that add support for generating IDE project files used fo
 errorprone {
     disabledChecks.addAll(
         "MixedMutabilityReturnType", // 2 occurrences
-        "ShortCircuitBoolean", // 2 occurrences
-        "UnnecessaryParentheses", // 1 occurrences
-        "UnusedMethod", // 2 occurrences
-        "UnusedVariable", // 1 occurrences
     )
 }
 
 dependencies {
-    api(project(":base-annotations"))
-    api(project(":base-ide-plugins"))
-    api(project(":base-services"))
-    api(project(":core"))
-    api(project(":core-api"))
-    api(project(":ide"))
-    api(project(":platform-jvm"))
-    api(project(":tooling-api"))
+    api(projects.stdlibJavaExtensions)
+    api(projects.serviceProvider)
+    api(projects.baseIdePlugins)
+    api(projects.baseServices)
+    api(projects.core)
+    api(projects.coreApi)
+    api(projects.ide)
+    api(projects.platformJvm)
+    api(projects.toolingApi)
 
     api(libs.groovy)
     api(libs.guava)
     api(libs.inject)
-    api(libs.jsr305)
+    api(libs.jspecify)
 
-    implementation(project(":dependency-management"))
-    implementation(project(":ear"))
-    implementation(project(":file-collections"))
-    implementation(project(":language-java"))
-    implementation(project(":model-core"))
-    implementation(project(":plugins-groovy"))
-    implementation(project(":plugins-java"))
-    implementation(project(":plugins-java-base"))
-    implementation(project(":plugins-jvm-test-fixtures"))
-    implementation(project(":plugins-jvm-test-suite"))
-    implementation(project(":scala"))
-    implementation(project(":test-suites-base"))
-    implementation(project(":war"))
+    implementation(projects.dependencyManagement)
+    implementation(projects.ear)
+    implementation(projects.fileCollections)
+    implementation(projects.jvmServices)
+    implementation(projects.languageJava)
+    implementation(projects.modelCore)
+    implementation(projects.pluginsGroovy)
+    implementation(projects.pluginsJava)
+    implementation(projects.pluginsJavaBase)
+    implementation(projects.pluginsJvmTestFixtures)
+    implementation(projects.pluginsJvmTestSuite)
+    implementation(projects.scala)
+    implementation(projects.serviceLookup)
+    implementation(projects.testSuitesBase)
+    implementation(projects.war)
 
     implementation(libs.commonsLang)
 
-    runtimeOnly(project(":language-jvm"))
-    runtimeOnly(project(":plugins"))
-    runtimeOnly(project(":testing-base"))
+    runtimeOnly(projects.languageJvm)
+    runtimeOnly(projects.testingBase)
 
-    testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":dependency-management")))
-    testImplementation(testFixtures(project(":ide")))
-    testImplementation(testFixtures(project(":tooling-api")))
+    testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.dependencyManagement))
+    testImplementation(testFixtures(projects.ide))
+    testImplementation(testFixtures(projects.toolingApi))
 
-    testRuntimeOnly(project(":distributions-jvm")) {
+    testRuntimeOnly(projects.distributionsJvm) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
 
     testImplementation(libs.xmlunit)
 
 
-    integTestImplementation(project(":internal-integ-testing"))
+    integTestImplementation(projects.internalIntegTesting)
 
-    integTestDistributionRuntimeOnly(project(":distributions-jvm")) {
+    integTestDistributionRuntimeOnly(projects.distributionsJvm) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
 
-    crossVersionTestDistributionRuntimeOnly(project(":distributions-jvm"))
+    crossVersionTestDistributionRuntimeOnly(projects.distributionsJvm)
 }
 
 packageCycles {
@@ -102,3 +100,8 @@ packageCycles {
      canHandleCi.cies/xinjd/.classpath
  */
 testFilesCleanup.reportOnly = true
+
+integTest.usesJavadocCodeSnippets = true
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

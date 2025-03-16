@@ -18,9 +18,11 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.Describable;
 import org.gradle.internal.service.scopes.EventScope;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
-@EventScope(Scopes.Build.class)
+@EventScope(Scope.Build.class)
+@ServiceScope(Scope.Build.class)
 public interface TransformExecutionListener {
 
     /**

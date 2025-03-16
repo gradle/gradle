@@ -16,12 +16,16 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors
 
+import com.google.common.collect.ImmutableSet
 import org.gradle.api.artifacts.ClientModule
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector
+import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
 import org.gradle.internal.component.model.IvyArtifactName
 import org.gradle.internal.resolve.result.ComponentIdResolveResult
@@ -29,9 +33,9 @@ import org.gradle.internal.resolve.result.DefaultBuildableComponentIdResolveResu
 
 class TestProjectSelectorState implements ResolvableSelectorState {
     public static final String VERSION = "1"
-    private final ProjectComponentIdentifier projectId
+    private final ProjectIdentity projectId
 
-    TestProjectSelectorState(ProjectComponentIdentifier projectId) {
+    TestProjectSelectorState(ProjectIdentity projectId) {
         this.projectId = projectId
     }
 
@@ -40,16 +44,16 @@ class TestProjectSelectorState implements ResolvableSelectorState {
         return null
     }
 
-
     @Override
     ComponentSelector getSelector() {
-        return DefaultProjectComponentSelector.newSelector(projectId)
+        return new DefaultProjectComponentSelector(projectId, ImmutableAttributes.EMPTY, ImmutableSet.of())
     }
 
     @Override
     ComponentIdResolveResult resolve(VersionSelector allRejects) {
         def result = new DefaultBuildableComponentIdResolveResult()
-        result.resolved(projectId, DefaultModuleVersionIdentifier.newId("org", projectId.projectName, VERSION))
+        ProjectComponentIdentifier componentId = new DefaultProjectComponentIdentifier(projectId)
+        result.resolved(componentId, DefaultModuleVersionIdentifier.newId("org", projectId.projectName, VERSION))
         return result
     }
 

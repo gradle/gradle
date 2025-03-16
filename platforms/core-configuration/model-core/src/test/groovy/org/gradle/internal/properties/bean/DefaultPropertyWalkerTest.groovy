@@ -43,6 +43,7 @@ import org.gradle.internal.properties.InputFilePropertyType
 import org.gradle.internal.properties.OutputFilePropertyType
 import org.gradle.internal.properties.PropertyVisitor
 import org.gradle.internal.properties.annotations.DefaultTypeMetadataStore
+import org.gradle.internal.properties.annotations.MissingPropertyAnnotationHandler
 import org.gradle.internal.properties.annotations.PropertyAnnotationHandler
 import org.gradle.internal.properties.annotations.TestPropertyTypeResolver
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore
@@ -52,6 +53,7 @@ import org.gradle.internal.service.scopes.ExecutionGlobalServices
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 import static org.gradle.internal.service.scopes.ExecutionGlobalServices.IGNORED_METHOD_ANNOTATIONS
+import static org.gradle.internal.service.scopes.ExecutionGlobalServices.IGNORED_METHOD_ANNOTATIONS_ALLOWED_MODIFIERS
 import static org.gradle.internal.service.scopes.ExecutionGlobalServices.PROPERTY_TYPE_ANNOTATIONS
 
 class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
@@ -250,16 +252,18 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
         def typeAnnotationMetadataStore = new DefaultTypeAnnotationMetadataStore(
             [],
             ModifierAnnotationCategory.asMap(PROPERTY_TYPE_ANNOTATIONS),
+            [:],
             ["java", "groovy"],
             [],
             [Object, GroovyObject],
             [ConfigurableFileCollection, Property],
             IGNORED_METHOD_ANNOTATIONS,
+            IGNORED_METHOD_ANNOTATIONS_ALLOWED_MODIFIERS,
             { false },
             cacheFactory
         )
         def propertyHandlers = services.getAll(PropertyAnnotationHandler)
-        def typeMetadataStore = new DefaultTypeMetadataStore([], propertyHandlers, [PathSensitive], typeAnnotationMetadataStore, TestPropertyTypeResolver.INSTANCE, cacheFactory)
+        def typeMetadataStore = new DefaultTypeMetadataStore([], propertyHandlers, [PathSensitive], [], [], typeAnnotationMetadataStore, TestPropertyTypeResolver.INSTANCE, cacheFactory, MissingPropertyAnnotationHandler.DO_NOTHING)
         new DefaultPropertyWalker(typeMetadataStore, new TestImplementationResolver(), propertyHandlers).visitProperties(task, validationContext, visitor)
     }
 }

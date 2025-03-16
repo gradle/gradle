@@ -18,8 +18,8 @@ package org.gradle.model;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Set;
 

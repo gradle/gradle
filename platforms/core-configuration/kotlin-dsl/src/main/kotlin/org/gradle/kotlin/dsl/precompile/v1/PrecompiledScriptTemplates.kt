@@ -52,6 +52,13 @@ import kotlin.script.templates.ScriptTemplateDefinition
 /**
  * Base script template for compilation of `plugins {}` blocks extracted from precompiled scripts.
  */
+@KotlinScript(
+    fileExtension = "gradle.kts",
+    compilationConfiguration = PrecompiledPluginsBlockCompilationConfiguration::class
+)
+@ScriptTemplateDefinition
+@SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
+@GradleDsl
 open class PrecompiledPluginsBlock(private val pluginDependencies: PluginDependenciesSpec) {
 
     fun plugins(configuration: PluginDependenciesSpecScope.() -> Unit) {
@@ -59,17 +66,24 @@ open class PrecompiledPluginsBlock(private val pluginDependencies: PluginDepende
     }
 }
 
+internal
+object PrecompiledPluginsBlockCompilationConfiguration : ScriptCompilationConfiguration({
+    isStandalone(false)
+    baseClass(PrecompiledPluginsBlock::class)
+    defaultImportsForPrecompiledScript()
+})
+
 
 /**
  * Script template definition for precompiled Kotlin script targeting [Gradle] instances.
  *
  * @see PrecompiledProjectScript
  */
-@ScriptTemplateDefinition
 @KotlinScript(
     fileExtension = "init.gradle.kts",
     compilationConfiguration = PrecompiledInitScriptCompilationConfiguration::class
 )
+@ScriptTemplateDefinition
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
 @GradleDsl
 open class PrecompiledInitScript(
@@ -82,11 +96,11 @@ open class PrecompiledInitScript(
  *
  * @see PrecompiledProjectScript
  */
-@ScriptTemplateDefinition
 @KotlinScript(
     fileExtension = "settings.gradle.kts",
     compilationConfiguration = PrecompiledSettingsScriptCompilationConfiguration::class
 )
+@ScriptTemplateDefinition
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
 @GradleDsl
 open class PrecompiledSettingsScript(
@@ -141,11 +155,11 @@ open class PrecompiledSettingsScript(
  * `src/main/kotlin/gradlebuild/code-quality.gradle.kts` would be exposed as the `gradlebuild.code-quality`
  * plugin, again assuming it has the matching package declaration.
  */
-@ScriptTemplateDefinition
 @KotlinScript(
     fileExtension = "gradle.kts",
     compilationConfiguration = PrecompiledProjectScriptCompilationConfiguration::class
 )
+@ScriptTemplateDefinition
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
 @GradleDsl
 open class PrecompiledProjectScript(
@@ -159,7 +173,7 @@ open class PrecompiledProjectScript(
      */
     @Suppress("unused")
     open fun buildscript(@Suppress("unused_parameter") block: ScriptHandlerScope.() -> Unit) {
-        throw IllegalStateException("The `buildscript` block is not supported on Kotlin script plugins, please use the `plugins` block or project level dependencies.")
+        error("The `buildscript` block is not supported on Kotlin script plugins, please use the `plugins` block or project level dependencies.")
     }
 
     /**
@@ -190,7 +204,6 @@ open class PrecompiledProjectScript(
 }
 
 
-internal
 object PrecompiledInitScriptCompilationConfiguration : ScriptCompilationConfiguration({
     isStandalone(false)
     baseClass(PrecompiledInitScript::class)
@@ -199,7 +212,6 @@ object PrecompiledInitScriptCompilationConfiguration : ScriptCompilationConfigur
 })
 
 
-internal
 object PrecompiledSettingsScriptCompilationConfiguration : ScriptCompilationConfiguration({
     isStandalone(false)
     baseClass(PrecompiledSettingsScript::class)
@@ -208,7 +220,6 @@ object PrecompiledSettingsScriptCompilationConfiguration : ScriptCompilationConf
 })
 
 
-internal
 object PrecompiledProjectScriptCompilationConfiguration : ScriptCompilationConfiguration({
     isStandalone(false)
     baseClass(PrecompiledProjectScript::class)

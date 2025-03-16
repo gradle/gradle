@@ -16,16 +16,28 @@
 
 package org.gradle.api.tasks.compile
 
-import groovy.transform.stc.ClosureParams
-import groovy.transform.stc.SimpleType
+import org.gradle.api.JavaVersion
+import org.gradle.api.internal.tasks.compile.DiagnosticToProblemListener
+import org.gradle.api.problems.FileLocation
+import org.gradle.api.problems.LineInFileLocation
+import org.gradle.api.problems.OffsetInFileLocation
+import org.gradle.api.problems.Severity
+import org.gradle.api.tasks.compile.fixtures.ProblematicClassGenerator
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.integtests.fixtures.problems.ReceivedProblem
+import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
+import org.opentest4j.AssertionFailedError
+import spock.lang.Issue
 
 /**
  * Test class verifying the integration between the {@code JavaCompile} and the {@code Problems} service.
  */
-class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
+class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainFixture {
 
     /**
      * A map of all possible file locations, and the number of occurrences we expect to find in the problems.
@@ -35,17 +47,12 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
     /**
      * A map of all visited file locations, and the number of occurrences we have found in the problems.
      * <p>
-     * This field will be updated by {@link #assertProblem(ReceivedProblem, String, Closure)} as it asserts a problem.
+     * This field will be updated by {@link #assertProblem(ReceivedProblem, String, Boolean)} as it asserts a problem.
      */
     private final Map<String, Integer> visitedFileLocations = [:]
 
     def setup() {
         enableProblemsApiCheck()
-
-        propertiesFile << """
-            # Feature flag as of 8.6 to enable the Problems API
-            systemProp.org.gradle.internal.emit-compiler-problems=true
-        """
 
         buildFile << """
             plugins {
@@ -61,159 +68,442 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def cleanup() {
-        assert possibleFileLocations == visitedFileLocations: "Not all expected files were visited: ${possibleFileLocations.keySet() - visitedFileLocations.keySet()}"
+        if (isProblemsApiCheckEnabled()) {
+            assert possibleFileLocations == visitedFileLocations: "Not all expected files were visited, unchecked files were: ${possibleFileLocations.keySet() - visitedFileLocations.keySet()}"
+        }
     }
 
     def "problem is received when a single-file compilation failure happens"() {
         given:
-        possibleFileLocations.put(writeJavaCausingTwoCompilationErrors("Foo"), 2)
+        possibleFileLocations.put(writeJavaCausingTwoCompilationErrors("Foo").absolutePath, 2)
 
         when:
         fails("compileJava")
 
-
         then:
-        def problems = collectedProblems
-        problems.size() == 2
-        for (def problem in (problems)) {
-            assertProblem(problem, "ERROR") { details ->
-                assert details == "';' expected"
-            }
+        verifyAll(receivedProblem(0)) {
+            assertLabel(it)
+            assertLocations(it, true)
+            severity == Severity.ERROR
+            contextualLabel == '\';\' expected'
+            fqid == 'compilation:java:compiler-err-expected'
+            contextualLabel == '\';\' expected'
         }
+        verifyAll(receivedProblem(1)) {
+            assertLocations(it, true)
+            severity == Severity.ERROR
+            contextualLabel == '\';\' expected'
+            fqid == 'compilation:java:compiler-err-expected'
+            contextualLabel == '\';\' expected'
+        }
+
+        result.error.contains("2 errors\n")
     }
 
     def "problems are received when a multi-file compilation failure happens"() {
         given:
-        possibleFileLocations.put(writeJavaCausingTwoCompilationErrors("Foo"), 2)
-        possibleFileLocations.put(writeJavaCausingTwoCompilationErrors("Bar"), 2)
+        possibleFileLocations.put(writeJavaCausingTwoCompilationErrors("Foo").absolutePath, 2)
+        possibleFileLocations.put(writeJavaCausingTwoCompilationErrors("Bar").absolutePath, 2)
 
         when:
         fails("compileJava")
 
         then:
-        collectedProblems.size() == 4
-        for (def problem in collectedProblems) {
-            assertProblem(problem, "ERROR") { details ->
-                assert details == "';' expected"
-            }
+        verifyAll(receivedProblem(0)) {
+            assertLocations(it, true)
+            severity == Severity.ERROR
+            fqid == 'compilation:java:compiler-err-expected'
+            contextualLabel == '\';\' expected'
+            !solutions.empty
         }
+        verifyAll(receivedProblem(1)) {
+            assertLocations(it, true)
+            severity == Severity.ERROR
+            fqid == 'compilation:java:compiler-err-expected'
+            contextualLabel == '\';\' expected'
+            !solutions.empty
+        }
+        verifyAll(receivedProblem(2)) {
+            assertLocations(it, true)
+            severity == Severity.ERROR
+            fqid == 'compilation:java:compiler-err-expected'
+            contextualLabel == '\';\' expected'
+            !solutions.empty
+        }
+        verifyAll(receivedProblem(3)) {
+            assertLocations(it, true)
+            severity == Severity.ERROR
+            fqid == 'compilation:java:compiler-err-expected'
+            contextualLabel == '\';\' expected'
+            !solutions.empty
+        }
+
+        result.error.contains("4 errors\n")
     }
 
     def "problem is received when a single-file warning happens"() {
         given:
-        possibleFileLocations.put(writeJavaCausingTwoCompilationWarnings("Foo"), 2)
+        possibleFileLocations.put(writeJavaCausingTwoCompilationWarnings("Foo").absolutePath, 2)
 
         when:
         def result = run("compileJava")
 
         then:
-        collectedProblems.size() == 2
-        for (def problem in collectedProblems) {
-            assertProblem(problem, "WARNING") { details ->
-                assert details == "redundant cast to java.lang.String"
-            }
+        verifyAll(receivedProblem(0)) {
+            assertLocations(it, true)
+            severity == Severity.WARNING
+            fqid == 'compilation:java:compiler-warn-redundant-cast'
+            contextualLabel == 'redundant cast to java.lang.String'
         }
+        verifyAll(receivedProblem(1)) {
+            assertLocations(it, true)
+            severity == Severity.WARNING
+            fqid == 'compilation:java:compiler-warn-redundant-cast'
+            contextualLabel == 'redundant cast to java.lang.String'
+        }
+
+        result.error.contains("2 warnings\n")
     }
 
     def "problems are received when a multi-file warning happens"() {
         given:
-        possibleFileLocations.put(writeJavaCausingTwoCompilationWarnings("Foo"), 2)
-        possibleFileLocations.put(writeJavaCausingTwoCompilationWarnings("Bar"), 2)
+        possibleFileLocations.put(writeJavaCausingTwoCompilationWarnings("Foo").absolutePath, 2)
+        possibleFileLocations.put(writeJavaCausingTwoCompilationWarnings("Bar").absolutePath, 2)
 
         when:
         def result = run("compileJava")
 
         then:
-        collectedProblems.size() == 4
-        for (def problem in collectedProblems) {
-            assertProblem(problem, "WARNING") { details ->
-                assert details == "redundant cast to java.lang.String"
-            }
+        verifyAll(receivedProblem(0)) {
+            assertLocations(it, true)
+            severity == Severity.WARNING
+            fqid == 'compilation:java:compiler-warn-redundant-cast'
+            contextualLabel == 'redundant cast to java.lang.String'
         }
+        verifyAll(receivedProblem(1)) {
+            assertLocations(it, true)
+            severity == Severity.WARNING
+            fqid == 'compilation:java:compiler-warn-redundant-cast'
+            contextualLabel == 'redundant cast to java.lang.String'
+        }
+        verifyAll(receivedProblem(2)) {
+            assertLocations(it, true)
+            severity == Severity.WARNING
+            fqid == 'compilation:java:compiler-warn-redundant-cast'
+            contextualLabel == 'redundant cast to java.lang.String'
+        }
+        verifyAll(receivedProblem(3)) {
+            assertLocations(it, true)
+            severity == Severity.WARNING
+            fqid == 'compilation:java:compiler-warn-redundant-cast'
+            contextualLabel == 'redundant cast to java.lang.String'
+        }
+
+        result.error.contains("4 warnings\n")
     }
 
     def "only failures are received when a multi-file compilation failure and warning happens"() {
         given:
-        possibleFileLocations.put(writeJavaCausingTwoCompilationErrorsAndTwoWarnings("Foo"), 2)
-        possibleFileLocations.put(writeJavaCausingTwoCompilationErrorsAndTwoWarnings("Bar"), 2)
+        possibleFileLocations.put(writeJavaCausingTwoCompilationErrorsAndTwoWarnings("Foo").absolutePath, 2)
+        possibleFileLocations.put(writeJavaCausingTwoCompilationErrorsAndTwoWarnings("Bar").absolutePath, 2)
 
         when:
         def result = fails("compileJava")
 
         then:
-        collectedProblems.size() == 4
-        for (def problem in collectedProblems) {
-            assertProblem(problem, "ERROR") { details ->
-                assert details == "';' expected"
-            }
+        verifyAll(receivedProblem(0)) {
+            assertLocations(it, true)
+            severity == Severity.ERROR
+            fqid == 'compilation:java:compiler-err-expected'
+            contextualLabel == '\';\' expected'
         }
+        verifyAll(receivedProblem(1)) {
+            assertLocations(it, true)
+            severity == Severity.ERROR
+            fqid == 'compilation:java:compiler-err-expected'
+            contextualLabel == '\';\' expected'
+        }
+        verifyAll(receivedProblem(2)) {
+            assertLocations(it, true)
+            severity == Severity.ERROR
+            fqid == 'compilation:java:compiler-err-expected'
+            contextualLabel == '\';\' expected'
+        }
+        verifyAll(receivedProblem(3)) {
+            assertLocations(it, true)
+            severity == Severity.ERROR
+            fqid == 'compilation:java:compiler-err-expected'
+            contextualLabel == '\';\' expected'
+        }
+
+        result.error.contains("4 errors\n")
     }
 
     def "problems are received when two separate compilation task is executed"() {
         given:
         // The main source set will only cause warnings, as otherwise compilation will fail with the `compileJava` task
-        possibleFileLocations.put(writeJavaCausingTwoCompilationWarnings("Foo"), 2)
+        possibleFileLocations.put(writeJavaCausingTwoCompilationWarnings("Foo").absolutePath, 2)
         // The test source set will cause errors
-        possibleFileLocations.put(writeJavaCausingTwoCompilationErrors("FooTest", "test"), 2)
+        possibleFileLocations.put(writeJavaCausingTwoCompilationErrors("FooTest", "test").absolutePath, 2)
 
         when:
         // Special flag to fork the compiler, see the setup()
         fails("compileTestJava")
 
         then:
-        collectedProblems.size() == 4
+        verifyAll(receivedProblem(0)) {
+            assertLocations(it, true)
+            severity == Severity.ERROR
+            fqid == 'compilation:java:compiler-err-expected'
+            contextualLabel == '\';\' expected'
+        }
+        verifyAll(receivedProblem(1)) {
+            assertLocations(it, true)
+            severity == Severity.ERROR
+            fqid == 'compilation:java:compiler-err-expected'
+            contextualLabel == '\';\' expected'
+        }
+        verifyAll(receivedProblem(2)) {
+            assertLocations(it, true)
+            severity == Severity.WARNING
+            fqid == 'compilation:java:compiler-warn-redundant-cast'
+            contextualLabel == 'redundant cast to java.lang.String'
+        }
+        verifyAll(receivedProblem(3)) {
+            assertLocations(it, true)
+            severity == Severity.WARNING
+            fqid == 'compilation:java:compiler-warn-redundant-cast'
+            contextualLabel == 'redundant cast to java.lang.String'
+        }
 
-        def warningProblems = collectedProblems.findAll {
-            it['definition']["severity"] == "WARNING"
-        }
-        warningProblems.size() == 2
-        for (def problem in warningProblems) {
-            assertProblem(problem, "WARNING") {details ->
-                assert details == "redundant cast to java.lang.String"
-            }
-        }
-
-        def errorProblems = collectedProblems.findAll {
-            it['definition']["severity"] == "ERROR"
-        }
-        errorProblems.size() == 2
-        for (def problem in errorProblems) {
-            assertProblem(problem, "ERROR") { details ->
-                assert details == "';' expected"
-            }
-        }
+        result.error.contains("2 errors\n")
+        result.error.contains("2 warnings\n")
     }
 
-    def "the compiler flag -Werror correctly reports"() {
+    def "the compiler flag -Werror correctly reports problems"() {
         given:
         buildFile << "tasks.compileJava.options.compilerArgs += ['-Werror']"
-        possibleFileLocations.put(writeJavaCausingTwoCompilationWarnings("Foo"), 3)
+
+        def fooFileLocation = writeJavaCausingTwoCompilationWarnings("Foo")
+        possibleFileLocations.put(fooFileLocation.absolutePath, 3)
 
         when:
         fails("compileJava")
 
         then:
         // 2 warnings + 1 special error
-        collectedProblems.size() == 3
+        // The compiler will report a single error, implying that the warnings were treated as errors
+        verifyAll(receivedProblem(0)) {
+            assertLocations(it, false, false)
+            severity == Severity.ERROR
+            fqid == 'compilation:java:compiler-err-warnings-and-werror'
+            contextualLabel == 'warnings found and -Werror specified'
+            !solutions.empty
+            details == "error: warnings found and -Werror specified"
+        }
+
+        // Based on the Java version, the types in the lint message will differ...
+        String expectedType
+        if (JavaVersion.current().isJava9Compatible()) {
+            expectedType = "String"
+        } else {
+            expectedType = "java.lang.String"
+        }
 
         // The two expected warnings are still reported as warnings
-        def warningProblems = collectedProblems.findAll {
-            it['definition']["severity"] == "WARNING"
-        }
-        warningProblems.size() == 2
-        for (def problem in warningProblems) {
-            assertProblem(problem, "WARNING") {details ->
-                assert details == "redundant cast to java.lang.String"
+        verifyAll(receivedProblem(1)) {
+            assertLocations(it, true)
+            severity == Severity.WARNING
+            fqid == 'compilation:java:compiler-warn-redundant-cast'
+            contextualLabel == 'redundant cast to java.lang.String'
+            solutions.empty
+            verifyAll(getSingleLocation(ReceivedProblem.ReceivedFileLocation)) {
+                it.path == fooFileLocation.absolutePath
             }
+            details == """\
+$fooFileLocation:5: warning: [cast] redundant cast to $expectedType
+        String s = (String)"Hello World";
+                   ^"""
+        }
+        verifyAll(receivedProblem(2)) {
+            assertLocations(it, true)
+            severity == Severity.WARNING
+            fqid == 'compilation:java:compiler-warn-redundant-cast'
+            contextualLabel == 'redundant cast to java.lang.String'
+            solutions.empty
+            details == """\
+${fooFileLocation}:9: warning: [cast] redundant cast to $expectedType
+        String s = (String)"Hello World";
+                   ^"""
         }
 
-        // The compiler will report a single error, implying that the warnings were treated as errors
-        def errorProblems = collectedProblems.findAll {
-            it['definition']["severity"] == "ERROR"
+        result.error.contains("1 error\n")
+        result.error.contains("2 warnings\n")
+    }
+
+    def "warning counts are not reported when there are no warnings"() {
+        disableProblemsApiCheck()
+
+        given:
+        def generator = new ProblematicClassGenerator(testDirectory, "Foo")
+        generator.save()
+
+        when:
+        succeeds("compileJava")
+
+        then:
+        !result.error.contains("0 warnings")
+    }
+
+    def "warning counts are reported correctly"(int warningCount, String warningMessage) {
+        disableProblemsApiCheck()
+
+        given:
+        def generator = new ProblematicClassGenerator(testDirectory)
+        for (int i = 1; i <= warningCount; i++) {
+            generator.addWarning()
         }
-        errorProblems.size() == 1
-        assertProblem(errorProblems[0], "ERROR") {details ->
-            assert details == "warnings found and -Werror specified"
+        generator.save()
+
+        when:
+        succeeds("compileJava")
+
+        then:
+        result.error.contains(warningMessage)
+
+        where:
+        warningCount | warningMessage
+        1            | "1 warning"
+        2            | "2 warnings"
+    }
+
+    def "error counts are not reported when there are no errors"() {
+        disableProblemsApiCheck()
+
+        given:
+        def generator = new ProblematicClassGenerator(testDirectory)
+        generator.save()
+
+        when:
+        succeeds("compileJava")
+
+        then:
+        !result.error.contains("0 errors")
+    }
+
+    def "error counts are reported correctly"(int errorCount, String errorMessage) {
+        disableProblemsApiCheck()
+
+        given:
+        def generator = new ProblematicClassGenerator(testDirectory)
+        for (int i = 1; i <= errorCount; i++) {
+            generator.addError()
+        }
+        generator.save()
+
+        when:
+        fails("compileJava")
+
+        then:
+        result.error.contains(errorMessage)
+
+        where:
+        errorCount | errorMessage
+        1          | "1 error"
+        2          | "2 errors"
+    }
+
+    @Issue("https://github.com/gradle/gradle/pull/29141")
+    @Requires(IntegTestPreconditions.Java8HomeAvailable)
+    def "compiler warnings causes failure in problem mapping under JDK8"() {
+        given:
+        setupAnnotationProcessors(JavaVersion.VERSION_1_8)
+
+        def generator = new ProblematicClassGenerator(testDirectory, "Foo")
+        generator.addWarning()
+        generator.save()
+        possibleFileLocations.put(generator.sourceFile.absolutePath, 1)
+
+        when:
+        executer.withArguments("--info")
+        withInstallations(AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_8))
+        succeeds(":compileJava")
+
+        then:
+        outputContains(DiagnosticToProblemListener.FORMATTER_FALLBACK_MESSAGE)
+        verifyAll(receivedProblem(0)) {
+            assertLocations(it, true)
+            severity == Severity.WARNING
+            fqid == 'compilation:java:compiler-warn-redundant-cast'
+            contextualLabel == 'redundant cast to java.lang.String'
+            // In JDK8, the compiler will not simplify the type to just "String"
+            details.contains("redundant cast to java.lang.String")
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/pull/29141")
+    @Requires(IntegTestPreconditions.Java11HomeAvailable)
+    def "compiler warnings does not cause failure in problem mapping under JDK#jdk.javaVersionMajor"(Jvm jdk) {
+        given:
+        setupAnnotationProcessors(jdk.javaVersion)
+
+        def generator = new ProblematicClassGenerator(testDirectory, "Foo")
+        generator.addWarning()
+        generator.save()
+        possibleFileLocations.put(generator.sourceFile.absolutePath, 1)
+
+        when:
+        executer.withArguments("--info")
+        withInstallations(jdk)
+        succeeds(":compileJava")
+
+        then:
+        !result.error.contains(DiagnosticToProblemListener.FORMATTER_FALLBACK_MESSAGE)
+        verifyAll(receivedProblem(0)) {
+            assertLocations(it, true)
+            severity == Severity.WARNING
+            fqid == 'compilation:java:compiler-warn-redundant-cast'
+            contextualLabel == 'redundant cast to java.lang.String'
+            // In JDK11, the compiler will not simplify the type to just "String"
+            details.contains("redundant cast to String")
+        }
+
+        where:
+        jdk << AvailableJavaHomes.getAvailableJdks {
+            it.languageVersion.isJava9Compatible()
+        }
+    }
+
+    def "invalid flags should be reported as problems"() {
+        given:
+        writeJavaCausingTwoCompilationWarnings("Foo")
+        buildFile << "tasks.compileJava.options.compilerArgs += ['-invalid-flag']"
+
+        when:
+        fails("compileJava")
+
+        then:
+        verifyAll(receivedProblem) {
+            severity == Severity.ERROR
+            fqid == 'compilation:java:initialization-failed'
+            // Message can change between JDK versions:
+            //  - JDK1.8: error: invalid flag: -invalid-flag
+            //  - JDK11:         invalid flag: -invalid-flag
+            contextualLabel.endsWith('invalid flag: -invalid-flag')
+            exception.message.endsWith('invalid flag: -invalid-flag')
+        }
+    }
+
+    void assertLabel(ReceivedProblem receivedProblem) {
+        switch (receivedProblem.severity) {
+            case Severity.ERROR:
+                assert receivedProblem.definition.id.displayName == "Java compilation error"
+                break
+            case Severity.WARNING:
+                assert receivedProblem.definition.id.displayName == "Java compilation warning"
+                break
+            default:
+                throw new AssertionFailedError("Unexpected severity: ${receivedProblem.severity}")
         }
     }
 
@@ -229,123 +519,151 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
      *
      * @throws AssertionError if the problem does not look like how we expect it to look like
      */
-    void assertProblem(
+    void assertLocations(
         ReceivedProblem problem,
-        String severity,
-        @ClosureParams(
-            value = SimpleType,
-            options = [
-                "java.lang.String"
-            ]
-        )
-            Closure extraChecks = null
+        boolean expectLineLocation = true,
+        boolean expectOffsetLocation = !expectLineLocation
     ) {
-        assert problem['definition']["severity"] == severity: "Expected severity to be ${severity}, but was ${problem['definition']["severity"]}"
-        switch (severity) {
-            case "ERROR":
-                assert problem['definition']["label"] == "Java compilation error": "Expected label 'Java compilation error', but was ${problem['definition']["label"]}"
-                break
-            case "WARNING":
-                assert problem['definition']["label"] == "Java compilation warning": "Expected label 'Java compilation warning', but was ${problem['definition']["message"]}"
-                break
-            default:
-                throw new IllegalArgumentException("Unknown severity: ${severity}")
+        assert problem.contextualLabel != null, "Expected contextual label to be non-null, but was null"
+
+        def locations = problem.originLocations + problem.contextualLocations
+        // We use this counter to assert that we have visited all locations
+        def assertedLocationCount = 1
+
+        if (expectLineLocation) {
+            LineInFileLocation positionLocation = locations.find {
+                it instanceof LineInFileLocation
+            }
+            assert positionLocation != null: "Expected a precise file location, but it was null"
+            // Register that we've asserted this location
+            assertedLocationCount += 1
+            assertOccurence(positionLocation)
+        } else if (expectOffsetLocation) {
+            OffsetInFileLocation offsetLocation = locations.find {
+                it instanceof OffsetInFileLocation
+            }
+            assert offsetLocation != null: "Expected a precise file location, but it was null"
+            // Register that we've asserted this location
+            assertedLocationCount += 1
+            assertOccurence(offsetLocation)
+        } else {
+            FileLocation fileLocation = locations.find { it instanceof FileLocation }
+            assert fileLocation != null: "Expected a file location, but it was null"
+            def fileLocationPath = fileLocation.path
+            // Register that we've asserted this location
+            assertedLocationCount += 1
+            // Check if we expect this file location
+            assertOccurence(fileLocation)
         }
 
-        def details = problem['context']["details"] as String
-        assert details: "Expected details to be non-null, but was null"
-
-        def locations = problem['context']["locations"] as List<Map<String, Object>>
-        assert locations.size() == 1: "Expected one location, but received ${locations.size()}"
-
-        def fileLocation = locations.find {
-            it.containsKey("path") && it.containsKey("line") && it.containsKey("column") && it.containsKey("length")
-        }
-        assert fileLocation != null: "Expected a file location, but it was null"
-        assert fileLocation["line"] != null: "Expected a line number, but it was null"
-        assert fileLocation["column"] != null: "Expected a column number, but it was null"
-        assert fileLocation["length"] != null: "Expected a length, but it was null"
-
-        def fileLocationPath = fileLocation["path"] as String
-        def occurrences = possibleFileLocations.get(fileLocationPath)
-        assert occurrences: "Not found file location '${fileLocationPath}' in the expected file locations: ${possibleFileLocations.keySet()}"
-        visitedFileLocations.putIfAbsent(fileLocationPath, 0)
-        visitedFileLocations[fileLocationPath] += 1
-
-        if (extraChecks != null) {
-            extraChecks.call(details)
-        }
+        assert assertedLocationCount == locations.size(): "Expected to assert all locations, but only visited ${assertedLocationCount} out of ${locations.size()}"
     }
 
-    String writeJavaCausingTwoCompilationErrors(String className, String sourceSet = "main") {
-        def file = file("src/${sourceSet}/java/${className}.java")
-        file << """
-            public class ${className} {
-                public static void problemOne(String[] args) {
-                    // Missing semicolon will trigger an error
-                    String s = "Hello, World!"
-                }
+    void assertOccurence(FileLocation fileLocationPath) {
+        def path = fileLocationPath.path
+        def occurrences = possibleFileLocations.get(path)
+        assert occurrences, "Not found file location '${path}' in the expected file locations: ${possibleFileLocations.keySet()}"
+        visitedFileLocations.putIfAbsent(path, 0)
+        visitedFileLocations[path] += 1
+    }
 
-                public static void problemTwo(String[] args) {
-                    // Missing semicolon will trigger an error
-                    String s = "Hello, World!"
+    TestFile writeJavaCausingTwoCompilationErrors(String className, String sourceSet = "main") {
+        def generator = new ProblematicClassGenerator(testDirectory, className, sourceSet)
+        generator.addError()
+        generator.addError()
+        return generator.save()
+    }
+
+    TestFile writeJavaCausingTwoCompilationWarnings(String className) {
+        def generator = new ProblematicClassGenerator(testDirectory, className)
+        generator.addWarning()
+        generator.addWarning()
+        return generator.save()
+    }
+
+    TestFile writeJavaCausingTwoCompilationErrorsAndTwoWarnings(String className) {
+        def generator = new ProblematicClassGenerator(testDirectory, className)
+        generator.addError()
+        generator.addError()
+        generator.addWarning()
+        generator.addWarning()
+        return generator.save()
+    }
+
+    def setupAnnotationProcessors(JavaVersion testedJdkVersion) {
+        //
+        // 1. step: Create a simple annotation processor
+        //
+        file("processor/build.gradle") << """
+            plugins {
+                id 'java'
+            }
+
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(${Integer.parseInt(testedJdkVersion.getMajorVersion())})
                 }
             }
         """
+        file("processor/src/main/java/DummyAnnotation.java") << """
+            package com.example;
 
-        return formatFilePath(file)
-    }
+            import java.lang.annotation.ElementType;
+            import java.lang.annotation.Retention;
+            import java.lang.annotation.RetentionPolicy;
+            import java.lang.annotation.Target;
 
-    String writeJavaCausingTwoCompilationWarnings(String className) {
-        def file = file("src/main/java/${className}.java")
-        file << """
-            public class ${className} {
-                public static void warningOne(String[] args) {
-                    // Unnecessary cast will trigger a warning
-                    String s = (String)"Hello World";
-                }
+            @Retention(RetentionPolicy.RUNTIME)
+            @Target(ElementType.TYPE)
+            public @interface DummyAnnotation {
+            }
+        """
+        // A simple annotation processor
+        file("processor/src/main/java/DummyProcessor.java") << """
+            package com.example;
 
-                public static void warningTwo(String[] args) {
-                    // Unnecessary cast will trigger a warning
-                    String s = (String)"Hello World";
+            import javax.annotation.processing.AbstractProcessor;
+            import javax.annotation.processing.RoundEnvironment;
+            import javax.annotation.processing.Processor;
+            import javax.annotation.processing.ProcessingEnvironment;
+            import javax.annotation.processing.SupportedAnnotationTypes;
+            import javax.annotation.processing.SupportedSourceVersion;
+            import javax.lang.model.SourceVersion;
+            import javax.lang.model.element.TypeElement;
+            import javax.lang.model.element.Element;
+            import javax.tools.Diagnostic;
+
+            import java.util.Set;
+
+            @SupportedAnnotationTypes("com.example.DummyAnnotation")
+            @SupportedSourceVersion(SourceVersion.RELEASE_${Integer.parseInt(testedJdkVersion.majorVersion)})
+            public class DummyProcessor extends AbstractProcessor {
+                @Override
+                public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+                    return true; // No further processing of this annotation type
                 }
             }
         """
+        // META-INF/services file for registering the annotation processor
+        file("processor/src/main/resources/META-INF/services/javax.annotation.processing.Processor") << "com.example.DummyProcessor"
 
-        return formatFilePath(file)
-    }
-
-    String writeJavaCausingTwoCompilationErrorsAndTwoWarnings(String className) {
-        def file = file("src/main/java/${className}.java")
-        file << """
-            public class ${className} {
-                public static void problemOne(String[] args) {
-                    // Missing semicolon will trigger an error
-                    String s = "Hello, World!"
-                }
-
-                public static void problemTwo(String[] args) {
-                    // Missing semicolon will trigger an error
-                    String s = "Hello, World!"
-                }
-
-                public static void warningOne(String[] args) {
-                    // Unnecessary cast will trigger a warning
-                    String s = (String)"Hello World";
-                }
-
-                public static void warningTwo(String[] args) {
-                    // Unnecessary cast will trigger a warning
-                    String s = (String)"Hello World";
+        //
+        // 2. step: Create a simple project that uses the annotation processor
+        //
+        settingsFile << """\
+            include 'processor'
+        """
+        buildFile << """\
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(${Integer.parseInt(testedJdkVersion.majorVersion)})
                 }
             }
+
+            dependencies {
+                annotationProcessor project(':processor')
+            }
         """
-
-        return formatFilePath(file)
-    }
-
-    def formatFilePath(TestFile file) {
-        return file.absolutePath.toString()
     }
 
 }

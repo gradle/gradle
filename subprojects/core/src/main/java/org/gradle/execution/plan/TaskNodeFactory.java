@@ -30,16 +30,15 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.impl.DefaultWorkValidationContext;
 import org.gradle.internal.operations.BuildOperationRunner;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -47,9 +46,9 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
-@ServiceScope(Scopes.Build.class)
+@ServiceScope(Scope.Build.class)
 public class TaskNodeFactory {
-    private final Map<Task, TaskNode> nodes = new HashMap<>();
+    private final Map<Task, TaskNode> nodes = new ConcurrentHashMap<>();
     private final BuildTreeWorkGraphController workGraphController;
     private final GradleInternal thisBuild;
     private final DefaultTypeOriginInspectorFactory typeOriginInspectorFactory;
@@ -78,16 +77,15 @@ public class TaskNodeFactory {
     }
 
     public TaskNode getOrCreateNode(Task task) {
-        TaskNode node = nodes.get(task);
-        if (node == null) {
-            if (((ProjectInternal) task.getProject()).getGradle().getIdentityPath().equals(thisBuild.getIdentityPath())) {
-                node = new LocalTaskNode((TaskInternal) task, new DefaultWorkValidationContext(typeOriginInspectorFactory.forTask(task)), resolveMutationsNodeFactory);
-            } else {
-                node = TaskInAnotherBuild.of((TaskInternal) task, workGraphController);
-            }
-            nodes.put(task, node);
+        return nodes.computeIfAbsent(task, it -> createTaskNode(Cast.uncheckedNonnullCast(it)));
+    }
+
+    private TaskNode createTaskNode(TaskInternal task) {
+        boolean sameBuild = ((ProjectInternal) task.getProject()).getGradle().getIdentityPath().equals(thisBuild.getIdentityPath());
+        if (sameBuild) {
+            return new LocalTaskNode(task, new DefaultWorkValidationContext(typeOriginInspectorFactory.forTask(task)), resolveMutationsNodeFactory);
         }
-        return node;
+        return TaskInAnotherBuild.of(task, workGraphController);
     }
 
     public void resetState() {

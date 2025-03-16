@@ -183,7 +183,7 @@ public class SimpleMarkupWriter extends Writer {
             writeRaw("]]><![CDATA[>");
         } else if (!XmlValidation.isLegalCharacter(ch)) {
             writeRaw('?');
-        } else if (ch <= 0xffff && XmlValidation.isRestrictedCharacter((char) ch) || Character.charCount(ch) == 2) {
+        } else if ((ch <= 0xffff && XmlValidation.isRestrictedCharacter((char) ch)) || Character.charCount(ch) == 2) {
             writeRaw("]]>");
             writeCharacterReference(ch);
             writeRaw("<![CDATA[");
@@ -361,7 +361,7 @@ public class SimpleMarkupWriter extends Writer {
     private void writeSafeCharacter(int ch) throws IOException {
         if (!XmlValidation.isLegalCharacter(ch)) {
             writeRaw('?');
-        } else if (ch <= 0xffff && XmlValidation.isRestrictedCharacter((char) ch) || Character.charCount(ch) == 2) {
+        } else if ((ch <= 0xffff && XmlValidation.isRestrictedCharacter((char) ch)) || Character.charCount(ch) == 2) {
             writeCharacterReference(ch);
         } else {
             writeRaw((char) ch);

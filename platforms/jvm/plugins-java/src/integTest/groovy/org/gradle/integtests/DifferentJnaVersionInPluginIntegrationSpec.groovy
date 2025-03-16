@@ -24,7 +24,7 @@ class DifferentJnaVersionInPluginIntegrationSpec extends AbstractIntegrationSpec
     @Requires(UnitTestPreconditions.NotMacOsM1)
     def 'can build a plugin with a different jna version'() {
         given:
-        buildScript """
+        buildFile """
             plugins {
                 id 'java'
             }

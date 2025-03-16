@@ -19,7 +19,6 @@ package org.gradle.cache.internal;
 import org.gradle.api.GradleException;
 import org.gradle.cache.FileAccess;
 import org.gradle.cache.ObjectHolder;
-import org.gradle.internal.Factory;
 import org.gradle.internal.file.Chmod;
 import org.gradle.internal.serialize.InputStreamBackedDecoder;
 import org.gradle.internal.serialize.OutputStreamBackedEncoder;
@@ -30,6 +29,7 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.util.function.Supplier;
 
 public class FileBackedObjectHolder<T> implements ObjectHolder<T> {
     private final FileAccess fileAccess;
@@ -46,22 +46,12 @@ public class FileBackedObjectHolder<T> implements ObjectHolder<T> {
 
     @Override
     public T get() {
-        return fileAccess.readFile(new Factory<T>() {
-            @Override
-            public T create() {
-                return deserialize();
-            }
-        });
+        return fileAccess.readFile((Supplier<T>) this::deserialize);
     }
 
     @Override
     public void set(final T newValue) {
-        fileAccess.writeFile(new Runnable() {
-            @Override
-            public void run() {
-                serialize(newValue);
-            }
-        });
+        fileAccess.writeFile(() -> serialize(newValue));
     }
 
     @Override

@@ -27,20 +27,33 @@ various implementations of WorkerTestClassProcessorFactory.
 """
 
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":messaging"))
-    implementation(project(":testing-base"))
+    api(projects.stdlibJavaExtensions)
+    api(projects.time)
+    api(projects.baseServices)
+    api(projects.messaging)
+    api(projects.testingBaseInfrastructure)
 
-    implementation(libs.slf4jApi)
-    implementation(libs.commonsLang)
-    implementation(libs.junit)
-    implementation(libs.testng)
-    implementation(libs.bsh) {
-        because("Used by TestNG")
+    api(libs.jspecify)
+    api(libs.junit)
+    api(libs.testng)
+    api(libs.bsh) {
+        because("""We need to create a capability conflict between "org.beanshell:bsh", and "org.beanshell:beanshell" by explicitly including this lib
+            version of bsh, instead of depending on the transitive version contributed by testng.  This lib contributes the "beanshell" capability,
+            and the conflict resolution rules from capabilities.json ensures this is the version that is resolved.
+
+            This is necessary because the beanshell project migrated coordinates from org.beanshell in version 2.0b4 to org.apache-extras.beanshell
+            in version 2.0b5.  We want to resolve version 2.0b6.  The conflict ensures org.apache-extras.beanshell is selected, so we get 2.0b6.  If
+            we don't do this, we get 2.0b4, which is not present in our verification-metadata.xml file and causes a build failure.
+        """.trimMargin())
     }
 
-    testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":messaging")))
+    implementation(projects.concurrent)
+
+    implementation(libs.slf4jApi)
+
+    testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.messaging))
+    testImplementation(testFixtures(projects.time))
     testImplementation(libs.assertj) {
         because("We test assertion errors coming from AssertJ")
     }
@@ -55,8 +68,17 @@ dependencies {
         because("Used by TestNG")
     }
 
-    testFixturesImplementation(project(":testing-base"))
+    testFixturesImplementation(projects.testingBase)
     testFixturesImplementation(libs.junit)
     testFixturesImplementation(libs.testng)
     testFixturesImplementation(libs.bsh)
+}
+
+dependencyAnalysis {
+    issues {
+        onAny() {
+            // Bsh is not used directly, but is selected as the result of capabilities conflict resolution - the classes ARE required at runtime by TestNG
+            exclude(libs.bsh)
+        }
+    }
 }

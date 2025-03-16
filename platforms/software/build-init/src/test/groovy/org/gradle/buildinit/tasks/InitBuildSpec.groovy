@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+//file:noinspection GroovyAccessibility
 
 package org.gradle.buildinit.tasks
 
@@ -55,7 +56,8 @@ class InitBuildSpec extends Specification {
     BuildConverter buildConverter
 
     def setup() {
-        init = TestUtil.create(testDir.testDirectory).task(InitBuild)
+        // Don't store userHome in the default location (in the project dir), because this will cause the non-empty project dir detection to fail
+        init = TestUtil.create(testDir.testDirectory.file("project"), testDir.testDirectory.file("userHome")).task(InitBuild)
         projectLayoutRegistry = Mock()
         defaultGenerator = Mock()
         buildConverter = Mock()
@@ -63,6 +65,7 @@ class InitBuildSpec extends Specification {
         init.insecureProtocol.convention(InsecureProtocolOption.WARN)
         init.useDefaults.convention(false)
         init.comments.convention(true)
+        init.allowFileOverwrite.convention(false)
     }
 
     def "creates project with all defaults"() {

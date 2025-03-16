@@ -22,8 +22,8 @@ import com.google.common.collect.Lists;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.SystemProperties;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -48,7 +48,21 @@ public class PropertiesUtils {
      * </ul>
      */
     public static void store(Properties properties, File propertyFile) throws IOException {
-        store(properties, propertyFile, null, Charsets.ISO_8859_1, "\n");
+        store(properties, propertyFile, null);
+    }
+
+    /**
+     * Writes {@link java.util.Properties} in a way that the results can be expected to be reproducible.
+     *
+     * Uses defaults for the arguments of {@link PropertiesUtils#store(Properties, File, String, Charset, String)}:
+     * <ul>
+     *     <li>provided comment</li>
+     *     <li>line separator {@literal '\n'}</li>
+     *     <li>charset ISO-8859-1</li>
+     * </ul>
+     */
+    public static void store(Properties properties, File propertyFile, @Nullable String comment) throws IOException {
+        store(properties, propertyFile, comment, Charsets.ISO_8859_1, "\n");
     }
 
     /**

@@ -34,12 +34,12 @@ class ProgramTextTest {
         )
 
         assertThat(
-            text.preserve(0..1, 7..9),
+            text.preserve(arrayOf(0..1, 7..9)),
             equalTo(text("01     789"))
         )
 
         assertThat(
-            text.preserve(7..9, 0..1),
+            text.preserve(arrayOf(7..9, 0..1)),
             equalTo(text("01     789"))
         )
     }

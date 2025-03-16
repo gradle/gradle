@@ -1,0 +1,85 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[platforms-vs-catalog]]
+= Using Catalogs with Platforms
+
+Both platforms and version catalogs help manage dependency versions in a project, but they serve different purposes and have different effects on dependency resolution:
+
+[[sec:version-catalogs]]
+== Version Catalogs
+
+- **Purpose:** A version catalog centralizes and standardizes dependency coordinates (group, name, version) and provides type-safe accessors in the build script, making dependencies easier to manage.
+- **Effect on Dependency Graph:** Version catalogs **do not** directly affect dependency resolution. The versions defined in the catalog must be explicitly referenced in a `dependencies` block, and once referenced, they behave the same as any locally declared dependency. Additionally, the catalog's contents are **transparent to downstream consumers**, meaning that consumers cannot identify whether a dependency was declared locally or sourced from a catalog.
+
+[source,toml]
+.libs.versions.toml
+----
+[libraries]
+mylib = { group = "com.example", name = "mylib", version = "1.0.0" }
+----
+
+[[sec:platforms]]
+== Platforms
+
+- **Purpose:** A platform is a module in the dependency graph that enforces or aligns versions of dependencies (including transitive dependencies). It influences dependency resolution and ensures version consistency across different modules.
+- **Effect on Dependency Graph:** Platforms **apply** or **enforce** versions to dependencies that are declarated locally without versions.  These versions in a platform are propagated through the dependency graph, affecting transitive dependencies and downstream consumers. They are a formal part of the dependency graph and can dictate the version chosen during resolution.
+
+[source,kotlin]
+.build.gradle.kts
+----
+plugins {
+    `java-platform`
+}
+
+dependencies {
+    constraints {
+        api("com.example:mylib:2.0.0")
+    }
+}
+----
+
+[[sec:catalog-platform]]
+== Using a catalog with a platform
+
+Even if a version catalog defines a version for a dependency, Gradle might pick a different version during resolution if another component (e.g., a platform or a transitive dependency) suggests a different version (unless <<platforms.adoc#sec:enforced-platform,`enforcedPlatform`>> is used).
+
+For example, a version catalog may define `mylib` as version `1.0.0`, but if a platform enforces `2.0.0`, Gradle will select version `2.0.0`.
+
+To ensure consistent version alignment, a good approach is to use a version catalog to define dependency versions alongside a platform to enforce them.
+
+Version Catalog:
+
+====
+include::sample[dir="snippets/dependencyManagement/catalogs-platforms/kotlin",files="gradle/libs.versions.toml[]"]
+====
+
+Platform:
+
+====
+include::sample[dir="snippets/dependencyManagement/catalogs-platforms/kotlin",files="platform/build.gradle.kts[]"]
+include::sample[dir="snippets/dependencyManagement/catalogs-platforms/groovy",files="platform/build.gradle[]"]
+====
+
+Consumer:
+
+====
+include::sample[dir="snippets/dependencyManagement/catalogs-platforms/kotlin",files="consumer/build.gradle.kts[tags=usage]"]
+include::sample[dir="snippets/dependencyManagement/catalogs-platforms/groovy",files="consumer/build.gradle[tags=usage]"]
+====
+
+Best Practices for using both a catalog and a platform:
+
+1. **Use version catalogs** for defining and sharing dependency coordinates across projects. They make dependency declarations consistent and easier to manage but do not guarantee version alignment.
+2. **Use platforms** when you need to influence or enforce version alignment across modules. Platforms ensure that dependencies resolve to the desired version, particularly in large or multi-module projects.

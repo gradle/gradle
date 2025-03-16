@@ -18,8 +18,6 @@ package org.gradle.ide.visualstudio.tasks.internal
 
 import org.gradle.api.Transformer
 import org.gradle.ide.visualstudio.fixtures.ProjectFile
-import org.gradle.ide.visualstudio.internal.VisualStudioProjectConfiguration
-import org.gradle.ide.visualstudio.internal.VisualStudioTargetBinary
 import org.gradle.internal.xml.XmlTransformer
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -148,20 +146,22 @@ class VisualStudioProjectFileTest extends Specification {
         "10"              | null
     }
 
-    private VisualStudioProjectConfiguration configuration(def configName, def platformName, def defines, def includes) {
-        return Stub(VisualStudioProjectConfiguration) {
-            getName() >> "${configName}|${platformName}"
-            getConfigurationName() >> configName
-            getPlatformName() >> platformName
-            getTargetBinary() >> Stub(VisualStudioTargetBinary) {
-                getBuildTaskPath() >> "${configName}Build"
-                getCleanTaskPath() >> "${configName}Clean"
-                getCompilerDefines() >> defines
-                getIncludePaths() >> includes.collect { file(it) }
-                getOutputFile() >> new File("out")
-            }
-            isBuildable() >> true
-        }
+    private VisualStudioProjectFile.ConfigurationSpec configuration(String configName, String platformName, List<String> defines, def includes) {
+        return new VisualStudioProjectFile.ConfigurationSpec(
+            "${configName}|${platformName}",
+            configName,
+            "project",
+            platformName,
+            null,
+            true,
+            false,
+            new LinkedHashSet(includes.collect { file(it) }),
+            "${configName}Build",
+            "${configName}Clean",
+            defines,
+            new File("out"),
+            null
+        )
     }
 
     private ProjectFile getProjectFile() {

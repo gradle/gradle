@@ -35,11 +35,11 @@ abstract class AbstractJavaModuleCompileIntegrationTest extends AbstractJavaModu
                 """
                 break
             case JavaCompileMultiTestInterceptor.Compiler.WORKER_COMMAND_LINE_COMPILER:
-                def javaHome = TextUtil.escapeString(AvailableJavaHomes.getJdk(JavaVersion.current()).javaHome.absolutePath)
+                def javac = TextUtil.escapeString(AvailableJavaHomes.getJdk(JavaVersion.current()).javacExecutable.absolutePath)
                 buildFile << """
                     tasks.withType(JavaCompile) {
                         options.fork = true
-                        options.forkOptions.javaHome = file('$javaHome')
+                        options.forkOptions.executable = file('$javac')
                     }
                 """
                 break

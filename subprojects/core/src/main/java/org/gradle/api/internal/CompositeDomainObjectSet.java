@@ -37,7 +37,7 @@ import java.util.Set;
  *
  * @param <T> The type of domain objects in the component collections of this collection.
  */
-public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> implements WithEstimatedSize {
+public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
 
     private final Spec<T> uniqueSpec = new ItemIsUniqueInCompositeSpec();
     private final Spec<T> notInSpec = new ItemNotInCompositeSpec();
@@ -110,7 +110,7 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
 
     public void addCollection(DomainObjectCollection<? extends T> collection) {
         if (!getStore().containsCollection(collection)) {
-            getStore().addComposited(collection);
+            getStore().addComposited((DomainObjectCollectionInternal<? extends T>) collection);
             collection.all(new InternalAction<T>() {
                 @Override
                 public void execute(T t) {
@@ -139,12 +139,13 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
         return getStore().iterator();
     }
 
-    @Override
-    @SuppressWarnings("unchecked")
     /**
+     * {@inheritDoc}
+     *  <p>
      * This method is expensive. Avoid calling it if possible. If all you need is a rough
      * estimate, call {@link #estimatedSize()} instead.
      */
+    @Override
     public int size() {
         return getStore().size();
     }
@@ -166,7 +167,7 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
     // TODO Make this work with pending elements
     private final static class DomainObjectCompositeCollection<T> implements ElementSource<T> {
 
-        private final List<DomainObjectCollection<? extends T>> store = new LinkedList<>();
+        private final List<DomainObjectCollectionInternal<? extends T>> store = new LinkedList<>();
 
         public boolean containsCollection(DomainObjectCollection<? extends T> collection) {
             for (DomainObjectCollection<? extends T> ts : store) {
@@ -245,12 +246,12 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
             throw new UnsupportedOperationException();
         }
 
-        public void addComposited(DomainObjectCollection<? extends T> collection) {
+        public void addComposited(DomainObjectCollectionInternal<? extends T> collection) {
             this.store.add(collection);
         }
 
         public void removeComposited(DomainObjectCollection<? extends T> collection) {
-            Iterator<DomainObjectCollection<? extends T>> iterator = store.iterator();
+            Iterator<DomainObjectCollectionInternal<? extends T>> iterator = store.iterator();
             while (iterator.hasNext()) {
                 DomainObjectCollection<? extends T> next = iterator.next();
                 if (next == collection) {
@@ -268,8 +269,8 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
         @Override
         public int estimatedSize() {
             int size = 0;
-            for (DomainObjectCollection<? extends T> ts : store) {
-                size += Estimates.estimateSizeOf(ts);
+            for (DomainObjectCollectionInternal<? extends T> ts : store) {
+                size += ts.estimatedSize();
             }
             return size;
         }
@@ -325,7 +326,7 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
         }
 
         @Override
-        public MutationGuard getMutationGuard() {
+        public MutationGuard getLazyBehaviorGuard() {
             return MutationGuards.identity();
         }
     }

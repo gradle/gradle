@@ -97,7 +97,7 @@ public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObject
             repository.setName(uniquifyName(repositoryName));
         }
 
-        assertCanAdd(repository.getName());
+        assertElementNotPresent(repository.getName());
         insertion.execute(repository);
         return repository;
     }

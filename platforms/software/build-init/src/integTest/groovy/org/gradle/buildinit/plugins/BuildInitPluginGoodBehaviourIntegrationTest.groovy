@@ -19,7 +19,7 @@ import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
 class BuildInitPluginGoodBehaviourIntegrationTest extends WellBehavedPluginTest {
     @Override
-    String getMainTask() {
-        return "init"
+    def getMainTask() {
+        return ["init", "--overwrite"]
     }
 }

@@ -17,8 +17,8 @@
 package org.gradle.testkit.runner.internal;
 
 import org.gradle.internal.classpath.ClassPath;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;

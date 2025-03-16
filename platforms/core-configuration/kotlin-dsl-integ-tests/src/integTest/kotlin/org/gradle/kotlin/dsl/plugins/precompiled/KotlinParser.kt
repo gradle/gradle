@@ -16,7 +16,6 @@
 
 package org.gradle.kotlin.dsl.plugins.precompiled
 
-import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSourceLocation
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
@@ -29,6 +28,7 @@ import org.jetbrains.kotlin.com.intellij.openapi.util.Disposer
 import org.jetbrains.kotlin.com.intellij.psi.PsiManager
 import org.jetbrains.kotlin.com.intellij.testFramework.LightVirtualFile
 
+import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
 
 import org.jetbrains.kotlin.idea.KotlinFileType
@@ -57,7 +57,7 @@ object KotlinParser {
                 KotlinCoreEnvironment.createForProduction(
                     parentDisposable,
                     CompilerConfiguration().apply {
-                        put(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, TestMessageCollector)
+                        put(CommonConfigurationKeys.MESSAGE_COLLECTOR_KEY, TestMessageCollector)
                     },
                     EnvironmentConfigFiles.JVM_CONFIG_FILES
                 ).project

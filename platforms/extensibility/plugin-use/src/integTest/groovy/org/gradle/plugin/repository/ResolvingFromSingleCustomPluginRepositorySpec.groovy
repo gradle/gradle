@@ -58,7 +58,7 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
           pluginManagement {
             repositories {
               ${repo instanceof MavenRepository ? "maven" : "ivy"} {
-                  url "${PathType.ABSOLUTE.equals(pathType) ? repo.uri : repo.rootDir.name}"
+                  url = uri("${PathType.ABSOLUTE.equals(pathType) ? repo.uri : repo.rootDir.name}")
               }
             }
           }
@@ -69,7 +69,7 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
     def "can resolve plugin from #pathType #repoType repo"() {
         given:
         publishTestPlugin(repoType)
-        buildScript """
+        buildFile """
           plugins {
               id "org.example.plugin" version "1.0"
           }
@@ -95,7 +95,7 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
     def "can access classes from plugin from #repoType repo"() {
         given:
         publishTestPlugin(repoType)
-        buildScript """
+        buildFile """
           plugins {
               id "org.example.plugin" version "1.0"
           }
@@ -120,7 +120,7 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
     def "can apply plugin from #repoType repo to subprojects"() {
         given:
         publishTestPlugin(repoType)
-        buildScript """
+        buildFile """
           plugins {
               id "org.example.plugin" version "1.0" apply false
           }
@@ -147,7 +147,7 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
     def "custom #repoType repo is not mentioned in plugin resolution errors if none is defined"() {
         given:
         publishTestPlugin(repoType)
-        buildScript """
+        buildFile """
           plugins {
               id "org.example.plugin"
           }
@@ -167,7 +167,7 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
     def "Fails gracefully if a plugin is not found in #repoType repo"() {
         given:
         publishTestPlugin(repoType)
-        buildScript """
+        buildFile """
           plugins {
               id "org.example.foo" version "1.1"
           }
@@ -224,7 +224,7 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
     def "Can specify repo in init script."() {
         given:
         publishTestPlugin(MAVEN)
-        buildScript """
+        buildFile """
            plugins {
              id "org.example.plugin" version "1.0"
            }
@@ -236,7 +236,7 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
           pluginManagement {
             repositories {
                 maven {
-                  url "${mavenRepo.uri}"
+                  url = uri("${mavenRepo.uri}")
                 }
             }
           }
@@ -253,11 +253,11 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
     def "can resolve plugins even if buildscript block contains wrong repo with same name"() {
         given:
         publishTestPlugin(MAVEN)
-        buildScript """
+        buildFile """
           buildscript {
             repositories {
                 maven {
-                    url '${new MavenFileRepository(file("other-repo")).uri}'
+                    url = file("${new MavenFileRepository(file("other-repo")).uri}")
                 }
             }
           }
@@ -279,7 +279,7 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
     def "Does not fall through to Plugin Portal if custom repo is defined"() {
         given:
         publishTestPlugin(MAVEN)
-        buildScript """
+        buildFile """
             plugins {
                 id "org.gradle.hello-world" version "0.2" //this exists in the plugin portal
             }
@@ -326,7 +326,7 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
             pluginManagement {
                 repositories {
                     maven {
-                        url '${mavenRepo.uri}'
+                        url = uri("${mavenRepo.uri}")
                     }
                 }
             }

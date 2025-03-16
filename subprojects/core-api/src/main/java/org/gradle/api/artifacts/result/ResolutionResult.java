@@ -19,6 +19,7 @@ package org.gradle.api.artifacts.result;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.HasInternalProtocol;
@@ -51,10 +52,21 @@ public interface ResolutionResult {
      * You can walk the graph recursively from the root to obtain information about resolved dependencies.
      * For example, Gradle's built-in 'dependencies' task uses this to render the dependency tree.
      *
-     * @return a provider for the root node of the resolved dependency graph
+     * @return a provider for the root component of the resolved dependency graph
      * @since 7.4
      */
     Provider<ResolvedComponentResult> getRootComponent();
+
+    /**
+     * The root variant of the dependency graph. This is a synthetic variant that represents the thing being resolved.
+     * All outgoing dependencies of this variant represent first-level declared dependencies of the resolution.
+     *
+     * @return a provider for the root variant of the dependency graph.
+     *
+     * @since 8.11
+     */
+    @Incubating
+    Provider<ResolvedVariantResult> getRootVariant();
 
     /**
      * Retrieves all dependencies, including unresolved dependencies.

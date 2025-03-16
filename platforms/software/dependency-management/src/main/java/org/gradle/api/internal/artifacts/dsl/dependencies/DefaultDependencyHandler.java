@@ -30,7 +30,6 @@ import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleDependencyCapabilitiesHandler;
 import org.gradle.api.artifacts.MutableVersionConstraint;
-import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler;
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler;
@@ -56,19 +55,17 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
-import org.gradle.internal.component.external.model.DefaultImmutableCapability;
-import org.gradle.internal.component.external.model.ProjectTestFixtures;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.metaobject.MethodAccess;
 import org.gradle.internal.metaobject.MethodMixIn;
 import org.gradle.util.internal.ConfigureUtil;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.Map;
 
 import static org.gradle.api.artifacts.type.ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE;
-import static org.gradle.internal.component.external.model.TestFixturesSupport.TEST_FIXTURES_CAPABILITY_APPENDIX;
+import static org.gradle.internal.component.external.model.TestFixturesSupport.TEST_FIXTURES_CAPABILITY_FEATURE_NAME;
 
 public abstract class DefaultDependencyHandler implements DependencyHandlerInternal, MethodMixIn {
     private final ConfigurationContainer configurationContainer;
@@ -327,7 +324,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
 
     @Override
     public ArtifactTypeContainer getArtifactTypes() {
-        return artifactTypeContainer.create();
+        return artifactTypeContainer.getArtifactTypeContainer();
     }
 
     @Override
@@ -349,6 +346,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
     public Dependency platform(Object notation) {
         Dependency dependency = create(notation);
         if (dependency instanceof ModuleDependency) {
+            // Changes here may require changes in DefaultExternalModuleDependencyVariantSpec
             ModuleDependency moduleDependency = (ModuleDependency) dependency;
             moduleDependency.endorseStrictVersions();
             platformSupport.addPlatformAttribute(moduleDependency, toCategory(Category.REGULAR_PLATFORM));
@@ -370,6 +368,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
     public Dependency enforcedPlatform(Object notation) {
         Dependency platformDependency = create(notation);
         if (platformDependency instanceof ExternalModuleDependency) {
+            // Changes here may require changes in DefaultExternalModuleDependencyVariantSpec
             AbstractExternalModuleDependency externalModuleDependency = (AbstractExternalModuleDependency) platformDependency;
             MutableVersionConstraint constraint = (MutableVersionConstraint) externalModuleDependency.getVersionConstraint();
             constraint.strictly(externalModuleDependency.getVersion());
@@ -390,15 +389,10 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
     @Override
     public Dependency testFixtures(Object notation) {
         Dependency testFixturesDependency = create(notation);
-        if (testFixturesDependency instanceof ProjectDependency) {
-            ProjectDependency projectDependency = (ProjectDependency) testFixturesDependency;
-            projectDependency.capabilities(new ProjectTestFixtures(projectDependency.getDependencyProject()));
-        } else if (testFixturesDependency instanceof ModuleDependency) {
+        if (testFixturesDependency instanceof ModuleDependency) {
+            // Changes here may require changes in DefaultExternalModuleDependencyVariantSpec
             ModuleDependency moduleDependency = (ModuleDependency) testFixturesDependency;
-            moduleDependency.capabilities(capabilities -> capabilities.requireCapability(new DefaultImmutableCapability(
-                moduleDependency.getGroup(),
-                moduleDependency.getName() + TEST_FIXTURES_CAPABILITY_APPENDIX,
-                null)));
+            moduleDependency.capabilities(c -> c.requireFeature(TEST_FIXTURES_CAPABILITY_FEATURE_NAME));
         }
         return testFixturesDependency;
     }
@@ -415,12 +409,13 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
         return dependencyProvider.map(dep -> {
             DefaultExternalModuleDependencyVariantSpec spec = objects.newInstance(DefaultExternalModuleDependencyVariantSpec.class, objects, dep);
             variantSpec.execute(spec);
+            // TODO: We "lose" endorsingStrictVersions here. We should copy that over to the returned variant.
             return new DefaultMinimalDependencyVariant(dep, spec.attributesAction, spec.capabilitiesMutator, spec.classifier, spec.artifactType);
         });
     }
 
     /**
-     * Implemented here instead as a default method of DependencyHandler like most of other methods with `Provider<MinimalExternalModuleDependency>` argument
+     * Implemented here instead as a default method of DependencyHandler like most of other methods with {@code Provider<MinimalExternalModuleDependency>} argument
      * since we don't want to expose enforcedPlatform on many places since we might deprecate enforcedPlatform in the future
      *
      * @param dependencyProvider the dependency provider
@@ -429,6 +424,8 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
     public Provider<MinimalExternalModuleDependency> enforcedPlatform(Provider<MinimalExternalModuleDependency> dependencyProvider) {
         return variantOf(dependencyProvider, spec -> {
             DefaultExternalModuleDependencyVariantSpec defaultSpec = (DefaultExternalModuleDependencyVariantSpec) spec;
+            MutableVersionConstraint versionConstraint = (MutableVersionConstraint) defaultSpec.dep.getVersionConstraint();
+            versionConstraint.strictly(defaultSpec.dep.getVersion());
             defaultSpec.attributesAction = attrs -> attrs.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.ENFORCED_PLATFORM));
         });
     }
@@ -463,12 +460,13 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
 
         @Override
         public void platform() {
+            this.dep.endorseStrictVersions();
             this.attributesAction = attrs -> attrs.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.REGULAR_PLATFORM));
         }
 
         @Override
         public void testFixtures() {
-            this.capabilitiesMutator = capabilities -> capabilities.requireCapability(new DefaultImmutableCapability(dep.getModule().getGroup(), dep.getModule().getName() + TEST_FIXTURES_CAPABILITY_APPENDIX, null));
+            this.capabilitiesMutator = capabilities -> capabilities.requireFeature(TEST_FIXTURES_CAPABILITY_FEATURE_NAME);
         }
 
         @Override

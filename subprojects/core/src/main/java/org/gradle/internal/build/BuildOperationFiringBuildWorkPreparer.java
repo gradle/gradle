@@ -18,21 +18,21 @@ package org.gradle.internal.build;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.execution.plan.FinalizedExecutionPlan;
 import org.gradle.execution.plan.QueryableExecutionPlan;
+import org.gradle.execution.plan.ToPlannedNodeConverterRegistry;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
-import org.gradle.execution.plan.ToPlannedNodeConverterRegistry;
 import org.gradle.internal.taskgraph.NodeIdentity;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullMarked;
 
-import javax.annotation.Nonnull;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
@@ -45,14 +45,14 @@ import static org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import static org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.PlannedTask;
 import static org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.Result;
 
-@NonNullApi
+@NullMarked
 public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer {
-    private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildOperationRunner buildOperationRunner;
     private final BuildWorkPreparer delegate;
     private final ToPlannedNodeConverterRegistry converterRegistry;
 
-    public BuildOperationFiringBuildWorkPreparer(BuildOperationExecutor buildOperationExecutor, BuildWorkPreparer delegate, ToPlannedNodeConverterRegistry converterRegistry) {
-        this.buildOperationExecutor = buildOperationExecutor;
+    public BuildOperationFiringBuildWorkPreparer(BuildOperationRunner buildOperationRunner, BuildWorkPreparer delegate, ToPlannedNodeConverterRegistry converterRegistry) {
+        this.buildOperationRunner = buildOperationRunner;
         this.delegate = delegate;
         this.converterRegistry = converterRegistry;
     }
@@ -64,7 +64,7 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
 
     @Override
     public void populateWorkGraph(GradleInternal gradle, ExecutionPlan plan, Consumer<? super ExecutionPlan> action) {
-        buildOperationExecutor.run(new PopulateWorkGraph(delegate, gradle, plan, action, converterRegistry));
+        buildOperationRunner.run(new PopulateWorkGraph(delegate, gradle, plan, action, converterRegistry));
     }
 
     @Override
@@ -106,9 +106,8 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
             delegate.populateWorkGraph(gradle, plan, action);
         }
 
-        @Nonnull
         @Override
-        public BuildOperationDescriptor.Builder description() {
+        public BuildOperationDescriptor.@NonNull Builder description() {
             //noinspection Convert2Lambda
             return BuildOperationDescriptor.displayName(gradle.contextualize("Calculate task graph"))
                 .details(new Details() {

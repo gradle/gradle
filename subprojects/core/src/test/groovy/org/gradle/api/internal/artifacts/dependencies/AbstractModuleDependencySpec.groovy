@@ -22,8 +22,11 @@ import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.DefaultExcludeRule
+import org.gradle.api.internal.artifacts.capability.DefaultFeatureCapabilitySelector
+import org.gradle.api.internal.artifacts.capability.DefaultSpecificCapabilitySelector
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory
 import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.internal.component.external.model.DefaultImmutableCapability
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
 import org.gradle.util.internal.WrapUtil
@@ -340,21 +343,41 @@ abstract class AbstractModuleDependencySpec extends Specification {
     void "copy does not mutate original capabilities"() {
         dependency.capabilities {
             it.requireCapability('org:original:1')
+            it.requireFeature('foo')
         }
-        def parsedCapability = dependency.requestedCapabilities[0]
+        def originalSelectors = new HashSet<>(dependency.capabilitySelectors)
 
         when:
         def copy = dependency.copy()
         copy.capabilities {
             it.requireCapability('org:copy:1')
+            it.requireFeature('bar')
         }
 
         then:
-        dependency.requestedCapabilities == [parsedCapability]
-        copy.requestedCapabilities.size() == 2
-        copy.requestedCapabilities[0] == parsedCapability
-        copy.requestedCapabilities[1].name == 'copy'
+        dependency.capabilitySelectors == originalSelectors
+        copy.capabilitySelectors.size() == 4
+        copy.capabilitySelectors == (dependency.capabilitySelectors + [
+            new DefaultSpecificCapabilitySelector(new DefaultImmutableCapability("org", "copy", "1")),
+            new DefaultFeatureCapabilitySelector("bar")
+        ] as Set)
+    }
 
+    def "requested capabilities exposes all capability selector types"() {
+        when:
+        dependency.capabilities {
+            it.requireCapability('org:original:1')
+            it.requireFeature('foo')
+        }
+
+        then:
+        dependency.requestedCapabilities.size() == 2
+        dependency.requestedCapabilities[0].group == 'org'
+        dependency.requestedCapabilities[0].name == 'original'
+        dependency.requestedCapabilities[0].version == '1'
+        dependency.requestedCapabilities[1].group == 'org.gradle'
+        dependency.requestedCapabilities[1].name == 'gradle-core-foo'
+        dependency.requestedCapabilities[1].version == '4.4-beta2'
     }
 
     def "creates deep copy"() {
@@ -381,7 +404,7 @@ abstract class AbstractModuleDependencySpec extends Specification {
         assert copiedDependency.artifacts == dependency.artifacts
         assert copiedDependency.excludeRules == dependency.excludeRules
         assert copiedDependency.attributes == dependency.attributes
-        assert copiedDependency.requestedCapabilities == dependency.requestedCapabilities
+        assert copiedDependency.capabilitySelectors == dependency.capabilitySelectors
 
         assert copiedDependency.attributes.is(ImmutableAttributes.EMPTY) || !copiedDependency.attributes.is(dependency.attributes)
         assert !copiedDependency.artifacts.is(dependency.artifacts)

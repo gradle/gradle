@@ -6,7 +6,11 @@ plugins {
 
 description = "Gradle Tooling API - the programmatic API to invoke Gradle"
 
-gradlebuildJava.usedInToolingApi()
+gradlebuildJava {
+    usedInToolingApi()
+    // JSpecify annotations on static inner type return types
+    usesJdkInternals = true
+}
 
 tasks.named<Jar>("sourcesJar") {
     // duplicate package-info.java because of split packages
@@ -22,76 +26,81 @@ shadedJar {
 
 errorprone {
     disabledChecks.addAll(
-        "BadImport", // 1 occurrences
-        "EmptyBlockTag", // 1 occurrences
-        "EmptyTopLevelDeclaration", // 1 occurrences
         "EqualsUnsafeCast", // 1 occurrences
         "FutureReturnValueIgnored", // 1 occurrences
-        "ImmutableEnumChecker", // 1 occurrences
         "LockNotBeforeTry", // 1 occurrences
-        "NonApiType", // 1 occurrences
-        "NotJavadoc", // 1 occurrences
-        "StringCaseLocaleUsage", // 1 occurrences
         "ThreadLocalUsage", // 2 occurrences
-        "TypeParameterShadowing", // 1 occurrences
-        "UnnecessaryCheckNotNull", // 2 occurrences
-        "UnusedMethod", // 11 occurrences
     )
 }
 
 dependencies {
     shadedImplementation(libs.slf4jApi)
 
-    implementation(project(":base-services"))
-    implementation(project(":enterprise-operations"))
-    implementation(project(":enterprise-workers"))
-    implementation(project(":messaging"))
-    implementation(project(":logging"))
-    implementation(project(":core-api"))
-    implementation(project(":core"))
-    implementation(project(":wrapper-shared"))
-    implementation(project(":persistent-cache"))
+    runtimeOnly(projects.coreApi)
+
+    implementation(projects.core)
+    implementation(projects.buildProcessServices)
+    implementation(projects.serviceProvider)
+    implementation(projects.serviceRegistryBuilder)
 
     implementation(libs.guava)
+    implementation(libs.jsr305)
 
-    testFixturesImplementation(project(":core-api"))
-    testFixturesImplementation(project(":core"))
-    testFixturesImplementation(project(":logging"))
-    testFixturesImplementation(project(":model-core"))
-    testFixturesImplementation(project(":base-services"))
-    testFixturesImplementation(project(":base-services-groovy"))
-    testFixturesImplementation(project(":internal-testing"))
-    testFixturesImplementation(project(":internal-integ-testing"))
+    api(projects.baseServices)
+    api(projects.buildOperations)
+    api(projects.classloaders)
+    api(projects.concurrent)
+    api(projects.enterpriseLogging)
+    api(projects.logging)
+    api(projects.messaging)
+    api(projects.stdlibJavaExtensions)
+    api(projects.time)
+    api(projects.wrapperShared)
+
+    api(libs.jspecify)
+
+    testFixturesImplementation(projects.coreApi)
+    testFixturesImplementation(projects.core)
+    testFixturesImplementation(projects.logging)
+    testFixturesImplementation(projects.modelCore)
+    testFixturesImplementation(projects.baseServices)
+    testFixturesImplementation(projects.baseServicesGroovy)
+    testFixturesImplementation(projects.internalTesting)
+    testFixturesImplementation(projects.internalIntegTesting)
     testFixturesImplementation(libs.commonsIo)
     testFixturesImplementation(libs.slf4jApi)
 
-    integTestImplementation(project(":jvm-services"))
-    integTestImplementation(project(":persistent-cache"))
+    integTestImplementation(projects.jvmServices)
+    integTestImplementation(projects.persistentCache)
 
-    crossVersionTestImplementation(project(":jvm-services"))
-    crossVersionTestImplementation(testFixtures(project(":problems-api")))
+    crossVersionTestImplementation(projects.jvmServices)
+    crossVersionTestImplementation(projects.problems)
+    crossVersionTestImplementation(testFixtures(projects.problemsApi))
     crossVersionTestImplementation(libs.jettyWebApp)
     crossVersionTestImplementation(libs.commonsIo)
     crossVersionTestRuntimeOnly(libs.cglib) {
         because("BuildFinishedCrossVersionSpec classpath inference requires cglib enhancer")
     }
 
-    testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":logging")))
-    testImplementation(testFixtures(project(":dependency-management")))
-    testImplementation(testFixtures(project(":ide")))
-    testImplementation(testFixtures(project(":workers")))
+    testImplementation(projects.buildEvents)
 
-    integTestNormalizedDistribution(project(":distributions-full")) {
+    testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.logging))
+    testImplementation(testFixtures(projects.dependencyManagement))
+    testImplementation(testFixtures(projects.ide))
+    testImplementation(testFixtures(projects.time))
+    testImplementation(testFixtures(projects.workers))
+
+    integTestNormalizedDistribution(projects.distributionsFull) {
         because("Used by ToolingApiRemoteIntegrationTest")
     }
 
-    integTestDistributionRuntimeOnly(project(":distributions-full"))
+    integTestDistributionRuntimeOnly(projects.distributionsFull)
     integTestLocalRepository(project(path)) {
         because("ToolingApiResolveIntegrationTest and ToolingApiClasspathIntegrationTest use the Tooling API Jar")
     }
 
-    crossVersionTestDistributionRuntimeOnly(project(":distributions-full"))
+    crossVersionTestDistributionRuntimeOnly(projects.distributionsFull)
     crossVersionTestLocalRepository(project(path)) {
         because("ToolingApiVersionSpecification uses the Tooling API Jar")
     }
@@ -105,7 +114,19 @@ packageCycles {
     excludePatterns.add("org/gradle/tooling/**")
 }
 
+tasks.named("toolingApiShadedJar") {
+    // TODO: Remove this workaround once issue is fixed for configuration cache
+    // We don't add tasks that complete at configuration time
+    // to the resulting work graph, and then prune projects that have no tasks in the graph.
+    // This happens to java-api-extractor, since it's built with rest of build-logic.
+    // Could be related to https://github.com/gradle/gradle/issues/24273
+    dependsOn(gradle.includedBuild("build-logic").task(":java-api-extractor:assemble"))
+}
+
 integTest.usesJavadocCodeSnippets = true
 testFilesCleanup.reportOnly = true
 
 apply(from = "buildship.gradle")
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

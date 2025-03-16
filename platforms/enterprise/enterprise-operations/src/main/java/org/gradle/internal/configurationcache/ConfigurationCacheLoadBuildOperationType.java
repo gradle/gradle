@@ -17,8 +17,7 @@
 package org.gradle.internal.configurationcache;
 
 import org.gradle.internal.operations.BuildOperationType;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Details about a configuration cache load build operation.
@@ -32,7 +31,7 @@ public class ConfigurationCacheLoadBuildOperationType implements BuildOperationT
 
     public interface Result {
         /**
-         * The number of bytes of the stored configuration cache entry.
+         * The number of bytes of the loaded configuration cache entry.
          *
          * @since 8.6
          */

@@ -16,14 +16,10 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
 import com.google.common.collect.Iterators;
-import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.result.ResolvedVariantResult;
-import org.gradle.internal.component.model.DependencyMetadata;
-import org.gradle.internal.component.model.ForcingDependencyMetadata;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -31,18 +27,15 @@ import java.util.List;
 import java.util.Set;
 
 abstract class MessageBuilderHelper {
-    private static boolean isDependencyForced(DependencyMetadata dependency) {
-        return dependency instanceof ForcingDependencyMetadata && ((ForcingDependencyMetadata) dependency).isForce();
-    }
 
     static Collection<String> pathTo(EdgeState edge) {
         return pathTo(edge, true);
     }
 
     static Collection<String> pathTo(EdgeState edge, boolean includeLast) {
-        List<List<EdgeState>> acc = Lists.newArrayListWithExpectedSize(1);
+        List<List<EdgeState>> acc = new ArrayList<>(1);
         pathTo(edge, new ArrayList<>(), acc, new HashSet<>());
-        List<String> result = Lists.newArrayListWithCapacity(acc.size());
+        List<String> result = new ArrayList<>(acc.size());
         for (List<EdgeState> path : acc) {
             EdgeState target = Iterators.getLast(path.iterator());
             StringBuilder sb = new StringBuilder();
@@ -58,7 +51,7 @@ abstract class MessageBuilderHelper {
                     sb.append(" --> ");
                 }
                 first = false;
-                ModuleVersionIdentifier id = e.getFrom().getResolvedConfigurationId().getId();
+                ModuleVersionIdentifier id = e.getFrom().getComponent().getModuleVersion();
                 sb.append('\'').append(id).append('\'');
                 if (variantDetails != null) {
                     sb.append(variantDetails);
@@ -81,9 +74,9 @@ abstract class MessageBuilderHelper {
 
     @Nullable
     private static String variantDetails(EdgeState e) {
-        ResolvedVariantResult selectedVariant = e.hasSelectedVariant() ? e.getSelectedNode().getResolveState().getVariantResult(null) : null;
-        if (selectedVariant != null) {
-            return " (" + selectedVariant.getDisplayName() + ")";
+        String selectedVariantName = e.hasSelectedVariant() ? e.getSelectedNode().getMetadata().getName() : null;
+        if (selectedVariantName != null) {
+            return " (" + selectedVariantName + ")";
         }
         return null;
     }
@@ -92,7 +85,7 @@ abstract class MessageBuilderHelper {
         if (alreadySeen.add(component.getFrom())) {
             currentPath.add(0, component);
             for (EdgeState dependent : component.getFrom().getIncomingEdges()) {
-                List<EdgeState> otherPath = Lists.newArrayList(currentPath);
+                List<EdgeState> otherPath = new ArrayList<>(currentPath);
                 pathTo(dependent, otherPath, accumulator, alreadySeen);
             }
             if (component.getFrom().isRoot()) {

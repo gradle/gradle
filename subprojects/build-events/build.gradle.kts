@@ -4,36 +4,38 @@ plugins {
 
 description = "Implementation of build event services and build event types (work item, tasks, tests, configuration, etc)"
 
-errorprone {
-    disabledChecks.addAll(
-        "FutureReturnValueIgnored", // 1 occurrences
-    )
-}
-
 dependencies {
-    api(project(":base-annotations"))
-    api(project(":build-operations"))
-    api(project(":base-services"))
-    api(project(":core"))
-    api(project(":core-api"))
-    api(project(":messaging"))
-    api(project(":tooling-api"))
+    api(projects.buildOperations)
+    api(projects.concurrent)
+    api(projects.core)
+    api(projects.coreApi)
+    api(projects.messaging)
+    api(projects.problemsApi)
+    api(projects.serialization)
+    api(projects.serviceProvider)
+    api(projects.stdlibJavaExtensions)
+    api(projects.toolingApi)
 
-    implementation(project(":model-core"))
+    implementation(projects.modelCore)
 
-    api(libs.jsr305)
+    api(libs.jspecify)
+
+    implementation(libs.errorProneAnnotations)
     implementation(libs.guava)
 
-    testImplementation(project(":internal-testing"))
-    testImplementation(project(":model-core"))
+    testImplementation(projects.internalTesting)
+    testImplementation(projects.modelCore)
 
-    integTestImplementation(project(":logging")) {
+    integTestImplementation(projects.logging) {
         because("This isn't declared as part of integtesting's API, but should be as logging's classes are in fact visible on the API")
     }
-    integTestImplementation(project(":build-option"))
-    integTestImplementation(project(":enterprise-operations"))
+    integTestImplementation(projects.buildOption)
+    integTestImplementation(projects.enterpriseOperations)
 
-    integTestDistributionRuntimeOnly(project(":distributions-basics"))  {
+    integTestDistributionRuntimeOnly(projects.distributionsBasics)  {
         because("Requires ':toolingApiBuilders': Event handlers are in the wrong place, and should live in this project")
     }
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

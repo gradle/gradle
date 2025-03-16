@@ -17,7 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.FileCollectionDependency;
-import org.gradle.api.artifacts.ResolveException;
+import org.gradle.api.artifacts.LenientConfiguration;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.artifacts.UnresolvedDependency;
@@ -34,19 +34,18 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSetResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactResults;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedFileDependencyResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsLoader;
-import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.specs.Specs;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraphWithEdgeValues;
 
@@ -65,11 +64,10 @@ public class DefaultLenientConfiguration implements LenientConfigurationInternal
 
     private final ResolutionHost resolutionHost;
     private final VisitedGraphResults graphResults;
-    private final VisitedArtifactResults artifactResults;
+    private final VisitedArtifactSet artifactResults;
     private final VisitedFileDependencyResults fileDependencyResults;
     private final TransientConfigurationResultsLoader transientConfigurationResultsFactory;
     private final ResolvedArtifactSetResolver artifactSetResolver;
-    private final ArtifactVariantSelector artifactVariantSelector;
     private final ArtifactSelectionSpec implicitSelectionSpec;
 
     // Selected for the configuration
@@ -78,11 +76,10 @@ public class DefaultLenientConfiguration implements LenientConfigurationInternal
     public DefaultLenientConfiguration(
         ResolutionHost resolutionHost,
         VisitedGraphResults graphResults,
-        VisitedArtifactResults artifactResults,
+        VisitedArtifactSet artifactResults,
         VisitedFileDependencyResults fileDependencyResults,
         TransientConfigurationResultsLoader transientConfigurationResultsLoader,
         ResolvedArtifactSetResolver artifactSetResolver,
-        ArtifactVariantSelector artifactVariantSelector,
         ArtifactSelectionSpec implicitSelectionSpec
     ) {
         this.resolutionHost = resolutionHost;
@@ -91,20 +88,19 @@ public class DefaultLenientConfiguration implements LenientConfigurationInternal
         this.fileDependencyResults = fileDependencyResults;
         this.transientConfigurationResultsFactory = transientConfigurationResultsLoader;
         this.artifactSetResolver = artifactSetResolver;
-        this.artifactVariantSelector = artifactVariantSelector;
         this.implicitSelectionSpec = implicitSelectionSpec;
     }
 
     private SelectedArtifactResults getSelectedArtifacts() {
         if (artifactsForThisConfiguration == null) {
-            artifactsForThisConfiguration = artifactResults.select(artifactVariantSelector, implicitSelectionSpec, true);
+            artifactsForThisConfiguration = artifactResults.selectLegacy(implicitSelectionSpec, true);
         }
         return artifactsForThisConfiguration;
     }
 
     @Override
     public SelectedArtifactSet select(final Spec<? super Dependency> dependencySpec) {
-        SelectedArtifactResults artifactResults = this.artifactResults.select(artifactVariantSelector, implicitSelectionSpec, false);
+        SelectedArtifactResults artifactResults = this.artifactResults.selectLegacy(implicitSelectionSpec, false);
 
         return new SelectedArtifactSet() {
             @Override
@@ -140,11 +136,22 @@ public class DefaultLenientConfiguration implements LenientConfigurationInternal
 
     @Override
     public Set<ResolvedDependency> getFirstLevelModuleDependencies() {
-        return getFirstLevelModuleDependencies(Specs.SATISFIES_ALL);
+        Set<ResolvedDependency> matches = new LinkedHashSet<>();
+        for (DependencyGraphNodeResult node : loadTransientGraphResults(getSelectedArtifacts()).getFirstLevelDependencies().values()) {
+            matches.add(node.getPublicView());
+        }
+        return matches;
     }
 
     @Override
+    @Deprecated
     public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) {
+        DeprecationLogger.deprecateMethod(LenientConfiguration.class, "getFirstLevelModuleDependencies(Spec)")
+            .withAdvice("Use getFirstLevelModuleDependencies() instead.")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecate_filtered_configuration_file_and_filecollection_methods")
+            .nagUser();
+
         Set<ResolvedDependency> matches = new LinkedHashSet<>();
         for (DependencyGraphNodeResult node : getFirstLevelNodes(dependencySpec)) {
             matches.add(node.getPublicView());
@@ -178,19 +185,33 @@ public class DefaultLenientConfiguration implements LenientConfigurationInternal
     }
 
     @Override
+    @Deprecated
     public Set<File> getFiles() {
+        DeprecationLogger.deprecateMethod(LenientConfiguration.class, "getFiles()")
+            .withAdvice("Use a lenient ArtifactView instead.")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecate_legacy_configuration_get_files")
+            .nagUser();
+
         LenientFilesAndArtifactResolveVisitor visitor = new LenientFilesAndArtifactResolveVisitor();
         artifactSetResolver.visitArtifacts(getSelectedArtifacts().getArtifacts(), visitor, resolutionHost);
-        resolutionHost.rethrowFailure("files", visitor.getFailures());
+        resolutionHost.rethrowFailuresAndReportProblems("files", visitor.getFailures());
         return visitor.files;
     }
 
     @Override
+    @Deprecated
     public Set<File> getFiles(Spec<? super Dependency> dependencySpec) {
+        DeprecationLogger.deprecateMethod(LenientConfiguration.class, "getFiles(Spec)")
+            .withAdvice("Use a lenient ArtifactView with a componentFilter instead.")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecate_filtered_configuration_file_and_filecollection_methods")
+            .nagUser();
+
         LenientFilesAndArtifactResolveVisitor visitor = new LenientFilesAndArtifactResolveVisitor();
         ResolvedArtifactSet filteredArtifacts = resolveFilteredArtifacts(dependencySpec, getSelectedArtifacts());
         artifactSetResolver.visitArtifacts(filteredArtifacts, visitor, resolutionHost);
-        resolutionHost.rethrowFailure("files", visitor.getFailures());
+        resolutionHost.rethrowFailuresAndReportProblems("files", visitor.getFailures());
         return visitor.files;
     }
 
@@ -198,16 +219,23 @@ public class DefaultLenientConfiguration implements LenientConfigurationInternal
     public Set<ResolvedArtifact> getArtifacts() {
         LenientArtifactCollectingVisitor visitor = new LenientArtifactCollectingVisitor();
         artifactSetResolver.visitArtifacts(getSelectedArtifacts().getArtifacts(), visitor, resolutionHost);
-        resolutionHost.rethrowFailure("artifacts", visitor.getFailures());
+        resolutionHost.rethrowFailuresAndReportProblems("artifacts", visitor.getFailures());
         return visitor.artifacts;
     }
 
     @Override
+    @Deprecated
     public Set<ResolvedArtifact> getArtifacts(Spec<? super Dependency> dependencySpec) {
+        DeprecationLogger.deprecateMethod(LenientConfiguration.class, "getArtifacts(Spec)")
+            .withAdvice("Use a lenient ArtifactView with a componentFilter instead.")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecate_filtered_configuration_file_and_filecollection_methods")
+            .nagUser();
+
         LenientArtifactCollectingVisitor visitor = new LenientArtifactCollectingVisitor();
         ResolvedArtifactSet filteredArtifacts = resolveFilteredArtifacts(dependencySpec, getSelectedArtifacts());
         artifactSetResolver.visitArtifacts(filteredArtifacts, visitor, resolutionHost);
-        resolutionHost.rethrowFailure("artifacts", visitor.getFailures());
+        resolutionHost.rethrowFailuresAndReportProblems("artifacts", visitor.getFailures());
         return visitor.artifacts;
     }
 
@@ -279,23 +307,6 @@ public class DefaultLenientConfiguration implements LenientConfigurationInternal
         @Override
         public FileCollectionStructureVisitor.VisitType prepareForVisit(FileCollectionInternal.Source source) {
             return FileCollectionStructureVisitor.VisitType.Visit;
-        }
-    }
-
-    public static class ArtifactResolveException extends ResolveException {
-        private final String type;
-        private final String displayName;
-
-        public ArtifactResolveException(String type, String displayName, Iterable<? extends Throwable> failures) {
-            super(displayName, failures);
-            this.type = type;
-            this.displayName = displayName;
-        }
-
-        // Need to override as error message is hardcoded in constructor of public type ResolveException
-        @Override
-        public String getMessage() {
-            return String.format("Could not resolve all %s for %s.", type, displayName);
         }
     }
 

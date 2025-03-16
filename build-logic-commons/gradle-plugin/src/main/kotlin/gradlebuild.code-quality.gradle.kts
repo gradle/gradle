@@ -2,7 +2,6 @@ import groovy.lang.GroovySystem
 import net.ltgt.gradle.errorprone.CheckSeverity
 import net.ltgt.gradle.errorprone.errorprone
 import org.gradle.util.internal.VersionNumber
-import java.util.stream.Collectors
 
 /*
  * Copyright 2022 the original author or authors.
@@ -38,6 +37,7 @@ open class ErrorProneSourceSetExtension(
 val errorproneExtension = project.extensions.create<ErrorProneProjectExtension>("errorprone", project.objects.listProperty<String>())
 errorproneExtension.disabledChecks.addAll(
     // DISCUSS
+    "EnumOrdinal", // This violation is ubiquitous, though most are benign.
     "EqualsGetClass", // Let's agree if we want to adopt Error Prone's idea of valid equals()
     "JdkObsolete", // Most of the checks are good, but we do not want to replace all LinkedLists without a good reason
 
@@ -46,6 +46,7 @@ errorproneExtension.disabledChecks.addAll(
     "InjectOnConstructorOfAbstractClass", // We use abstract injection as a pattern
     "JavaxInjectOnAbstractMethod", // We use abstract injection as a pattern
     "JavaUtilDate", // We are fine with using Date
+    "StringSplitter", // We are fine with using String.split() as is
 )
 
 project.plugins.withType<JavaBasePlugin> {
@@ -57,7 +58,9 @@ project.plugins.withType<JavaBasePlugin> {
 
         project.dependencies.addProvider(
             annotationProcessorConfigurationName,
-            extension.enabled.filter { it }.map { "com.google.errorprone:error_prone_core:2.24.1" }
+            // don't forget to update the version in distributions-dependencies/build.gradle.kts
+            // 2.31.0 is the latest version that works with JDK 11
+            extension.enabled.filter { it }.map { "com.google.errorprone:error_prone_core:2.31.0" }
         )
 
         project.tasks.named<JavaCompile>(this.compileJavaTaskName) {

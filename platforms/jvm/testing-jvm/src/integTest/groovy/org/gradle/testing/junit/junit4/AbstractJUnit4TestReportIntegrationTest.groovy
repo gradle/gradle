@@ -29,7 +29,7 @@ abstract class AbstractJUnit4TestReportIntegrationTest extends AbstractTestRepor
         Assume.assumeTrue(VersionNumber.parse(version) >= VersionNumber.parse("4.13"))
 
         when:
-        buildScript """
+        buildFile """
             $junitSetup
             test.reports.junitXml.outputPerTestCase = true
         """

@@ -28,7 +28,7 @@ import java.lang.annotation.Target;
  * Annotations on setters or just the field in Java are ignored.</p>
  *
  * <p>Gradle will attempt to instantiate a nested bean on abstract getter methods annotated with this annotation.
- * This creates a <a href="https://docs.gradle.org/current/userguide/custom_gradle_types.html#read_only_managed_nested_properties">read-only managed nested property</a>.</p>
+ * This creates a <a href="https://docs.gradle.org/current/userguide/properties_providers.html#read_only_managed_nested_properties">read-only managed nested property</a>.</p>
  *
  * <p>The implementation of the nested bean is tracked as an input, too.
  * This allows tracking behavior such as {@link org.gradle.api.Action}s as task inputs.</p>
@@ -40,7 +40,7 @@ import java.lang.annotation.Target;
  * If the element implements {@link org.gradle.api.Named}, then the property name is composed of {@link org.gradle.api.Named#getName()} and the index, e.g. {@code name$1}.
  * The ordering of the elements in the iterable is crucial for reliable up-to-date checks and caching.</p>
  *
- * <p>This annotation supports ${@link java.util.Map} values by treating each value of the map as a separate nested bean.
+ * <p>This annotation supports {@link java.util.Map} values by treating each value of the map as a separate nested bean.
  * The keys of the map are used as property names.</p>
  */
 @Retention(RetentionPolicy.RUNTIME)

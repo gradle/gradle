@@ -6,39 +6,32 @@ description = "Implementation of messaging between Gradle processes"
 
 gradlebuildJava.usedInWorkers()
 
-errorprone {
-    disabledChecks.addAll(
-        "DoubleBraceInitialization", // 1 occurrences
-        "EmptyBlockTag", // 2 occurrences
-        "IdentityHashMapUsage", // 2 occurrences
-        "InputStreamSlowMultibyteRead", // 1 occurrences
-        "MixedMutabilityReturnType", // 3 occurrences
-        "ReferenceEquality", // 1 occurrences
-        "StringCaseLocaleUsage", // 1 occurrences
-        "ThreadPriorityCheck", // 1 occurrences
-        "UnnecessaryParentheses", // 2 occurrences
-        "UnrecognisedJavadocTag", // 1 occurrences
-    )
-}
-
 dependencies {
-    api(project(":base-annotations"))
-    api(project(":hashing"))
-    api(project(":base-services"))
+    api(projects.concurrent)
+    api(projects.stdlibJavaExtensions)
+    api(projects.serialization)
+    api(projects.serviceProvider)
+    api(projects.baseServices)
 
-    api(libs.fastutil)
-    api(libs.jsr305)
+    api(libs.jspecify)
     api(libs.slf4jApi)
 
-    implementation(project(":build-operations"))
+    implementation(projects.classloaders)
+    implementation(projects.io)
+    implementation(projects.buildOperations)
 
     implementation(libs.guava)
-    implementation(libs.kryo)
+    implementation(libs.jsr305)
 
-    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(projects.serialization))
+    testImplementation(testFixtures(projects.core))
 
-    testFixturesImplementation(project(":base-services"))
+    testFixturesImplementation(projects.baseServices)
     testFixturesImplementation(libs.slf4jApi)
 
-    integTestDistributionRuntimeOnly(project(":distributions-core"))
+    integTestDistributionRuntimeOnly(projects.distributionsCore)
+    integTestImplementation(projects.serviceRegistryBuilder)
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

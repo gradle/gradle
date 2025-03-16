@@ -19,11 +19,16 @@ import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 
 class IvyChangingModuleRemoteResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
+    def runRetrieveTask() {
+        executer.withArgument("--no-problems-report")
+        run 'retrieve'
+    }
+
     def "detects changed module descriptor when flagged as changing"() {
         given:
         buildFile << """
 repositories {
-    ivy { url "${ivyHttpRepo.uri}" }
+    ivy { url = "${ivyHttpRepo.uri}" }
 }
 
 configurations { compile }
@@ -50,7 +55,7 @@ task retrieve(type: Copy) {
         module.jar.expectGet()
 
         and: "We request 1.1 (changing)"
-        run 'retrieve'
+        runRetrieveTask()
 
         then: "Version 1.1 jar is downloaded"
         file('build').assertHasDescendants('projectA-1.1.jar')
@@ -73,7 +78,8 @@ task retrieve(type: Copy) {
         moduleB.jar.expectGet()
 
         and: "We request 1.1 again"
-        run 'retrieve'
+        executer.withArgument("--no-problems-report")
+        runRetrieveTask()
 
         then: "We get all artifacts, including the new ones"
         file('build').assertHasDescendants('projectA-1.1.jar', 'other-1.1.jar', 'projectB-2.0.jar')
@@ -84,7 +90,7 @@ task retrieve(type: Copy) {
         buildFile << """
 def isChanging = providers.gradleProperty('isChanging').isPresent()
 repositories {
-    ivy { url "${ivyHttpRepo.uri}" }
+    ivy { url = "${ivyHttpRepo.uri}" }
 }
 
 configurations { compile }
@@ -104,7 +110,7 @@ task retrieve(type: Copy) {
         module.allowAll()
 
         when: 'original retrieve'
-        run 'retrieve'
+        runRetrieveTask()
 
         then:
         def jarSnapshot = file('build/projectA-1.1.jar').snapshot()
@@ -120,8 +126,8 @@ task retrieve(type: Copy) {
         module.jar.expectGet()
 
         and:
-        executer.withArguments('-PisChanging')
-        run 'retrieve'
+        executer.withArgument('-PisChanging')
+        runRetrieveTask()
 
         then:
         file('build/projectA-1.1.jar').assertHasChangedSince(jarSnapshot)
@@ -131,7 +137,7 @@ task retrieve(type: Copy) {
         given:
         buildFile << """
 repositories {
-    ivy { url "${ivyHttpRepo.uri}" }
+    ivy { url = "${ivyHttpRepo.uri}" }
 }
 
 configurations { compile }
@@ -157,7 +163,7 @@ task retrieve(type: Copy) {
         module.ivy.expectGet()
         module.jar.expectGet()
 
-        run 'retrieve'
+        runRetrieveTask()
 
         then:
         def jarFile = file('build/projectA-1.1.jar')
@@ -176,7 +182,7 @@ task retrieve(type: Copy) {
         module.jar.sha1.expectGet()
         module.jar.expectGet()
 
-        run 'retrieve'
+        runRetrieveTask()
 
         then:
         def changedJarFile = file('build/projectA-1.1.jar')
@@ -188,7 +194,7 @@ task retrieve(type: Copy) {
         given:
         buildFile << """
 repositories {
-    ivy { url "${ivyHttpRepo.uri}" }
+    ivy { url = "${ivyHttpRepo.uri}" }
 }
 
 configurations { compile }
@@ -218,7 +224,7 @@ task retrieve(type: Copy) {
         module.jar.expectGet()
 
         and: "We request 1.1 (changing)"
-        run 'retrieve'
+        runRetrieveTask()
 
         then: "Version 1.1 jar is downloaded"
         file('build/reports').maybeDeleteDir() // delete configuration cache report if present
@@ -233,7 +239,7 @@ task retrieve(type: Copy) {
         module.publishWithChangedContent()
 
         and: "We request 1.1 (changing), with module meta-data cached. No server requests."
-        run 'retrieve'
+        runRetrieveTask()
 
         then: "Original module meta-data and artifacts are used"
         file('build/reports').maybeDeleteDir() // delete configuration cache report if present
@@ -253,7 +259,7 @@ task retrieve(type: Copy) {
 
         and: "We request 1.1 (changing) again, with zero expiry for dynamic revision cache"
         executer.withArguments("-PdoNotCacheChangingModules")
-        run 'retrieve'
+        runRetrieveTask()
 
         then: "We get new artifacts based on the new meta-data"
         file('build/reports').maybeDeleteDir() // delete configuration cache report if present
@@ -266,7 +272,7 @@ task retrieve(type: Copy) {
         given:
         buildFile << """
             repositories {
-                ivy { url "${ivyHttpRepo.uri}" }
+                ivy { url = "${ivyHttpRepo.uri}" }
             }
 
             configurations { compile }
@@ -293,7 +299,7 @@ task retrieve(type: Copy) {
         module.jar.expectGet()
 
         and:
-        run 'retrieve'
+        runRetrieveTask()
 
         then:
         def downloadedJar = file('build/projectA-1.1.jar')
@@ -306,7 +312,7 @@ task retrieve(type: Copy) {
         module.jar.expectHead()
 
         and:
-        run 'retrieve'
+        runRetrieveTask()
 
         then:
         downloadedJar.assertHasNotChangedSince(snapshot)
@@ -323,7 +329,7 @@ task retrieve(type: Copy) {
         module.jar.sha1.expectGetMissing()
         module.jar.expectGet()
 
-        run 'retrieve'
+        runRetrieveTask()
 
         then:
         downloadedJar.assertHasChangedSince(snapshot)

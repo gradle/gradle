@@ -22,7 +22,6 @@ import org.gradle.api.InvalidUserCodeException;
 /**
  * A delegating {@link Action} implementation that wraps exceptions in InvalidUserCodeException.
  * Used to wrap a closure or action parameter that contains user-provided executable code.
- * @param <T>
  */
 public class UserCodeAction<T> implements Action<T> {
     private final String exceptionMessage;

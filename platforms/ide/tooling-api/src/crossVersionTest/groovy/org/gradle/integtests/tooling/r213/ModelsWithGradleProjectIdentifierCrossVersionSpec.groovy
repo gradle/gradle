@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.build.BuildTestFixture
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.ProjectIdentifier
@@ -29,7 +28,6 @@ import org.gradle.tooling.model.gradle.BuildInvocations
 import org.gradle.tooling.model.gradle.ProjectPublications
 import spock.lang.Ignore
 
-@ToolingApiVersion('>=3.3')
 class ModelsWithGradleProjectIdentifierCrossVersionSpec extends ToolingApiSpecification {
     static List<Class<?>> modelsHavingGradleProjectIdentifier = [BuildInvocations, ProjectPublications]
 
@@ -41,7 +39,7 @@ class ModelsWithGradleProjectIdentifierCrossVersionSpec extends ToolingApiSpecif
         rootMulti = multiProjectBuild("B", ['x', 'y'])
     }
 
-    @TargetGradleVersion(">=2.13")
+    @TargetGradleVersion(">=3.0")
     def "ProjectConnection provides identified models for single project build"() {
         when:
         def gradleProject = getModelWithProjectConnection(rootSingle, GradleProject)
@@ -55,7 +53,7 @@ class ModelsWithGradleProjectIdentifierCrossVersionSpec extends ToolingApiSpecif
     }
 
     @Ignore("Test fails sporadically")
-    @TargetGradleVersion(">=2.13")
+    @TargetGradleVersion(">=3.0")
     def "ProjectConnection with custom action provides identified models for multi-project build"() {
         when:
         def gradleProjects = getModelsWithProjectConnection(rootMulti, GradleProject)

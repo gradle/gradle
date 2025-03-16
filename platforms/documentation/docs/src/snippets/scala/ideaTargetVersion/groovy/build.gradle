@@ -1,6 +1,6 @@
 plugins {
-    id 'scala'
-    id 'idea'
+    id("scala")
+    id("idea")
 }
 
 // tag::scala-idea-target-version[]

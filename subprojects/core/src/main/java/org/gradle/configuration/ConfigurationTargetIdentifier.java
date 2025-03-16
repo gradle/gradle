@@ -20,9 +20,11 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.plugins.PluginAwareInternal;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.util.internal.TextUtil;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
+import java.util.Locale;
 
 /**
  * Uniquely identifies the target of some configuration.
@@ -30,6 +32,7 @@ import javax.annotation.Nullable;
  * This is primarily used to support
  * {@code ApplyScriptPluginBuildOperationType.Details} and {@code ApplyPluginBuildOperationType.Details}.
  */
+@ServiceScope({Scope.Gradle.class, Scope.Settings.class, Scope.Project.class})
 public abstract class ConfigurationTargetIdentifier {
 
     private ConfigurationTargetIdentifier() {
@@ -40,7 +43,7 @@ public abstract class ConfigurationTargetIdentifier {
         SETTINGS,
         PROJECT;
 
-        public final String label = TextUtil.toLowerCaseLocaleSafe(name());
+        public final String label = name().toLowerCase(Locale.ROOT);
     }
 
     public abstract Type getTargetType();
@@ -57,7 +60,7 @@ public abstract class ConfigurationTargetIdentifier {
     /**
      * Returns null if the thing is of an unknown type.
      * This can happen with {@code apply(from: "foo", to: someTask)},
-     * where “to” can be absolutely anything.
+     * where "to" can be absolutely anything.
      */
     @Nullable
     public static ConfigurationTargetIdentifier of(Object any) {

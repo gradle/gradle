@@ -16,18 +16,17 @@
 
 package org.gradle.api.reporting.internal;
 
-import org.gradle.api.Task;
+import org.gradle.api.Describable;
 import org.gradle.api.reporting.CustomizableHtmlReport;
 import org.gradle.api.resources.TextResource;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
-
-public abstract class CustomizableHtmlReportImpl extends TaskGeneratedSingleFileReport implements CustomizableHtmlReport {
+public abstract class CustomizableHtmlReportImpl extends DefaultSingleFileReport implements CustomizableHtmlReport {
 
     private TextResource stylesheet;
 
-    public CustomizableHtmlReportImpl(String name, Task task) {
-        super(name, task);
+    public CustomizableHtmlReportImpl(String name, Describable owner) {
+        super(name, owner);
     }
 
     @Override

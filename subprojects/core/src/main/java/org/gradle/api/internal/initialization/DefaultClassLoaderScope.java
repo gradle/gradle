@@ -23,8 +23,8 @@ import org.gradle.initialization.ClassLoaderScopeRegistryListener;
 import org.gradle.internal.classloader.CachingClassLoader;
 import org.gradle.internal.classloader.MultiParentClassLoader;
 import org.gradle.internal.classpath.ClassPath;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -238,7 +238,7 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
             listener.classloaderCreated(this.id, id.exportId(), effectiveExportClassLoader, export, null);
         }
         if (!local.isEmpty()) {
-            listener.classloaderCreated(this.id, id.localId(), effectiveLocalClassLoader, export, null);
+            listener.classloaderCreated(this.id, id.localId(), effectiveLocalClassLoader, local, null);
         }
     }
 }

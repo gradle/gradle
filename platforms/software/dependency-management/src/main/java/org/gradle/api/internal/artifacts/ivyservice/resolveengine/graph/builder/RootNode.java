@@ -17,10 +17,10 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
-import org.gradle.internal.component.local.model.LocalConfigurationGraphResolveMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
+import org.gradle.internal.component.local.model.LocalVariantGraphResolveMetadata;
+import org.gradle.internal.component.local.model.LocalVariantGraphResolveState;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 
@@ -31,9 +31,10 @@ class RootNode extends NodeState implements RootGraphNode {
     private final ResolveOptimizations resolveOptimizations;
     private final List<? extends DependencyMetadata> syntheticDependencies;
 
-    RootNode(long resultId, ComponentState moduleRevision, ResolvedConfigurationIdentifier id, ResolveState resolveState, List<? extends DependencyMetadata> syntheticDependencies, VariantGraphResolveState root) {
-        super(resultId, id, moduleRevision, resolveState, root, false);
-        moduleRevision.setRoot();
+    boolean incomingEdgeWasAdded = false;
+
+    RootNode(long resultId, ComponentState moduleRevision, ResolveState resolveState, List<? extends DependencyMetadata> syntheticDependencies, VariantGraphResolveState root) {
+        super(resultId, moduleRevision, resolveState, root, false);
         this.resolveOptimizations = resolveState.getResolveOptimizations();
         this.syntheticDependencies = syntheticDependencies;
     }
@@ -45,7 +46,22 @@ class RootNode extends NodeState implements RootGraphNode {
 
     @Override
     public Set<? extends LocalFileDependencyMetadata> getOutgoingFileEdges() {
-        return getMetadata().getFiles();
+        return getResolveState().getFiles();
+    }
+
+    @Override
+    void addIncomingEdge(EdgeState dependencyEdge) {
+        super.addIncomingEdge(dependencyEdge);
+        incomingEdgeWasAdded = true;
+
+        // TODO: We read `incomingEdgeWasAdded` at the end of graph resolution.
+        // If this method is ever called, we trigger a deprecation warning.
+        // In Gradle 9.0, we should fail here immediately if someone tries to
+        // add an incoming edge to a root node.
+    }
+
+    public boolean wasIncomingEdgeAdded() {
+        return incomingEdgeWasAdded;
     }
 
     @Override
@@ -58,8 +74,13 @@ class RootNode extends NodeState implements RootGraphNode {
     }
 
     @Override
-    public LocalConfigurationGraphResolveMetadata getMetadata() {
-        return (LocalConfigurationGraphResolveMetadata) super.getMetadata();
+    public LocalVariantGraphResolveState getResolveState() {
+        return (LocalVariantGraphResolveState) super.getResolveState();
+    }
+
+    @Override
+    public LocalVariantGraphResolveMetadata getMetadata() {
+        return (LocalVariantGraphResolveMetadata) super.getMetadata();
     }
 
     @Override

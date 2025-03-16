@@ -17,6 +17,7 @@ package org.gradle.api.artifacts.dsl;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
@@ -29,8 +30,10 @@ import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 
 /**
@@ -120,19 +123,21 @@ import java.util.Map;
  *
  * <pre class='autoTested'>
  * plugins {
- *     id 'java' // so that I can declare 'implementation' dependencies
+ *     id("java-library")
  * }
  *
  * dependencies {
- *   //configuring dependency to specific configuration of the module
- *   implementation configuration: 'someConf', group: 'org.someOrg', name: 'someModule', version: '1.0'
+ *   // Configuring dependency to specific configuration of the module
+ *   // This notation should _only_ be used for Ivy dependencies
+ *   implementation(group: "org.someOrg", name: "someModule", version: "1.0", configuration: "someConf")
  *
- *   //configuring dependency on 'someLib' module
+ *   // Configuring dependency on 'someLib' module
  *   implementation(group: 'org.myorg', name: 'someLib', version:'1.0') {
- *     //explicitly adding the dependency artifact:
+ *     // Explicitly adding the dependency artifact:
+ *     // Prefer variant-aware dependency resolution
  *     artifact {
- *       //useful when some artifact properties unconventional
- *       name = 'someArtifact' //artifact name different than module name
+ *       // Useful when some artifact properties unconventional
+ *       name = 'someArtifact' // Artifact name different than module name
  *       extension = 'someExt'
  *       type = 'someType'
  *       classifier = 'someClassifier'
@@ -273,6 +278,7 @@ import java.util.Map;
  * not available. Client modules are represented using a {@link org.gradle.api.artifacts.ClientModule}.
  *
  */
+@ServiceScope(Scope.Project.class)
 public interface DependencyHandler extends ExtensionAware {
     /**
      * Adds a dependency to the given configuration.
@@ -469,6 +475,11 @@ public interface DependencyHandler extends ExtensionAware {
 
     /**
      * Creates an artifact resolution query.
+     * <p>
+     * This is a legacy API and is in maintenance mode. In future versions of Gradle,
+     * this API will be deprecated and removed. New code should not use this API. Prefer
+     * {@link ArtifactView.ViewConfiguration#withVariantReselection()} for resolving
+     * sources and javadoc.
      *
      * @since 2.0
      */

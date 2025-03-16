@@ -17,8 +17,9 @@
 package org.gradle.api.internal.tasks.testing.junit.result;
 
 import org.gradle.api.tasks.testing.TestResult;
+import org.gradle.internal.time.Clock;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -72,6 +73,11 @@ public class TestClassResult {
         return methodResults;
     }
 
+    /**
+     * Start time is based on number of milliseconds since 1970-01-01T00:00:00Z.
+     *
+     * @see Clock#getCurrentTime()
+     */
     public long getStartTime() {
         return startTime;
     }

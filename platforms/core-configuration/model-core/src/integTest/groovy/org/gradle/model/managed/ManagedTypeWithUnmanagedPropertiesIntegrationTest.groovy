@@ -24,7 +24,7 @@ class ManagedTypeWithUnmanagedPropertiesIntegrationTest extends AbstractIntegrat
 
     def "can have unmanaged property of unsupported types"() {
         when:
-        buildScript '''
+        buildFile '''
             class UnmanagedThing {
               String value
             }
@@ -71,7 +71,7 @@ class ManagedTypeWithUnmanagedPropertiesIntegrationTest extends AbstractIntegrat
 
     def "unmanaged property of managed type can be targeted by rules"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Platform {
                 @Unmanaged
@@ -126,7 +126,7 @@ class ManagedTypeWithUnmanagedPropertiesIntegrationTest extends AbstractIntegrat
 
     def "can view unmanaged property as ModelElement"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Platform {
                 @Unmanaged

@@ -18,7 +18,7 @@ package org.gradle.internal.resolve;
 import com.google.common.base.Objects;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributeValue;
-import org.gradle.internal.component.model.AttributeMatcher;
+import org.gradle.api.internal.attributes.matching.AttributeMatcher;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.util.Comparator;

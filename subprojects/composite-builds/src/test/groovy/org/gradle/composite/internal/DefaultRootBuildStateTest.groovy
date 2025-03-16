@@ -22,7 +22,6 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.deployment.internal.DefaultDeploymentRegistry
 import org.gradle.initialization.RootBuildLifecycleListener
-import org.gradle.initialization.exception.ExceptionAnalyser
 import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.build.BuildModelControllerServices
 import org.gradle.internal.build.BuildStateRegistry
@@ -30,7 +29,9 @@ import org.gradle.internal.buildtree.BuildTreeLifecycleController
 import org.gradle.internal.buildtree.BuildTreeLifecycleControllerFactory
 import org.gradle.internal.buildtree.BuildTreeState
 import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.exception.ExceptionAnalyser
 import org.gradle.internal.operations.TestBuildOperationExecutor
+import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.service.DefaultServiceRegistry
 import spock.lang.Specification
 
@@ -48,13 +49,16 @@ class DefaultRootBuildStateTest extends Specification {
     def exceptionAnalyzer = Mock(ExceptionAnalyser)
     def buildTreeController = Mock(BuildTreeLifecycleController)
     def buildTreeControllerFactory = Mock(BuildTreeLifecycleControllerFactory)
+    def buildOperationRunner = new TestBuildOperationRunner()
+    def buildOperationExecutor = new TestBuildOperationExecutor(buildOperationRunner)
     DefaultRootBuildState build
 
     def setup() {
         _ * factory.servicesForBuild(buildDefinition, _, null) >> Mock(BuildModelControllerServices.Supplier)
         _ * listenerManager.getBroadcaster(RootBuildLifecycleListener) >> lifecycleListener
         def services = new DefaultServiceRegistry()
-        services.add(new TestBuildOperationExecutor())
+        services.add(buildOperationRunner)
+        services.add(buildOperationExecutor)
         services.add(gradle)
         services.add(exceptionAnalyzer)
         services.add(controller)

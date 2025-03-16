@@ -22,28 +22,31 @@ import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCachePr
 import org.gradle.internal.buildoption.Option;
 import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.watch.registry.WatchMode;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.time.Duration;
 
 public class StartParameterInternal extends StartParameter {
     private WatchMode watchFileSystemMode = WatchMode.DEFAULT;
-    private boolean watchFileSystemDebugLogging;
     private boolean vfsVerboseLogging;
 
     private Option.Value<Boolean> configurationCache = Option.Value.defaultValue(false);
     private Option.Value<Boolean> isolatedProjects = Option.Value.defaultValue(false);
     private ConfigurationCacheProblemsOption.Value configurationCacheProblems = ConfigurationCacheProblemsOption.Value.FAIL;
     private boolean configurationCacheDebug;
-    private boolean configurationCacheIgnoreInputsInTaskGraphSerialization = false;
+    private boolean configurationCacheIgnoreInputsDuringStore = false;
     private int configurationCacheMaxProblems = 512;
     private @Nullable String configurationCacheIgnoredFileSystemCheckInputs = null;
+    private boolean configurationCacheParallel;
     private boolean configurationCacheRecreateCache;
     private boolean configurationCacheQuiet;
+    private int configurationCacheEntriesPerKey = 1;
     private boolean searchUpwards = true;
     private boolean useEmptySettings = false;
     private Duration continuousBuildQuietPeriod = Duration.ofMillis(250);
+    private boolean propertyUpgradeReportEnabled;
+    private boolean enableProblemReportGeneration = true;
 
     public StartParameterInternal() {
     }
@@ -66,7 +69,6 @@ public class StartParameterInternal extends StartParameter {
     protected StartParameterInternal prepareNewBuild(StartParameter startParameter) {
         StartParameterInternal p = (StartParameterInternal) super.prepareNewBuild(startParameter);
         p.watchFileSystemMode = watchFileSystemMode;
-        p.watchFileSystemDebugLogging = watchFileSystemDebugLogging;
         p.vfsVerboseLogging = vfsVerboseLogging;
         p.configurationCache = configurationCache;
         p.isolatedProjects = isolatedProjects;
@@ -74,10 +76,13 @@ public class StartParameterInternal extends StartParameter {
         p.configurationCacheMaxProblems = configurationCacheMaxProblems;
         p.configurationCacheIgnoredFileSystemCheckInputs = configurationCacheIgnoredFileSystemCheckInputs;
         p.configurationCacheDebug = configurationCacheDebug;
+        p.configurationCacheParallel = configurationCacheParallel;
         p.configurationCacheRecreateCache = configurationCacheRecreateCache;
         p.configurationCacheQuiet = configurationCacheQuiet;
+        p.configurationCacheEntriesPerKey = configurationCacheEntriesPerKey;
         p.searchUpwards = searchUpwards;
         p.useEmptySettings = useEmptySettings;
+        p.enableProblemReportGeneration = enableProblemReportGeneration;
         return p;
     }
 
@@ -111,14 +116,6 @@ public class StartParameterInternal extends StartParameter {
 
     public void setWatchFileSystemMode(WatchMode watchFileSystemMode) {
         this.watchFileSystemMode = watchFileSystemMode;
-    }
-
-    public boolean isWatchFileSystemDebugLogging() {
-        return watchFileSystemDebugLogging;
-    }
-
-    public void setWatchFileSystemDebugLogging(boolean watchFileSystemDebugLogging) {
-        this.watchFileSystemDebugLogging = watchFileSystemDebugLogging;
     }
 
     public boolean isVfsVerboseLogging() {
@@ -180,12 +177,28 @@ public class StartParameterInternal extends StartParameter {
         this.configurationCacheDebug = configurationCacheDebug;
     }
 
-    public boolean isConfigurationCacheIgnoreInputsInTaskGraphSerialization() {
-        return configurationCacheIgnoreInputsInTaskGraphSerialization;
+    public boolean isConfigurationCacheIgnoreInputsDuringStore() {
+        return configurationCacheIgnoreInputsDuringStore;
     }
 
-    public void setConfigurationCacheIgnoreInputsInTaskGraphSerialization(boolean ignoreInputsInTaskGraphSerialization) {
-        configurationCacheIgnoreInputsInTaskGraphSerialization = ignoreInputsInTaskGraphSerialization;
+    public void setConfigurationCacheIgnoreInputsDuringStore(boolean ignoreInputsDuringStore) {
+        configurationCacheIgnoreInputsDuringStore = ignoreInputsDuringStore;
+    }
+
+    public boolean isConfigurationCacheParallel() {
+        return configurationCacheParallel;
+    }
+
+    public void setConfigurationCacheParallel(boolean parallel) {
+        this.configurationCacheParallel = parallel;
+    }
+
+    public int getConfigurationCacheEntriesPerKey() {
+        return configurationCacheEntriesPerKey;
+    }
+
+    public void setConfigurationCacheEntriesPerKey(int configurationCacheEntriesPerKey) {
+        this.configurationCacheEntriesPerKey = configurationCacheEntriesPerKey;
     }
 
     public int getConfigurationCacheMaxProblems() {
@@ -227,5 +240,21 @@ public class StartParameterInternal extends StartParameter {
 
     public Duration getContinuousBuildQuietPeriod() {
         return continuousBuildQuietPeriod;
+    }
+
+    public boolean isPropertyUpgradeReportEnabled() {
+        return propertyUpgradeReportEnabled;
+    }
+
+    public void setPropertyUpgradeReportEnabled(boolean propertyUpgradeReportEnabled) {
+        this.propertyUpgradeReportEnabled = propertyUpgradeReportEnabled;
+    }
+
+    public void enableProblemReportGeneration(boolean enableProblemReportGeneration) {
+        this.enableProblemReportGeneration = enableProblemReportGeneration;
+    }
+
+    public boolean isProblemReportGenerationEnabled() {
+        return this.enableProblemReportGeneration;
     }
 }

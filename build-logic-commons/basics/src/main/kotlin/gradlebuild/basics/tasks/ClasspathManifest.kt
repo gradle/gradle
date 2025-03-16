@@ -37,7 +37,7 @@ abstract class ClasspathManifest : DefaultTask() {
     abstract val optionalProjects: ListProperty<String>
 
     @get:Internal
-    abstract val runtimeClasspath: ConfigurableFileCollection
+    abstract val projectDependencies: ConfigurableFileCollection
 
     @Input
     val runtime = externalDependencies.elements.map { it.map { it.asFile.name }.sorted() }
@@ -46,7 +46,7 @@ abstract class ClasspathManifest : DefaultTask() {
     abstract val externalDependencies: ConfigurableFileCollection
 
     @Input
-    val projects = runtimeClasspath.elements.map { it.mapNotNull { it.toGradleModuleName() }.sorted() }
+    val projects = projectDependencies.elements.map { it.map { it.toGradleModuleName() }.sorted() }
 
     @get:OutputFile
     abstract val manifestFile: RegularFileProperty
@@ -66,9 +66,7 @@ abstract class ClasspathManifest : DefaultTask() {
     }
 
     private
-    fun FileSystemLocation.toGradleModuleName(): String? = asFile.name
-        .takeIf { it.startsWith("gradle-") || it.contains("-patched-for-gradle-") }
-        ?.run { substring(0, lastIndexOf('-')) }
+    fun FileSystemLocation.toGradleModuleName(): String = asFile.name.run { substring(0, lastIndexOf('-')) }
 
     private
     fun Iterable<String>.joinForProperties() = sorted().joinToString(",")

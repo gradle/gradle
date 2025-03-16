@@ -32,6 +32,8 @@ import java.nio.file.Paths
 import static org.gradle.api.internal.DocumentationRegistry.BASE_URL
 import static org.gradle.api.internal.DocumentationRegistry.RECOMMENDATION
 
+// TODO: Move all of these tests to AbstractJavaCompilerIntegrationSpec
+// so that we can verify them for forking, in-process, and cli compilers.
 class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
@@ -42,10 +44,12 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         def executable = TextUtil.normaliseFileSeparators(Jvm.current().javacExecutable.toString())
 
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
             tasks.withType(JavaCompile) {
                 options.fork = true
-                options.forkOptions.executable = new File(".").getAbsoluteFile().toPath().relativize(new File("${executable}").toPath()).toString()
+                options.forkOptions.executable = new File(".").getCanonicalFile().toPath().relativize(new File("${executable}").toPath()).toString()
             }
         """
 
@@ -99,7 +103,9 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
     def "uses default platform settings when applying java plugin"() {
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
         """
 
         file("src/main/java/Foo.java") << "public class Foo {}"
@@ -283,7 +289,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
                 apply plugin: 'java-library'
 
                 repositories {
-                   maven { url '$mavenRepo.uri' }
+                   maven { url = '$mavenRepo.uri' }
                 }
             }
         """
@@ -320,7 +326,9 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
     def "test runtime classpath includes implementation dependencies"() {
         given:
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             ${mavenCentralRepository()}
 
@@ -356,7 +364,9 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
     def "test runtime classpath includes test implementation dependencies"() {
         given:
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             ${mavenCentralRepository()}
 
@@ -392,7 +402,9 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
     def "test compile classpath includes implementation dependencies"() {
         given:
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             ${mavenCentralRepository()}
 
@@ -434,10 +446,12 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         createDirs("a", "b")
         settingsFile << "include 'a', 'b'"
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             repositories {
-                maven { url '$mavenRepo.uri' }
+                maven { url = '$mavenRepo.uri' }
             }
 
             dependencies {
@@ -468,7 +482,9 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         given:
         settingsFile << "include 'a', 'b'"
         file('a/build.gradle') << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             dependencies {
                 implementation project(':b')
@@ -486,7 +502,9 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
             }
         """
         file('b/build.gradle') << '''
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
         '''
         file('b/src/main/java/Foo.java') << 'class Foo {}'
         file('b/src/main/resources/foo.txt') << 'some resource'
@@ -508,7 +526,9 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
     def "compile classpath snapshotting ignores non-relevant elements"() {
         def buildFileWithDependencies = { String... dependencies ->
             buildFile.text = """
-                apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
 
                 ${mavenCentralRepository()}
 
@@ -584,7 +604,9 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
     // Java 9 compiler throws error already: 'zip END header not found'
     def "compile classpath snapshotting should warn when jar on classpath is malformed"() {
         buildFile << '''
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             dependencies {
                implementation files('foo.jar')
@@ -606,7 +628,9 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
     @Requires(UnitTestPreconditions.Jdk8OrEarlier)
     def "compile classpath snapshotting on Java 8 and earlier should warn when jar on classpath has non-utf8 characters in filenames"() {
         buildFile << '''
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             dependencies {
                implementation files('broken-utf8.jar')
@@ -629,7 +653,9 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
     @Issue("gradle/gradle#1358")
     def "compile classpath snapshotting should warn when jar on classpath contains malformed class file"() {
         buildFile << '''
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             task fooJar(type:Jar) {
                 archiveFileName = 'foo.jar'
@@ -659,7 +685,9 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
     @Issue("gradle/gradle#1358")
     def "compile classpath snapshotting should warn when class on classpath is malformed"() {
         buildFile << '''
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             dependencies {
                implementation files('classes')
@@ -682,12 +710,16 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
     def "compile classpath snapshotting should support unicode class names"() {
         settingsFile << 'include "b"'
         file("b/build.gradle") << '''
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
         '''
         file("b/src/main/java/λ.java") << 'public class λ {}'
 
         buildFile << '''
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             dependencies {
                implementation project(':b')
@@ -885,7 +917,9 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
     def "fails when sourcepath is set on compilerArgs"() {
         buildFile << '''
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             compileJava {
                 options.compilerArgs = ['-sourcepath', files('src/main/java').asPath]
@@ -902,7 +936,9 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
     def "fails when processorpath is set on compilerArgs"() {
         buildFile << '''
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             compileJava {
                 options.compilerArgs = ['-processorpath', files('src/main/java').asPath]
@@ -919,7 +955,9 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
     def "fails when a -J (compiler JVM) flag is set on compilerArgs"() {
         buildFile << '''
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             compileJava {
                 options.compilerArgs = ['-J-Xdiag']
@@ -942,7 +980,9 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         def jdk8 = AvailableJavaHomes.getJdk8()
         def jdk8bootClasspath = TextUtil.escapeString(jdk8.jre.absolutePath) + "/lib/rt.jar"
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             compileJava {
                 if (providers.gradleProperty("java7").isPresent()) {
@@ -975,11 +1015,11 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
     }
 
     // bootclasspath has been removed in Java 9+
-    @Requires(UnitTestPreconditions.Jdk8OrEarlier)
+    @Requires(IntegTestPreconditions.BestJreAvailable)
     @Issue("https://github.com/gradle/gradle/issues/19817")
     def "fails if bootclasspath is provided as a path instead of a single file"() {
-        def jre = AvailableJavaHomes.getBestJre()
-        def bootClasspath = TextUtil.escapeString(jre.absolutePath) + "/lib/rt.jar${File.pathSeparator}someotherpath"
+        def rtJar = new File(AvailableJavaHomes.bestJre, "lib/rt.jar")
+        def bootClasspath = TextUtil.escapeString(rtJar.absolutePath) + "${File.pathSeparator}someotherpath"
         buildFile << """
             plugins {
                 id 'java'
@@ -1002,7 +1042,9 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
     def "deletes empty packages dirs"() {
         given:
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
         """
         def a = file('src/main/java/com/foo/internal/A.java') << """
             package com.foo.internal;
@@ -1026,7 +1068,9 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
     def "can configure custom header output"() {
         given:
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
             compileJava.options.headerOutputDirectory = file("build/headers/java/main")
         """
         file('src/main/java/Foo.java') << """
@@ -1044,7 +1088,9 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
     def "can connect generated headers to input of another task"() {
         given:
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             task copy(type: Copy) {
                 from tasks.compileJava.options.headerOutputDirectory
@@ -1067,7 +1113,9 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
     def "deletes stale header files"() {
         given:
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
         """
         def header = file('src/main/java/my/org/Foo.java') << """
             package my.org;
@@ -1095,7 +1143,9 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
     def "does not use case insensitive default excludes"() {
         given:
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
         """
         file("src/main/java/com/example/Main.java") << """
             package com.example;
@@ -1196,7 +1246,9 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
     def "should compile sources from source with -sourcepath option for modules"() {
         given:
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             tasks.register("compileCustomJava", JavaCompile) {
                 destinationDirectory.set(new File(buildDir, "classes/java-custom-path/main"))
@@ -1221,5 +1273,36 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         file("build/classes/java-custom-path/main/module-info.class").exists()
         // We compile only classes defined in `source`
         !file("build/classes/java-custom-path/main/com/example/SourcePathTest.class").exists()
+    }
+
+    def "Map-accepting methods are deprecated"() {
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            tasks.compileJava {
+                options.define(encoding: 'UTF-8')
+                options.fork(memoryMaximumSize: '1G')
+                options.debug(debugLevel: 'lines')
+                options.forkOptions.define([:])
+                options.debugOptions.define([:])
+
+                // Ensure replacement compiles successfully
+                options.encoding = 'UTF-8'
+                options.fork = true
+                options.forkOptions.memoryMaximumSize = '1G'
+                options.debug = true
+                options.debugOptions.debugLevel = 'lines'
+            }
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("The AbstractOptions.define(Map) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_abstract_options")
+        executer.expectDocumentedDeprecationWarning("The CompileOptions.fork(Map) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Set properties directly on the 'forkOptions' property instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_abstract_options")
+        executer.expectDocumentedDeprecationWarning("The CompileOptions.debug(Map) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Set properties directly on the 'debugOptions' property instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_abstract_options")
+        executer.expectDocumentedDeprecationWarning("The AbstractOptions.define(Map) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_abstract_options")
+        executer.expectDocumentedDeprecationWarning("The AbstractOptions.define(Map) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_abstract_options")
+        succeeds("compileJava")
     }
 }

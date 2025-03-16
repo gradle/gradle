@@ -18,8 +18,9 @@ package org.gradle.api.internal.provider;
 
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.evaluation.EvaluationScopeContext;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.concurrent.Callable;
@@ -27,7 +28,7 @@ import java.util.concurrent.Callable;
 /**
  * A provider whose value is computed by a {@link Callable}.
  *
- * <h3>Configuration Cache Behavior</h3>
+ * <h2>Configuration Cache Behavior</h2>
  * <b>Eager</b>. The value is computed at store time and loaded from the cache.
  */
 public class DefaultProvider<T> extends AbstractMinimalProvider<T> {
@@ -68,7 +69,7 @@ public class DefaultProvider<T> extends AbstractMinimalProvider<T> {
 
     @Override
     protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
-        try (EvaluationContext.ScopeContext ignored = openScope()) {
+        try (EvaluationScopeContext ignored = openScope()) {
             return Value.ofNullable(value.call());
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);

@@ -34,6 +34,8 @@ import java.lang.annotation.Target;
  * <p>This annotation should be attached to the getter method in Java or the property in Groovy.
  * Annotations on setters or just the field in Java are ignored.</p>
  *
+ * <p>This annotation can be used with the following annotations:</p>
+ *
  * <ul><li>{@link org.gradle.api.tasks.InputFiles}</li>
  *
  * <li>{@link org.gradle.api.tasks.InputDirectory}</li> </ul>

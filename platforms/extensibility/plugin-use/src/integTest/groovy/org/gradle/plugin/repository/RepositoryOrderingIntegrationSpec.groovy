@@ -33,9 +33,9 @@ class RepositoryOrderingIntegrationSpec extends AbstractIntegrationSpec {
         overridePluginPortalUri(pluginPortalUri)
 
         and:
-        buildScript """
+        buildFile """
             buildscript {
-                repositories { maven { url "$buildscriptRepoUri" } }
+                repositories { maven { url = "$buildscriptRepoUri" } }
                 dependencies { classpath "my:plugin:1.0" }
             }
 
@@ -50,7 +50,7 @@ class RepositoryOrderingIntegrationSpec extends AbstractIntegrationSpec {
         fails "tasks"
 
         then: "searched buildscript repository then plugin portal"
-        failure.assertHasCause("Could not resolve all artifacts for configuration ':classpath'.")
+        failure.assertHasCause("Could not resolve all artifacts for configuration 'classpath'.")
         failure.assertHasCause """
             Could not find my:plugin:1.0.
             Searched in the following locations:
@@ -69,7 +69,7 @@ class RepositoryOrderingIntegrationSpec extends AbstractIntegrationSpec {
         fails "tasks"
 
         then: "searched buildscript repository then plugin management repositories"
-        failure.assertHasCause("Could not resolve all artifacts for configuration ':classpath'.")
+        failure.assertHasCause("Could not resolve all artifacts for configuration 'classpath'.")
         failure.assertHasCause """
             Could not find my:plugin:1.0.
             Searched in the following locations:

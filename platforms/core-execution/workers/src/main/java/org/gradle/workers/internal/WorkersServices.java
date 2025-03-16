@@ -18,7 +18,7 @@ package org.gradle.workers.internal;
 
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.ClassPathRegistry;
-import org.gradle.concurrent.ParallelismConfiguration;
+import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.initialization.layout.ProjectCacheDir;
@@ -29,25 +29,30 @@ import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
+import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.internal.state.ManagedFactoryRegistry;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.internal.work.ConditionalExecutionQueueFactory;
 import org.gradle.internal.work.DefaultConditionalExecutionQueueFactory;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
+import org.gradle.internal.work.WorkerLimits;
 import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.gradle.process.internal.health.memory.MemoryManager;
 import org.gradle.process.internal.health.memory.OsMemoryInfo;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 import org.gradle.process.internal.worker.child.DefaultWorkerDirectoryProvider;
 import org.gradle.process.internal.worker.child.WorkerDirectoryProvider;
+import org.gradle.process.internal.worker.request.IsolatableSerializerRegistry;
 import org.gradle.workers.WorkerExecutor;
 
-public class WorkersServices extends AbstractPluginServiceRegistry {
+@SuppressWarnings("UnusedMethod")
+public class WorkersServices extends AbstractGradleModuleServices {
     @Override
     public void registerGradleUserHomeServices(ServiceRegistration registration) {
         registration.addProvider(new GradleUserHomeServices());
@@ -64,21 +69,30 @@ public class WorkersServices extends AbstractPluginServiceRegistry {
         registration.add(IsolatedClassloaderWorkerFactory.class);
     }
 
-    private static class BuildSessionScopeServices {
+    private static class BuildSessionScopeServices implements ServiceRegistrationProvider {
+        @Provides
         WorkerDirectoryProvider createWorkerDirectoryProvider(GradleUserHomeDirProvider gradleUserHomeDirProvider) {
             return new DefaultWorkerDirectoryProvider(gradleUserHomeDirProvider);
         }
 
-        ConditionalExecutionQueueFactory createConditionalExecutionQueueFactory(ExecutorFactory executorFactory, ParallelismConfiguration parallelismConfiguration, WorkerLeaseService workerLeaseService) {
-            return new DefaultConditionalExecutionQueueFactory(parallelismConfiguration, executorFactory, workerLeaseService);
+        @Provides
+        ConditionalExecutionQueueFactory createConditionalExecutionQueueFactory(ExecutorFactory executorFactory, WorkerLimits workerLimits, WorkerLeaseService workerLeaseService) {
+            return new DefaultConditionalExecutionQueueFactory(workerLimits, executorFactory, workerLeaseService);
         }
 
+        @Provides
         WorkerExecutionQueueFactory createWorkerExecutionQueueFactory(ConditionalExecutionQueueFactory conditionalExecutionQueueFactory) {
             return new WorkerExecutionQueueFactory(conditionalExecutionQueueFactory);
         }
+
+        @Provides
+        WorkerDaemonClientCancellationHandler createWorkerDaemonClientSessionHandler(WorkerDaemonClientsManager workerDaemonClientsManager, BuildCancellationToken buildCancellationToken) {
+            return new WorkerDaemonClientCancellationHandler(workerDaemonClientsManager, buildCancellationToken);
+        }
     }
 
-    private static class GradleUserHomeServices {
+    private static class GradleUserHomeServices implements ServiceRegistrationProvider {
+        @Provides
         WorkerDaemonClientsManager createWorkerDaemonClientsManager(WorkerProcessFactory workerFactory,
                                                                     LoggingManagerInternal loggingManager,
                                                                     ListenerManager listenerManager,
@@ -89,26 +103,30 @@ public class WorkersServices extends AbstractPluginServiceRegistry {
             return new WorkerDaemonClientsManager(new WorkerDaemonStarter(workerFactory, loggingManager, classPathRegistry, actionExecutionSpecFactory), listenerManager, loggingManager, memoryManager, memoryInfo);
         }
 
+        @Provides
         ClassLoaderStructureProvider createClassLoaderStructureProvider(ClassLoaderRegistry classLoaderRegistry) {
             return new ClassLoaderStructureProvider(classLoaderRegistry);
         }
 
+        @Provides
         IsolatableSerializerRegistry createIsolatableSerializerRegistry(ClassLoaderHierarchyHasher classLoaderHierarchyHasher, ManagedFactoryRegistry managedFactoryRegistry) {
             return new IsolatableSerializerRegistry(classLoaderHierarchyHasher, managedFactoryRegistry);
         }
 
+        @Provides
         ActionExecutionSpecFactory createActionExecutionSpecFactory(IsolatableFactory isolatableFactory, IsolatableSerializerRegistry serializerRegistry) {
             return new DefaultActionExecutionSpecFactory(isolatableFactory, serializerRegistry);
         }
     }
 
-    private static class ProjectScopeServices {
+    private static class ProjectScopeServices implements ServiceRegistrationProvider {
+        @Provides
         WorkerExecutor createWorkerExecutor(InstantiatorFactory instantiatorFactory,
                                             WorkerDaemonFactory daemonWorkerFactory,
                                             IsolatedClassloaderWorkerFactory isolatedClassloaderWorkerFactory,
                                             JavaForkOptionsFactory forkOptionsFactory,
                                             WorkerLeaseRegistry workerLeaseRegistry,
-                                            BuildOperationExecutor buildOperationExecutor,
+                                            BuildOperationRunner buildOperationRunner,
                                             AsyncWorkTracker asyncWorkTracker,
                                             WorkerDirectoryProvider workerDirectoryProvider,
                                             ClassLoaderStructureProvider classLoaderStructureProvider,
@@ -119,7 +137,7 @@ public class WorkersServices extends AbstractPluginServiceRegistry {
                                             ProjectLayout projectLayout,
                                             ProjectCacheDir projectCacheDir
                                             ) {
-            NoIsolationWorkerFactory noIsolationWorkerFactory = new NoIsolationWorkerFactory(buildOperationExecutor, instantiatorFactory, actionExecutionSpecFactory, projectServices);
+            NoIsolationWorkerFactory noIsolationWorkerFactory = new NoIsolationWorkerFactory(buildOperationRunner, instantiatorFactory, actionExecutionSpecFactory, projectServices);
 
             DefaultWorkerExecutor workerExecutor = instantiatorFactory.decorateLenient().newInstance(
                 DefaultWorkerExecutor.class,
@@ -128,7 +146,7 @@ public class WorkersServices extends AbstractPluginServiceRegistry {
                 noIsolationWorkerFactory,
                 forkOptionsFactory,
                 workerLeaseRegistry,
-                buildOperationExecutor,
+                buildOperationRunner,
                 asyncWorkTracker,
                 workerDirectoryProvider,
                 workerExecutionQueueFactory,
@@ -142,8 +160,9 @@ public class WorkersServices extends AbstractPluginServiceRegistry {
             return workerExecutor;
         }
 
-        WorkerDaemonFactory createWorkerDaemonFactory(WorkerDaemonClientsManager workerDaemonClientsManager, BuildOperationExecutor buildOperationExecutor) {
-            return new WorkerDaemonFactory(workerDaemonClientsManager, buildOperationExecutor);
+        @Provides
+        WorkerDaemonFactory createWorkerDaemonFactory(WorkerDaemonClientsManager workerDaemonClientsManager, BuildOperationRunner buildOperationRunner, WorkerDaemonClientCancellationHandler workerDaemonClientCancellationHandler) {
+            return new WorkerDaemonFactory(workerDaemonClientsManager, buildOperationRunner, workerDaemonClientCancellationHandler);
         }
     }
 }

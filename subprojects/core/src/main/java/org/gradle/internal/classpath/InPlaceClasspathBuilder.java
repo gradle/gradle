@@ -21,12 +21,12 @@ import com.google.common.hash.Hashing;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.gradle.api.GradleException;
-import org.gradle.api.NonNullApi;
-import org.gradle.api.internal.file.archive.ZipCopyAction;
+import org.gradle.api.internal.file.archive.ZipEntryConstants;
 import org.gradle.internal.classpath.ClasspathEntryVisitor.Entry.CompressionMethod;
 import org.gradle.util.internal.GFileUtils;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -36,7 +36,7 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
-@NonNullApi
+@NullMarked
 public class InPlaceClasspathBuilder implements ClasspathBuilder {
     private static final int BUFFER_SIZE = 8192;
 
@@ -57,7 +57,7 @@ public class InPlaceClasspathBuilder implements ClasspathBuilder {
         }
     }
 
-    @NonNullApi
+    @NullMarked
     private static class ZipEntryBuilder implements EntryBuilder {
         private final ZipArchiveOutputStream outputStream;
         private final Set<String> dirs = new HashSet<>();
@@ -102,7 +102,7 @@ public class InPlaceClasspathBuilder implements ClasspathBuilder {
 
         private ZipArchiveEntry newZipEntryWithFixedTime(String name) {
             ZipArchiveEntry entry = new ZipArchiveEntry(name);
-            entry.setTime(ZipCopyAction.CONSTANT_TIME_FOR_ZIP_ENTRIES);
+            entry.setTime(ZipEntryConstants.CONSTANT_TIME_FOR_ZIP_ENTRIES);
             return entry;
         }
 
@@ -147,7 +147,7 @@ public class InPlaceClasspathBuilder implements ClasspathBuilder {
         action.execute(new DirectoryEntryBuilder(destinationDir));
     }
 
-    @NonNullApi
+    @NullMarked
     private static class DirectoryEntryBuilder implements EntryBuilder {
         private final File baseDir;
 

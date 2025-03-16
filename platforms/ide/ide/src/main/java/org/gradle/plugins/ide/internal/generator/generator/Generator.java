@@ -19,7 +19,6 @@ import java.io.File;
 
 /**
  * Responsible for reading, configuring and writing a config object of type T to/from a file.
- * @param <T>
  */
 public interface Generator<T> {
     T read(File inputFile);

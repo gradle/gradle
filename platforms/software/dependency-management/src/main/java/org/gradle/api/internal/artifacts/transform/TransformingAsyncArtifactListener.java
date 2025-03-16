@@ -33,8 +33,8 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 
@@ -139,7 +139,7 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
 
         @Override
         public BuildOperationDescriptor.Builder description() {
-            return BuildOperationDescriptor.displayName("Execute transform");
+            return BuildOperationDescriptor.displayName("Execute transform chain: " + artifact.getId().getDisplayName());
         }
 
         @Override

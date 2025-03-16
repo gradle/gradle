@@ -18,10 +18,10 @@ package org.gradle.internal.buildtree;
 
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-@ServiceScope(Scopes.BuildSession.class)
+@ServiceScope(Scope.BuildSession.class)
 public interface BuildTreeModelControllerServices {
     /**
      * Creates a {@link Supplier} that will contribute services required for the model of a build tree with the given parameters.

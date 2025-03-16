@@ -16,8 +16,8 @@
 package org.gradle.api.internal.artifacts.verification.model;
 
 import com.google.common.collect.ImmutableSet;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.Set;
 

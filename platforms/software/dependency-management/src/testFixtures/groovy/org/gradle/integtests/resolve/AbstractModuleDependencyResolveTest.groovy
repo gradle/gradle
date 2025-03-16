@@ -96,7 +96,7 @@ abstract class AbstractModuleDependencyResolveTest extends AbstractHttpDependenc
         """
             repositories {
                 maven {
-                    url "${mavenHttpRepo.uri}"
+                    url = "${mavenHttpRepo.uri}"
                 }
             }
         """
@@ -106,7 +106,7 @@ abstract class AbstractModuleDependencyResolveTest extends AbstractHttpDependenc
         """
             repositories {
                 ivy {
-                    url "${ivyHttpRepo.uri}"
+                    url = "${ivyHttpRepo.uri}"
                 }
             }
         """
@@ -144,8 +144,16 @@ abstract class AbstractModuleDependencyResolveTest extends AbstractHttpDependenc
         useIvy() ? ivyRepository : mavenRepository
     }
 
+    String getRuntimeVariant() {
+        usesJavaLibraryVariants() ? "runtime" : "default"
+    }
+
     boolean isDeclareRepositoriesInSettings() {
         false
+    }
+
+    boolean isJavaEcosystem() {
+        true
     }
 
     def setup() {
@@ -169,7 +177,9 @@ abstract class AbstractModuleDependencyResolveTest extends AbstractHttpDependenc
                 $testConfiguration
             }
         """
-        resolve.addJavaEcosystem()
+        if (isJavaEcosystem()) {
+            resolve.addJavaEcosystem()
+        }
     }
 
     void repository(@DelegatesTo(RemoteRepositorySpec) Closure<Void> spec) {

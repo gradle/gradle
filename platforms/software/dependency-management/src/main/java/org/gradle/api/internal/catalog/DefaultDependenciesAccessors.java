@@ -30,7 +30,7 @@ import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.artifacts.DefaultProjectDependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParser;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -50,6 +50,8 @@ import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.ImmutableUnitOfWork;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.caching.CachingDisabledReason;
+import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.model.InputNormalizer;
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
 import org.gradle.internal.file.TreeType;
@@ -65,10 +67,10 @@ import org.gradle.internal.properties.InputBehavior;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.util.internal.IncubationLogger;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.StringWriter;
@@ -100,7 +102,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     private final ExecutionEngine engine;
     private final FileCollectionFactory fileCollectionFactory;
     private final InputFingerprinter inputFingerprinter;
-    private final ImmutableAttributesFactory attributesFactory;
+    private final AttributesFactory attributesFactory;
     private final CapabilityNotationParser capabilityNotationParser;
     private final List<DefaultVersionCatalog> models = new ArrayList<>();
     private final Map<String, Class<? extends ExternalModuleDependencyFactory>> factories = new HashMap<>();
@@ -119,7 +121,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         ExecutionEngine engine,
         FileCollectionFactory fileCollectionFactory,
         InputFingerprinter inputFingerprinter,
-        ImmutableAttributesFactory attributesFactory,
+        AttributesFactory attributesFactory,
         CapabilityNotationParser capabilityNotationParser
     ) {
         this.classPath = registry.getClassPath("DEPENDENCIES-EXTENSION-COMPILER");
@@ -340,11 +342,10 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
 
         @Override
         public Identity identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
-            return () -> {
-                Hasher hasher = Hashing.sha1().newHasher();
-                identityInputs.values().forEach(s -> s.appendToHasher(hasher));
-                return hasher.hash().toString();
-            };
+            Hasher hasher = Hashing.sha1().newHasher();
+            identityInputs.values().forEach(s -> s.appendToHasher(hasher));
+            String identity = hasher.hash().toString();
+            return () -> identity;
         }
 
         @Override
@@ -413,6 +414,12 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         }
 
         @Override
+        public Optional<CachingDisabledReason> shouldDisableCaching(@Nullable OverlappingOutputs detectedOverlappingOutputs) {
+            // This was a behaviour before 8.9, where we unified ExecutionEngine in https://github.com/gradle/gradle/pull/29534
+            return Optional.of(NOT_WORTH_CACHING);
+        }
+
+        @Override
         protected List<ClassSource> getClassSources() {
             return Arrays.asList(
                 new DependenciesAccessorClassSource(model.getName(), model, getProblemsService()),
@@ -427,6 +434,10 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
             visitor.visitInputProperty(IN_VERSIONS, model::getVersionAliases);
             visitor.visitInputProperty(IN_PLUGINS, model::getPluginAliases);
             visitor.visitInputProperty(IN_MODEL_NAME, model::getName);
+        }
+
+        @Override
+        public void visitRegularInputs(InputVisitor visitor) {
             visitor.visitInputFileProperty(IN_CLASSPATH, InputBehavior.NON_INCREMENTAL,
                 new InputFileValueSupplier(
                     classPath,
@@ -448,6 +459,12 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
 
         public ProjectAccessorUnitOfWork(ProjectRegistry<? extends ProjectDescriptor> projectRegistry) {
             this.projectRegistry = projectRegistry;
+        }
+
+        @Override
+        public Optional<CachingDisabledReason> shouldDisableCaching(@Nullable OverlappingOutputs detectedOverlappingOutputs) {
+            // This was a behaviour before 8.9, where we unified ExecutionEngine in https://github.com/gradle/gradle/pull/29534
+            return Optional.of(NOT_WORTH_CACHING);
         }
 
         @Override

@@ -32,6 +32,7 @@ import org.gradle.api.internal.provider.sources.SystemPropertyValueSource;
 import org.gradle.api.internal.provider.sources.process.DefaultExecOutput;
 import org.gradle.api.internal.provider.sources.process.ProcessOutputProviderFactory;
 import org.gradle.api.internal.provider.sources.process.ProcessOutputValueSource;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.provider.ValueSource;
@@ -41,8 +42,8 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.process.ExecOutput;
 import org.gradle.process.ExecSpec;
 import org.gradle.process.JavaExecSpec;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.function.BiFunction;
@@ -56,17 +57,18 @@ public class DefaultProviderFactory implements ProviderFactory {
     private final CredentialsProviderFactory credentialsProviderFactory;
 
     public DefaultProviderFactory() {
-        this(null, null, null);
+        this(null, null, null, null);
     }
 
     public DefaultProviderFactory(
         @Nullable ValueSourceProviderFactory valueSourceProviderFactory,
         @Nullable ProcessOutputProviderFactory processOutputProviderFactory,
-        @Nullable ListenerManager listenerManager
+        @Nullable ListenerManager listenerManager,
+        @Nullable ObjectFactory objectFactory
     ) {
         this.valueSourceProviderFactory = valueSourceProviderFactory;
         this.processOutputProviderFactory = processOutputProviderFactory;
-        this.credentialsProviderFactory = new CredentialsProviderFactory(this);
+        this.credentialsProviderFactory = new CredentialsProviderFactory(this, objectFactory);
         if (listenerManager != null) {
             listenerManager.addListener(credentialsProviderFactory);
         }

@@ -16,7 +16,7 @@
 
 package org.gradle.internal.classpath;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * Tracks the closures that are currently present in the call stack.
@@ -27,7 +27,7 @@ import org.gradle.api.NonNullApi;
  * to the current closures chain and can potentially be intercepted. The implementation must ensure that all the closures in the scope are processed in a way that
  * ensures call interception if a call is dispatched to them.
  */
-@NonNullApi
+@NullMarked
 public interface InstrumentedClosuresTracker {
     void enterClosure(InstrumentableClosure thisClosure);
     void leaveClosure(InstrumentableClosure thisClosure);

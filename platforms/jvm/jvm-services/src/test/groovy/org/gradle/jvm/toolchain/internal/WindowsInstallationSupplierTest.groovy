@@ -18,8 +18,7 @@ package org.gradle.jvm.toolchain.internal
 
 import net.rubygrapefruit.platform.MissingRegistryEntryException
 import net.rubygrapefruit.platform.WindowsRegistry
-import org.gradle.api.internal.provider.Providers
-import org.gradle.api.provider.ProviderFactory
+import org.gradle.internal.nativeintegration.NativeIntegrationUnavailableException
 import org.gradle.internal.os.OperatingSystem
 import spock.lang.Specification
 
@@ -74,8 +73,20 @@ class WindowsInstallationSupplierTest extends Specification {
 
     def "handles absent adoptopenjdk keys"() {
         given:
-        registry.getSubkeys(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, "SOFTWARE\\AdoptOpenJDK\\JDK") >> { throw new MissingRegistryEntryException() }
-        def supplier = createSupplier(OperatingSystem.MAC_OS)
+        registry.getSubkeys(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, _) >> { throw new MissingRegistryEntryException() }
+        def supplier = createSupplier()
+
+        when:
+        def locations = supplier.get()
+
+        then:
+        locations.isEmpty()
+    }
+
+    def "gracefully handles unavailable native integration"() {
+        given:
+        registry.getSubkeys(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, _) >> { throw new NativeIntegrationUnavailableException() }
+        def supplier = createSupplier()
 
         when:
         def locations = supplier.get()
@@ -112,13 +123,6 @@ class WindowsInstallationSupplierTest extends Specification {
     }
 
     WindowsInstallationSupplier createSupplier(OperatingSystem os = OperatingSystem.WINDOWS) {
-        new WindowsInstallationSupplier(registry, os, createProviderFactory())
+        new WindowsInstallationSupplier(registry, os)
     }
-
-    ProviderFactory createProviderFactory(String propertyValue) {
-        def providerFactory = Mock(ProviderFactory)
-        providerFactory.gradleProperty("org.gradle.java.installations.auto-detect") >> Providers.notDefined()
-        providerFactory
-    }
-
 }

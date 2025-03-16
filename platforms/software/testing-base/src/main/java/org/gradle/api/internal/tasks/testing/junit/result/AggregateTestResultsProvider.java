@@ -20,7 +20,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import org.gradle.api.Action;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.internal.concurrent.CompositeStoppable;
 
@@ -125,12 +124,7 @@ public class AggregateTestResultsProvider implements TestResultsProvider {
 
     @Override
     public boolean isHasResults() {
-        return any(providers, new Spec<TestResultsProvider>() {
-            @Override
-            public boolean isSatisfiedBy(TestResultsProvider element) {
-                return element.isHasResults();
-            }
-        });
+        return any(providers, TestResultsProvider::isHasResults);
     }
 
     @Override

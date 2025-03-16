@@ -18,7 +18,10 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencie
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
+@ServiceScope(Scope.Global.class)
 public interface DependencyMetadataFactory {
     LocalOriginDependencyMetadata createDependencyMetadata(ModuleDependency dependency);
     LocalOriginDependencyMetadata createDependencyConstraintMetadata(DependencyConstraint dependencyConstraint);

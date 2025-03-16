@@ -26,7 +26,6 @@ import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 class ArtifactCollectionIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
     def setup() {
-        createDirs("project-lib")
         settingsFile << """
             rootProject.name = 'root'
             include 'project-lib'
@@ -36,14 +35,11 @@ class ArtifactCollectionIntegrationTest extends AbstractHttpDependencyResolution
         file('lib/file-lib.jar') << 'content'
 
         buildFile << """
-            project(':project-lib') {
-                apply plugin: 'java'
-            }
             configurations {
                 compile
             }
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             dependencies {
                 compile 'org.external:external-lib:1.0'
@@ -62,7 +58,13 @@ class ArtifactCollectionIntegrationTest extends AbstractHttpDependencyResolution
 
                 @OutputFile File outputFile
             }
-"""
+        """
+
+        file("project-lib/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+        """
     }
 
     def "artifact collection has resolved artifact files and metadata"() {
@@ -205,7 +207,7 @@ class Main {
         then:
         if (FluidDependenciesResolveInterceptor.isFluid()) {
             failure.assertHasDescription("Could not determine the dependencies of task ':verify'.")
-            failure.assertHasCause("Could not resolve all task dependencies for configuration ':compile'.")
+            failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
             failure.assertHasCause("Could not find org:does-not-exist:1.0.")
         } else {
             failure.assertHasDescription("Execution failed for task ':verify'.")

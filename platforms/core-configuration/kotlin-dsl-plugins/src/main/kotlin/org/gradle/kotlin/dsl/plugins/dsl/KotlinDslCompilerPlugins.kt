@@ -28,6 +28,7 @@ import org.jetbrains.kotlin.assignment.plugin.gradle.AssignmentExtension
 import org.jetbrains.kotlin.assignment.plugin.gradle.AssignmentSubplugin
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
+import org.jetbrains.kotlin.gradle.dsl.jvm.JvmTargetValidationMode
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jetbrains.kotlin.samWithReceiver.gradle.SamWithReceiverExtension
 import org.jetbrains.kotlin.samWithReceiver.gradle.SamWithReceiverGradleSubplugin
@@ -68,6 +69,9 @@ abstract class KotlinDslCompilerPlugins : Plugin<Project> {
                     "-XXLanguage:+DisableCompatibilityModeForNewInference",
                     "-XXLanguage:-TypeEnhancementImprovementsInStrictMode",
                 )))
+                // Set this back to a warning for now, as this plugin is frequently used without toolchains specifying a JVM target, and it causes errors when using newer JDKs.
+                // This can be removed when https://youtrack.jetbrains.com/issue/KT-66919 is fixed.
+                kotlinCompile.jvmTargetValidationMode.set(JvmTargetValidationMode.WARNING)
             }
         }
     }

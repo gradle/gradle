@@ -16,75 +16,11 @@
 
 package org.gradle.plugin.devel.tasks
 
-
-import org.gradle.test.fixtures.file.TestFile
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import spock.lang.Issue
 
-import static org.gradle.api.problems.Severity.ERROR
-import static org.gradle.api.problems.Severity.WARNING
-
-class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationIntegrationSpec {
-
-    @Override
-    def setup() {
-        expectReindentedValidationMessage()
-        buildFile << """
-            tasks.register("run", MyTask)
-        """
-    }
-
-    String iterableSymbol = '.$0'
-
-    @Override
-    String getNameSymbolFor(String name) {
-        ".$name\$0"
-    }
-
-    @Override
-    String getKeySymbolFor(String name) {
-        ".$name"
-    }
-
-    @Override
-    void assertValidationSucceeds() {
-        succeeds "run"
-        result.assertTaskNotSkipped(":run")
-    }
-
-    void assertValidationFailsWith(List<DocumentedProblem> messages) {
-        def expectedDeprecations = messages
-            .findAll { problem -> problem.severity == WARNING }
-        def expectedFailures = messages
-            .findAll { problem -> problem.severity == ERROR }
-
-        expectedDeprecations.forEach { warning ->
-            expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, warning.message, warning.id, warning.section)
-        }
-        if (expectedFailures) {
-            fails "run"
-        } else {
-            succeeds "run"
-        }
-
-        switch (expectedFailures.size()) {
-            case 0:
-                break
-            case 1:
-                failure.assertHasDescription("A problem was found with the configuration of task ':run' (type 'MyTask').")
-                break
-            default:
-                failure.assertHasDescription("Some problems were found with the configuration of task ':run' (type 'MyTask').")
-                break
-        }
-        expectedFailures.forEach { error ->
-            failureDescriptionContains(error.message)
-        }
-    }
-
-    @Override
-    TestFile source(String path) {
-        return file("buildSrc/$path")
-    }
+class RuntimePluginValidationIntegrationTest extends AbstractIntegrationSpec implements RuntimePluginValidationTrait, ValidationMessageChecker {
 
     def "supports recursive types"() {
         groovyTaskSource << """

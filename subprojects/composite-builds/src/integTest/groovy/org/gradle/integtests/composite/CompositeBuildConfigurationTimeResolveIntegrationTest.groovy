@@ -48,7 +48,7 @@ class CompositeBuildConfigurationTimeResolveIntegrationTest extends AbstractComp
                 allprojects {
                     apply plugin: 'java'
                     repositories {
-                        maven { url "${mavenRepo.uri}" }
+                        maven { url = "${mavenRepo.uri}" }
                     }
                 }
 """

@@ -24,15 +24,15 @@ import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collections;
 
 /**
  * A limited use, project dependency constraint mostly aimed at publishing
  * platforms.
  */
-public class DefaultProjectDependencyConstraint implements DependencyConstraintInternal {
+public class DefaultProjectDependencyConstraint extends AbstractDependencyConstraint {
     private final ProjectDependency projectDependency;
     private String reason;
     private boolean force;
@@ -58,6 +58,7 @@ public class DefaultProjectDependencyConstraint implements DependencyConstraintI
 
     @Override
     public void because(@Nullable String reason) {
+        validateMutation();
         this.reason = reason;
     }
 
@@ -68,6 +69,7 @@ public class DefaultProjectDependencyConstraint implements DependencyConstraintI
 
     @Override
     public DependencyConstraint attributes(Action<? super AttributeContainer> configureAction) {
+        validateMutation();
         projectDependency.attributes(configureAction);
         return this;
     }
@@ -112,6 +114,7 @@ public class DefaultProjectDependencyConstraint implements DependencyConstraintI
 
     @Override
     public void setForce(boolean force) {
+        validateMutation();
         this.force = force;
     }
 

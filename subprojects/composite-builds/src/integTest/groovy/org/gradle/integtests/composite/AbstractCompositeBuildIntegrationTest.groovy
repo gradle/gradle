@@ -40,7 +40,7 @@ abstract class AbstractCompositeBuildIntegrationTest extends AbstractIntegration
             buildFile << """
                 apply plugin: 'java'
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
             """
         }
@@ -197,14 +197,18 @@ gradlePlugin {
             it.file("src/main/java/org/test/${className}.java") << """
 package org.test;
 
+import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 
 public class ${className} implements Plugin<Project> {
     public void apply(Project project) {
-        Task task = project.task("taskFrom${baseName}");
-        task.setGroup("Plugin");
+        project.getTasks().register("taskFrom${baseName}", new Action<Task>() {
+            public void execute(Task task) {
+                task.setGroup("Plugin");
+            }
+        });
     }
 }
 """

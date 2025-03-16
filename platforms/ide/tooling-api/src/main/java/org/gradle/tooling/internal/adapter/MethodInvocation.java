@@ -16,7 +16,8 @@
 
 package org.gradle.tooling.internal.adapter;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import java.lang.reflect.Type;
 
 class MethodInvocation {
@@ -41,6 +42,23 @@ class MethodInvocation {
         this.viewType = viewType;
         this.delegate = delegate;
         this.parameters = parameters;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(returnType.getTypeName());
+        sb.append(' ');
+        sb.append(delegate.getClass().getTypeName());
+        sb.append('.');
+        sb.append(name);
+        sb.append('(');
+        for (Class parameter : parameterTypes) {
+            sb.append(parameter.getTypeName()).append(',');
+        }
+        sb.append(')');
+        return sb.toString();
+
     }
 
     public boolean isGetter() {

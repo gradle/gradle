@@ -19,6 +19,7 @@ import org.gradle.api.internal.artifacts.DefaultProjectDependencyFactory
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
 import spock.lang.Issue
@@ -70,14 +71,16 @@ class DefaultProjectDependencyConstraintTest extends Specification {
             getVersion() >> "0.0.1"
         }
         def dependencyFactory = new DefaultProjectDependencyFactory(
-                TestUtil.instantiatorFactory().decorateLenient(),
-                true,
-                new CapabilityNotationParserFactory(false).create(),
-                TestUtil.objectFactory(),
-                AttributeTestUtil.attributesFactory(),
-                TestFiles.taskDependencyFactory()
+            TestUtil.instantiatorFactory().decorateLenient(),
+            true,
+            new CapabilityNotationParserFactory(false).create(),
+            TestUtil.objectFactory(),
+            AttributeTestUtil.attributesFactory(),
+            TestFiles.taskDependencyFactory(),
+            Mock(ProjectStateRegistry)
         )
-        def projectDependency = dependencyFactory.create(project, "mockConfiguration")
+        def projectDependency = dependencyFactory.create(project)
+        projectDependency.setTargetConfiguration("mockConfiguration")
         new DefaultProjectDependencyConstraint(projectDependency)
     }
 }

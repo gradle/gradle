@@ -17,6 +17,7 @@ package org.gradle.security.internal;
 
 import org.bouncycastle.bcpg.ArmoredInputStream;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.openpgp.PGPCompressedData;
 import org.bouncycastle.openpgp.PGPException;
 import org.bouncycastle.openpgp.PGPObjectFactory;
 import org.bouncycastle.openpgp.PGPPublicKey;
@@ -33,12 +34,14 @@ import org.bouncycastle.openpgp.operator.jcajce.JcaKeyFingerprintCalculator;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.jspecify.annotations.Nullable;
 
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.security.Security;
 import java.util.ArrayList;
 import java.util.List;
@@ -54,9 +57,6 @@ public class SecuritySupport {
             Security.setProperty("crypto.policy", "unlimited");
             Security.addProvider(new BouncyCastleProvider());
         }
-    }
-
-    public static void assertInitialized() {
     }
 
     public static boolean verify(File file, PGPSignature signature, PGPPublicKey publicKey) throws PGPException {
@@ -77,22 +77,29 @@ public class SecuritySupport {
         return new BcPGPContentVerifierBuilderProvider();
     }
 
+    @Nullable
     public static PGPSignatureList readSignatures(File file) {
-        try (InputStream stream = new BufferedInputStream(new FileInputStream(file))) {
-            return readSignatures(stream);
-        } catch (IOException e) {
+        try (
+            InputStream stream = new BufferedInputStream(Files.newInputStream(file.toPath()));
+            InputStream decoderStream = PGPUtil.getDecoderStream(stream)
+        ) {
+            return readSignatureList(decoderStream, file.toString());
+        } catch (IOException | PGPException e) {
             throw new UncheckedIOException(e);
         }
     }
 
-    public static PGPSignatureList readSignatures(InputStream source) {
-        try (InputStream stream = source;
-             InputStream decoderStream = PGPUtil.getDecoderStream(stream)) {
-            PGPObjectFactory objectFactory = new PGPObjectFactory(
-                decoderStream, new BcKeyFingerprintCalculator());
-            return (PGPSignatureList) objectFactory.nextObject();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
+    @Nullable
+    private static PGPSignatureList readSignatureList(InputStream decoderStream, String locationHint) throws IOException, PGPException {
+        PGPObjectFactory objectFactory = new PGPObjectFactory(decoderStream, new BcKeyFingerprintCalculator());
+        Object nextObject = objectFactory.nextObject();
+        if (nextObject instanceof PGPSignatureList) {
+            return (PGPSignatureList) nextObject;
+        } else if (nextObject instanceof PGPCompressedData) {
+            return readSignatureList(((PGPCompressedData) nextObject).getDataStream(), locationHint);
+        } else {
+            LOGGER.warn("Expected a signature list in {}, but got {}. Skipping this signature.", locationHint, nextObject == null ? "invalid file" : nextObject.getClass());
+            return null;
         }
     }
 

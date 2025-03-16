@@ -17,6 +17,7 @@ package org.gradle.internal.reflect;
 
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.internal.scan.UsedByScanPlugin;
+import org.jspecify.annotations.Nullable;
 
 /**
  * An object that can create new instances of various types. An {@code Instantiator}, depending on its implementation and configuration, may provide
@@ -43,6 +44,6 @@ public interface Instantiator {
      *
      * @throws ObjectInstantiationException On failure to create the new instance.
      */
-    <T> T newInstance(Class<? extends T> type, Object... parameters) throws ObjectInstantiationException;
+    <T> T newInstance(Class<? extends T> type, @Nullable Object... parameters) throws ObjectInstantiationException;
 
 }

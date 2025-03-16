@@ -17,15 +17,11 @@
 package org.gradle.language.cpp
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.AvailableToolChains.InstalledToolChain
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
 import org.opentest4j.TestAbortedException
 
-@Requires(UnitTestPreconditions.NotMacOsM1)
 class CppToolChainChangesIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
@@ -58,7 +54,6 @@ class CppToolChainChangesIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "recompiles binary when toolchain changes from #toolChainBefore to #toolChainAfter"() {
         buildFile.text = buildScriptForToolChains(toolChainBefore, toolChainAfter)
         def useAlternateToolChain = false

@@ -193,8 +193,8 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
         }
     }
 
-    List<ExtractedModelRule> extract(Class<?> source) {
-        extractor.extract(source).rules
+    <T> List<ExtractedModelRule> extract(Class<T> source) {
+        (extractor.extract(source) as ModelRuleExtractor.DefaultExtractedRuleSource).rules
     }
 
     def "can inspect class with simple model creation rule"() {

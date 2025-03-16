@@ -21,31 +21,33 @@ import spock.lang.Issue
 class GroovyBasePluginIntegrationTest extends AbstractIntegrationSpec {
     def "defaults Groovy class path to inferred Groovy dependency"() {
         file("build.gradle") << """
-apply plugin: "groovy-base"
+            plugins {
+                id("groovy-base")
+            }
 
-sourceSets {
-    custom
-}
+            sourceSets {
+                custom
+            }
 
-${mavenCentralRepository()}
+            ${mavenCentralRepository()}
 
-dependencies {
-    customImplementation "$dependency"
-}
+            dependencies {
+                customImplementation "$dependency"
+            }
 
-task groovydoc(type: Groovydoc) {
-    classpath = sourceSets.custom.runtimeClasspath
-}
+            task groovydoc(type: Groovydoc) {
+                classpath = sourceSets.custom.runtimeClasspath
+            }
 
-task verify {
-    def compileCustomGroovyClasspath = compileCustomGroovy.groovyClasspath
-    def groovydocGroovyClasspath = groovydoc.groovyClasspath
-    doLast {
-        assert compileCustomGroovyClasspath.files.any { it.name == "$jarFile" }
-        assert groovydocGroovyClasspath.files.any { it.name == "$jarFile" }
-    }
-}
-"""
+            task verify {
+                def compileCustomGroovyClasspath = compileCustomGroovy.groovyClasspath
+                def groovydocGroovyClasspath = groovydoc.groovyClasspath
+                doLast {
+                    assert compileCustomGroovyClasspath.files.any { it.name == "$jarFile" }
+                    assert groovydocGroovyClasspath.files.any { it.name == "$jarFile" }
+                }
+            }
+        """
 
         expect:
         succeeds("verify")
@@ -59,34 +61,36 @@ task verify {
 
     def "only resolves source class path feeding into inferred Groovy class path if/when the latter is actually used (but not during autowiring)"() {
         file("build.gradle") << """
-apply plugin: "groovy-base"
+            plugins {
+                id("groovy-base")
+            }
 
-sourceSets {
-    custom
-}
+            sourceSets {
+                custom
+            }
 
-${mavenCentralRepository()}
+            ${mavenCentralRepository()}
 
-dependencies {
-    customImplementation "org.codehaus.groovy:groovy-all:2.4.10"
-}
+            dependencies {
+                customImplementation "org.codehaus.groovy:groovy-all:2.4.10"
+            }
 
-task groovydoc(type: Groovydoc) {
-    classpath = sourceSets.custom.runtimeClasspath
-}
+            task groovydoc(type: Groovydoc) {
+                classpath = sourceSets.custom.runtimeClasspath
+            }
 
-task verify {
-    def customCompileClasspathState = provider {
-        configurations.customCompileClasspath.state.toString()
-    }
-    def customRuntimeClasspathState = provider {
-        configurations.customRuntimeClasspath.state.toString()
-    }
-    doLast {
-        assert customCompileClasspathState.get() == "UNRESOLVED"
-        assert customRuntimeClasspathState.get() == "UNRESOLVED"
-    }
-}
+            task verify {
+                def customCompileClasspathState = provider {
+                    configurations.customCompileClasspath.state.toString()
+                }
+                def customRuntimeClasspathState = provider {
+                    configurations.customRuntimeClasspath.state.toString()
+                }
+                doLast {
+                    assert customCompileClasspathState.get() == "UNRESOLVED"
+                    assert customRuntimeClasspathState.get() == "UNRESOLVED"
+                }
+            }
         """
 
         expect:
@@ -96,7 +100,9 @@ task verify {
     def "not specifying a groovy runtime produces decent error message"() {
         given:
         buildFile << """
-            apply plugin: "groovy-base"
+            plugins {
+                id("groovy-base")
+            }
 
             sourceSets {
                 main {}
@@ -125,7 +131,9 @@ task verify {
     def "can override sourceSet language destinationDirectory to override compile task destinationDirectory"() {
         given:
         buildFile << '''
-            apply plugin: 'groovy-base'
+            plugins {
+                id("groovy-base")
+            }
 
             sourceSets {
                 main {
@@ -147,5 +155,39 @@ task verify {
 
         expect:
         succeeds 'assertDirectoriesAreEquals'
+    }
+
+    def "Map-accepting methods are deprecated"() {
+        buildFile << """
+            plugins {
+                id("groovy-base")
+            }
+
+            sourceSets {
+                main
+            }
+
+            tasks.compileGroovy {
+                options.define([:])
+                options.fork([:])
+                options.debug([:])
+                options.forkOptions.define([:])
+                options.debugOptions.define([:])
+                groovyOptions.define([:])
+                groovyOptions.fork([:])
+                groovyOptions.forkOptions.define([:])
+            }
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("The AbstractOptions.define(Map) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_abstract_options")
+        executer.expectDocumentedDeprecationWarning("The CompileOptions.fork(Map) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Set properties directly on the 'forkOptions' property instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_abstract_options")
+        executer.expectDocumentedDeprecationWarning("The CompileOptions.debug(Map) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Set properties directly on the 'debugOptions' property instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_abstract_options")
+        executer.expectDocumentedDeprecationWarning("The AbstractOptions.define(Map) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_abstract_options")
+        executer.expectDocumentedDeprecationWarning("The AbstractOptions.define(Map) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_abstract_options")
+        executer.expectDocumentedDeprecationWarning("The AbstractOptions.define(Map) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_abstract_options")
+        executer.expectDocumentedDeprecationWarning("The GroovyCompileOptions.fork(Map) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Set properties directly on the 'forkOptions' property instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_abstract_options")
+        executer.expectDocumentedDeprecationWarning("The AbstractOptions.define(Map) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_abstract_options")
+        succeeds("compileGroovy")
     }
 }

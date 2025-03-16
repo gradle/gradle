@@ -62,7 +62,7 @@ public class AnnotationUtils {
         return elements.getElementValuesWithDefaults(annotation).entrySet().stream().filter(it -> it.getKey().getSimpleName().toString().equals(key)).map(Map.Entry::getValue).findFirst();
     }
 
-    private static boolean isAnnotationOfType(AnnotationMirror annotation, Class<? extends Annotation> type) {
+    public static boolean isAnnotationOfType(AnnotationMirror annotation, Class<? extends Annotation> type) {
         return annotation.getAnnotationType().toString().equals(type.getCanonicalName());
     }
 }

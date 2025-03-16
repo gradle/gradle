@@ -94,7 +94,7 @@ System.err.println 'this is stderr'
         file('build.gradle') << 'broken'
 
         when:
-        withConnection {
+        fails {
             it.newBuild().forTasks('jar').run()
         }
 
@@ -105,7 +105,6 @@ System.err.println 'this is stderr'
 
         and:
         failure.assertHasDescription('A problem occurred evaluating root project')
-        assertHasBuildFailedLogging()
     }
 
     def "can build the set of tasks for an Eclipse project"() {

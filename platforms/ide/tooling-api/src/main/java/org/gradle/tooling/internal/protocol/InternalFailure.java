@@ -15,6 +15,8 @@
  */
 package org.gradle.tooling.internal.protocol;
 
+import org.gradle.api.Incubating;
+
 import java.util.List;
 
 /**
@@ -44,5 +46,14 @@ public interface InternalFailure {
      * @return the cause of the failure, can be null
      */
     List<? extends InternalFailure> getCauses();
+
+    /**
+     * The problems that occurred during the operation, if any.
+     *
+     * @return the problems that occurred during the operation, can be null
+     * @since 8.12
+     */
+    @Incubating
+    List<InternalBasicProblemDetailsVersion3> getProblems();
 
 }

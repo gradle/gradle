@@ -16,9 +16,10 @@
 
 package org.gradle.internal.properties.annotations;
 
+import org.gradle.internal.reflect.annotations.TypeAnnotationMetadata;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Set;
 
 public interface TypeMetadata {
@@ -29,9 +30,18 @@ public interface TypeMetadata {
      */
     Set<PropertyMetadata> getPropertiesMetadata();
 
+    /**
+     * Returns the set of relevant annotated methods, that is, those methods annotated with a relevant annotation.
+     */
+    Set<FunctionMetadata> getFunctionMetadata();
+
     boolean hasAnnotatedProperties();
 
     PropertyAnnotationHandler getAnnotationHandlerFor(PropertyMetadata propertyMetadata);
+
+    FunctionAnnotationHandler getAnnotationHandlerFor(FunctionMetadata functionMetadata);
+
+    TypeAnnotationMetadata getTypeAnnotationMetadata();
 
     /**
      * Returns the type this {@link TypeMetadata} belongs to.

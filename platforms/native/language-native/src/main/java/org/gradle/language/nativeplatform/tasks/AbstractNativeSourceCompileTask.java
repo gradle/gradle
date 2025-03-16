@@ -32,8 +32,8 @@ import org.gradle.nativeplatform.toolchain.internal.PCHUtils;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.PreCompiledHeader;
 import org.gradle.work.DisableCachingByDefault;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 
 /**

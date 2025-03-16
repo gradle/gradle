@@ -48,7 +48,7 @@ class IncrementalBuildOutputOriginIntegrationTest extends AbstractIntegrationSpe
 
     def "exposes origin build id when reusing outputs"() {
         given:
-        buildScript """
+        buildFile """
             def write = tasks.create("write", WriteProperties) {
                 destinationFile = file("out.properties")
                 properties = [v: 1]
@@ -106,7 +106,7 @@ class IncrementalBuildOutputOriginIntegrationTest extends AbstractIntegrationSpe
 
     def "tracks different tasks"() {
         given:
-        buildScript """
+        buildFile """
             def w1 = tasks.create("w1", WriteProperties) {
                 destinationFile = file("w1.properties")
                 properties = [v: 1]
@@ -195,7 +195,7 @@ class IncrementalBuildOutputOriginIntegrationTest extends AbstractIntegrationSpe
             includeBuild "b"
         """
 
-        buildScript """
+        buildFile """
             tasks.create("w").dependsOn gradle.includedBuild("a").task(":w"), gradle.includedBuild("b").task(":w")
         """
 

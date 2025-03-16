@@ -1116,4 +1116,32 @@ class PomReaderTest extends AbstractPomReaderTest {
         then:
         pomReader.hasGradleMetadataMarker()
     }
+
+    @Issue("gradle/gradle#26110")
+    def 'can parse optional with whitespace'() {
+        when:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group</groupId>
+    <artifactId>artifact</artifactId>
+    <version>version</version>
+
+    <dependencies>
+        <dependency>
+            <groupId>group-two</groupId>
+            <artifactId>artifact-two</artifactId>
+            <version>version-two</version>
+            <optional>  true\t</optional>
+        </dependency>
+    </dependencies>
+</project>
+"""
+        pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
+        MavenDependencyKey keyGroupTwo = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null)
+        moduleIdentifierFactory.module('*', '*') >> DefaultModuleIdentifier.newId('*', '*')
+
+        then:
+        pomReader.dependencies[keyGroupTwo].optional
+    }
 }

@@ -86,12 +86,12 @@ class BuildOperationExecutorIntegrationTest extends AbstractIntegrationSpec {
         when:
         settingsFile << ""
         buildFile << """
-            import org.gradle.internal.operations.BuildOperationExecutor
+            import org.gradle.internal.operations.BuildOperationRunner
 
             task checkOpId() {
-                def buildOperationExecutor = gradle.services.get(BuildOperationExecutor)
+                def buildOperationRunner = gradle.services.get(BuildOperationRunner)
                 doLast() {
-                    file(resultFile) << buildOperationExecutor.currentOperation.id
+                    file(resultFile) << buildOperationRunner.currentOperation.id
                 }
             }
 
@@ -109,5 +109,25 @@ class BuildOperationExecutorIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         file("build1result.txt").text != file("build2result.txt").text
+    }
+
+    // This was added to keep KMP compatible with changes in Gradle 8.8
+    def "can get current build operation via BuildOperationExecutor.getCurrentBuildOperation()" () {
+        buildFile << """
+            import org.gradle.internal.operations.*
+
+            task currentBuildOperation {
+                doLast {
+                    println "Current build operation: " + services.get(BuildOperationExecutor).currentOperation
+                }
+            }
+        """
+
+        when:
+        executer.expectDeprecationWarning("Internal API BuildOperationExecutor.getCurrentOperation() has been deprecated. This is scheduled to be removed in Gradle 9.0.")
+        succeeds("currentBuildOperation")
+
+        then:
+        outputContains("Current build operation: Execute doLast {} action for :currentBuildOperation")
     }
 }

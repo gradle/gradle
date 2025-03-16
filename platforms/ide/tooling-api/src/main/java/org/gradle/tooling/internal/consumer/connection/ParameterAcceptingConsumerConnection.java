@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
-import org.gradle.api.Transformer;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
@@ -33,7 +32,7 @@ public class ParameterAcceptingConsumerConnection extends TestExecutionConsumerC
     public ParameterAcceptingConsumerConnection(ConnectionVersion4 delegate, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {
         super(delegate, modelMapping, adapter);
         InternalParameterAcceptingConnection connection = (InternalParameterAcceptingConnection) delegate;
-        Transformer<RuntimeException, RuntimeException> exceptionTransformer = CancellationExceptionTransformer.transformerFor(getVersionDetails());
+        CancellationExceptionTransformer exceptionTransformer = CancellationExceptionTransformer.transformerFor(getVersionDetails());
         actionRunner = new ParameterizedActionRunner(connection, exceptionTransformer, getVersionDetails());
     }
 

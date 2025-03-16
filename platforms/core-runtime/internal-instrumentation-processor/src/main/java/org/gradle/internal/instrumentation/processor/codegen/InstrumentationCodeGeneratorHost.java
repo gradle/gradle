@@ -25,6 +25,7 @@ import org.gradle.internal.instrumentation.processor.codegen.InstrumentationCode
 import org.gradle.internal.instrumentation.processor.codegen.InstrumentationCodeGenerator.GenerationResult.CodeFailures;
 import org.gradle.internal.instrumentation.processor.codegen.InstrumentationResourceGenerator.GenerationResult.CanGenerateResource;
 import org.gradle.internal.instrumentation.processor.codegen.InstrumentationResourceGenerator.GenerationResult.ResourceFailures;
+import org.gradle.internal.instrumentation.util.NameUtil;
 
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.Messager;
@@ -66,7 +67,7 @@ public class InstrumentationCodeGeneratorHost {
         InstrumentationCodeGenerator.GenerationResult result = codeGenerator.generateCodeForRequestedInterceptors(interceptionRequests);
         if (result instanceof CanGenerateClasses) {
             for (String canonicalClassName : ((CanGenerateClasses) result).getClassNames()) {
-                ClassName className = ClassName.bestGuess(canonicalClassName);
+                ClassName className = NameUtil.getClassName(canonicalClassName);
                 TypeSpec.Builder builder = TypeSpec.classBuilder(className);
                 CanGenerateClasses generateType = (CanGenerateClasses) result;
                 getOriginatingElements(generateType.getCoveredRequests()).forEach(builder::addOriginatingElement);

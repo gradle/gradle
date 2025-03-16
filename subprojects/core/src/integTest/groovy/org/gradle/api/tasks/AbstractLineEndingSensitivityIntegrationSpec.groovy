@@ -17,17 +17,23 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.internal.fingerprint.LineEndingSensitivity
 import org.gradle.work.NormalizeLineEndings
 
 import java.lang.annotation.Annotation
-
 
 abstract class AbstractLineEndingSensitivityIntegrationSpec extends AbstractIntegrationSpec {
     private static final byte[] BINARY_CONTENT_WITH_LF = [0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46, 0x00, 0xff, 0xda, 0x0a] as byte[]
     private static final byte[] BINARY_CONTENT_WITH_CRLF = [0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46, 0x00, 0xff, 0xda, 0x0d, 0x0a] as byte[]
     public static final String TRANSFORM_EXECUTED = 'Transform producer.zip (project :producer) with AugmentTransform'
     public static final String TEXT_WITH_LINE_ENDINGS = "\nhere's a line\nhere's another line\n\n"
+
+    def setup() {
+        executer.beforeExecute {
+            requireOwnGradleUserHomeDir("Some non-incremental transforms would otherwise reuse outputs from previous builds on the same machine")
+        }
+    }
 
     abstract String getStatusForReusedOutput()
 
@@ -275,6 +281,7 @@ abstract class AbstractLineEndingSensitivityIntegrationSpec extends AbstractInte
         api << Api.values()
     }
 
+    @ToBeFixedForIsolatedProjects(because = "allprojects, extensive cross-project access")
     def "artifact transforms are sensitive to line endings by default"() {
         createParameterizedTransformWithLineEndingNormalization(LineEndingSensitivity.DEFAULT)
         file('producer/foo/bar.txt') << toUnix(TEXT_WITH_LINE_ENDINGS)
@@ -310,6 +317,7 @@ abstract class AbstractLineEndingSensitivityIntegrationSpec extends AbstractInte
         assertTransformExecuted()
     }
 
+    @ToBeFixedForIsolatedProjects(because = "allprojects, extensive cross-project access")
     def "artifact transforms can ignore line endings when specified"() {
         createParameterizedTransformWithLineEndingNormalization(LineEndingSensitivity.NORMALIZE_LINE_ENDINGS)
         file('producer/foo/bar.txt') << toUnix(TEXT_WITH_LINE_ENDINGS)

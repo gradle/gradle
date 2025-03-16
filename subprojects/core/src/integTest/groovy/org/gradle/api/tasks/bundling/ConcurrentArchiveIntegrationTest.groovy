@@ -18,6 +18,8 @@ package org.gradle.api.tasks.bundling
 
 import org.apache.commons.io.FileUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.precondition.Requires
@@ -25,12 +27,15 @@ import org.gradle.test.preconditions.IntegTestPreconditions
 import org.junit.Rule
 import spock.lang.Issue
 
+import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
+
 class ConcurrentArchiveIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
 
     @Issue("https://github.com/gradle/gradle/issues/22685")
+    @ToBeFixedForIsolatedProjects(because = "Access to root project from sub projects")
     def "can visit and edit zip archive differently from two different projects in a multiproject build"() {
         given: "an archive in the root of a multiproject build"
         createZip('test.zip') {
@@ -89,6 +94,7 @@ class ConcurrentArchiveIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/22685")
+    @ToBeFixedForIsolatedProjects(because = "Access to root project from sub projects")
     def "can visit and edit tar archive differently from two different projects in a multiproject build"() {
         given: "an archive in the root of a multiproject build"
         createTar('test.tar') {
@@ -148,6 +154,7 @@ class ConcurrentArchiveIntegrationTest extends AbstractIntegrationSpec {
 
 
     @Issue("https://github.com/gradle/gradle/issues/22685")
+    @ToBeFixedForIsolatedProjects(because = "Access to root project from sub projects")
     def "can visit and edit zip archive differently from two different projects with the same name in different directories in a multiproject build"() {
         given: "an archive in the root of a multiproject build"
         createZip('test.zip') {
@@ -591,6 +598,7 @@ class ConcurrentArchiveIntegrationTest extends AbstractIntegrationSpec {
         result.assertTasksExecutedAndNotSkipped(':update1', ':update2', ':verify1', ':verify2')
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "when two identical archives have the same hashes and same decompression cache entry is reused"() {
         given: "2 archive files"
         createTar('test1.tar') {

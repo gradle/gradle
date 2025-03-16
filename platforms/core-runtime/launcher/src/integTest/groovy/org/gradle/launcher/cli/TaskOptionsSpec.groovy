@@ -43,7 +43,7 @@ class TaskOptionsSpec extends AbstractIntegrationSpec {
 
     def "will prioritize built-in option over a task option with a conflicting name"() {
         when:
-        buildScript """
+        buildFile """
             ${defineTaskWithProfileOption()}
 
             tasks.register('mytask', MyTask.class)
@@ -57,7 +57,7 @@ class TaskOptionsSpec extends AbstractIntegrationSpec {
 
     def "can use -- to specify a task option with same name as a built-in option"() {
         when:
-        buildScript """
+        buildFile """
             ${defineTaskWithProfileOption()}
 
             tasks.register('mytask', MyTask.class)
@@ -71,7 +71,7 @@ class TaskOptionsSpec extends AbstractIntegrationSpec {
 
     def "task options apply to most recent task"() {
         when:
-        buildScript """
+        buildFile """
             ${defineTaskWithProfileOption()}
 
             tasks.register('mytaskA', MyTask.class)
@@ -86,7 +86,7 @@ class TaskOptionsSpec extends AbstractIntegrationSpec {
 
     def "task options apply to most recent task -- first task only"() {
         when:
-        buildScript """
+        buildFile """
             ${defineTaskWithProfileOption()}
 
             tasks.register('mytaskA', MyTask.class)
@@ -100,7 +100,7 @@ class TaskOptionsSpec extends AbstractIntegrationSpec {
 
     def "task options apply to most recent task -- second task only"() {
         when:
-        buildScript """
+        buildFile """
             ${defineTaskWithProfileOption()}
 
             tasks.register('mytaskA', MyTask.class)
@@ -114,7 +114,7 @@ class TaskOptionsSpec extends AbstractIntegrationSpec {
 
     def "runs built-in and task options when both are supplied"() {
         when:
-        buildScript """
+        buildFile """
             ${defineTaskWithProfileOption()}
 
             tasks.register('mytask', MyTask.class)
@@ -150,7 +150,7 @@ class TaskOptionsSpec extends AbstractIntegrationSpec {
                 }
             }
         """
-        buildScript """
+        buildFile """
             import MyTask
             tasks.register('mytask', MyTask.class)
         """
@@ -172,7 +172,7 @@ class TaskOptionsSpec extends AbstractIntegrationSpec {
 
             tasks.register('mytask', MyTask.class)
         """
-        buildScript """
+        buildFile """
             // no content needed
         """
 

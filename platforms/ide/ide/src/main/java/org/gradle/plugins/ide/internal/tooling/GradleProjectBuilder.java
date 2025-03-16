@@ -18,7 +18,6 @@ package org.gradle.plugins.ide.internal.tooling;
 
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleProject;
@@ -102,9 +101,4 @@ public class GradleProjectBuilder implements GradleProjectBuilderInternal {
         model.setProject(owner);
         return model;
     }
-
-    private static String getBuildTreePath(Task task) {
-        return ((TaskInternal) task).getIdentityPath().getPath();
-    }
-
 }

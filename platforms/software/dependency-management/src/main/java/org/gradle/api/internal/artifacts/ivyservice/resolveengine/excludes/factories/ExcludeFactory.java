@@ -55,4 +55,44 @@ public interface ExcludeFactory {
     GroupSetExclude groupSet(Set<String> groups);
 
     ModuleSetExclude moduleSet(Set<String> modules);
+
+    default ExcludeSpec fromUnion(Set<ExcludeSpec> remainder) {
+        if (remainder.isEmpty()) {
+            // It's an intersection, and this method is always called on the remainder
+            // of a reduction operation. If the remainder is empty then it means that
+            // the intersection is empty
+            return nothing();
+        }
+        return remainder.size() == 1 ? remainder.iterator().next() : anyOf(remainder);
+    }
+
+    default ExcludeSpec fromModuleIds(Set<ModuleIdentifier> common) {
+        if (common.isEmpty()) {
+            return nothing();
+        }
+        if (common.size() == 1) {
+            return moduleId(common.iterator().next());
+        }
+        return moduleIdSet(common);
+    }
+
+    default ExcludeSpec fromModules(Set<ModuleIdentifier> moduleIds) {
+        if (moduleIds.isEmpty()) {
+            return nothing();
+        }
+        if (moduleIds.size() == 1) {
+            return moduleId(moduleIds.iterator().next());
+        }
+        return moduleIdSet(moduleIds);
+    }
+
+    default ExcludeSpec fromGroups(Set<String> common) {
+        if (common.isEmpty()) {
+            return nothing();
+        }
+        if (common.size() == 1) {
+            return group(common.iterator().next());
+        }
+        return groupSet(common);
+    }
 }

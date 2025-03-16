@@ -26,6 +26,7 @@ import org.gradle.internal.actor.Actor;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
+import org.jspecify.annotations.NonNull;
 import org.junit.platform.engine.DiscoverySelector;
 import org.junit.platform.engine.FilterResult;
 import org.junit.platform.engine.TestDescriptor;
@@ -44,7 +45,6 @@ import org.junit.platform.launcher.TestPlan;
 import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
 import org.junit.platform.launcher.core.LauncherFactory;
 
-import javax.annotation.Nonnull;
 import javax.annotation.WillCloseWhenClosed;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -60,14 +60,19 @@ import static org.junit.platform.launcher.TagFilter.excludeTags;
 import static org.junit.platform.launcher.TagFilter.includeTags;
 
 public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProcessor {
-    JUnitPlatformSpec spec;
+    private final JUnitPlatformSpec spec;
+    private final IdGenerator<?> idGenerator;
+    private final Clock clock;
+
     private CollectAllTestClassesExecutor testClassExecutor;
     private BackwardsCompatibleLauncherSession launcherSession;
     private ClassLoader junitClassLoader;
 
     public JUnitPlatformTestClassProcessor(JUnitPlatformSpec spec, IdGenerator<?> idGenerator, ActorFactory actorFactory, Clock clock) {
-        super(idGenerator, actorFactory, clock);
+        super(actorFactory);
         this.spec = spec;
+        this.idGenerator = idGenerator;
+        this.clock = clock;
     }
 
     @Override
@@ -100,7 +105,7 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
         }
 
         @Override
-        public void execute(@Nonnull String testClassName) {
+        public void execute(@NonNull String testClassName) {
             Class<?> klass = loadClass(testClassName);
             if (isInnerClass(klass) || (supportsVintageTests() && isNestedClassInsideEnclosedRunner(klass))) {
                 return;

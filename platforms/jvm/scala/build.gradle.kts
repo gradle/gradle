@@ -4,64 +4,87 @@ plugins {
 
 description = "Plugins for building Scala code with Gradle."
 
-errorprone {
-    disabledChecks.addAll(
-        "UnusedMethod", // 2 occurrences
-    )
-}
-
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":logging"))
-    implementation(project(":worker-processes"))
-    implementation(project(":persistent-cache"))
-    implementation(project(":files"))
-    implementation(project(":file-collections"))
-    implementation(project(":file-temp"))
-    implementation(project(":core-api"))
-    implementation(project(":model-core"))
-    implementation(project(":core"))
-    implementation(project(":workers"))
-    implementation(project(":platform-base"))
-    implementation(project(":platform-jvm"))
-    implementation(project(":language-jvm"))
-    implementation(project(":language-java"))
-    implementation(project(":plugins"))
-    implementation(project(":plugins-java"))
-    implementation(project(":plugins-java-base"))
-    implementation(project(":reporting"))
-    implementation(project(":dependency-management"))
-    implementation(project(":process-services"))
-    implementation(project(":toolchains-jvm"))
+    api(projects.baseServices)
+    api(projects.buildProcessServices)
+    api(projects.classloaders)
+    api(projects.core)
+    api(projects.coreApi)
+    api(projects.daemonServerWorker)
+    api(projects.fileOperations)
+    api(projects.files)
+    api(projects.hashing)
+    api(projects.languageJava)
+    api(projects.languageJvm)
+    api(projects.loggingApi)
+    api(projects.modelCore)
+    api(projects.persistentCache)
+    api(projects.platformBase)
+    api(projects.platformJvm)
+    api(projects.stdlibJavaExtensions)
+    api(projects.toolchainsJvm)
+    api(projects.toolchainsJvmShared)
+    api(projects.workers)
 
-    implementation(libs.groovy)
+    api(libs.groovy)
+    api(libs.inject)
+    api(libs.jspecify)
+
+    implementation(projects.time)
+    implementation(projects.serviceLookup)
+    implementation(projects.dependencyManagement)
+    implementation(projects.fileCollections)
+    implementation(projects.jvmServices)
+    implementation(projects.logging)
+    implementation(projects.pluginsJava)
+    implementation(projects.pluginsJavaBase)
+    implementation(projects.reporting)
+    implementation(projects.workerMain)
+
     implementation(libs.guava)
-    implementation(libs.inject)
 
-    compileOnly("org.scala-sbt:zinc_2.13:1.9.3") {
+    compileOnly(libs.zinc) {
         // Because not needed and was vulnerable
         exclude(module="log4j-core")
         exclude(module="log4j-api")
     }
 
-    testImplementation(project(":base-services-groovy"))
-    testImplementation(project(":files"))
-    testImplementation(project(":resources"))
+    testImplementation(projects.baseServicesGroovy)
+    testImplementation(projects.files)
+    testImplementation(projects.resources)
     testImplementation(libs.slf4jApi)
     testImplementation(libs.commonsIo)
-    testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":plugins-java")))
-    testImplementation(testFixtures(project(":language-jvm")))
-    testImplementation(testFixtures(project(":language-java")))
+    testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.pluginsJava))
+    testImplementation(testFixtures(projects.languageJvm))
+    testImplementation(testFixtures(projects.languageJava))
 
-    integTestImplementation(project(":jvm-services"))
+    integTestImplementation(projects.jvmServices)
 
-    testFixturesImplementation(testFixtures(project(":language-jvm")))
+    testFixturesImplementation(testFixtures(projects.languageJvm))
 
-    testRuntimeOnly(project(":distributions-core")) {
+    testRuntimeOnly(projects.distributionsCore) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-jvm"))
+    integTestDistributionRuntimeOnly(projects.distributionsJvm)
+}
+
+dependencyAnalysis {
+    issues {
+        onUsedTransitiveDependencies {
+            // These are compileOnly transitive dependencies that are needed by the Scala compiler
+            exclude("org.scala-sbt:compiler-interface")
+            exclude("org.scala-sbt:util-interface")
+            exclude("org.scala-sbt:zinc-classpath_2.13")
+            exclude("org.scala-lang:scala-library")
+            exclude("org.scala-sbt:io_2.13")
+            exclude("org.scala-sbt:util-logging_2.13")
+            exclude("org.scala-sbt:util-relation_2.13")
+            exclude("org.scala-sbt:zinc-compile-core_2.13")
+            exclude("org.scala-sbt:zinc-core_2.13")
+            exclude("org.scala-sbt:zinc-persist_2.13")
+        }
+    }
 }
 
 packageCycles {
@@ -72,8 +95,6 @@ packageCycles {
 }
 
 integTest.usesJavadocCodeSnippets = true
-
-// Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
-tasks.configCacheIntegTest {
-    systemProperties["org.gradle.configuration-cache.internal.test-disable-load-after-store"] = "true"
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

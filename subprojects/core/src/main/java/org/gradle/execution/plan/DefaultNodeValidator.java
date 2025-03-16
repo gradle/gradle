@@ -18,8 +18,9 @@ package org.gradle.execution.plan;
 
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.problems.internal.ProblemReport;
 import org.gradle.api.problems.Severity;
+import org.gradle.api.problems.internal.InternalProblem;
+import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.WorkValidationException;
@@ -39,10 +40,17 @@ import static org.gradle.internal.reflect.validation.TypeValidationProblemRender
  * the build by throwing a {@link WorkValidationException} if any errors are found.
  */
 public class DefaultNodeValidator implements NodeValidator {
+
+    private final InternalProblems problemsService;
+
+    public DefaultNodeValidator(InternalProblems problemsService) {
+        this.problemsService = problemsService;
+    }
+
     @Override
     public boolean hasValidationProblems(LocalTaskNode node) {
         WorkValidationContext validationContext = validateNode(node);
-        List<? extends ProblemReport> problems = validationContext.getProblems();
+        List<? extends InternalProblem> problems = validationContext.getProblems();
         logWarnings(problems);
         reportErrors(problems, node.getTask(), validationContext);
         return !problems.isEmpty();
@@ -57,7 +65,7 @@ public class DefaultNodeValidator implements NodeValidator {
         return validationContext;
     }
 
-    private void logWarnings(List<? extends ProblemReport> problems) {
+    private void logWarnings(List<? extends InternalProblem> problems) {
         problems.stream()
             .filter(DefaultNodeValidator::isWarning)
             .forEach(problem -> {
@@ -72,7 +80,11 @@ public class DefaultNodeValidator implements NodeValidator {
             });
     }
 
-    private void reportErrors(List<? extends ProblemReport> problems, TaskInternal task, WorkValidationContext validationContext) {
+    private void reportErrors(List<? extends InternalProblem> problems, TaskInternal task, WorkValidationContext validationContext) {
+        for (InternalProblem problem : problems) {
+            problemsService.getInternalReporter().report(problem);
+        }
+
         Set<String> uniqueErrors = getUniqueErrors(problems);
         if (!uniqueErrors.isEmpty()) {
             throw WorkValidationException.forProblems(uniqueErrors)
@@ -81,14 +93,14 @@ public class DefaultNodeValidator implements NodeValidator {
         }
     }
 
-    private static Set<String> getUniqueErrors(List<? extends ProblemReport> problems) {
+    private static Set<String> getUniqueErrors(List<? extends InternalProblem> problems) {
         return problems.stream()
             .filter(problem -> !isWarning(problem))
             .map(TypeValidationProblemRenderer::renderMinimalInformationAbout)
             .collect(toImmutableSet());
     }
 
-    private static boolean isWarning(ProblemReport problem) {
+    private static boolean isWarning(InternalProblem problem) {
         return problem.getDefinition().getSeverity().equals(Severity.WARNING);
     }
 }

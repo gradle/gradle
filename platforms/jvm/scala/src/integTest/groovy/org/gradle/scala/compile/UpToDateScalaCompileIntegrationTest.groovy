@@ -19,6 +19,7 @@ package org.gradle.scala.compile
 import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.jvm.JavaToolchainBuildOperationsFixture
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.test.precondition.Requires
@@ -34,7 +35,7 @@ class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec implem
     }
 
     def "compile is out of date when changing the #changedVersion version"() {
-        buildScript(scalaProjectBuildScript(defaultZincVersion, defaultScalaVersion))
+        buildFile(scalaProjectBuildScript(defaultZincVersion, defaultScalaVersion))
 
         when:
         run 'compileScala'
@@ -49,7 +50,7 @@ class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec implem
         skipped ':compileScala'
 
         when:
-        buildScript(scalaProjectBuildScript(newZincVersion, newScalaVersion))
+        buildFile(scalaProjectBuildScript(newZincVersion, newScalaVersion))
         run 'compileScala'
 
         then:
@@ -72,22 +73,22 @@ class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec implem
         def jdk8 = AvailableJavaHomes.getJdk(VERSION_1_8)
         def jdk11 = AvailableJavaHomes.getJdk(VERSION_11)
 
-        buildScript(scalaProjectBuildScript(ScalaBasePlugin.DEFAULT_ZINC_VERSION, '2.12.6'))
+        buildFile(scalaProjectBuildScript(ScalaBasePlugin.DEFAULT_ZINC_VERSION, '2.12.6'))
         when:
-        executer.withJavaHome(jdk8.javaHome)
+        executer.withJvm(jdk8)
         run 'compileScala'
 
         then:
         executedAndNotSkipped(':compileScala')
 
         when:
-        executer.withJavaHome(jdk8.javaHome)
+        executer.withJvm(jdk8)
         run 'compileScala'
         then:
         skipped ':compileScala'
 
         when:
-        executer.withJavaHome(jdk11.javaHome)
+        executer.withJvm(jdk11)
         run 'compileScala', '--info'
         then:
         executedAndNotSkipped(':compileScala')
@@ -118,13 +119,13 @@ class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec implem
         def jdk8 = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.getJdk(VERSION_1_8))
         def jdk11 = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.getJdk(VERSION_11))
 
-        buildScript """
+        buildFile """
             apply plugin: 'scala'
 
             ${mavenCentralRepository()}
 
             dependencies {
-                implementation "org.scala-lang:scala-library:2.13.12" // must be above 2.13.1
+                implementation "org.scala-lang:scala-library:${ScalaCoverage.SCALA_2.last()}"
             }
 
             scala {
@@ -174,15 +175,15 @@ class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec implem
     def "compilation emits toolchain usage events"() {
         captureBuildOperations()
 
-        def jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.getDifferentJdk { it.languageVersion.isJava8Compatible() })
+        def jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.getDifferentJdk { it.languageVersion.majorVersion.toInteger() in 8..17 })
 
-        buildScript """
+        buildFile """
             apply plugin: 'scala'
 
             ${mavenCentralRepository()}
 
             dependencies {
-                implementation "org.scala-lang:scala-library:2.13.8" // must be above 2.13.1
+                implementation "org.scala-lang:scala-library:${ScalaCoverage.SCALA_2.last()}"
             }
 
             scala {

@@ -31,7 +31,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 
 import static org.gradle.internal.FileUtils.hasExtension;
 
@@ -137,6 +139,8 @@ public class DefaultClassSetAnalyzer implements ClassSetAnalyzer {
             InputStream inputStream = fileDetails.open();
             try {
                 return hasher.hash(inputStream);
+            } catch (IOException e) {
+                throw new UncheckedIOException("Failed to hash " + fileDetails, e);
             } finally {
                 IoActions.closeQuietly(inputStream);
             }

@@ -29,6 +29,10 @@ sealed interface ElementNotResolvedReason : ResolutionFailureReason
 sealed interface ValueNotResolvedReason : ResolutionFailureReason
 
 
+sealed interface NamedReferenceNotResolvedReason : ValueNotResolvedReason
+
+data object NonEnumValueNamedReference : NamedReferenceNotResolvedReason
+
 sealed interface ValueFactoryNotResolvedReason : ValueNotResolvedReason
 
 
@@ -47,7 +51,10 @@ data object BlockMismatch : ElementNotResolvedReason, ValueFactoryNotResolvedRea
 data object UnresolvedSignature : ElementNotResolvedReason, ValueFactoryNotResolvedReason
 
 
-data object UnresolvedName : PropertyNotAssignedReason, ElementNotResolvedReason, ValueFactoryNotResolvedReason
+data object UnresolvedName : PropertyNotAssignedReason, ElementNotResolvedReason, ValueFactoryNotResolvedReason, NamedReferenceNotResolvedReason
+
+
+data object OpaqueValueInIdentityKey : ElementNotResolvedReason, ValueFactoryNotResolvedReason
 
 
 data object NotAssignable : PropertyNotAssignedReason
@@ -59,4 +66,4 @@ data object AmbiguousName : ElementNotResolvedReason, ValueFactoryNotResolvedRea
 data object IsError : ElementNotResolvedReason, ValueFactoryNotResolvedReason
 
 
-data object UnresolvedBase : PropertyNotAssignedReason, ElementNotResolvedReason, ValueFactoryNotResolvedReason
+data object UnresolvedBase : PropertyNotAssignedReason, ElementNotResolvedReason, ValueFactoryNotResolvedReason, NamedReferenceNotResolvedReason

@@ -23,23 +23,22 @@ import org.gradle.internal.execution.history.OverlappingOutputDetector;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class CaptureIncrementalStateBeforeExecutionStep<C extends PreviousExecutionContext, R extends CachingResult> extends AbstractCaptureStateBeforeExecutionStep<C, R> {
     private final OutputSnapshotter outputSnapshotter;
     private final OverlappingOutputDetector overlappingOutputDetector;
 
     public CaptureIncrementalStateBeforeExecutionStep(
-        BuildOperationExecutor buildOperationExecutor,
+        BuildOperationRunner buildOperationRunner,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         OutputSnapshotter outputSnapshotter,
         OverlappingOutputDetector overlappingOutputDetector,
         Step<? super BeforeExecutionContext, ? extends R> delegate
     ) {
-        super(buildOperationExecutor, classLoaderHierarchyHasher, delegate);
+        super(buildOperationRunner, classLoaderHierarchyHasher, delegate);
         this.outputSnapshotter = outputSnapshotter;
         this.overlappingOutputDetector = overlappingOutputDetector;
     }

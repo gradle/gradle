@@ -19,8 +19,7 @@ package org.gradle.internal.snapshot.impl;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.state.ManagedFactory;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class IsolatedManagedValue extends AbstractManagedValueSnapshot<Isolatable<?>> implements Isolatable<Object> {
     private final ManagedFactory factory;

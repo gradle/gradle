@@ -103,7 +103,7 @@ public class DefaultNamedDomainObjectSet<T> extends DefaultNamedDomainObjectColl
     }
 
     @Override
-    protected <I extends T> Action<? super I> withMutationDisabled(Action<? super I> action) {
-        return parentMutationGuard.withMutationDisabled(super.withMutationDisabled(action));
+    protected <I extends T> Action<? super I> wrapLazyAction(Action<? super I> action) {
+        return parentMutationGuard.wrapLazyAction(super.wrapLazyAction(action));
     }
 }

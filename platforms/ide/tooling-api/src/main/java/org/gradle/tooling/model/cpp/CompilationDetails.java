@@ -18,8 +18,8 @@ package org.gradle.tooling.model.cpp;
 
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.Task;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 import java.util.Set;

@@ -26,9 +26,9 @@ import org.gradle.api.internal.provider.ValueSupplier;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Cast;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.nio.file.Path;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -45,7 +45,7 @@ import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 
 import static com.google.common.collect.Iterables.toArray;
-import static org.gradle.util.internal.GUtil.uncheckedCall;
+import static org.gradle.internal.UncheckedException.uncheckedCall;
 
 /**
  * A task dependency which can have both mutable and immutable dependency values.
@@ -103,7 +103,7 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
                 ProviderInternal<?> provider = (ProviderInternal<?>) dependency;
                 ValueSupplier.ValueProducer producer = provider.getProducer();
                 if (producer.isKnown()) {
-                    producer.visitProducerTasks(context);
+                    producer.visitDependencies(context);
                 } else {
                     // The provider does not know how to produce the value, so use the value instead
                     queue.addFirst(provider.get());
@@ -203,7 +203,7 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
     }
 
     static class VisitBehavior {
-        @Nonnull
+        @NonNull
         public final Consumer<? super TaskDependencyResolveContext> onVisit;
 
         public VisitBehavior(Consumer<? super TaskDependencyResolveContext> onVisit) {

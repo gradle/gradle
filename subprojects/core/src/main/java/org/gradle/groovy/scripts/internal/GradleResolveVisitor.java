@@ -844,8 +844,7 @@ public class GradleResolveVisitor extends ResolveVisitor {
         if (currentClass.getModule().hasPackageName() && name.indexOf('.') == -1) {
             return false;
         }
-        ClassNodeResolver.LookupResult lr = null;
-        lr = classNodeResolver.resolveName(name, compilationUnit);
+        ClassNodeResolver.LookupResult lr = classNodeResolver.resolveName(name, compilationUnit);
         if (lr != null) {
             if (lr.isSourceUnit()) {
                 SourceUnit su = lr.getSourceUnit();
@@ -1607,7 +1606,7 @@ public class GradleResolveVisitor extends ResolveVisitor {
             if (bounds != null) {
                 boolean nameAdded = false;
                 for (ClassNode upperBound : bounds) {
-                    if (!nameAdded && upperBound != null || !resolve(classNode)) {
+                    if ((!nameAdded && upperBound != null) || !resolve(classNode)) {
                         genericParameterNames.put(name, type);
                         type.setPlaceholder(true);
                         classNode.setRedirect(upperBound);

@@ -16,12 +16,11 @@
 
 package org.gradle.internal.component.model;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
+import org.gradle.api.internal.capabilities.ImmutableCapability;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -52,11 +51,6 @@ public interface ComponentGraphResolveState {
     ComponentIdentifier getId();
 
     /**
-     * Information about the origin of this component.
-     */
-    ModuleSources getSources();
-
-    /**
      * The immutable metadata for this component.
      */
     ComponentGraphResolveMetadata getMetadata();
@@ -65,6 +59,14 @@ public interface ComponentGraphResolveState {
      * Returns the public view of all variants of this component that are available for variant selection, either during graph resolution or artifact resolution.
      */
     List<ResolvedVariantResult> getAllSelectableVariantResults();
+
+    /**
+     * Gets the public view for the given variant.
+     * <p>
+     * Only valid for variants that are owned by this component.
+     * Results are undefined if {@code variant} is not owned by this component.
+     */
+    ResolvedVariantResult getPublicViewFor(VariantGraphResolveState variant, @Nullable ResolvedVariantResult externalVariant);
 
     /**
      * Returns the candidates for variant selection during graph resolution.
@@ -81,21 +83,16 @@ public interface ComponentGraphResolveState {
     boolean isAdHoc();
 
     /**
-     * Returns the configuration with the given name. A component does not necessarily define any configurations.
-     */
-    @Nullable
-    ConfigurationGraphResolveState getConfiguration(String configurationName);
-
-    /**
-     * When this component is a lenient platform, create a copy with the given ids. Otherwise, returns {@code null}.
-     */
-    @Nullable
-    ComponentGraphResolveState maybeAsLenientPlatform(ModuleComponentIdentifier componentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier);
-
-    /**
      * Creates the state that can be used for artifact resolution for this component instance.
      *
      * <p>Note that this may be expensive, and should be used only when required.</p>
      */
     ComponentArtifactResolveState prepareForArtifactResolution();
+
+    /**
+     * Returns the default capability for this component.
+     *
+     * @return default capability for this component.
+     */
+    ImmutableCapability getDefaultCapability();
 }

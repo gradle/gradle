@@ -24,8 +24,8 @@ import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.CompositeDynamicObject;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.DynamicObject;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -33,7 +33,7 @@ import java.util.Map;
 /**
  * A {@link DynamicObject} implementation that provides extensibility.
  *
- * This is the dynamic object implementation that “enhanced” objects expose.
+ * This is the dynamic object implementation that "enhanced" objects expose.
  *
  * @see org.gradle.internal.instantiation.generator.MixInExtensibleDynamicObject
  */
@@ -120,12 +120,6 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
 
     public ExtraPropertiesExtension getDynamicProperties() {
         return convention.getExtraProperties();
-    }
-
-    public void addProperties(Map<String, ?> properties) {
-        for (Map.Entry<String, ?> entry : properties.entrySet()) {
-            getDynamicProperties().set(entry.getKey(), entry.getValue());
-        }
     }
 
     public DynamicObject getParent() {

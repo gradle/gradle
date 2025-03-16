@@ -20,9 +20,16 @@ import org.gradle.api.Action
 import org.gradle.api.provider.Property
 import org.gradle.declarative.dsl.model.annotations.Configuring
 import org.gradle.declarative.dsl.model.annotations.Restricted
+import org.gradle.declarative.dsl.schema.AnalysisSchema
+import org.gradle.declarative.dsl.schema.DataClass
+import org.gradle.internal.declarativedsl.analysis.DefaultFqName
 import org.gradle.internal.declarativedsl.analysis.analyzeEverything
+import org.gradle.internal.declarativedsl.common.gradleDslGeneralSchema
+import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaBuilder
 import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationSchema
-import org.gradle.internal.declarativedsl.project.gradleDslGeneralSchemaComponent
+import org.gradle.internal.declarativedsl.schemaUtils.findType
+import org.gradle.internal.declarativedsl.schemaUtils.findTypeFor
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import kotlin.reflect.KClass
@@ -32,27 +39,45 @@ class GeneralGradleDslSchemaTest {
     @Test
     fun `general dsl schema has types discovered via action functions`() {
         val schema = schemaFrom(TopLevelReceiver::class)
-        assertTrue(schema.analysisSchema.dataClassesByFqName.keys.any { it.simpleName == NestedReceiver::class.simpleName })
+        assertHasNestedReceiverType(schema.analysisSchema)
     }
 
     @Test
     fun `general dsl schema has types discovered via factory functions`() {
         val schema = schemaFrom(UtilsContainer::class)
-        assertTrue(schema.analysisSchema.dataClassesByFqName.keys.any { it.simpleName == NestedReceiver::class.simpleName })
+        assertHasNestedReceiverType(schema.analysisSchema)
+    }
+
+    @Test
+    fun `general dsl schema has types discovered via properties`() {
+        val schema = schemaFrom(TypeDiscoveryTestReceiver::class)
+        assertNotNull(schema.analysisSchema.dataClassTypesByFqName[DefaultFqName.parse(Enum::class.qualifiedName!!)])
+        assertNotNull(schema.analysisSchema.findTypeFor<UtilsContainer>())
     }
 
     @Test
     fun `general dsl schema has properties imported from gradle property api`() {
         val schema = schemaFrom(NestedReceiver::class)
-        assertTrue(schema.analysisSchema.dataClassesByFqName.values.single { it.name.simpleName == NestedReceiver::class.simpleName }.properties.any { it.name == "property" })
+        assertHasNestedReceiverType(schema.analysisSchema)
+        val singleType = schema.analysisSchema.findType { it: DataClass -> it.name.simpleName == NestedReceiver::class.simpleName }!!
+        assertTrue(singleType.properties.any { it.name == "intProperty" })
+        assertTrue(singleType.properties.any { it.name == "enumProperty" })
+    }
+
+    private
+    fun assertHasNestedReceiverType(analysisSchema: AnalysisSchema) {
+        assertTrue(analysisSchema.dataClassTypesByFqName.keys.any { it.simpleName == NestedReceiver::class.simpleName })
+        // It should also include the supertype of the specified type.
+        // Having it in the schema is useful for locating and mutating definitions based on the supertype.
+        assertTrue(analysisSchema.dataClassTypesByFqName.keys.any { it.simpleName == NestedReceiverSupertype::class.simpleName })
     }
 
     private
     fun schemaFrom(topLevelReceiverClass: KClass<*>) =
         buildEvaluationSchema(
             topLevelReceiverClass,
-            gradleDslGeneralSchemaComponent(),
-            analyzeEverything
+            analyzeEverything,
+            schemaComponents = EvaluationSchemaBuilder::gradleDslGeneralSchema,
         )
 
     private
@@ -63,10 +88,17 @@ class GeneralGradleDslSchemaTest {
     }
 
     private
-    abstract class NestedReceiver {
+    interface NestedReceiverSupertype
+
+    private
+    abstract class NestedReceiver : NestedReceiverSupertype {
         @get:Restricted
         @Suppress("unused")
-        abstract val property: Property<Int>
+        abstract val intProperty: Property<Int>
+
+        @get:Restricted
+        @Suppress("unused")
+        abstract val enumProperty: Property<Enum>
     }
 
     private
@@ -74,5 +106,20 @@ class GeneralGradleDslSchemaTest {
         @Restricted
         @Suppress("unused")
         abstract fun nestedReceiver(): NestedReceiver
+    }
+
+    @Suppress("unused")
+    private
+    enum class Enum {
+        A, B, C
+    }
+
+    @Suppress("unused")
+    private interface TypeDiscoveryTestReceiver {
+        @get:Restricted
+        var javaBeanProperty: Enum
+
+        @get:Restricted
+        val propertyApiProperty: Property<UtilsContainer>
     }
 }

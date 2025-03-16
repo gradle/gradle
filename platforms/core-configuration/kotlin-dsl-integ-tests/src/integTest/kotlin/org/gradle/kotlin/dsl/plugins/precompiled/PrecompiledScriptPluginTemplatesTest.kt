@@ -34,6 +34,7 @@ import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.tasks.TaskContainer
+import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Jar
 
 import org.gradle.kotlin.dsl.fixtures.FoldersDslExpression
@@ -72,14 +73,17 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
             "my-project-script.gradle.kts",
             """
 
-            task("my-task")
+            tasks.register("my-task")
 
             """
         )
 
-        val task = mock<Task>()
+        val task = mock<TaskProvider<Task>>()
+        val tasks = mock<TaskContainer> {
+            on { register(any<String>()) } doReturn task
+        }
         val project = mock<Project> {
-            on { task(any()) } doReturn task
+            on { getTasks() } doReturn tasks
         }
 
         assertInstanceOf<PrecompiledProjectScript>(
@@ -89,8 +93,9 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
             )
         )
 
-        inOrder(project, task) {
-            verify(project).task("my-task")
+        inOrder(project, tasks, task) {
+            verify(project).tasks
+            verify(tasks).register("my-task")
             verifyNoMoreInteractions()
         }
     }
@@ -126,7 +131,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
             "my-gradle-script.init.gradle.kts",
             """
 
-            useLogger("my-logger")
+            addListener("my-listener")
 
             """
         )
@@ -140,7 +145,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
             )
         )
 
-        verify(gradle).useLogger("my-logger")
+        verify(gradle).addListener("my-listener")
     }
 
     @Test
@@ -179,6 +184,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
         )
     }
 
+    @Suppress("DEPRECATION")
     @Test
     fun `implicit imports are available to precompiled scripts`() {
 
@@ -661,7 +667,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
         givenPrecompiledKotlinScript(
             fileName,
             """
-            fun <T> applyActionTo(a: T, action: ${Action::class.qualifiedName}<T>) = action(a)
+            fun <T : Any> applyActionTo(a: T, action: ${Action::class.qualifiedName}<T>) = action(a)
             object receiver
             applyActionTo(receiver) {
                 require(this === receiver)

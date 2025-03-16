@@ -17,11 +17,14 @@
 package org.gradle.nativeplatform.toolchain.internal.xcode;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.process.internal.ExecActionFactory;
 
 import javax.inject.Inject;
 import java.util.List;
 
+@ServiceScope(Scope.BuildSession.class)
 public class MacOSSdkPathLocator extends AbstractLocator {
     @Inject
     public MacOSSdkPathLocator(ExecActionFactory execActionFactory) {
@@ -30,6 +33,6 @@ public class MacOSSdkPathLocator extends AbstractLocator {
 
     @Override
     protected List<String> getXcrunFlags() {
-        return ImmutableList.of("--show-sdk-path");
+        return ImmutableList.of("--sdk", "macosx", "--show-sdk-path");
     }
 }

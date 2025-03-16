@@ -18,11 +18,9 @@ package org.gradle.integtests.tooling.r50
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r33.FetchIdeaProject
 
 @TargetGradleVersion(">=5.0")
-@ToolingApiVersion('>=4.4')
 class ProjectStateLockingCrossVersionTest extends ToolingApiSpecification {
     def "does not emit deprecation warnings when idea model builder resolves a configuration"() {
         singleProjectBuildInRootFolder("root") {
@@ -32,11 +30,10 @@ class ProjectStateLockingCrossVersionTest extends ToolingApiSpecification {
         }
 
         when:
-        withConnection {
-            def executer = action(new FetchIdeaProject())
-            executer.withArguments("--warning-mode", "all")
-            collectOutputs(executer)
-            executer.run()
+        withConnection { connection ->
+            connection.action(new FetchIdeaProject())
+                .withArguments("--warning-mode", "all")
+                .run()
         }
 
         then:
@@ -54,11 +51,10 @@ class ProjectStateLockingCrossVersionTest extends ToolingApiSpecification {
         }
 
         when:
-        withConnection {
-            def executer = action(new FetchEclipseProject())
-            executer.withArguments("--warning-mode", "all")
-            collectOutputs(executer)
-            executer.run()
+        withConnection { connection ->
+            connection.action(new FetchEclipseProject())
+                .withArguments("--warning-mode", "all")
+                .run()
         }
 
         then:

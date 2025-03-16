@@ -30,19 +30,33 @@ description = """A problems description API
 gradlebuildJava.usedInWorkers()
 
 dependencies {
-    api(project(":base-annotations"))
-    api(project(":base-services"))
-    api(project(":build-operations"))
+    api(projects.baseServices)
+    api(projects.buildOperations)
+    api(projects.enterpriseOperations)
+    api(projects.serialization)
+    api(projects.snapshotsWorker)
+    api(projects.stdlibJavaExtensions)
 
     api(libs.guava)
     api(libs.inject)
-    api(libs.jsr305)
+    api(libs.jspecify)
+    api(projects.serialization)
 
-    testImplementation(project(":logging"))
-    integTestImplementation(project(":internal-testing"))
-    integTestImplementation(testFixtures(project(":logging")))
-    integTestDistributionRuntimeOnly(project(":distributions-core"))
+    implementation(libs.jsr305)
 
-    testFixturesImplementation(project(":enterprise-operations"))
-    testFixturesImplementation(project(":base-services"))
+    testImplementation(projects.logging)
+    integTestImplementation(projects.internalTesting)
+    integTestImplementation(testFixtures(projects.logging))
+    integTestDistributionRuntimeOnly(projects.distributionsCore)
+
+    testFixturesImplementation(projects.enterpriseOperations)
+    testFixturesImplementation(projects.baseServices)
+    testFixturesImplementation(projects.internalIntegTesting)
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}
+
+packageCycles {
+    excludePatterns.add("org/gradle/api/problems/**") // ProblemId.create() and ProblemGroup.create() return internal types
 }

@@ -17,9 +17,9 @@
 package org.gradle.plugins.ide.internal;
 
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
+import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 
-public class IdeServices extends AbstractPluginServiceRegistry {
+public class IdeServices extends AbstractGradleModuleServices {
     @Override
     public void registerBuildTreeServices(ServiceRegistration registration) {
         registration.add(IdeArtifactStore.class);
@@ -27,6 +27,6 @@ public class IdeServices extends AbstractPluginServiceRegistry {
 
     @Override
     public void registerProjectServices(ServiceRegistration registration) {
-        registration.add(DefaultIdeArtifactRegistry.class);
+        registration.add(IdeArtifactRegistry.class, DefaultIdeArtifactRegistry.class);
     }
 }

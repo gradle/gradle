@@ -37,7 +37,7 @@ public class ReportingBasePluginTest extends AbstractProjectBuilderSpec {
 
         project.configure(project) {
             reporting {
-                baseDir "somewhere"
+                baseDir = "somewhere"
             }
         }
     }

@@ -18,8 +18,8 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskDependency;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Set;
 

@@ -20,43 +20,45 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Named;
-import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.result.ResolvedComponentResultInternal;
+import org.gradle.api.internal.attributes.AbstractAttributeContainer;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeValue;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.Actions;
 import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.function.Supplier;
+
+import static org.gradle.api.internal.artifacts.result.DefaultResolvedComponentResult.eachElement;
 
 class ResolveConfigurationResolutionBuildOperationResult implements ResolveConfigurationDependenciesBuildOperationType.Result, CustomOperationTraceSerialization {
-    private final ResolutionResult resolutionResult;
+    private final Supplier<? extends ResolvedComponentResult> rootSource;
     private final AttributeContainer requestedAttributes;
 
-    static ResolveConfigurationResolutionBuildOperationResult create(ResolutionResult resolutionResult, ImmutableAttributesFactory attributesFactory) {
-        return new ResolveConfigurationResolutionBuildOperationResult(
-                resolutionResult,
-                new LazyDesugaringAttributeContainer(resolutionResult.getRequestedAttributes(), attributesFactory)
-        );
-    }
-
-    private ResolveConfigurationResolutionBuildOperationResult(ResolutionResult resolutionResult, AttributeContainer requestedAttributes) {
-        this.resolutionResult = resolutionResult;
-        this.requestedAttributes = requestedAttributes;
+    public ResolveConfigurationResolutionBuildOperationResult(
+        Supplier<? extends ResolvedComponentResult> rootSource,
+        ImmutableAttributes requestedAttributes,
+        AttributesFactory attributesFactory
+    ) {
+        this.rootSource = rootSource;
+        this.requestedAttributes = new LazyDesugaringAttributeContainer(requestedAttributes, attributesFactory);
     }
 
     @Override
     public ResolvedComponentResult getRootComponent() {
-        return resolutionResult.getRoot();
+        return rootSource.get();
     }
 
     @Override
@@ -68,17 +70,20 @@ class ResolveConfigurationResolutionBuildOperationResult implements ResolveConfi
     public Object getCustomOperationTraceSerializableModel() {
         Map<String, Object> model = new HashMap<>();
         model.put("resolvedDependenciesCount", getRootComponent().getDependencies().size());
+
         final Map<String, Map<String, String>> components = new HashMap<>();
-        resolutionResult.allComponents(component -> components.put(
+        eachElement(rootSource.get(), component -> components.put(
             component.getId().getDisplayName(),
             Collections.singletonMap("repoId", getRepositoryId(component))
-        ));
+        ), Actions.doNothing(), new HashSet<>());
         model.put("components", components);
+
         ImmutableList.Builder<Object> requestedAttributesBuilder = new ImmutableList.Builder<>();
         for (Attribute<?> att : requestedAttributes.keySet()) {
             requestedAttributesBuilder.add(ImmutableMap.of("name", att.getName(), "value", requestedAttributes.getAttribute(att).toString()));
         }
         model.put("requestedAttributes", requestedAttributesBuilder.build());
+
         return model;
     }
 
@@ -89,13 +94,13 @@ class ResolveConfigurationResolutionBuildOperationResult implements ResolveConfi
 
     // This does almost the same thing as passing through DesugaredAttributeContainerSerializer / DesugaringAttributeContainerSerializer.
     // Those make some assumptions about allowed attribute value types that we can't - we serialize everything else to a string instead.
-    private static final class LazyDesugaringAttributeContainer implements ImmutableAttributes {
+    private static final class LazyDesugaringAttributeContainer extends AbstractAttributeContainer implements ImmutableAttributes {
 
         private final AttributeContainer source;
-        private final ImmutableAttributesFactory attributesFactory;
+        private final AttributesFactory attributesFactory;
         private ImmutableAttributes desugared;
 
-        private LazyDesugaringAttributeContainer(@Nullable AttributeContainer source, ImmutableAttributesFactory attributesFactory) {
+        private LazyDesugaringAttributeContainer(@Nullable AttributeContainer source, AttributesFactory attributesFactory) {
             this.source = source;
             this.attributesFactory = attributesFactory;
         }
@@ -120,6 +125,9 @@ class ResolveConfigurationResolutionBuildOperationResult implements ResolveConfi
         @Nullable
         @Override
         public <T> T getAttribute(Attribute<T> key) {
+            if (!isValidAttributeRequest(key)) {
+                return null;
+            }
             return getDesugared().getAttribute(key);
         }
 
@@ -156,6 +164,12 @@ class ResolveConfigurationResolutionBuildOperationResult implements ResolveConfi
         @Override
         public AttributeValue<?> findEntry(String name) {
             return getDesugared().findEntry(name);
+        }
+
+        @Nullable
+        @Override
+        public Attribute<?> findAttribute(String name) {
+            return getDesugared().findAttribute(name);
         }
 
         @Override

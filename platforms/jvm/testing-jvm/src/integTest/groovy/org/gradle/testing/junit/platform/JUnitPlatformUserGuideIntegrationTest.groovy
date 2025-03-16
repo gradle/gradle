@@ -18,8 +18,8 @@ package org.gradle.testing.junit.platform
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 
-import static org.hamcrest.CoreMatchers.containsString
 import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUPITER_VERSION
+import static org.hamcrest.CoreMatchers.containsString
 
 /**
  * These test cases are all from http://junit.org/junit5/docs/current/user-guide
@@ -75,7 +75,7 @@ class DisplayNameDemo2 {
         if (jvmArg) {
             buildFile << """
 test {
-    jvmArgs '${jvmArg}'
+    jvmArgs('${jvmArg}')
 }
 """
         }

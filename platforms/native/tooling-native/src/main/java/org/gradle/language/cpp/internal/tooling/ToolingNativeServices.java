@@ -17,14 +17,14 @@
 package org.gradle.language.cpp.internal.tooling;
 
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
+import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 import org.gradle.tooling.provider.model.internal.BuildScopeToolingModelBuilderRegistryAction;
 
-public class ToolingNativeServices extends AbstractPluginServiceRegistry {
+public class ToolingNativeServices extends AbstractGradleModuleServices {
     @Override
     public void registerBuildServices(ServiceRegistration registration) {
-        registration.add(ToolingModelRegistration.class);
+        registration.add(BuildScopeToolingModelBuilderRegistryAction.class, ToolingModelRegistration.class);
     }
 
     public static class ToolingModelRegistration implements BuildScopeToolingModelBuilderRegistryAction {

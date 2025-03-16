@@ -33,11 +33,11 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
-import org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL
 import org.gradle.internal.classloader.ClassLoaderUtils
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.hash.Hashing
-import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.kotlinDslPackagePath
+import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.KOTLIN_DSL_PACKAGE_PATH
+import org.gradle.model.internal.asm.AsmConstants.ASM_LEVEL
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependencySpec
 import org.objectweb.asm.Type
@@ -88,7 +88,6 @@ abstract class GenerateKotlinExtensionsForGradleApi : DefaultTask() {
                             gradleApiJars,
                             classpathDependencies.toList(),
                             gradleApiMetadata.apiSpec,
-                            gradleApiMetadata.parameterNamesSupplier,
                             sinceRepo::since
                         )
                     }
@@ -104,13 +103,13 @@ class GradleJars(distroJars: Set<File>) {
     val gradleApiJars = distroJars.filter { it.name.startsWith("gradle-") && !it.name.contains("gradle-kotlin-") }
     val apiMetadataJar = gradleApiJars.single { it.name.startsWith("gradle-api-metadata") }
     val classpathDependencies = distroJars - gradleApiJars.toSet()
-    val gradleApiMetadata = gradleApiMetadataFrom(apiMetadataJar, gradleApiJars)
+    val gradleApiMetadata = gradleApiMetadataFrom(apiMetadataJar)
 }
 
 
 private
 fun builtInPluginIdExtFileIn(outputDir: File): File =
-    outputDir.resolve("$kotlinDslPackagePath/BuiltinPluginIdExtensions.kt").apply {
+    outputDir.resolve("$KOTLIN_DSL_PACKAGE_PATH/BuiltinPluginIdExtensions.kt").apply {
         parentFile.mkdirs()
     }
 

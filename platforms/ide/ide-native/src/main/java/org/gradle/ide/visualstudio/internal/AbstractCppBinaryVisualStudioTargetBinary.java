@@ -16,10 +16,8 @@
 
 package org.gradle.ide.visualstudio.internal;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.ProjectLayout;
-import org.gradle.api.tasks.Internal;
 import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppComponent;
 import org.gradle.language.cpp.internal.DefaultCppBinary;
@@ -35,6 +33,7 @@ import org.gradle.nativeplatform.toolchain.internal.msvcpp.metadata.VisualCppMet
 import org.gradle.util.internal.VersionNumber;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -59,7 +58,6 @@ abstract public class AbstractCppBinaryVisualStudioTargetBinary implements Visua
         return LanguageStandard.from(getBinary().getCompileTask().get().getCompilerArgs().get());
     }
 
-    @Internal
     abstract CppBinary getBinary();
 
     @Override
@@ -130,7 +128,7 @@ abstract public class AbstractCppBinaryVisualStudioTargetBinary implements Visua
 
     @Override
     public List<String> getVariantDimensions() {
-        return Lists.newArrayList(getBinary().getName());
+        return Collections.singletonList(getBinary().getName());
     }
 
     @Override
@@ -160,7 +158,7 @@ abstract public class AbstractCppBinaryVisualStudioTargetBinary implements Visua
 
     @Override
     public List<String> getCompilerDefines() {
-        return  new MacroArgsConverter().transform(getBinary().getCompileTask().get().getMacros());
+        return new MacroArgsConverter().transform(getBinary().getCompileTask().get().getMacros());
     }
 
     @Override

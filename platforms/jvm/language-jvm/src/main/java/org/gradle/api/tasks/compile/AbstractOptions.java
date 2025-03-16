@@ -16,19 +16,35 @@
 
 package org.gradle.api.tasks.compile;
 
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.JavaPropertyReflectionUtil;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.util.Map;
 
 /**
  * Base class for compilation-related options.
+ *
+ * @deprecated This class will be removed in Gradle 9.0. All classes that extend this class will no longer extend it.
  */
+@Deprecated
 public abstract class AbstractOptions implements Serializable {
     private static final long serialVersionUID = 0;
 
+    /**
+     * Reflectively sets the properties of this object from the given map.
+     *
+     * @deprecated This method will be removed in Gradle 9.0
+     */
+    @Deprecated
     public void define(@Nullable Map<String, Object> args) {
+
+        DeprecationLogger.deprecateMethod(AbstractOptions.class, "define(Map)")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecated_abstract_options")
+            .nagUser();
+
         if (args == null) {
             return;
         }

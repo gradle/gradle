@@ -59,6 +59,7 @@ class GroovyCompileToolchainIntegrationTest extends MultiVersionIntegrationSpec 
                 }
             """
         } else {
+            executer.expectDocumentedDeprecationWarning("The ForkOptions.setJavaHome(File) method has been deprecated. This is scheduled to be removed in Gradle 9.0. The 'javaHome' property of ForkOptions is deprecated and will be removed in Gradle 9. Use JVM toolchains or the 'executable' property instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_fork_options_java_home")
             buildFile << """
                 compileGroovy {
                     options.fork = true
@@ -197,7 +198,6 @@ class GroovyCompileToolchainIntegrationTest extends MultiVersionIntegrationSpec 
     }
 
     def "can compile source and run tests using Java #javaVersion for Groovy "() {
-        Assume.assumeTrue(GroovyCoverage.supportsJavaVersion("$versionNumber", javaVersion))
         def jdk = AvailableJavaHomes.getJdk(javaVersion)
         Assume.assumeTrue(jdk != null)
 
@@ -235,7 +235,7 @@ class GroovyCompileToolchainIntegrationTest extends MultiVersionIntegrationSpec 
         JavaVersion.forClass(classFile("groovy", "test", "GroovySpec.class").bytes) == groovyTarget
 
         where:
-        javaVersion << JavaVersion.values().findAll { JavaVersion.VERSION_1_8 <= it && it <= JavaVersion.VERSION_22 }
+        javaVersion << JavaVersion.values().findAll { JavaVersion.VERSION_1_8 <= it && GroovyCoverage.supportsJavaVersion("$versionNumber", it) }
     }
 
     private def getSpockVersion(VersionNumber groovyVersion) {

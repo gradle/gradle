@@ -28,6 +28,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ModuleIdSetExclude;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ModuleSetExclude;
 import org.gradle.internal.component.model.IvyArtifactName;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Set;
 
@@ -78,7 +79,7 @@ public class DefaultExcludeFactory implements ExcludeFactory {
     }
 
     @Override
-    public ExcludeSpec ivyPatternExclude(ModuleIdentifier moduleId, IvyArtifactName artifact, String matcher) {
+    public ExcludeSpec ivyPatternExclude(ModuleIdentifier moduleId, @Nullable IvyArtifactName artifact, String matcher) {
         return DefaultIvyPatternMatcherExcludeRuleSpec.of(moduleId, artifact, matcher);
     }
 

@@ -17,9 +17,12 @@
 package org.gradle.api.internal.file.collections;
 
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.File;
 
+@ServiceScope(Scope.Global.class)
 public interface DirectoryFileTreeFactory {
     DirectoryFileTree create(File directory);
 

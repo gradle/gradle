@@ -45,8 +45,19 @@ public class DefaultGradleApiSpecProvider extends GradleApiSpecProvider.SpecAdap
             "org.slf4j",
             "org.apache.commons.logging",
             "org.apache.log4j",
+            "org.jspecify.annotations",
             "javax.annotation",
             "javax.inject");
+    }
+
+    @Override
+    public Set<String> getUnexportedPackages() {
+        return ImmutableSet.of(
+            // This package is not exported to Gradle API default classloader,
+            // and can be used for worker action code that needs to access external libraries.
+            // See also explanation in https://github.com/gradle/gradle/pull/29591#issuecomment-2216917657.
+            "org.gradle.unexported"
+        );
     }
 
     @Override

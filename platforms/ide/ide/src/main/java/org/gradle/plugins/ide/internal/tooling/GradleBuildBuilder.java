@@ -16,7 +16,6 @@
 
 package org.gradle.plugins.ide.internal.tooling;
 
-import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.build.BuildState;
@@ -27,7 +26,6 @@ import org.gradle.internal.composite.IncludedBuildInternal;
 import org.gradle.plugins.ide.internal.tooling.model.BasicGradleProject;
 import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleBuild;
 import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
-import org.gradle.tooling.provider.model.ToolingModelBuilder;
 import org.gradle.tooling.provider.model.internal.BuildScopeModelBuilder;
 
 import java.util.ArrayList;
@@ -35,7 +33,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public class GradleBuildBuilder implements ToolingModelBuilder, BuildScopeModelBuilder {
+public class GradleBuildBuilder implements BuildScopeModelBuilder {
     private final BuildStateRegistry buildStateRegistry;
 
     public GradleBuildBuilder(BuildStateRegistry buildStateRegistry) {
@@ -45,12 +43,6 @@ public class GradleBuildBuilder implements ToolingModelBuilder, BuildScopeModelB
     @Override
     public boolean canBuild(String modelName) {
         return modelName.equals("org.gradle.tooling.model.gradle.GradleBuild");
-    }
-
-    @Override
-    public DefaultGradleBuild buildAll(String modelName, Project target) {
-        BuildState targetBuild = ((GradleInternal) target.getGradle()).getOwner();
-        return create(targetBuild);
     }
 
     @Override

@@ -16,10 +16,30 @@
 
 package org.gradle.buildinit.plugins.internal;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.GradleException;
+import org.gradle.internal.exceptions.ResolutionProvider;
 
-class BuildInitException extends GradleException{
-    BuildInitException(String message){
+import java.util.Collections;
+import java.util.List;
+
+/**
+ * Exception thrown when the build init plugin fails to initialize a new project.
+ */
+public class BuildInitException extends GradleException implements ResolutionProvider {
+    private final List<String> resolutions;
+
+    public BuildInitException(String message) {
+        this(message, Collections.emptyList());
+    }
+
+    public BuildInitException(String message, Iterable<String> resolutions) {
         super(message);
+        this.resolutions = ImmutableList.copyOf(resolutions);
+    }
+
+    @Override
+    public List<String> getResolutions() {
+        return resolutions;
     }
 }

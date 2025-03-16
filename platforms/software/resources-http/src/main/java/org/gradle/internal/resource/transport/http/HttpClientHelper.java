@@ -30,12 +30,13 @@ import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
 import java.io.Closeable;
@@ -98,7 +99,7 @@ public class HttpClientHelper implements Closeable {
         return performRequest(new HttpGet(source), revalidate);
     }
 
-    @Nonnull
+    @NonNull
     public HttpClientResponse performGet(String source, boolean revalidate) {
         return processResponse(performRawGet(source, revalidate));
     }
@@ -117,7 +118,7 @@ public class HttpClientHelper implements Closeable {
         }
     }
 
-    @Nonnull
+    @NonNull
     private static HttpRequestException createHttpRequestException(String method, Throwable cause, URI uri) {
         return new HttpRequestException(String.format("Could not %s '%s'.", method, stripUserCredentials(uri)), cause);
     }
@@ -149,7 +150,7 @@ public class HttpClientHelper implements Closeable {
         return new HttpRequestException(message, e);
     }
 
-    @Nonnull
+    @NonNull
     private static String getConfidenceNote(SSLHandshakeException sslException) {
         if (sslException.getMessage() != null && sslException.getMessage().contains("protocol_version")) {
             // If we're handling an SSLHandshakeException with the error of 'protocol_version' we know that the server doesn't support this protocol.
@@ -220,7 +221,7 @@ public class HttpClientHelper implements Closeable {
         settings.getRedirectVerifier().validateRedirects(getRedirectLocations(httpContext));
     }
 
-    @Nonnull
+    @NonNull
     private static List<URI> getRedirectLocations(HttpContext httpContext) {
         @SuppressWarnings("unchecked")
         List<URI> redirects = (List<URI>) httpContext.getAttribute(REDIRECT_LOCATIONS);
@@ -233,7 +234,7 @@ public class HttpClientHelper implements Closeable {
         return redirectLocations.isEmpty() ? null : Iterables.getLast(redirectLocations);
     }
 
-    @Nonnull
+    @NonNull
     private HttpClientResponse processResponse(HttpClientResponse response) {
         if (response.wasMissing()) {
             LOGGER.info("Resource missing. [HTTP {}: {}]", response.getMethod(), stripUserCredentials(response.getEffectiveUri()));
@@ -276,7 +277,7 @@ public class HttpClientHelper implements Closeable {
      */
     @Nullable
     @VisibleForTesting
-    static URI stripUserCredentials(@CheckForNull URI uri) {
+    static URI stripUserCredentials(URI uri) {
         if (uri == null) {
             return null;
         }
@@ -304,6 +305,7 @@ public class HttpClientHelper implements Closeable {
      * Factory for creating the {@link HttpClientHelper}
      */
     @FunctionalInterface
+    @ServiceScope(Scope.Global.class)
     public interface Factory {
         HttpClientHelper create(HttpSettings settings);
 

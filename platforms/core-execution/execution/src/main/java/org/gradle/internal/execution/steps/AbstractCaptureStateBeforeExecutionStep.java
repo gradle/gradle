@@ -28,16 +28,16 @@ import org.gradle.internal.execution.history.impl.DefaultBeforeExecutionState;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.Optional;
 
 public abstract class AbstractCaptureStateBeforeExecutionStep<C extends PreviousExecutionContext, R extends CachingResult> extends BuildOperationStep<C, R> {
@@ -47,11 +47,11 @@ public abstract class AbstractCaptureStateBeforeExecutionStep<C extends Previous
     private final Step<? super BeforeExecutionContext, ? extends R> delegate;
 
     public AbstractCaptureStateBeforeExecutionStep(
-        BuildOperationExecutor buildOperationExecutor,
+        BuildOperationRunner buildOperationRunner,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         Step<? super BeforeExecutionContext, ? extends R> delegate
     ) {
-        super(buildOperationExecutor);
+        super(buildOperationRunner);
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.delegate = delegate;
     }
@@ -64,7 +64,7 @@ public abstract class AbstractCaptureStateBeforeExecutionStep<C extends Previous
         return delegate.execute(work, new BeforeExecutionContext(context, beforeExecutionState));
     }
 
-    @Nonnull
+    @NonNull
     private BeforeExecutionState captureExecutionState(UnitOfWork work, PreviousExecutionContext context) {
         return operation(operationContext -> {
                 ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshots = captureOutputSnapshots(work, context);

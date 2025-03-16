@@ -16,10 +16,14 @@
 
 package org.gradle.model.internal.manage.schema;
 
-import javax.annotation.concurrent.ThreadSafe;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.model.internal.type.ModelType;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 @ThreadSafe
+@ServiceScope(Scope.Global.class)
 public interface ModelSchemaStore {
 
     <T> ModelSchema<T> getSchema(ModelType<T> type);

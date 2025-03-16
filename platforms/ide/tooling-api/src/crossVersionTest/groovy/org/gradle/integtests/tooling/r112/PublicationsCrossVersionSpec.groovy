@@ -18,7 +18,6 @@ package org.gradle.integtests.tooling.r112
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.gradle.ProjectPublications
 
 class PublicationsCrossVersionSpec extends ToolingApiSpecification {
@@ -44,7 +43,6 @@ class PublicationsCrossVersionSpec extends ToolingApiSpecification {
         publications.publications.empty
     }
 
-    @ToolingApiVersion(">=3.0")
     @TargetGradleVersion(">=3.0 <7.0")
     def "Ivy repository based publication"() {
         settingsFile << "rootProject.name = 'test.project'"
@@ -57,7 +55,7 @@ group = "test.group"
 
 uploadArchives {
     repositories {
-        ivy { url uri("ivy-repo") }
+        ivy { url = uri("ivy-repo") }
     }
 }
 """
@@ -89,21 +87,21 @@ group = "test.group"
 
 publishing {
     repositories {
-        ivy { url uri("ivy-repo") }
-        maven { url uri("maven-repo") }
+        ivy { url = uri("ivy-repo") }
+        maven { url = uri("maven-repo") }
     }
     publications {
         mainIvy(IvyPublication) {
             from components.java
-            organisation 'test.org'
-            module 'test-module'
-            revision '1.1'
+            organisation = 'test.org'
+            module = 'test-module'
+            revision = '1.1'
         }
         mainMaven(MavenPublication) {
             from components.java
-            groupId 'test.groupId'
-            artifactId 'test-artifactId'
-            version '1.2'
+            groupId = 'test.groupId'
+            artifactId = 'test-artifactId'
+            version = '1.2'
         }
     }
 }

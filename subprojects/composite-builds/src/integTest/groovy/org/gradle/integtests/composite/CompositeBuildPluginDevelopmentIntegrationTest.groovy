@@ -35,7 +35,7 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         pluginDependencyA = singleProjectBuild("pluginDependencyA") {
             buildFile << """
                 apply plugin: 'java-library'
-                version "2.0"
+                version = "2.0"
             """
         }
 
@@ -104,6 +104,12 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
 
         then:
         failure.assertHasDescription("Could not compile build file '$buildA.buildFile.canonicalPath'.")
+
+        and:
+        verifyAll(receivedProblem) {
+            fqid == 'compilation:groovy-dsl:compilation-failed'
+            contextualLabel == "Could not compile build file '${buildA.buildFile.absolutePath}'."
+        }
     }
 
     def "can co-develop plugin and consumer with both plugin and consumer as included builds"() {
@@ -163,7 +169,7 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         def buildB = singleProjectBuild("buildB") {
             buildFile << """
                 apply plugin: 'java'
-                version "2.0"
+                version = "2.0"
             """
         }
         buildA.settingsFile.text = """
@@ -198,7 +204,7 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         def buildB = singleProjectBuild("buildB") {
             buildFile << """
                 apply plugin: 'java'
-                version "2.0"
+                version = "2.0"
             """
         }
         applyPlugin(buildA, false)
@@ -225,7 +231,7 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
             buildscript {
                 repositories {
                     repositories {
-                        maven { url "${mavenRepo.uri}" }
+                        maven { url = "${mavenRepo.uri}" }
                     }
                 }
                 dependencies {
@@ -254,7 +260,7 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
             buildscript {
                 repositories {
                     repositories {
-                        maven { url "${mavenRepo.uri}" }
+                        maven { url = "${mavenRepo.uri}" }
                     }
                 }
                 dependencies {
@@ -390,7 +396,7 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
             buildscript {
                 repositories {
                     repositories {
-                        maven { url "${mavenRepo.uri}" }
+                        maven { url = "${mavenRepo.uri}" }
                     }
                 }
             }
@@ -413,7 +419,7 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
             publishing {
                 repositories {
                     maven {
-                        url '${mavenRepo.uri}'
+                        url = "${mavenRepo.uri}"
                     }
                 }
             }
@@ -427,7 +433,7 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
             publishing {
                 repositories {
                     maven {
-                        url '${mavenRepo.uri}'
+                        url = "${mavenRepo.uri}"
                     }
                 }
             }
@@ -441,7 +447,7 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         def pluginDependencyB = singleProjectBuild("pluginDependencyB") {
             buildFile << """
                 apply plugin: 'java'
-                version "2.0"
+                version = "2.0"
             """
         }
 
@@ -667,7 +673,7 @@ plugins {
 dependencies {
     implementation project(':a')
 }
-task resolve {
+tasks.register("resolve") {
     def compileClasspath = configurations.compileClasspath
     doLast {
         compileClasspath.files
@@ -681,7 +687,7 @@ plugins {
 dependencies {
     implementation project(':b')
 }
-task resolve {
+tasks.register("resolve") {
     def compileClasspath = configurations.compileClasspath
     doLast {
         compileClasspath.files
@@ -785,7 +791,7 @@ task resolve {
             pluginManagement {
                 $resolutionStrategy
                 repositories {
-                    maven { url '${mavenRepo.uri}' }
+                    maven { url = '${mavenRepo.uri}' }
                 }
             }
         """ + build.settingsFile.text

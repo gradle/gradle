@@ -31,8 +31,8 @@ import org.gradle.tooling.internal.protocol.InternalBuildActionVersion2;
 import org.gradle.tooling.internal.protocol.InternalPhasedAction;
 import org.gradle.tooling.internal.protocol.InternalPhasedActionConnection;
 import org.gradle.tooling.internal.protocol.PhasedActionResultListener;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 
 /**
@@ -60,7 +60,7 @@ public class PhasedActionAwareConsumerConnection extends ParameterAcceptingConsu
     }
 
     @Nullable
-    private static <T> IntermediateResultHandler<? super T> getHandler(@Nullable PhasedBuildAction.BuildActionWrapper<T> wrapper) {
+    private static <T> IntermediateResultHandler<? super T> getHandler(PhasedBuildAction.@Nullable BuildActionWrapper<T> wrapper) {
         return wrapper == null ? null : wrapper.getHandler();
     }
 
@@ -70,7 +70,7 @@ public class PhasedActionAwareConsumerConnection extends ParameterAcceptingConsu
     }
 
     @Nullable
-    private static <T> InternalBuildActionVersion2<T> getAction(@Nullable PhasedBuildAction.BuildActionWrapper<T> wrapper, File rootDir, VersionDetails versionDetails) {
+    private static <T> InternalBuildActionVersion2<T> getAction(PhasedBuildAction.@Nullable BuildActionWrapper<T> wrapper, File rootDir, VersionDetails versionDetails) {
         return wrapper == null ? null : new InternalBuildActionAdapter<T>(wrapper.getAction(), rootDir, versionDetails);
     }
 }

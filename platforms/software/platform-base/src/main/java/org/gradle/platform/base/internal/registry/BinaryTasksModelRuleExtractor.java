@@ -18,6 +18,7 @@ package org.gradle.platform.base.internal.registry;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
+import org.gradle.api.Named;
 import org.gradle.api.Task;
 import org.gradle.internal.Cast;
 import org.gradle.model.ModelMap;
@@ -43,8 +44,8 @@ import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.BinaryTasks;
 import org.gradle.platform.base.plugins.BinaryBasePlugin;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -94,7 +95,7 @@ public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenCompo
                     Task.class,
                     binary.getTasks(),
                     taskFactory,
-                    new Task.Namer(),
+                    Named.Namer.INSTANCE,
                     new Action<Task>() {
                         @Override
                         public void execute(Task task) {

@@ -24,10 +24,11 @@ import org.gradle.internal.properties.annotations.AbstractPropertyAnnotationHand
 import org.gradle.internal.properties.annotations.PropertyMetadata;
 
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.OPTIONAL;
+import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.REPLACES_EAGER_PROPERTY;
 
 public class DestroysPropertyAnnotationHandler extends AbstractPropertyAnnotationHandler {
     public DestroysPropertyAnnotationHandler() {
-        super(Destroys.class, Kind.OTHER, ModifierAnnotationCategory.annotationsOf(OPTIONAL));
+        super(Destroys.class, Kind.OTHER, ModifierAnnotationCategory.annotationsOf(OPTIONAL, REPLACES_EAGER_PROPERTY));
     }
 
     @Override

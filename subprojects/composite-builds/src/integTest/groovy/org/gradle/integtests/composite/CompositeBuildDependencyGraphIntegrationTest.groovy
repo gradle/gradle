@@ -44,10 +44,10 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
             buildFile << """
                 allprojects {
                     apply plugin: 'java-library'
-                    version "2.0"
+                    version = "2.0"
 
                     repositories {
-                        maven { url "${mavenRepo.uri}" }
+                        maven { url = "${mavenRepo.uri}" }
                     }
                 }
             """
@@ -696,9 +696,9 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
         when:
         checkDependenciesFails()
 
-        then:
-        failure.assertHasCause("No matching variant of project :buildC was found. The consumer was configured to find a library for use during runtime, compatible with Java ${JavaVersion.current().majorVersion}, packaged as a jar, preferably optimized for standard JVMs, and its dependencies declared externally but:\n" +
-            "  - None of the variants have attributes.")
+        then: "Build C does not have any configurations defined, and thus no variants exist"
+        failure.assertHasCause("""No matching variant of project :buildC was found. The consumer was configured to find a library for use during runtime, compatible with Java ${JavaVersion.current().majorVersion}, packaged as a jar, preferably optimized for standard JVMs, and its dependencies declared externally but:
+  - No variants exist.""")
     }
 
     public static final REPOSITORY_HINT = repositoryHint("Maven POM")
@@ -717,7 +717,7 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
         """
         buildC.buildFile << """
             repositories {
-                maven { url '$mavenRepo.uri' }
+                maven { url = '$mavenRepo.uri' }
             }
 
             configurations {
@@ -747,7 +747,7 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
 
         then:
         failure.assertHasDescription("Could not determine the dependencies of task ':buildC:buildOutputs'.")
-        failure.assertHasCause("Could not resolve all task dependencies for configuration ':buildC:buildInputs'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':buildC:buildInputs'.")
         failure.assertHasCause("""Could not find org.test:test:1.2.
 Searched in the following locations:
   - ${m.pom.file.displayUri}

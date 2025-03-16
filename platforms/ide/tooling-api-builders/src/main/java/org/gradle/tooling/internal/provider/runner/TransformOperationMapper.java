@@ -31,8 +31,9 @@ import org.gradle.tooling.events.OperationType;
 import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalOperationFinishedProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalOperationStartedProgressEvent;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -78,7 +79,8 @@ class TransformOperationMapper implements BuildOperationMapper<ExecutePlannedTra
         String subjectName = details.getSubjectName();
         Set<InternalOperationDescriptor> dependencies = operationDependenciesResolver.resolveDependencies(details.getTransformStepNode());
         DefaultTransformDescriptor descriptor = new DefaultTransformDescriptor(id, displayName, parent, transformerName, subjectName, dependencies);
-        descriptors.put(details.getTransformStepNode(), descriptor);
+        DefaultTransformDescriptor descriptorWithoutDependencies = new DefaultTransformDescriptor(id, displayName, parent, transformerName, subjectName, Collections.emptySet());
+        descriptors.put(details.getTransformStepNode(), descriptorWithoutDependencies);
         return descriptor;
     }
 

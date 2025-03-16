@@ -26,7 +26,6 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.HasScriptServices;
@@ -44,18 +43,21 @@ import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.model.RuleBasedPluginListener;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.registry.ModelRegistryScope;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
 import org.gradle.util.Path;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.Set;
 
 @UsedByScanPlugin("scan, test-retry")
+@ServiceScope(Scope.Project.class)
 public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptServices, DomainObjectContext, ModelRegistryScope, PluginAwareInternal {
 
     // These constants are defined here and not with the rest of their kind in HelpTasksPlugin because they are referenced
@@ -79,6 +81,11 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
     ProjectInternal getRootProject(ProjectInternal referrer);
 
     Project evaluate();
+
+    /***
+     * This method should be used by internal Gradle code to trigger project evaluation.
+     */
+    ProjectInternal evaluateUnchecked();
 
     ProjectInternal bindAllModelRules();
 
@@ -116,6 +123,8 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
      */
     @Override
     Map<String, Project> getChildProjects();
+
+    Map<String, Project> getChildProjects(ProjectInternal referrer);
 
     /**
      * Returns a mapping of the direct child project names to the child project instances.
@@ -182,11 +191,13 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
 
     void fireDeferredConfiguration();
 
+    @Override
+    @NullMarked
+    ProjectIdentity getProjectIdentity();
+
     /**
      * Returns a unique path for this project within its containing build.
      */
-    @Override
-    @Nonnull
     Path getProjectPath();
 
     /**
@@ -235,8 +246,6 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
      */
     Property<Object> getInternalStatus();
 
-    DependencyMetaDataProvider getDependencyMetaDataProvider();
-
     /**
      * When we get the {@link ConfigurationContainer} from internal locations, we'll override
      * this getter to promise to return a {@link RoleBasedConfigurationContainerInternal} instance, to avoid
@@ -246,6 +255,15 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
      */
     @Override
     RoleBasedConfigurationContainerInternal getConfigurations();
+
+    void setLifecycleActionsState(@Nullable Object state);
+
+    /**
+     * The state of the execution of {@link org.gradle.api.invocation.GradleLifecycle} actions of this project.
+     * Its mutation NOT considered a mutable state access.
+     * */
+    @Nullable
+    Object getLifecycleActionsState();
 
     interface DetachedResolver {
         RepositoryHandler getRepositories();

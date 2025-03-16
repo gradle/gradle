@@ -17,7 +17,6 @@
 package org.gradle.api.publish.maven.internal.publication;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import org.gradle.api.GradleException;
@@ -59,8 +58,8 @@ import org.gradle.api.publish.maven.internal.dependencies.VersionRangeMapper;
 import org.gradle.api.publish.maven.internal.validation.MavenPublicationErrorChecker;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.typeconversion.NotationParser;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
@@ -217,14 +216,14 @@ public class MavenComponentParser {
         );
 
         for (ModuleDependency dependency : variant.getDependencies()) {
-            if (isDependencyWithDefaultArtifact(dependency) && dependencyMatchesProject(dependency, coordinates)) {
-                // We skip all self referencing dependency declarations, unless they have custom artifact information
-                continue;
-            }
             if (platformSupport.isTargetingPlatform(dependency)) {
                 dependencyFactory.convertImportDependencyConstraint(dependency, platforms::add);
             } else {
-                dependencyFactory.convertDependency(dependency, dependencies::add);
+                dependencyFactory.convertDependency(dependency, d -> {
+                    if (!isDependencyWithDefaultArtifact(d) || !dependencyMatchesProject(d, coordinates)) {
+                        dependencies.add(d);
+                    }
+                });
             }
         }
 
@@ -254,15 +253,12 @@ public class MavenComponentParser {
             || !coordinates.getVersion().equals(capability.getVersion());
     }
 
-    private static boolean isDependencyWithDefaultArtifact(ModuleDependency dependency) {
-        if (dependency.getArtifacts().isEmpty()) {
-            return true;
-        }
-        return dependency.getArtifacts().stream().allMatch(artifact -> Strings.nullToEmpty(artifact.getClassifier()).isEmpty());
+    private static boolean isDependencyWithDefaultArtifact(MavenDependency dependency) {
+        return dependency.getType() == null && dependency.getClassifier() == null;
     }
 
-    private static boolean dependencyMatchesProject(ModuleDependency dependency, ModuleVersionIdentifier coordinates) {
-        return coordinates.getModule().equals(DefaultModuleIdentifier.newId(dependency.getGroup(), dependency.getName()));
+    private static boolean dependencyMatchesProject(MavenDependency dependency, ModuleVersionIdentifier coordinates) {
+        return coordinates.getModule().equals(DefaultModuleIdentifier.newId(dependency.getGroupId(), dependency.getArtifactId()));
     }
 
     private static Stream<? extends SoftwareComponentVariant> createSortedVariantsStream(SoftwareComponentInternal component) {
@@ -311,24 +307,24 @@ public class MavenComponentParser {
             // when dependency mapping is disabled.
             // At the very least, we do not want these warnings when dependency mapping is enabled.
             if (!dependency.getAttributes().isEmpty()) {
-                warnings.addUnsupported(String.format("%s:%s:%s declared with Gradle attributes", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
+                warnings.addUnsupported(String.format("dependency on %s declared with Gradle attributes", dependency));
             }
-            if (!dependency.getRequestedCapabilities().isEmpty()) {
-                warnings.addUnsupported(String.format("%s:%s:%s declared with Gradle capabilities", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
+            if (!dependency.getCapabilitySelectors().isEmpty()) {
+                warnings.addUnsupported(String.format("dependency on %s declared with Gradle capabilities", dependency));
             }
 
             Set<ExcludeRule> allExcludeRules = getExcludeRules(globalExcludes, dependency);
 
             if (dependency.getArtifacts().isEmpty()) {
-                ResolvedCoordinates coordinates = resolveDependency(dependency);
+                ResolvedCoordinates coordinates = resolveDependency(dependency, true);
                 collector.accept(newDependency(coordinates, null, null, scope, allExcludeRules, optional));
                 return;
             }
 
-            // If the dependency has artifacts, do not map the coordinates.
+            // If the dependency has artifacts, only map the coordinates to component-level precision.
             // This is so we match the Gradle behavior where an explicit artifact on a dependency
             // that would otherwise map to different coordinates resolves to the declared coordinates.
-            ResolvedCoordinates coordinates = convertDeclaredCoordinates(dependency.getGroup(), dependency.getName(), dependency.getVersion());
+            ResolvedCoordinates coordinates = resolveDependency(dependency, false);
             for (DependencyArtifact artifact : dependency.getArtifacts()) {
                 ResolvedCoordinates artifactCoordinates = coordinates;
                 if (!artifact.getName().equals(dependency.getName())) {
@@ -375,15 +371,22 @@ public class MavenComponentParser {
         }
 
         private void convertImportDependencyConstraint(ModuleDependency dependency, Consumer<MavenDependency> collector) {
-            ResolvedCoordinates identifier = resolveDependency(dependency);
+            ResolvedCoordinates identifier = resolveDependency(dependency, true);
             collector.accept(newDependency(identifier, "pom", null, "import", Collections.emptySet(), false));
         }
 
-        private ResolvedCoordinates resolveDependency(ModuleDependency dependency) {
+        private ResolvedCoordinates resolveDependency(ModuleDependency dependency, boolean variantPrecision) {
             if (dependency instanceof ProjectDependency) {
                 return variantDependencyResolver.resolveVariantCoordinates((ProjectDependency) dependency, warnings);
             } else if (dependency instanceof ExternalDependency) {
-                ResolvedCoordinates identifier = variantDependencyResolver.resolveVariantCoordinates((ExternalDependency) dependency, warnings);
+
+                ResolvedCoordinates identifier;
+                if (variantPrecision) {
+                    identifier = variantDependencyResolver.resolveVariantCoordinates((ExternalDependency) dependency, warnings);
+                } else {
+                    identifier = componentDependencyResolver.resolveComponentCoordinates((ExternalDependency) dependency);
+                }
+
                 if (identifier != null) {
                     return identifier;
                 }

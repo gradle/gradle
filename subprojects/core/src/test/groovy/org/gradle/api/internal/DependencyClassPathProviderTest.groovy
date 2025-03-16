@@ -33,7 +33,7 @@ class DependencyClassPathProviderTest extends Specification {
 
         then:
         classpath.asFiles.collect{it.name} == [
-            "gradle-worker-processes-runtime",
+            "gradle-worker-main-runtime",
             "gradle-launcher-runtime",
             "gradle-cli-runtime",
             "gradle-workers-runtime",
@@ -41,18 +41,20 @@ class DependencyClassPathProviderTest extends Specification {
             "gradle-plugin-use-runtime",
             "gradle-tooling-api-builders-runtime",
             "gradle-configuration-cache-runtime",
+            "gradle-unit-test-fixtures-runtime",
             "plugin1-runtime",
             "plugin2-runtime"
         ]
 
         and:
-        1 * moduleRegistry.getModule("gradle-worker-processes") >> module("gradle-worker-processes")
+        1 * moduleRegistry.getModule("gradle-worker-main") >> module("gradle-worker-main")
         1 * moduleRegistry.getModule("gradle-launcher") >> module("gradle-launcher", module("gradle-cli"))
         1 * moduleRegistry.getModule("gradle-workers") >> module("gradle-workers")
         1 * moduleRegistry.getModule("gradle-dependency-management") >> module("gradle-dependency-management")
         1 * moduleRegistry.getModule("gradle-plugin-use") >> module("gradle-plugin-use")
         1 * moduleRegistry.getModule("gradle-tooling-api-builders") >> module("gradle-tooling-api-builders")
         1 * moduleRegistry.getModule("gradle-configuration-cache") >> module("gradle-configuration-cache")
+        1 * moduleRegistry.getModule("gradle-unit-test-fixtures") >> module("gradle-unit-test-fixtures")
         1 * pluginModuleRegistry.getApiModules() >> ([module("plugin1"), module("plugin2")] as LinkedHashSet)
     }
 

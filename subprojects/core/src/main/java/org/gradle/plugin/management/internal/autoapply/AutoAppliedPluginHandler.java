@@ -24,17 +24,17 @@ import org.gradle.plugin.management.internal.PluginRequests;
  * that the user is trying to use it. For instance, when the user uses the <code>--scan</code> option, it
  * is clear they expect the build scan plugin to be applied.
  * </p>
- *
  * Auto-application of a plugin is skipped in the following situations, so the user can adjust the version they want:
- *
  * <ul>
  * <li> The plugin was already applied (e.g. through an init script)
  * <li> The plugin was already requested in the <code>plugins {}</code> block </li>
  * <li> The plugin was already requested in the <code>buildscript {}</code> block </li>
  * </ul>
+ * <p>
+ * Gradle also allows for automatically loading plugins via a system property, this class
+ * understands how to discover these plugin requests as well.
  */
 public interface AutoAppliedPluginHandler {
-
     /**
      * Returns plugin requests that should be auto-applied
      * based on user requests, the current build invocation and the given target.

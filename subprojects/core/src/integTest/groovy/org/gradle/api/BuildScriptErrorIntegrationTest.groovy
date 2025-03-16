@@ -16,6 +16,9 @@
 
 package org.gradle.api
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Issue
 
 import static org.hamcrest.CoreMatchers.containsString
@@ -71,6 +74,8 @@ class BuildScriptErrorIntegrationTest extends AbstractIntegrationSpec {
                 .assertHasLineNumber(2)
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/29159")
+    @ToBeFixedForIsolatedProjects(because = "evaluationDependsOn is not IP compatible")
     def "produces reasonable error message when nested buildFile evaluation fails"() {
         createDirs("child")
         settingsFile << """
@@ -98,6 +103,10 @@ include 'child'
                 .assertHasLineNumber(3)
     }
 
+    @Requires(
+        value = IntegTestPreconditions.NotIsolatedProjects,
+        reason = "Exercises IP incompatible behavior: Groovy method inheritance"
+    )
     def "produces reasonable error message from a method inherited from a script containing only methods"() {
         createDirs("child")
         settingsFile << """

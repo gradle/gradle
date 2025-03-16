@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package org.gradle.internal.classpath.intercept;
 
 import org.codehaus.groovy.runtime.callsite.CallSite;
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;
 
 import java.lang.invoke.MethodHandles;
 
@@ -25,7 +25,7 @@ import java.lang.invoke.MethodHandles;
  * A handler for Groovy call sites, including Indy ones, which is used to replace the call sites of some calls at runtime,
  * in order to alter their behavior.
  */
-@NonNullApi
+@NullMarked
 public interface CallSiteDecorator {
     CallSite maybeDecorateGroovyCallSite(CallSite originalCallSite);
 

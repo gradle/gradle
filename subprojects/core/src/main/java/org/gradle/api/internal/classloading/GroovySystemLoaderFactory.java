@@ -66,6 +66,6 @@ public class GroovySystemLoaderFactory {
         if (groovyVersion == null) {
             return false;
         }
-        return groovyVersion.getMajor() == 2 && groovyVersion.getMinor() >= 4 || groovyVersion.getMajor() > 2;
+        return (groovyVersion.getMajor() == 2 && groovyVersion.getMinor() >= 4) || groovyVersion.getMajor() > 2;
     }
 }

@@ -46,7 +46,7 @@ embedded mode
         settingsFile << "rootProject.name = 'test'"
         buildFile << """
             repositories {
-                maven { url '${mavenRepo.uri}' }
+                maven { url = '${mavenRepo.uri}' }
             }
             configurations {
                 conf
@@ -72,9 +72,7 @@ embedded mode
         }
 
         buildFile.text = baseBuild + """
-            allprojects {
-                configurations { conf }
-            }
+            configurations { conf }
 
             configurations {
                 ${singleProjectConfs.join('\n')}
@@ -102,18 +100,18 @@ embedded mode
         for (int i = 1; i <= versions.size(); i++) {
             VersionRangeResolveTestScenarios.RenderableVersion version = versions.get(i - 1);
             def nextProjectDependency = i < versions.size() ? "conf project(path: ':p${i + 1}', configuration: 'conf')" : ""
-            buildFile << """
-                project('p${i}') {
-                    dependencies {
-                        conf ${version.render()}
-                        ${nextProjectDependency}
-                    }
+            file("p${i}/build.gradle") << """
+                configurations {
+                    conf
                 }
-"""
-            createDirs("p${i}")
+                dependencies {
+                    conf ${version.render()}
+                    ${nextProjectDependency}
+                }
+                """
             settingsFile << """
                 include ':p${i}'
-"""
+            """
         }
 
         boolean expectFailureSingle = expectedSingle == VersionRangeResolveTestScenarios.REJECTED || expectedSingle == VersionRangeResolveTestScenarios.FAILED

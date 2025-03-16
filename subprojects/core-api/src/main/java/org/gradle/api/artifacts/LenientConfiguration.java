@@ -23,10 +23,22 @@ import java.util.Set;
 
 /**
  * Resolved configuration that does not fail eagerly when some dependencies are not resolved, or some artifacts do not exist.
+ * <p>
+ * This is a legacy API. <strong>Avoid this class for new code</strong>. Lenient artifacts can be acquired
+ * through a {@link ArtifactView.ViewConfiguration#lenient(boolean) lenient ArtifactView}. This API will be
+ * deprecated and removed in future Gradle versions.
+ * <ul>
+ *     <li>This class is not configuration-cache compatible.</li>
+ *     <li>Returned file sets do not track task dependencies.</li>
+ *     <li>The returned types do not reflect the variant-aware nature of the dependency resolution engine.</li>
+ * </ul>
  */
 public interface LenientConfiguration {
     /**
      * Returns successfully resolved direct dependencies.
+     * <p>
+     * Prefer {@link org.gradle.api.artifacts.result.ResolutionResult} for traversing the resolved graph or
+     * {@link ArtifactView#getArtifacts()} for accessing the resolved artifacts.
      *
      * @return only resolved dependencies
      * @since 3.3
@@ -38,11 +50,17 @@ public interface LenientConfiguration {
      *
      * @param dependencySpec dependency spec
      * @return only resolved dependencies
+     *
+     * @deprecated Use {@link #getFirstLevelModuleDependencies()}.
      */
+    @Deprecated
     Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec);
 
     /**
      * Returns all successfully resolved dependencies including transitive dependencies.
+     * <p>
+     * Prefer {@link org.gradle.api.artifacts.result.ResolutionResult} for traversing the resolved graph or
+     * {@link ArtifactView#getArtifacts()} for accessing the resolved artifacts.
      *
      * @since 3.1
      * @return all resolved dependencies
@@ -52,6 +70,8 @@ public interface LenientConfiguration {
     /**
      * returns dependencies that were attempted to resolve but failed.
      * If empty then all dependencies are neatly resolved.
+     * <p>
+     * Prefer {@link org.gradle.api.artifacts.result.ResolutionResult}.
      *
      * @return only unresolved dependencies
      */
@@ -62,7 +82,10 @@ public interface LenientConfiguration {
      *
      * @return resolved dependencies files
      * @since 3.3
+     *
+     * @deprecated Use a lenient {@link ArtifactView} instead.
      */
+    @Deprecated
     Set<File> getFiles();
 
     /**
@@ -70,11 +93,16 @@ public interface LenientConfiguration {
      *
      * @param dependencySpec dependency spec
      * @return resolved dependencies files
+     *
+     * @deprecated Use a lenient {@link ArtifactView} with a {@code componentFilter} instead.
      */
+    @Deprecated
     Set<File> getFiles(Spec<? super Dependency> dependencySpec);
 
     /**
      * Gets successfully resolved artifacts. Ignores dependencies or files that cannot be resolved.
+     * <p>
+     * Prefer {@link ArtifactView#getArtifacts()}.
      *
      * @return successfully resolved artifacts
      * @since 3.3
@@ -86,6 +114,9 @@ public interface LenientConfiguration {
      *
      * @param dependencySpec dependency spec
      * @return successfully resolved artifacts for dependencies that match given dependency spec
+     *
+     * @deprecated Use a lenient {@link ArtifactView} with a {@code componentFilter} instead.
      */
+    @Deprecated
     Set<ResolvedArtifact> getArtifacts(Spec<? super Dependency> dependencySpec);
 }

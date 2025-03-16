@@ -27,7 +27,7 @@ publishing {
 
 // tag::conditional-signing[]
 signing {
-    required { isReleaseVersion && gradle.taskGraph.hasTask("publish") }
+    required = { isReleaseVersion && gradle.taskGraph.hasTask("publish") }
     sign publishing.publications.main
 }
 // end::conditional-signing[]

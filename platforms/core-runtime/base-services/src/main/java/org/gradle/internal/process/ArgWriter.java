@@ -103,6 +103,8 @@ public class ArgWriter implements ArgCollector {
                 }
                 argsFile.getParentFile().mkdirs();
                 try {
+                    // TODO(https://github.com/gradle/gradle/issues/29303)
+                    @SuppressWarnings("DefaultCharset") // This method is documented as "uses platform text encoding"
                     PrintWriter writer = new PrintWriter(argsFile);
                     try {
                         ArgWriter argWriter = argWriterFactory.transform(writer);

@@ -1,3 +1,4 @@
+// tag::full-platform[]
 plugins {
     id 'java-platform'
 }
@@ -11,3 +12,4 @@ dependencies {
     }
 }
 // end::define-platform[]
+// end::full-platform[]

@@ -17,8 +17,7 @@
 package org.gradle.internal.deprecation;
 
 import org.gradle.util.GradleVersion;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 class DeprecationTimeline {
     private final String messagePattern;

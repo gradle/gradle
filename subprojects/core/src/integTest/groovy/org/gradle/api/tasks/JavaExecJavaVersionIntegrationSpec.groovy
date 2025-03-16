@@ -37,13 +37,13 @@ class JavaExecJavaVersionIntegrationSpec extends AbstractIntegrationSpec {
         setupRunHelloWorldTask()
 
         when:
-        executer.withJavaHome AvailableJavaHomes.getLowestSupportedLTS().javaHome
+        executer.withJvm(AvailableJavaHomes.getLowestSupportedLTS())
         succeeds "runHelloWorld"
         then:
         executedAndNotSkipped ":runHelloWorld"
 
         when:
-        executer.withJavaHome AvailableJavaHomes.getLowestSupportedLTS().javaHome
+        executer.withJvm(AvailableJavaHomes.getLowestSupportedLTS())
         succeeds "runHelloWorld"
         then:
         skipped ":runHelloWorld"
@@ -56,13 +56,13 @@ class JavaExecJavaVersionIntegrationSpec extends AbstractIntegrationSpec {
         setupRunHelloWorldTask()
 
         when:
-        executer.withJavaHome AvailableJavaHomes.getLowestSupportedLTS().javaHome
+        executer.withJvm(AvailableJavaHomes.getLowestSupportedLTS())
         succeeds "runHelloWorld"
         then:
         executedAndNotSkipped ":runHelloWorld"
 
         when:
-        executer.withJavaHome AvailableJavaHomes.getHighestSupportedLTS().javaHome
+        executer.withJvm(AvailableJavaHomes.getHighestSupportedLTS())
         succeeds "runHelloWorld", "--info"
         then:
         executedAndNotSkipped ":runHelloWorld"
@@ -76,20 +76,20 @@ class JavaExecJavaVersionIntegrationSpec extends AbstractIntegrationSpec {
         setupRunHelloWorldTask()
 
         when:
-        executer.withJavaHome AvailableJavaHomes.getAvailableJdks(VERSION_1_8)[0].javaHome
+        executer.withJvm(AvailableJavaHomes.getAvailableJdks(VERSION_1_8)[0])
         succeeds "runHelloWorld"
         then:
         executedAndNotSkipped ":runHelloWorld"
 
         when:
-        executer.withJavaHome AvailableJavaHomes.getAvailableJdks(VERSION_1_8)[1].javaHome
+        executer.withJvm(AvailableJavaHomes.getAvailableJdks(VERSION_1_8)[1])
         succeeds "runHelloWorld"
         then:
         skipped ":runHelloWorld"
     }
 
     private void setupRunHelloWorldTask() {
-        buildScript '''
+        buildFile '''
             apply plugin: "java"
 
             task runHelloWorld(type: JavaExec) {

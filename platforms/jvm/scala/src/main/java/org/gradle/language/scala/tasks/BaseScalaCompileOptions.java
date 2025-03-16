@@ -16,6 +16,7 @@
 
 package org.gradle.language.scala.tasks;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
@@ -23,11 +24,12 @@ import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
-import org.gradle.api.tasks.compile.AbstractOptions;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.api.tasks.scala.ScalaForkOptions;
+import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,7 +37,8 @@ import java.util.List;
 /**
  * Options for Scala platform compilation.
  */
-public abstract class BaseScalaCompileOptions extends AbstractOptions {
+@SuppressWarnings("deprecation")
+public abstract class BaseScalaCompileOptions extends org.gradle.api.tasks.compile.AbstractOptions {
 
     private static final long serialVersionUID = 0;
 
@@ -63,7 +66,7 @@ public abstract class BaseScalaCompileOptions extends AbstractOptions {
 
     private ScalaForkOptions forkOptions = getObjectFactory().newInstance(ScalaForkOptions.class);
 
-    private IncrementalCompileOptions incrementalOptions;
+    private IncrementalCompileOptions incrementalOptions = getObjectFactory().newInstance(IncrementalCompileOptions.class);
 
     private final Property<KeepAliveMode> keepAliveMode = getObjectFactory().property(KeepAliveMode.class);
 
@@ -76,6 +79,7 @@ public abstract class BaseScalaCompileOptions extends AbstractOptions {
      * Fail the build on compilation errors.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public boolean isFailOnError() {
         return failOnError;
     }
@@ -88,6 +92,7 @@ public abstract class BaseScalaCompileOptions extends AbstractOptions {
      * Generate deprecation information.
      */
     @Console
+    @ToBeReplacedByLazyProperty
     public boolean isDeprecation() {
         return deprecation;
     }
@@ -100,6 +105,7 @@ public abstract class BaseScalaCompileOptions extends AbstractOptions {
      * Generate unchecked information.
      */
     @Console
+    @ToBeReplacedByLazyProperty
     public boolean isUnchecked() {
         return unchecked;
     }
@@ -115,6 +121,7 @@ public abstract class BaseScalaCompileOptions extends AbstractOptions {
     @Nullable
     @Optional
     @Input
+    @ToBeReplacedByLazyProperty
     public String getDebugLevel() {
         return debugLevel;
     }
@@ -127,6 +134,7 @@ public abstract class BaseScalaCompileOptions extends AbstractOptions {
      * Run optimizations.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public boolean isOptimize() {
         return optimize;
     }
@@ -138,6 +146,7 @@ public abstract class BaseScalaCompileOptions extends AbstractOptions {
     /**
      * Encoding of source files.
      */
+    @ToBeReplacedByLazyProperty
     @Nullable @Optional @Input
     public String getEncoding() {
         return encoding;
@@ -154,6 +163,7 @@ public abstract class BaseScalaCompileOptions extends AbstractOptions {
      * - true (always recompile all files)
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public boolean isForce() {
         return force;
     }
@@ -170,6 +180,7 @@ public abstract class BaseScalaCompileOptions extends AbstractOptions {
      */
     @Optional
     @Input
+    @ToBeReplacedByLazyProperty
     public List<String> getAdditionalParameters() {
         return additionalParameters;
     }
@@ -190,6 +201,7 @@ public abstract class BaseScalaCompileOptions extends AbstractOptions {
      * List files to be compiled.
      */
     @Console
+    @ToBeReplacedByLazyProperty
     public boolean isListFiles() {
         return listFiles;
     }
@@ -203,6 +215,7 @@ public abstract class BaseScalaCompileOptions extends AbstractOptions {
      * Legal values:  none, verbose, debug
      */
     @Console
+    @ToBeReplacedByLazyProperty
     public String getLoggingLevel() {
         return loggingLevel;
     }
@@ -217,6 +230,7 @@ public abstract class BaseScalaCompileOptions extends AbstractOptions {
      *               lambdalift, flatten, constructors, mixin, icode, jvm, terminal.
      */
     @Console
+    @ToBeReplacedByLazyProperty
     public List<String> getLoggingPhases() {
         return loggingPhases;
     }
@@ -233,8 +247,29 @@ public abstract class BaseScalaCompileOptions extends AbstractOptions {
         return forkOptions;
     }
 
+    /**
+     * Options for running the Scala compiler in a separate process.
+     *
+     * @deprecated Setting a new instance of this property is unnecessary. This method will be removed in Gradle 9.0. Use {@link #forkOptions(Action)} instead.
+     */
+    @Deprecated
     public void setForkOptions(ScalaForkOptions forkOptions) {
+        DeprecationLogger.deprecateMethod(BaseScalaCompileOptions.class, "setForkOptions(ScalaForkOptions)")
+            .replaceWith("forkOptions(Action)")
+            .withContext("Setting a new instance of forkOptions is unnecessary.")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecated_nested_properties_setters")
+            .nagUser();
         this.forkOptions = forkOptions;
+    }
+
+    /**
+     * Configure options for running the Scala compiler in a separate process.
+     *
+     * @since 8.11
+     */
+    public void forkOptions(Action<? super ScalaForkOptions> action) {
+        action.execute(forkOptions);
     }
 
     /**
@@ -245,8 +280,29 @@ public abstract class BaseScalaCompileOptions extends AbstractOptions {
         return incrementalOptions;
     }
 
+    /**
+     * Options for incremental compilation of Scala code.
+     *
+     * @deprecated Setting a new instance of this property is unnecessary. This method will be removed in Gradle 9.0. Use {@link #incrementalOptions(Action)} instead.
+     */
+    @Deprecated
     public void setIncrementalOptions(IncrementalCompileOptions incrementalOptions) {
+        DeprecationLogger.deprecateMethod(BaseScalaCompileOptions.class, "setIncrementalOptions(IncrementalCompileOptions)")
+            .replaceWith("scalaDocOptions(Action)")
+            .withContext("Setting a new instance of scalaDocOptions is unnecessary.")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecated_nested_properties_setters")
+            .nagUser();
         this.incrementalOptions = incrementalOptions;
+    }
+
+    /**
+     * Configure options for incremental compilation of Scala code.
+     *
+     * @since 8.11
+     */
+    public void incrementalOptions(Action<? super IncrementalCompileOptions> action) {
+        action.execute(incrementalOptions);
     }
 
     /**

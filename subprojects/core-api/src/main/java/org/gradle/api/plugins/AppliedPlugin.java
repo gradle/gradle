@@ -16,7 +16,7 @@
 
 package org.gradle.api.plugins;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Represents a plugin that has been applied.

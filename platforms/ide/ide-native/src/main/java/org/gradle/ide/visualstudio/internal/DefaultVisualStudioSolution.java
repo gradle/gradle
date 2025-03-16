@@ -23,7 +23,6 @@ import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
-import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskDependency;
@@ -37,9 +36,7 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.Callable;
-import java.util.stream.Collectors;
 
 public class DefaultVisualStudioSolution implements VisualStudioSolutionInternal {
     private final String name;
@@ -83,29 +80,11 @@ public class DefaultVisualStudioSolution implements VisualStudioSolutionInternal
     }
 
     @Override
-    @Internal
     public List<VisualStudioProjectMetadata> getProjects() {
         return CollectionUtils.collect(
             ideArtifactRegistry.getIdeProjects(VisualStudioProjectMetadata.class),
             IdeArtifactRegistry.Reference::get
         );
-    }
-
-    @Input
-    public List<String> getProjectFilePaths() {
-        return CollectionUtils.collect(getProjects(), metadata -> metadata.getFile().getAbsolutePath());
-    }
-
-    @Input
-    public Set<String> getConfigurationNames() {
-        return getProjects().stream()
-                .flatMap(it -> it.getConfigurations().stream().map(VisualStudioProjectConfigurationMetadata::getName))
-                .collect(Collectors.toSet());
-    }
-
-    @Nested
-    public List<Action<? super TextProvider>> getSolutionFileActions() {
-        return solutionFile.getTextActions();
     }
 
     @Override

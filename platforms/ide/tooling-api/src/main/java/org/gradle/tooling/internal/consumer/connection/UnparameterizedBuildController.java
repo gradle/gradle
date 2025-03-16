@@ -35,8 +35,8 @@ import org.gradle.tooling.model.Model;
 import org.gradle.tooling.model.ProjectModel;
 import org.gradle.tooling.model.gradle.GradleBuild;
 import org.gradle.tooling.model.internal.Exceptions;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
@@ -179,7 +179,7 @@ abstract class UnparameterizedBuildController extends HasCompatibilityMapping im
     }
 
     @Override
-    public <T> void send(T value) {
+    public void send(Object value) {
         throw new UnsupportedVersionException(String.format("Gradle version %s does not support streaming values to the client.", gradleVersion.getVersion()));
     }
 }

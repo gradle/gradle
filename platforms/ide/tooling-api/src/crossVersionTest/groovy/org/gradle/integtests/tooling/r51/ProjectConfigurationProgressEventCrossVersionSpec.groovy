@@ -16,15 +16,14 @@
 
 package org.gradle.integtests.tooling.r51
 
-import org.gradle.api.Action
+
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.tooling.BuildException
-import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.events.BinaryPluginIdentifier
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ScriptPluginIdentifier
@@ -38,7 +37,6 @@ import java.util.concurrent.TimeUnit
 
 import static org.gradle.integtests.tooling.fixture.TextUtil.escapeString
 
-@ToolingApiVersion('>=5.1')
 @TargetGradleVersion('>=5.1')
 class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecification {
 
@@ -209,7 +207,22 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
 
         then:
         def plugins = getPluginConfigurationOperationResult(":").getPluginApplicationResults().collect { it.plugin.displayName }
-        if (targetVersion >= GradleVersion.version("8.5")) {
+        if (targetVersion >= GradleVersion.version("8.13")) {
+            assert plugins == [
+                "org.gradle.help-tasks",
+                "org.gradle.software-reporting-tasks",
+                "org.gradle.build-init", "org.gradle.wrapper",
+                "build.gradle", "script.gradle",
+                "org.gradle.java", "org.gradle.api.plugins.JavaBasePlugin",
+                "org.gradle.api.plugins.BasePlugin",
+                "org.gradle.language.base.plugins.LifecycleBasePlugin",
+                "org.gradle.api.plugins.JvmEcosystemPlugin",
+                "org.gradle.api.plugins.ReportingBasePlugin",
+                "org.gradle.api.plugins.JvmToolchainsPlugin",
+                "org.gradle.jvm-test-suite",
+                "org.gradle.testing.base.plugins.TestSuiteBasePlugin"
+            ]
+        } else if (targetVersion >= GradleVersion.version("8.5")) {
             assert plugins == [
                 "org.gradle.help-tasks", "org.gradle.build-init", "org.gradle.wrapper",
                 "build.gradle", "script.gradle",
@@ -277,6 +290,7 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
     }
 
     @Timeout(value = 10, unit = TimeUnit.MINUTES)
+    @Flaky(because = "https://github.com/gradle/gradle-private/issues/3638")
     def "reports plugin configuration results for remote script plugins"() {
         given:
         toolingApi.requireIsolatedUserHome() // So that the script is not cached
@@ -453,14 +467,12 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
         (ProjectConfigurationOperationResult) events.operation("Configure project $displayName").result
     }
 
-    private void runBuild(String task, Set<OperationType> operationTypes = EnumSet.of(OperationType.PROJECT_CONFIGURATION), Action<BuildLauncher> config = {}) {
-        withConnection {
-            def launcher = newBuild()
+    private void runBuild(String task, Set<OperationType> operationTypes = EnumSet.of(OperationType.PROJECT_CONFIGURATION)) {
+        withConnection { connection ->
+            connection.newBuild()
                 .forTasks(task)
                 .addProgressListener(events, operationTypes)
-            collectOutputs(launcher)
-            config.execute(launcher)
-            launcher.run()
+                .run()
         }
     }
 

@@ -29,9 +29,10 @@ public abstract class EncodedStream {
         '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'
     };
 
+    @SuppressWarnings("InputStreamSlowMultibyteRead")
     public static class EncodedInput extends InputStream {
 
-        private InputStream delegate;
+        private final InputStream delegate;
 
         public EncodedInput(java.io.InputStream delegate) {
             this.delegate = delegate;

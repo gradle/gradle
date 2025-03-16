@@ -16,8 +16,12 @@
 
 package org.gradle.api.tasks.compile
 
+import org.gradle.process.CommandLineArgumentProvider
 import org.gradle.util.TestUtil
+import spock.lang.Issue
 import spock.lang.Specification
+
+import java.util.concurrent.atomic.AtomicReference
 
 import static org.junit.Assert.assertEquals
 import static org.junit.Assert.assertNull
@@ -94,5 +98,38 @@ class CompileOptionsTest extends Specification {
 
         expect:
         compileOptions.allCompilerArgs.contains('Foo23')
+    }
+
+    void "forkOptions closure"() {
+        AtomicReference<ForkOptions> forkOptions = new AtomicReference<ForkOptions>()
+        compileOptions.forkOptions(forkOptions::set)
+
+        expect:
+        compileOptions.forkOptions == forkOptions.get()
+    }
+
+    void "debugOptions closure"() {
+        AtomicReference<DebugOptions> debugOptions = new AtomicReference<DebugOptions>()
+        compileOptions.debugOptions(debugOptions::set)
+
+        expect:
+        compileOptions.debugOptions == debugOptions.get()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/32606")
+    def "getAllCompilerArgs() returns only Strings"() {
+        given:
+        def commandLineArgumentProvider = new CommandLineArgumentProvider() {
+            @Override
+            Iterable<String> asArguments() {
+                return ["${'make this a GString'}"]
+            }
+        }
+        compileOptions.compilerArgumentProviders.add(commandLineArgumentProvider)
+
+        expect:
+        commandLineArgumentProvider.asArguments().iterator().next() instanceof GString
+        compileOptions.allCompilerArgs.size() == 1
+        compileOptions.allCompilerArgs[0] instanceof String
     }
 }

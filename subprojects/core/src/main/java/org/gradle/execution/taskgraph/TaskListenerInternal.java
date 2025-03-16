@@ -19,9 +19,11 @@ package org.gradle.execution.taskgraph;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.internal.service.scopes.EventScope;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
-@EventScope(Scopes.Build.class)
+@ServiceScope(Scope.Gradle.class)
+@EventScope(Scope.Build.class)
 public interface TaskListenerInternal {
     /**
      * This method is called immediately before a task is executed.

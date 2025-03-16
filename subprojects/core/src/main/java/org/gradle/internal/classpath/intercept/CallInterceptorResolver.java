@@ -16,17 +16,19 @@
 
 package org.gradle.internal.classpath.intercept;
 
-import org.gradle.api.NonNullApi;
+import org.gradle.internal.instrumentation.api.groovybytecode.CallInterceptor;
+import org.gradle.internal.instrumentation.api.groovybytecode.InterceptScope;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
 import org.gradle.internal.lazy.Lazy;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.EnumMap;
 import java.util.Map;
 
 import static org.gradle.internal.classpath.intercept.CallInterceptorRegistry.getGroovyCallDecorator;
 
-@NonNullApi
+@NullMarked
 public interface CallInterceptorResolver {
 
     @Nullable
@@ -34,7 +36,7 @@ public interface CallInterceptorResolver {
 
     boolean isAwareOfCallSiteName(String name);
 
-    @NonNullApi
+    @NullMarked
     final class ClosureCallInterceptorResolver implements CallInterceptorResolver {
 
         private static final Lazy<Map<BytecodeInterceptorFilter, ClosureCallInterceptorResolver>> RESOLVERS = Lazy.locking().of(() -> {

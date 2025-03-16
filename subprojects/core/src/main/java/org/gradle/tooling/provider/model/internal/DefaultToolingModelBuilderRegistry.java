@@ -27,20 +27,23 @@ import org.gradle.internal.build.BuildState;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CallableBuildOperation;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 import org.gradle.tooling.provider.model.UnknownModelException;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.AbstractCollection;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+@ServiceScope({Scope.Build.class, Scope.Project.class})
 public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRegistry, ToolingModelBuilderLookup {
     private final ToolingModelBuilderLookup parent;
 
@@ -59,24 +62,24 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
         }
     };
 
-    private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildOperationRunner buildOperationRunner;
     private final ProjectStateRegistry projectStateRegistry;
     private final UserCodeApplicationContext userCodeApplicationContext;
 
-    public DefaultToolingModelBuilderRegistry(BuildOperationExecutor buildOperationExecutor, ProjectStateRegistry projectStateRegistry, UserCodeApplicationContext userCodeApplicationContext) {
-        this(buildOperationExecutor, projectStateRegistry, null, userCodeApplicationContext);
+    public DefaultToolingModelBuilderRegistry(BuildOperationRunner buildOperationRunner, ProjectStateRegistry projectStateRegistry, UserCodeApplicationContext userCodeApplicationContext) {
+        this(buildOperationRunner, projectStateRegistry, null, userCodeApplicationContext);
         register(new VoidToolingModelBuilder());
     }
 
-    private DefaultToolingModelBuilderRegistry(BuildOperationExecutor buildOperationExecutor, @Nullable ProjectStateRegistry projectStateRegistry, ToolingModelBuilderLookup parent, UserCodeApplicationContext userCodeApplicationContext) {
-        this.buildOperationExecutor = buildOperationExecutor;
+    private DefaultToolingModelBuilderRegistry(BuildOperationRunner buildOperationRunner, @Nullable ProjectStateRegistry projectStateRegistry, ToolingModelBuilderLookup parent, UserCodeApplicationContext userCodeApplicationContext) {
+        this.buildOperationRunner = buildOperationRunner;
         this.projectStateRegistry = projectStateRegistry;
         this.parent = parent;
         this.userCodeApplicationContext = userCodeApplicationContext;
     }
 
     public DefaultToolingModelBuilderRegistry createChild() {
-        return new DefaultToolingModelBuilderRegistry(buildOperationExecutor, projectStateRegistry, this, userCodeApplicationContext);
+        return new DefaultToolingModelBuilderRegistry(buildOperationRunner, projectStateRegistry, this, userCodeApplicationContext);
     }
 
     @Override
@@ -95,7 +98,7 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
         return new BuildOperationWrappingBuilder(
             new LockSingleProjectBuilder(
                 locateForClientOperation(modelName, target.getMutableModel(), parameter), target),
-            modelName, target.getOwner(), target, target.getDisplayName(), buildOperationExecutor);
+            modelName, target.getOwner(), target, target.getDisplayName(), buildOperationRunner);
     }
 
     @Nullable
@@ -114,7 +117,7 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
         return new BuildOperationWrappingBuilder(
             restoreUserCodeApplication(
                 new BuildScopedBuilder(buildScopeModelBuilder, target), registration),
-            modelName, target, null, target.getDisplayName(), buildOperationExecutor);
+            modelName, target, null, target.getDisplayName(), buildOperationRunner);
     }
 
     private Builder locateForClientOperation(String modelName, ProjectInternal project, boolean parameter) throws UnknownModelException {
@@ -311,7 +314,7 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
         private final BuildState targetBuild;
         private final ProjectState targetProject;
         private final DisplayName targetDisplayName;
-        private final BuildOperationExecutor buildOperationExecutor;
+        private final BuildOperationRunner buildOperationRunner;
 
         private BuildOperationWrappingBuilder(
             Builder delegate,
@@ -320,19 +323,19 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
             @Nullable
             ProjectState targetProject,
             DisplayName targetDisplayName,
-            BuildOperationExecutor buildOperationExecutor
+            BuildOperationRunner buildOperationRunner
         ) {
             super(delegate);
             this.modelName = modelName;
             this.targetBuild = targetBuild;
             this.targetProject = targetProject;
             this.targetDisplayName = targetDisplayName;
-            this.buildOperationExecutor = buildOperationExecutor;
+            this.buildOperationRunner = buildOperationRunner;
         }
 
         @Override
         public Object build(Object parameter) {
-            return buildOperationExecutor.call(new CallableBuildOperation<Object>() {
+            return buildOperationRunner.call(new CallableBuildOperation<Object>() {
                 @Override
                 public Object call(BuildOperationContext context) {
                     return delegate.build(parameter);

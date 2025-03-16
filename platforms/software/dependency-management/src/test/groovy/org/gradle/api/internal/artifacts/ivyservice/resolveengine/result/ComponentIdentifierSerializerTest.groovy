@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
+import org.gradle.api.internal.artifacts.ProjectComponentIdentifierInternal
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier
@@ -71,14 +72,14 @@ class ComponentIdentifierSerializerTest extends SerializerSpec {
         def identifier = new DefaultProjectComponentIdentifier(new DefaultBuildIdentifier(Path.path(":build")), Path.ROOT, Path.ROOT, "someProject")
 
         when:
-        def result = serialize(identifier, serializer)
+        def result = serialize(identifier, serializer) as ProjectComponentIdentifierInternal
 
         then:
         result.identityPath == identifier.identityPath
         result.projectPath == identifier.projectPath
         result.buildTreePath == identifier.buildTreePath
-        result.projectPath() == identifier.projectPath()
         result.projectName == identifier.projectName
+        assertSameProjectId(result, identifier)
     }
 
     def "serializes root build ProjectComponentIdentifier"() {
@@ -86,14 +87,14 @@ class ComponentIdentifierSerializerTest extends SerializerSpec {
         def identifier = new DefaultProjectComponentIdentifier(new DefaultBuildIdentifier(Path.path(":build")), Path.path(":a:b"), Path.path(":a:b"), "b")
 
         when:
-        def result = serialize(identifier, serializer)
+        def result = serialize(identifier, serializer) as ProjectComponentIdentifierInternal
 
         then:
         result.identityPath == identifier.identityPath
         result.projectPath == identifier.projectPath
         result.buildTreePath == identifier.buildTreePath
-        result.projectPath() == identifier.projectPath()
         result.projectName == identifier.projectName
+        assertSameProjectId(result, identifier)
     }
 
     def "serializes other build root ProjectComponentIdentifier"() {
@@ -101,14 +102,14 @@ class ComponentIdentifierSerializerTest extends SerializerSpec {
         def identifier = new DefaultProjectComponentIdentifier(new DefaultBuildIdentifier(Path.path(":build")), Path.path(":prefix:someProject"), Path.ROOT, "someProject")
 
         when:
-        def result = serialize(identifier, serializer)
+        def result = serialize(identifier, serializer) as ProjectComponentIdentifierInternal
 
         then:
         result.identityPath == identifier.identityPath
         result.projectPath == identifier.projectPath
         result.buildTreePath == identifier.buildTreePath
-        result.projectPath() == identifier.projectPath()
         result.projectName == identifier.projectName
+        assertSameProjectId(result, identifier)
     }
 
     def "serializes other build ProjectComponentIdentifier"() {
@@ -116,14 +117,14 @@ class ComponentIdentifierSerializerTest extends SerializerSpec {
         def identifier = new DefaultProjectComponentIdentifier(new DefaultBuildIdentifier(Path.path(":build")), Path.path(":prefix:a:b"), Path.path(":a:b"), "b")
 
         when:
-        def result = serialize(identifier, serializer)
+        def result = serialize(identifier, serializer) as ProjectComponentIdentifierInternal
 
         then:
         result.identityPath == identifier.identityPath
         result.projectPath == identifier.projectPath
         result.buildTreePath == identifier.buildTreePath
-        result.projectPath() == identifier.projectPath()
         result.projectName == identifier.projectName
+        assertSameProjectId(result, identifier)
     }
 
     def "serialize OpaqueComponentArtifactIdentifier"() {
@@ -153,5 +154,12 @@ class ComponentIdentifierSerializerTest extends SerializerSpec {
         result.displayName == notation.displayName
         result.classPathNotation == notation
         result == identifier
+    }
+
+    void assertSameProjectId(ProjectComponentIdentifierInternal result, ProjectComponentIdentifierInternal selector) {
+        assert result.projectIdentity.buildIdentifier == selector.projectIdentity.buildIdentifier
+        assert result.projectIdentity.buildTreePath == selector.projectIdentity.buildTreePath
+        assert result.projectIdentity.projectPath == selector.projectIdentity.projectPath
+        assert result.projectIdentity.projectName == selector.projectIdentity.projectName
     }
 }

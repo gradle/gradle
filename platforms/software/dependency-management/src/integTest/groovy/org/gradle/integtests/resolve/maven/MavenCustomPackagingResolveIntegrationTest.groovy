@@ -30,7 +30,7 @@ class MavenCustomPackagingResolveIntegrationTest extends AbstractHttpDependencyR
         def local = m2.mavenRepo().module("local", "local", "1.0").hasType("aar").hasPackaging("aar").publish()
 
         when:
-        buildScript """
+        buildFile """
             configurations {
                 local
             }
@@ -59,12 +59,12 @@ class MavenCustomPackagingResolveIntegrationTest extends AbstractHttpDependencyR
         def remote = mavenHttpRepo.module("remote", "remote", "1.0").hasType("aar").hasPackaging("aar").publish()
 
         given:
-        buildScript """
+        buildFile """
             configurations {
                 remote
             }
             repositories {
-                maven { url "$mavenHttpRepo.uri" }
+                maven { url = "$mavenHttpRepo.uri" }
             }
             dependencies {
                 remote "remote:remote:1.0"
@@ -99,12 +99,12 @@ class MavenCustomPackagingResolveIntegrationTest extends AbstractHttpDependencyR
         def remote = mavenHttpRepo.module("remote", "remote", "1.0").hasType("notJar").hasPackaging("notJar").publish()
 
         given:
-        buildScript """
+        buildFile """
             plugins {
                 id 'java'
             }
             repositories {
-                maven { url "$mavenHttpRepo.uri" }
+                maven { url = "$mavenHttpRepo.uri" }
             }
             dependencies {
                 implementation "remote:remote:1.0"
@@ -140,12 +140,12 @@ class MavenCustomPackagingResolveIntegrationTest extends AbstractHttpDependencyR
         def remote = mavenHttpRepo.module("remote", "remote", "1.0").hasType("jar").hasPackaging("hk2-jar").publish()
 
         given:
-        buildScript """
+        buildFile """
             configurations {
                 remote
             }
             repositories {
-                maven { url "$mavenHttpRepo.uri" }
+                maven { url = "$mavenHttpRepo.uri" }
             }
             dependencies {
                 remote "remote:remote:1.0"
@@ -190,7 +190,7 @@ class MavenCustomPackagingResolveIntegrationTest extends AbstractHttpDependencyR
             .publish()
 
         given:
-        buildScript """
+        buildFile """
             configurations {
                 conf {
                     attributes {
@@ -201,7 +201,7 @@ class MavenCustomPackagingResolveIntegrationTest extends AbstractHttpDependencyR
                 }
             }
             repositories {
-                maven { url "$mavenHttpRepo.uri" }
+                maven { url = "$mavenHttpRepo.uri" }
             }
             dependencies {
                 conf "remote:remote:1.0"
@@ -237,12 +237,12 @@ class MavenCustomPackagingResolveIntegrationTest extends AbstractHttpDependencyR
         def consumer = mavenHttpRepo.module("consumer", "consumer", "1.0").dependsOn(customPackaging).publish()
 
         given:
-        buildScript """
+        buildFile """
             configurations {
                 remote
             }
             repositories {
-                maven { url "$mavenHttpRepo.uri" }
+                maven { url = "$mavenHttpRepo.uri" }
             }
             dependencies {
                 remote "consumer:consumer:1.0"

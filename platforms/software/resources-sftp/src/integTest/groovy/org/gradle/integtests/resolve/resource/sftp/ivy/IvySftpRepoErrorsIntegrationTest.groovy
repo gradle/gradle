@@ -32,10 +32,10 @@ class IvySftpRepoErrorsIntegrationTest extends AbstractSftpDependencyResolutionT
         buildFile << """
             repositories {
                 ivy {
-                    url "${ivySftpRepo.uri}"
+                    url = "${ivySftpRepo.uri}"
                     credentials {
-                        username 'sftp'
-                        password 'sftp'
+                        username = 'sftp'
+                        password = 'sftp'
                     }
                 }
             }
@@ -74,10 +74,10 @@ Required by:
         buildFile << """
             repositories {
                 ivy {
-                    url "${ivySftpRepo.uri}"
+                    url = "${ivySftpRepo.uri}"
                     credentials {
-                        username 'sftp'
-                        password 'sftp'
+                        username = 'sftp'
+                        password = 'sftp'
                     }
                 }
             }
@@ -108,10 +108,10 @@ Required by:
         buildFile << """
             repositories {
                 ivy {
-                    url "${ivySftpRepo.uri}"
+                    url = "${ivySftpRepo.uri}"
                     credentials {
-                        username 'bad'
-                        password 'credentials'
+                        username = 'bad'
+                        password = 'credentials'
                     }
                 }
             }
@@ -141,10 +141,10 @@ Required by:
         buildFile << """
             repositories {
                 ivy {
-                    url "${ivySftpRepo.uri}"
+                    url = "${ivySftpRepo.uri}"
                     credentials {
-                        username 'sftp'
-                        password 'sftp'
+                        username = 'sftp'
+                        password = 'sftp'
                     }
                 }
             }
@@ -172,10 +172,10 @@ Required by:
         buildFile << """
             repositories {
                 ivy {
-                    url "${ivySftpRepo.uri}"
+                    url = "${ivySftpRepo.uri}"
                     credentials {
-                        username 'sftp'
-                        password 'sftp'
+                        username = 'sftp'
+                        password = 'sftp'
                     }
                 }
             }
@@ -205,10 +205,10 @@ Required by:
         buildFile << """
             repositories {
                 ivy {
-                    url "${ivySftpRepo.uri}"
+                    url = "${ivySftpRepo.uri}"
                     credentials {
-                        username 'sftp'
-                        password 'sftp'
+                        username = 'sftp'
+                        password = 'sftp'
                     }
                 }
             }
@@ -244,7 +244,7 @@ Required by:
         buildFile << """
 repositories {
     ivy {
-        url "${getIvySftpRepo().uri}"
+        url = "${getIvySftpRepo().uri}"
         authentication {
             auth(BasicAuthentication)
         }

@@ -19,6 +19,7 @@ package org.gradle.internal.buildevents
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class BuildFailureIntegrationTest extends AbstractIntegrationSpec {
+
     def "still prints errors when exception misbehaves"() {
         // When running in-process, the NPE propagates out of the test fixtures
         executer.requireIsolatedDaemons()
@@ -38,5 +39,20 @@ throw new BadException()
         then:
         failure.assertHasDescription("A problem occurred evaluating root project")
         failure.assertHasCause("Unable to get message for failure of type BadException due to null")
+    }
+
+    def "can handle circular exception"() {
+        buildFile << """
+            Exception selfReferencingException = new Exception("BOOM self")
+            selfReferencingException.initCause(new Exception("BOOM cause", selfReferencingException))
+            throw selfReferencingException
+        """
+
+        when:
+        fails("help", "-s")
+
+        then:
+        failureCauseContains("BOOM self")
+        result.assertHasErrorOutput("Caused by: java.lang.Throwable: [CIRCULAR REFERENCE: java.lang.Exception: BOOM self]")
     }
 }

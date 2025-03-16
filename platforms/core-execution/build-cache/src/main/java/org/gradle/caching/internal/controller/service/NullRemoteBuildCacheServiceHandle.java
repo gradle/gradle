@@ -18,8 +18,8 @@ package org.gradle.caching.internal.controller.service;
 
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Optional;
 import java.util.function.Function;

@@ -16,13 +16,14 @@
 
 package org.gradle.internal.declarativedsl.schemaBuidler
 
+import org.gradle.internal.declarativedsl.InstanceAndPublicType
 import org.gradle.internal.declarativedsl.schemaBuilder.treatInterfaceAsConfigureLambda
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.Test
 import org.junit.jupiter.api.assertThrows
 import kotlin.reflect.typeOf
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 
 
 class TreatInterfaceAsConfigureLambdaTest {
@@ -52,11 +53,11 @@ class TreatInterfaceAsConfigureLambdaTest {
 
         val valueCaptor1 = customConfigureLambdas.produceValueCaptor(typeOf<MyFunctionalInterface<Int>>())
         f(valueCaptor1.lambda as MyFunctionalInterface<String>)
-        assertEquals("test", valueCaptor1.value)
+        assertEquals(InstanceAndPublicType.of("test", Int::class), valueCaptor1.value)
 
         val valueCaptor2 = customConfigureLambdas.produceValueCaptor(typeOf<MyFunctionalInterface<*>>())
         f(valueCaptor2.lambda as MyFunctionalInterface<String>)
-        assertEquals("test", valueCaptor2.value)
+        assertEquals(InstanceAndPublicType.of("test",null), valueCaptor2.value)
 
         assertThrows<IllegalArgumentException> {
             customConfigureLambdas.produceValueCaptor(typeOf<Runnable>())

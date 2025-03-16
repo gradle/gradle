@@ -16,10 +16,13 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
 import org.gradle.model.internal.type.ModelType;
 
+@ServiceScope(Scope.Global.class)
 public interface ModelSchemaExtractor {
     <T> ModelSchema<T> extract(ModelType<T> type, ModelSchemaCache cache);
 }

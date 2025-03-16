@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.performance.fixture.BuildExperimentSpec
 import org.gradle.performance.fixture.BuildScanPerformanceTestRunner
 import org.gradle.performance.fixture.GradleBuildExperimentRunner
+import org.gradle.performance.fixture.GradleBuildExperimentSpec
 import org.gradle.performance.fixture.GradleInvocationSpec
 import org.gradle.performance.fixture.PerformanceTestIdProvider
 import org.gradle.performance.measure.Amount
@@ -38,10 +39,10 @@ import static org.gradle.performance.fixture.BaselineVersionResolver.toBaselineV
 class AbstractBuildScanPluginPerformanceTest extends AbstractPerformanceTest {
 
     /**
-     * System property that points to a directory with GE plugin information
+     * System property that points to a directory with DV plugin information
      * such files containing build commit ID and plugin version.
      */
-    private static final INFO_DIR_SYSTEM_PROP = "org.gradle.performance.enterprise.plugin.infoDir"
+    private static final INFO_DIR_SYSTEM_PROP = "org.gradle.performance.develocity.plugin.infoDir"
 
     private static File resolvePluginInfoDir() {
         def path = System.getProperty(INFO_DIR_SYSTEM_PROP)
@@ -90,8 +91,17 @@ class AbstractBuildScanPluginPerformanceTest extends AbstractPerformanceTest {
                 invocation.buildLog(new File(builder.workingDirectory, "build.log"))
                 invocation.distribution(distribution)
             }
+
+            @Override
+            protected void configureGradleSpec(GradleBuildExperimentSpec.GradleBuilder builder) {
+                super.configureGradleSpec(builder)
+                AbstractBuildScanPluginPerformanceTest.this.configureGradleSpec(builder)
+            }
         }
         performanceTestIdProvider.setTestSpec(runner)
+    }
+
+    protected void configureGradleSpec(GradleBuildExperimentSpec.GradleBuilder builder) {
     }
 
     private static resolvePluginVersion() {

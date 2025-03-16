@@ -31,7 +31,7 @@ class CopySpecIntegrationSpec extends AbstractIntegrationSpec implements Unreada
 
     def "can use filesMatching with List"() {
         given:
-        buildScript """
+        buildFile """
             task (copy, type: Copy) {
                 from 'src'
                 into 'dest'
@@ -52,7 +52,7 @@ class CopySpecIntegrationSpec extends AbstractIntegrationSpec implements Unreada
 
     def "can use filesNotMatching with List"() {
         given:
-        buildScript """
+        buildFile """
             task (copy, type: Copy) {
                 from 'src'
                 into 'dest'
@@ -75,7 +75,7 @@ class CopySpecIntegrationSpec extends AbstractIntegrationSpec implements Unreada
     @Issue("gradle/gradle#789")
     def "can copy files with supplementary characters or surrogate pairs in file names"() {
         given:
-        buildScript """
+        buildFile """
             task(copy, type: Copy) {
                 from 'src'
                 into 'dest'

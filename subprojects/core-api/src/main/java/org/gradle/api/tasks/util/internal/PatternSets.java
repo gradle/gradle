@@ -24,7 +24,7 @@ public class PatternSets {
 
     /**
      * Should use as an injected service instead.
-     * @deprecated
+     * @deprecated Should use as an injected service instead.
      */
     @Deprecated
     public static Factory<PatternSet> getNonCachingPatternSetFactory() {

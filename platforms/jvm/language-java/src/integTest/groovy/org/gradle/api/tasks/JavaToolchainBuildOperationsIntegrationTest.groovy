@@ -56,7 +56,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         if (configureToolchain == "without") {
             jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(Jvm.current())
         } else {
-            jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentJdk)
+            jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentVersion)
 
             if (configureToolchain == "with java plugin") {
                 configureJavaPluginToolchainVersion(jdkMetadata)
@@ -117,7 +117,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
     def "emits toolchain usages for a custom task that uses a toolchain property"() {
         def task = ":myToolchainTask"
 
-        JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentJdk)
+        JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentVersion)
 
         buildFile << """
             abstract class ToolchainTask extends DefaultTask {
@@ -290,6 +290,9 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         def task = ":compileJava"
 
         when:
+        if (option == "java home") {
+            executer.expectDocumentedDeprecationWarning("The ForkOptions.setJavaHome(File) method has been deprecated. This is scheduled to be removed in Gradle 9.0. The 'javaHome' property of ForkOptions is deprecated and will be removed in Gradle 9. Use JVM toolchains or the 'executable' property instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_fork_options_java_home")
+        }
         withInstallations(jdkMetadata).run(task)
         def events = toolchainEvents(task)
         then:
@@ -297,6 +300,9 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         assertToolchainUsages(events, jdkMetadata, "JavaCompiler")
 
         when:
+        if (option == "java home" && GradleContextualExecuter.notConfigCache) {
+            executer.expectDocumentedDeprecationWarning("The ForkOptions.setJavaHome(File) method has been deprecated. This is scheduled to be removed in Gradle 9.0. The 'javaHome' property of ForkOptions is deprecated and will be removed in Gradle 9. Use JVM toolchains or the 'executable' property instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_fork_options_java_home")
+        }
         withInstallations(jdkMetadata).run(task)
         events = toolchainEvents(task)
         then:
@@ -400,7 +406,12 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
     @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
     @UnsupportedWithConfigurationCache(because = "See KotlinGradlePluginVersions#hasConfigurationCacheWarnings()", iterationMatchers = [/.* 1\.6 Kotlin plugin .*/, /.* 1\.7 Kotlin plugin .*/])
     def "emits toolchain usages when configuring toolchains for #kotlinPlugin Kotlin plugin '#kotlinPluginVersion'"() {
-        JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentVersion)
+        // Kotlin <1.9 doesn't support JDK21
+        // e: Unknown JVM target version: 21
+        // Supported versions: 1.6, 1.8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18
+        JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.getDifferentVersion({
+            it.languageVersion.majorVersion.toInteger() <= 17
+        }))
 
         given:
         // override setup
@@ -440,7 +451,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
             def wrapUtilWarning = "The org.gradle.util.WrapUtil type has been deprecated. " +
                 "This is scheduled to be removed in Gradle 9.0. " +
                 "Consult the upgrading guide for further information: " +
-                "https://docs.gradle.org/current/userguide/upgrading_version_7.html#org_gradle_util_reports_deprecations"
+                "https://docs.gradle.org/current/userguide/upgrading_version_8.html#org_gradle_util_reports_deprecations_80"
             if (GradleContextualExecuter.isConfigCache()) {
                 executer.expectDocumentedDeprecationWarning(wrapUtilWarning)
             } else {
@@ -459,6 +470,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
             executer.expectDocumentedDeprecationWarning(
                 "The AbstractCompile.destinationDir property has been deprecated. " +
                     "This is scheduled to be removed in Gradle 9.0. " +
+                    "Property was automatically upgraded to the lazy version. " +
                     "Please use the destinationDirectory property instead. " +
                     "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#compile_task_wiring")
             executer.expectDocumentedDeprecationWarning(
@@ -481,10 +493,10 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         // KGP performed convention registration at config time until 1.9.20
         if (kotlinVersionNumber <= VersionNumber.parse("1.9.20")) {
             executer.expectDocumentedDeprecationWarning(
-                    "The org.gradle.api.plugins.Convention type has been deprecated. " +
-                            "This is scheduled to be removed in Gradle 9.0. " +
-                            "Consult the upgrading guide for further information: " +
-                            "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions")
+                "The org.gradle.api.plugins.Convention type has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 9.0. " +
+                    "Consult the upgrading guide for further information: " +
+                    "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions")
         }
         withInstallations(jdkMetadata).run(":compileKotlin", ":test")
         def eventsOnCompile = toolchainEvents(":compileKotlin")
@@ -493,7 +505,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         then:
         executedAndNotSkipped(":compileKotlin", ":test")
         println(eventsOnCompile)
-        if (isKotlin1dot8) {
+        if (isKotlin1dot8 && GradleContextualExecuter.notConfigCache) {
             // Kotlin 1.8 uses both launcher and compiler
             assertToolchainUsages(eventsOnCompile, jdkMetadata, "JavaLauncher", "JavaCompiler")
         } else {
@@ -533,13 +545,12 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         assertToolchainUsages(eventsOnTest, jdkMetadata, "JavaLauncher")
 
         where:
-        kotlinPlugin    | _
-        "1.6"           | _
-        "1.7"           | _
-        "1.8"           | _
-        "1.9.0"         | _
-        "1.9.22"        | _
-        "latest"        | _
+        kotlinPlugin | _
+        "1.6"        | _
+        "1.7"        | _
+        "1.8"        | _
+        "1.9"        | _
+        "latest"     | _
 
         kotlinPluginVersion = kotlinPlugin == "latest" ? kgpLatestVersions.last() : latestStableKotlinPluginVersion(kotlinPlugin)
     }
@@ -547,7 +558,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
     def "emits toolchain usages when task fails for 'compileJava' task"() {
         def task = ":compileJava"
 
-        JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentJdk)
+        JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentVersion)
 
         configureJavaPluginToolchainVersion(jdkMetadata)
 
@@ -560,7 +571,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         def events = toolchainEvents(task)
         then:
         failureDescriptionStartsWith("Execution failed for task '${task}'.")
-        failureHasCause("Compilation failed; see the compiler error output for details.")
+        failureHasCause("Compilation failed; see the compiler output below.")
         result.assertHasErrorOutput("Foo.java:2: error: cannot find symbol")
         assertToolchainUsages(events, jdkMetadata, "JavaCompiler")
     }
@@ -568,7 +579,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
     def "emits toolchain usages when task fails for 'test' task"() {
         def task = ":test"
 
-        JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentJdk)
+        JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentVersion)
 
         configureJavaPluginToolchainVersion(jdkMetadata)
 
@@ -591,7 +602,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
     def "emits toolchain usages when task fails for 'javadoc' task"() {
         def task = ":javadoc"
 
-        JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentJdk)
+        JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentVersion)
 
         configureJavaPluginToolchainVersion(jdkMetadata)
 
@@ -612,7 +623,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
     }
 
     def "ignores toolchain usages at configuration time"() {
-        JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentJdk)
+        JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentVersion)
         buildFile << """
             println(javaToolchains.launcherFor {
                 languageVersion = JavaLanguageVersion.of(${jdkMetadata.languageVersion.majorVersion})
@@ -662,7 +673,16 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         """
     }
 
-    private static String latestStableKotlinPluginVersion(String major) {
-        return kgpLatestVersions.findAll { it.startsWith(major) && !it.contains("-") }.last()
+    private static String latestStableKotlinPluginVersion(String kotlinMajorMinor) {
+        def stable = kgpLatestVersions.findAll { it.startsWith(kotlinMajorMinor) && !it.contains("-") }
+        println("================")
+        println(kgpLatestVersions)
+        println(kotlinMajorMinor)
+        if (stable.isEmpty()) {
+            throw new IllegalStateException("No stable Kotlin plugin version found for version $kotlinMajorMinor. " +
+                "Please, use major.minor version in the test and make sure it has corresponding version in kotlin-versions.properties.")
+        }
+        println(stable)
+        return stable.last()
     }
 }

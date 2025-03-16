@@ -26,10 +26,10 @@ import java.io.File;
  * <p>By default, a shared lock is held on this cache by this process, to prevent it being removed or rebuilt by another process
  * while it is in use. You can change this use {@link CacheBuilder#withInitialLockMode(org.gradle.cache.FileLockManager.LockMode)}.
  *
- * <p>You can use {@link CacheBuilder#withInitializer(org.gradle.api.Action)} to provide an action to initialize the contents
+ * <p>You can use {@link CacheBuilder#withInitializer(java.util.function.Consumer)} to provide an action to initialize the contents
  * of the cache, for building a read-only cache. An exclusive lock is held by this process while the initializer is running.</p>
  *
- * <p>You can also use {@link #useCache(org.gradle.internal.Factory)} to perform some action on the cache while holding an exclusive
+ * <p>You can also use {@link #useCache(java.util.function.Supplier)} to perform some action on the cache while holding an exclusive
  * lock on the cache.
  * </p>
  */
@@ -43,7 +43,7 @@ public interface PersistentCache extends ExclusiveCacheAccessCoordinator, Closea
     /**
      * Creates an indexed cache implementation that is contained within this cache. This method may be used at any time.
      *
-     * <p>The returned cache may only be used by an action being run from {@link #useCache(org.gradle.internal.Factory)}.
+     * <p>The returned cache may only be used by an action being run from {@link #useCache(java.util.function.Supplier)}.
      * In this instance, an exclusive lock will be held on the cache.
      *
      */
@@ -52,7 +52,7 @@ public interface PersistentCache extends ExclusiveCacheAccessCoordinator, Closea
     /**
      * Creates an indexed cache implementation that is contained within this store. This method may be used at any time.
      *
-     * <p>The returned cache may only be used by an action being run from {@link #useCache(org.gradle.internal.Factory)}.
+     * <p>The returned cache may only be used by an action being run from {@link #useCache(java.util.function.Supplier)}.
      * In this instance, an exclusive lock will be held on the cache.
      *
      */

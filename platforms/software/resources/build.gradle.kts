@@ -6,34 +6,35 @@ description = "A set of general-purpose resource abstractions"
 
 errorprone {
     disabledChecks.addAll(
-        "OperatorPrecedence", // 9 occurrences
         "UndefinedEquals", // 1 occurrences
     )
 }
 
 dependencies {
-    api(project(":base-annotations"))
-    api(project(":build-operations"))
-    api(project(":hashing"))
-    api(project(":base-services"))
-    api(project(":files"))
-    api(project(":messaging"))
-    api(project(":native"))
+    api(projects.stdlibJavaExtensions)
+    api(projects.buildOperations)
+    api(projects.hashing)
+    api(projects.baseServices)
+    api(projects.messaging)
+    api(projects.native)
 
-    api(libs.jsr305)
+    api(libs.jspecify)
 
-    implementation(project(":logging"))
+    implementation(projects.files)
+    implementation(projects.logging)
 
-    implementation(libs.slf4jApi)
     implementation(libs.guava)
     implementation(libs.commonsIo)
 
-    testImplementation(project(":process-services"))
-    testImplementation(project(":core-api"))
-    testImplementation(project(":file-collections"))
-    testImplementation(project(":snapshots"))
+    testImplementation(projects.processServices)
+    testImplementation(projects.coreApi)
+    testImplementation(projects.fileCollections)
+    testImplementation(projects.snapshots)
 
-    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(projects.core))
 
-    integTestDistributionRuntimeOnly(project(":distributions-core"))
+    integTestDistributionRuntimeOnly(projects.distributionsCore)
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

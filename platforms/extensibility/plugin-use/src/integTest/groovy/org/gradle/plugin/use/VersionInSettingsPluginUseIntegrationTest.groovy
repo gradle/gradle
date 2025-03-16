@@ -47,7 +47,7 @@ class VersionInSettingsPluginUseIntegrationTest extends AbstractIntegrationSpec 
 
     def "can define plugin version in settings script"() {
         when:
-        buildScript "plugins { id '$PLUGIN_ID' }"
+        buildFile "plugins { id '$PLUGIN_ID' }"
 
         then:
         verifyPluginApplied('1.0')
@@ -87,7 +87,7 @@ class VersionInSettingsPluginUseIntegrationTest extends AbstractIntegrationSpec 
                 }
             }
         """
-        buildScript "plugins { id '$PLUGIN_ID' }"
+        buildFile "plugins { id '$PLUGIN_ID' }"
 
         then:
         verifyPluginApplied('1.0')
@@ -103,7 +103,7 @@ class VersionInSettingsPluginUseIntegrationTest extends AbstractIntegrationSpec 
                 }
             }
         """
-        buildScript "plugins { id '$PLUGIN_ID' }"
+        buildFile "plugins { id '$PLUGIN_ID' }"
 
         then:
         verifyPluginApplied('2.0')
@@ -111,7 +111,7 @@ class VersionInSettingsPluginUseIntegrationTest extends AbstractIntegrationSpec 
 
     def "can override plugin version in settings script"() {
         when:
-        buildScript "plugins { id '$PLUGIN_ID' version '2.0' }"
+        buildFile "plugins { id '$PLUGIN_ID' version '2.0' }"
 
         then:
         verifyPluginApplied('2.0')

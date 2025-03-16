@@ -16,11 +16,11 @@
 
 package org.gradle.api.internal.artifacts.ivyservice
 
-
 import org.gradle.cache.IndexedCache
-import org.gradle.internal.Factory
 import org.gradle.internal.serialize.Serializer
 import org.gradle.testfixtures.internal.TestInMemoryIndexedCache
+
+import java.util.function.Supplier
 
 class ArtifactCacheLockingAccessCoordinatorStub implements ArtifactCacheLockingAccessCoordinator {
     private final Map<String, IndexedCache<?, ?>> caches = [:]
@@ -37,8 +37,8 @@ class ArtifactCacheLockingAccessCoordinatorStub implements ArtifactCacheLockingA
     }
 
     @Override
-    <T> T useCache(Factory<? extends T> action) {
-        action.create()
+    <T> T useCache(Supplier<? extends T> action) {
+        action.get()
     }
 
     @Override
@@ -47,8 +47,8 @@ class ArtifactCacheLockingAccessCoordinatorStub implements ArtifactCacheLockingA
     }
 
     @Override
-    <T> T withFileLock(Factory<? extends T> action) {
-        action.create()
+    <T> T withFileLock(Supplier<? extends T> action) {
+        action.get()
     }
 
     @Override

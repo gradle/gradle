@@ -1,6 +1,6 @@
 pluginManagement {
   repositories {
-      maven(url = "./maven-repo")
+      maven(url = file("./maven-repo"))
   }
 }
 

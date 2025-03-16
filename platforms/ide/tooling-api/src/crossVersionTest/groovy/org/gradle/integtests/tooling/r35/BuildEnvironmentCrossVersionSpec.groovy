@@ -18,7 +18,6 @@ package org.gradle.integtests.tooling.r35
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.tooling.ProjectConnection
@@ -27,7 +26,6 @@ import org.gradle.tooling.model.build.BuildEnvironment
 
 class BuildEnvironmentCrossVersionSpec extends ToolingApiSpecification {
 
-    @ToolingApiVersion(">=3.5")
     @TargetGradleVersion(">=3.5")
     @Requires(UnitTestPreconditions.Jdk8OrEarlier)
     def "old versions can mutate environment on JDK < 9"() {
@@ -51,7 +49,6 @@ class BuildEnvironmentCrossVersionSpec extends ToolingApiSpecification {
         out.toString().contains("<${["var": "val"]}>")
     }
 
-    @ToolingApiVersion(">=4.11")
     @TargetGradleVersion(">=4.11")
     def "new Gradle versions can mutate environment on all JDK versions"() {
         given:
@@ -74,8 +71,7 @@ class BuildEnvironmentCrossVersionSpec extends ToolingApiSpecification {
         out.toString().contains("<${["var": "val"]}>")
     }
 
-    @ToolingApiVersion(">=3.5")
-    @TargetGradleVersion(">=2.6 <3.5")
+    @TargetGradleVersion(">=3.0 <3.5")
     def "long running operation should fail when environment vars specified but not supported by target"() {
         when:
         withConnection {

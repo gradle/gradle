@@ -21,7 +21,6 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.ExecutionEngine.Execution;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionOutputState;
 import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.execution.history.impl.DefaultExecutionOutputState;
@@ -50,11 +49,11 @@ public class SkipUpToDateStep<C extends IncrementalChangesContext> implements St
         ImmutableList<String> reasons = context.getRebuildReasons();
         return context.getChanges()
             .filter(__ -> reasons.isEmpty())
-            .map(changes -> skipExecution(work, changes.getBeforeExecutionState(), context))
+            .map(changes -> skipExecution(work, context))
             .orElseGet(() -> executeBecause(work, reasons, context));
     }
 
-    private UpToDateResult skipExecution(UnitOfWork work, BeforeExecutionState beforeExecutionState, C context) {
+    private UpToDateResult skipExecution(UnitOfWork work, C context) {
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info("Skipping {} as it is up-to-date.", work.getDisplayName());
         }

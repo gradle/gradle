@@ -16,12 +16,16 @@
 
 package org.gradle.internal.enterprise;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 import java.util.concurrent.Executor;
 import java.util.concurrent.RejectedExecutionException;
 
 /**
  * Provides executors to run jobs in the background workers. The implementation is provided by Gradle.
  */
+@ServiceScope(Scope.BuildTree.class)
 public interface GradleEnterprisePluginBackgroundJobExecutors {
     /**
      * Returns the executor to run user-provided background jobs in the background workers.

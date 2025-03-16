@@ -22,7 +22,7 @@ import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
 import org.gradle.api.Incubating
-import org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL
+import org.gradle.model.internal.asm.AsmConstants.ASM_LEVEL
 import org.gradle.internal.classloader.ClassLoaderUtils
 import org.gradle.internal.hash.Hashing
 import org.gradle.kotlin.dsl.accessors.TestWithClassPath
@@ -157,23 +157,23 @@ class GradleApiExtensionsTest : TestWithClassPath() {
 
             assertGeneratedExtensions(
                 """
-                inline fun org.gradle.kotlin.dsl.fixtures.codegen.GroovyNamedArguments.`rawMap`(vararg `args`: Pair<String, Any?>): Unit =
+                inline fun org.gradle.kotlin.dsl.fixtures.codegen.GroovyNamedArguments.`rawMap`(vararg `args`: Pair<String, Any>): Unit =
                     `rawMap`(mapOf(*`args`))
                 """,
                 """
-                inline fun org.gradle.kotlin.dsl.fixtures.codegen.GroovyNamedArguments.`stringUnknownMap`(vararg `args`: Pair<String, Any?>): Unit =
+                inline fun org.gradle.kotlin.dsl.fixtures.codegen.GroovyNamedArguments.`stringUnknownMap`(vararg `args`: Pair<String, Any>): Unit =
                     `stringUnknownMap`(mapOf(*`args`))
                 """,
                 """
-                inline fun org.gradle.kotlin.dsl.fixtures.codegen.GroovyNamedArguments.`stringObjectMap`(vararg `args`: Pair<String, Any?>): Unit =
+                inline fun org.gradle.kotlin.dsl.fixtures.codegen.GroovyNamedArguments.`stringObjectMap`(vararg `args`: Pair<String, Any>): Unit =
                     `stringObjectMap`(mapOf(*`args`))
                 """,
                 """
-                inline fun org.gradle.kotlin.dsl.fixtures.codegen.GroovyNamedArguments.`mapWithOtherParameters`(`foo`: String, `bar`: Int, vararg `args`: Pair<String, Any?>): Unit =
+                inline fun org.gradle.kotlin.dsl.fixtures.codegen.GroovyNamedArguments.`mapWithOtherParameters`(`foo`: String, `bar`: Int, vararg `args`: Pair<String, Any>): Unit =
                     `mapWithOtherParameters`(mapOf(*`args`), `foo`, `bar`)
                 """,
                 """
-                inline fun org.gradle.kotlin.dsl.fixtures.codegen.GroovyNamedArguments.`mapWithLastSamAndOtherParameters`(`foo`: String, vararg `args`: Pair<String, Any?>, `bar`: java.util.function.Consumer<String>): Unit =
+                inline fun org.gradle.kotlin.dsl.fixtures.codegen.GroovyNamedArguments.`mapWithLastSamAndOtherParameters`(`foo`: String, vararg `args`: Pair<String, Any>, `bar`: java.util.function.Consumer<String>): Unit =
                     `mapWithLastSamAndOtherParameters`(mapOf(*`args`), `foo`, `bar`)
                 """
             )
@@ -211,15 +211,15 @@ class GradleApiExtensionsTest : TestWithClassPath() {
 
             assertGeneratedExtensions(
                 """
-                inline fun <T : Any> org.gradle.kotlin.dsl.fixtures.codegen.ClassAndGroovyNamedArguments.`mapAndClass`(`type`: kotlin.reflect.KClass<out T>, vararg `args`: Pair<String, Any?>): Unit =
+                inline fun <T : Any> org.gradle.kotlin.dsl.fixtures.codegen.ClassAndGroovyNamedArguments.`mapAndClass`(`type`: kotlin.reflect.KClass<out T>, vararg `args`: Pair<String, Any>): Unit =
                     `mapAndClass`(mapOf(*`args`), `type`.java)
                 """,
                 """
-                inline fun <T : Any> org.gradle.kotlin.dsl.fixtures.codegen.ClassAndGroovyNamedArguments.`mapAndClassAndVarargs`(`type`: kotlin.reflect.KClass<out T>, `options`: kotlin.Array<String>, vararg `args`: Pair<String, Any?>): Unit =
+                inline fun <T : Any> org.gradle.kotlin.dsl.fixtures.codegen.ClassAndGroovyNamedArguments.`mapAndClassAndVarargs`(`type`: kotlin.reflect.KClass<out T>, `options`: kotlin.Array<String>, vararg `args`: Pair<String, Any>): Unit =
                     `mapAndClassAndVarargs`(mapOf(*`args`), `type`.java, *`options`)
                 """,
                 """
-                inline fun <T : Any> org.gradle.kotlin.dsl.fixtures.codegen.ClassAndGroovyNamedArguments.`mapAndClassAndSAM`(`type`: kotlin.reflect.KClass<out T>, vararg `args`: Pair<String, Any?>, `action`: java.util.function.Consumer<in T>): Unit =
+                inline fun <T : Any> org.gradle.kotlin.dsl.fixtures.codegen.ClassAndGroovyNamedArguments.`mapAndClassAndSAM`(`type`: kotlin.reflect.KClass<out T>, vararg `args`: Pair<String, Any>, `action`: java.util.function.Consumer<in T>): Unit =
                     `mapAndClassAndSAM`(mapOf(*`args`), `type`.java, `action`)
                 """
             )
@@ -353,7 +353,6 @@ class GradleApiExtensionsTest : TestWithClassPath() {
             apiJars,
             emptyList(),
             { true },
-            fixtureParameterNamesSupplier,
             { null }
         )
 
@@ -431,38 +430,6 @@ class GradleApiExtensionsTest : TestWithClassPath() {
     private
     fun hashTargetTypeSourceName(sourceName: String): String =
         Hashing.hashString(sourceName).toCompactString()
-}
-
-
-private
-val fixtureParameterNamesSupplier = { key: String ->
-    when {
-        key.startsWith("${ClassToKClass::class.qualifiedName}.") -> when {
-            key.contains("Class(") -> listOf("type")
-            key.contains("Classes(") -> listOf("types")
-            else -> null
-        }
-
-        key.startsWith("${GroovyNamedArguments::class.qualifiedName}.") -> when {
-            key.contains("Map(") -> listOf("args")
-            key.contains("Parameters(") -> listOf("args", "foo", "bar")
-            else -> null
-        }
-
-        key.startsWith("${ClassAndGroovyNamedArguments::class.qualifiedName}.") -> when {
-            key.contains("mapAndClass(") -> listOf("args", "type")
-            key.contains("mapAndClassAndVarargs(") -> listOf("args", "type", "options")
-            key.contains("mapAndClassAndSAM(") -> listOf("args", "type", "action")
-            else -> null
-        }
-
-        key.startsWith("${ClassToKClassParameterizedType::class.qualifiedName}.") -> when {
-            key.contains("Class(") -> listOf("type", "list")
-            else -> null
-        }
-
-        else -> null
-    }
 }
 
 

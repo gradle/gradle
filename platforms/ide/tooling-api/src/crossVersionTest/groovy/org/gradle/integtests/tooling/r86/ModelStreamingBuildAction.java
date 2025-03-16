@@ -22,6 +22,7 @@ import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.eclipse.EclipseProject;
 
 class ModelStreamingBuildAction implements BuildAction<CustomModel> {
+    @Override
     public CustomModel execute(BuildController controller) {
         EclipseProject eclipseProject = controller.getModel(EclipseProject.class);
         GradleProject gradleProject = controller.getModel(GradleProject.class);

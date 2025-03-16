@@ -16,7 +16,6 @@
 
 package org.gradle.language.cpp.tasks
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.language.nativeplatform.tasks.AbstractUnexportMainSymbolIntegrationTest
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
@@ -34,7 +33,6 @@ import spock.lang.Issue
 class CppUnexportMainSymbolIntegrationTest extends AbstractUnexportMainSymbolIntegrationTest {
     @RequiresInstalledToolChain(ToolChainRequirement.VISUALCPP)
     @Issue("https://github.com/gradle/gradle-native/issues/277")
-    @ToBeFixedForConfigurationCache
     def "can relocate Windows specific _wmain symbol"() {
         makeSingleProject()
         file("src/main/cpp/main.cpp") << """

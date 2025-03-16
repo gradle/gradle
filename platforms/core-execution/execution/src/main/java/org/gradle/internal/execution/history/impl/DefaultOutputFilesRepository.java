@@ -16,9 +16,9 @@
 
 package org.gradle.internal.execution.history.impl;
 
+import org.gradle.cache.IndexedCache;
 import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.IndexedCache;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.internal.execution.history.OutputFilesRepository;
 import org.gradle.internal.snapshot.DirectorySnapshot;
@@ -35,7 +35,11 @@ import java.io.IOException;
 public class DefaultOutputFilesRepository implements OutputFilesRepository, Closeable {
 
     private final PersistentCache cacheAccess;
-    private final IndexedCache<String, Boolean> outputFiles; // The value is true if it is an output file, false if it is a parent of an output file
+    enum OutputKind {
+        OUTPUT,
+        PARENT_OF_OUTPUT
+    }
+    private final IndexedCache<String, OutputKind> outputFiles;
 
     public DefaultOutputFilesRepository(PersistentCache cacheAccess, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
         this.cacheAccess = cacheAccess;
@@ -51,7 +55,7 @@ public class DefaultOutputFilesRepository implements OutputFilesRepository, Clos
     private boolean isContainedInAnOutput(File absoluteFile) {
         File currentFile = absoluteFile;
         while (currentFile != null) {
-            if (outputFiles.getIfPresent(currentFile.getPath()) == Boolean.TRUE) {
+            if (outputFiles.getIfPresent(currentFile.getPath()) == OutputKind.OUTPUT) {
                 return true;
             }
             currentFile = currentFile.getParentFile();
@@ -81,14 +85,14 @@ public class DefaultOutputFilesRepository implements OutputFilesRepository, Clos
                     private void recordOutputSnapshot(FileSystemLocationSnapshot snapshot) {
                         String outputPath = snapshot.getAbsolutePath();
                         File outputFile = new File(outputPath);
-                        outputFiles.put(outputPath, Boolean.TRUE);
+                        outputFiles.put(outputPath, OutputKind.OUTPUT);
                         File outputFileParent = outputFile.getParentFile();
                         while (outputFileParent != null) {
                             String parentPath = outputFileParent.getPath();
                             if (outputFiles.getIfPresent(parentPath) != null) {
                                 break;
                             }
-                            outputFiles.put(parentPath, Boolean.FALSE);
+                            outputFiles.put(parentPath, OutputKind.PARENT_OF_OUTPUT);
                             outputFileParent = outputFileParent.getParentFile();
                         }
                     }
@@ -98,8 +102,8 @@ public class DefaultOutputFilesRepository implements OutputFilesRepository, Clos
         }
     }
 
-    private static IndexedCacheParameters<String, Boolean> cacheParameters(InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
-        return IndexedCacheParameters.of("outputFiles", String.class, Boolean.class)
+    private static IndexedCacheParameters<String, OutputKind> cacheParameters(InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
+        return IndexedCacheParameters.of("outputFiles", String.class, OutputKind.class)
             .withCacheDecorator(inMemoryCacheDecoratorFactory.decorator(100000, true));
     }
 

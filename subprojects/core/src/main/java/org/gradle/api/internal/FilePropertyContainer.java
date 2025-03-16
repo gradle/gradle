@@ -50,7 +50,7 @@ public class FilePropertyContainer<T extends TaskFilePropertyBuilder & TaskPrope
             for (T propertySpec : properties) {
                 String propertyName = propertySpec.getPropertyName();
                 if (propertyName == null) {
-                    propertyName = "$" + (++unnamedPropertyCounter);
+                    propertyName = "$" + ++unnamedPropertyCounter;
                     propertySpec.withPropertyName(propertyName);
                 }
             }

@@ -20,10 +20,11 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.tasks.testing.junit.result.AggregateTestResultsProvider;
-import org.gradle.api.internal.tasks.testing.junit.result.BinaryResultBackedTestResultsProvider;
-import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
-import org.gradle.api.internal.tasks.testing.report.DefaultTestReport;
+import org.gradle.api.internal.tasks.testing.GenericTestReportGenerator;
+import org.gradle.api.internal.tasks.testing.LegacyTestReportGenerator;
+import org.gradle.api.internal.tasks.testing.TestReportGenerator;
+import org.gradle.api.internal.tasks.testing.report.generic.MetadataRendererRegistry;
+import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.tasks.IgnoreEmptyDirectories;
@@ -34,16 +35,21 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation.RemovedIn;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.stream.Collectors;
 
-import static org.gradle.internal.concurrent.CompositeStoppable.stoppable;
-import static org.gradle.util.internal.CollectionUtils.collect;
+import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType.GETTER;
+import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType.SETTER;
+import static org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility.ACCESSORS_KEPT;
 
 /**
  * Generates an HTML test report from the results of one or more {@link Test} tasks.
@@ -54,14 +60,16 @@ public abstract class TestReport extends DefaultTask {
     private final ConfigurableFileCollection resultDirs = getObjectFactory().fileCollection();
 
     @Inject
-    protected BuildOperationExecutor getBuildOperationExecutor() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract BuildOperationRunner getBuildOperationRunner();
 
     @Inject
-    protected ObjectFactory getObjectFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract BuildOperationExecutor getBuildOperationExecutor();
+
+    @Inject
+    protected abstract ObjectFactory getObjectFactory();
+
+    @Inject
+    protected abstract MetadataRendererRegistry getMetadataRendererRegistry();
 
     /**
      * Returns the directory to write the HTML report to.
@@ -98,6 +106,14 @@ public abstract class TestReport extends DefaultTask {
      * @since 7.4
      */
     @OutputDirectory
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = GETTER, name = "getDestinationDir"),
+            @ReplacedAccessor(value = SETTER, name = "setDestinationDir")
+        },
+        binaryCompatibility = ACCESSORS_KEPT,
+        deprecation = @ReplacedDeprecation(removedIn = RemovedIn.GRADLE9, withDslReference = true)
+    )
     public DirectoryProperty getDestinationDirectory() {
         return this.destinationDir;
     }
@@ -165,32 +181,34 @@ public abstract class TestReport extends DefaultTask {
 
     @TaskAction
     void generateReport() {
-        TestResultsProvider resultsProvider = createAggregateProvider();
         try {
-            if (resultsProvider.isHasResults()) {
-                DefaultTestReport testReport = new DefaultTestReport(getBuildOperationExecutor());
-                testReport.generateReport(resultsProvider, getDestinationDirectory().get().getAsFile());
+            TestReportGenerator impl = detectAndCreateImplementation(getTestResults());
+            if (impl.hasResults()) {
+                impl.generateReport(getBuildOperationRunner(), getBuildOperationExecutor(), getDestinationDirectory().get().getAsFile().toPath());
             } else {
                 getLogger().info("{} - no binary test results found in dirs: {}.", getPath(), getTestResults().getFiles());
                 setDidWork(false);
             }
-        } finally {
-            stoppable(resultsProvider).stop();
+        } catch (Exception e) {
+            throw new RuntimeException("Could not write test report for results in " + getTestResults().getFiles(), e);
         }
     }
 
-    private TestResultsProvider createAggregateProvider() {
-        List<TestResultsProvider> resultsProviders = new LinkedList<TestResultsProvider>();
-        try {
-            FileCollection resultDirs = getTestResults();
-            if (resultDirs.getFiles().size() == 1) {
-                return new BinaryResultBackedTestResultsProvider(resultDirs.getSingleFile());
-            } else {
-                return new AggregateTestResultsProvider(collect(resultDirs, resultsProviders, BinaryResultBackedTestResultsProvider::new));
+    TestReportGenerator detectAndCreateImplementation(FileCollection resultDirs) {
+        Boolean isGenericImplementation = null;
+        for (File resultDir : resultDirs.getFiles()) {
+            boolean resultDirIsGenericImplementation = SerializableTestResultStore.isGenericTestResults(resultDir);
+            if (isGenericImplementation == null) {
+                isGenericImplementation = resultDirIsGenericImplementation;
+            } else if (isGenericImplementation != resultDirIsGenericImplementation) {
+                throw new IllegalStateException("Cannot mix generic and non-generic test results in the same report.");
             }
-        } catch (RuntimeException e) {
-            stoppable(resultsProviders).stop();
-            throw e;
+        }
+        assert isGenericImplementation != null : "@SkipWhenEmpty should prevent this from being called with an empty collection";
+        if (isGenericImplementation) {
+            return new GenericTestReportGenerator(resultDirs.getFiles().stream().map(File::toPath).collect(Collectors.toSet()), getMetadataRendererRegistry());
+        } else {
+            return new LegacyTestReportGenerator(resultDirs);
         }
     }
 }

@@ -27,6 +27,7 @@ import org.gradle.api.execution.TaskExecutionGraph
 import org.gradle.api.initialization.IncludedBuild
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
+import org.gradle.api.invocation.GradleLifecycle
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.plugins.PluginContainer
@@ -62,6 +63,9 @@ abstract class GradleDelegate : Gradle {
 
     override fun getGradleHomeDir(): File? =
         delegate.gradleHomeDir
+
+    override fun getLifecycle(): GradleLifecycle =
+        delegate.lifecycle
 
     override fun getParent(): Gradle? =
         delegate.parent
@@ -140,6 +144,8 @@ abstract class GradleDelegate : Gradle {
     override fun removeListener(listener: Any) =
         delegate.removeListener(listener)
 
+    @Suppress("DEPRECATION")
+    @Deprecated("Will be removed in Gradle 9. Logging customization through listeners is no longer supported.")
     override fun useLogger(logger: Any) =
         delegate.useLogger(logger)
 

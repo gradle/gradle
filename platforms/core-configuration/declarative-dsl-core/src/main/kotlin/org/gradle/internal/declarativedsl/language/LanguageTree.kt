@@ -1,5 +1,7 @@
 package org.gradle.internal.declarativedsl.language
 
+import org.gradle.declarative.dsl.schema.DataType
+
 
 sealed interface LanguageTreeElement {
     val sourceData: SourceData
@@ -7,13 +9,27 @@ sealed interface LanguageTreeElement {
 
 
 sealed interface FunctionArgument : LanguageTreeElement {
-    sealed interface ValueArgument : FunctionArgument {
+    sealed interface ValueLikeArgument : FunctionArgument
+
+    sealed interface SingleValueArgument : ValueLikeArgument {
         val expr: Expr
     }
 
-    data class Positional(override val expr: Expr, override val sourceData: SourceData) : ValueArgument
-    data class Named(val name: String, override val expr: Expr, override val sourceData: SourceData) : ValueArgument
-    data class Lambda(val block: Block, override val sourceData: SourceData) : FunctionArgument
+    data class Positional(override val expr: Expr, override val sourceData: SourceData) : SingleValueArgument {
+        override fun toString() = "$expr"
+    }
+    data class Named(val name: String, override val expr: Expr, override val sourceData: SourceData) : SingleValueArgument {
+        override fun toString() = "$name = $expr"
+    }
+    data class GroupedVarargs(val elementArgs: List<SingleValueArgument>): ValueLikeArgument {
+        override val sourceData: SourceData
+            get() = elementArgs.firstOrNull()?.sourceData ?: SyntheticallyProduced
+
+        override fun toString(): String = "[${elementArgs.joinToString()}]"
+    }
+    data class Lambda(val block: Block, override val sourceData: SourceData) : FunctionArgument {
+        override fun toString() = "{ ... }"
+    }
 }
 
 
@@ -25,7 +41,7 @@ sealed interface DataStatement : LanguageTreeElement, BlockElement
 
 data class ErroneousStatement(val failingResult: FailingResult) : BlockElement {
     override val sourceData: SourceData
-        get() = error("Use failing result for source data")
+        get() = error("use failing result for source data")
 }
 
 
@@ -47,13 +63,17 @@ data class Import(val name: AccessChain, override val sourceData: SourceData) : 
 data class AccessChain(val nameParts: List<String>)
 
 
-data class PropertyAccess(val receiver: Expr?, val name: String, override val sourceData: SourceData) : Expr
+data class NamedReference(val receiver: Expr?, val name: String, override val sourceData: SourceData) : Expr {
+    override fun toString() = "${receiver?.let { "$it." }.orEmpty()}$name"
+}
 
 
-data class FunctionCall(val receiver: Expr?, val name: String, val args: List<FunctionArgument>, override val sourceData: SourceData) : Expr
+data class FunctionCall(val receiver: Expr?, val name: String, val args: List<FunctionArgument>, override val sourceData: SourceData) : Expr {
+    override fun toString() = "$name(${args.joinToString()})"
+}
 
 
-data class Assignment(val lhs: PropertyAccess, val rhs: Expr, override val sourceData: SourceData) : DataStatement
+data class Assignment(val lhs: NamedReference, val rhs: Expr, override val sourceData: SourceData) : DataStatement
 
 
 data class LocalValue(val name: String, val rhs: Expr, override val sourceData: SourceData) : DataStatement
@@ -68,7 +88,9 @@ sealed interface Literal<T : Any> : Expr {
         override val sourceData: SourceData
     ) : Literal<String> {
         override val type: DataType.StringDataType
-            get() = DataType.StringDataType
+            get() = DataTypeInternal.DefaultStringDataType
+
+        override fun toString() = "\"$value\""
     }
 
     data class IntLiteral(
@@ -76,7 +98,8 @@ sealed interface Literal<T : Any> : Expr {
         override val sourceData: SourceData
     ) : Literal<Int> {
         override val type: DataType.IntDataType
-            get() = DataType.IntDataType
+            get() = DataTypeInternal.DefaultIntDataType
+        override fun toString() = value.toString()
     }
 
     data class LongLiteral(
@@ -84,7 +107,8 @@ sealed interface Literal<T : Any> : Expr {
         override val sourceData: SourceData
     ) : Literal<Long> {
         override val type: DataType.LongDataType
-            get() = DataType.LongDataType
+            get() = DataTypeInternal.DefaultLongDataType
+        override fun toString() = value.toString()
     }
 
     data class BooleanLiteral(
@@ -92,12 +116,17 @@ sealed interface Literal<T : Any> : Expr {
         override val sourceData: SourceData
     ) : Literal<Boolean> {
         override val type: DataType.BooleanDataType
-            get() = DataType.BooleanDataType
+            get() = DataTypeInternal.DefaultBooleanDataType
+        override fun toString() = value.toString()
     }
 }
 
 
-data class Null(override val sourceData: SourceData) : Expr
+data class Null(override val sourceData: SourceData) : Expr {
+    override fun toString() = "null"
+}
 
 
-data class This(override val sourceData: SourceData) : Expr
+data class This(override val sourceData: SourceData) : Expr {
+    override fun toString() = "this"
+}

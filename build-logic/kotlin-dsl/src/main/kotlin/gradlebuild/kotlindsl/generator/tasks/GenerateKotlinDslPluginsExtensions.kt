@@ -18,7 +18,7 @@ package gradlebuild.kotlindsl.generator.tasks
 
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
-import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.licenseHeader
+import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.LICENSE_HEADER
 import org.gradle.work.DisableCachingByDefault
 
 import java.io.File
@@ -34,7 +34,7 @@ abstract class GenerateKotlinDslPluginsExtensions : CodeGenerationTask() {
     override fun File.writeFiles() {
         writeFile(
             "org/gradle/kotlin/dsl/plugins/Version.kt",
-            """$licenseHeader
+            """$LICENSE_HEADER
 package org.gradle.kotlin.dsl.plugins
 
 

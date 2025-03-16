@@ -28,7 +28,7 @@ public enum Destination implements Serializable {
     StdOut(0),
     StdErr(1);
 
-    private int code;
+    private final int code;
 
      Destination(int code) {
         this.code = code;

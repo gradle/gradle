@@ -33,14 +33,14 @@ class ProblemsServiceModelBuilderCrossVersionTest extends ToolingApiSpecificatio
 
     ProblemProgressEventCrossVersionTest.ProblemProgressListener listener
 
-    def setup(){
+    def setup() {
         listener = new ProblemProgressEventCrossVersionTest.ProblemProgressListener()
     }
 
     def "Can use problems service in model builder and get failure objects"() {
         given:
         Assume.assumeTrue(javaHome != null)
-        buildFile getBuildScriptSampleContent(false, false)
+        buildFile getBuildScriptSampleContent(false, false, targetVersion)
 
         when:
         withConnection {
@@ -52,10 +52,7 @@ class ProblemsServiceModelBuilderCrossVersionTest extends ToolingApiSpecificatio
         def problems = getProblems()
 
         then:
-        problems.size() == 1
-        problems[0].label.label == 'label'
-        problems[0].category.category == 'testcategory'
-        problems[0].failure.failure.message == 'test'
+        problems.size() == 0
 
         where:
         javaHome << [
@@ -71,7 +68,7 @@ class ProblemsServiceModelBuilderCrossVersionTest extends ToolingApiSpecificatio
 
     def "Can add additional metadata"() {
         given:
-        buildFile getBuildScriptSampleContent(false, true)
+        buildFile getBuildScriptSampleContent(false, true, targetVersion)
 
         when:
         withConnection { connection ->
@@ -83,9 +80,6 @@ class ProblemsServiceModelBuilderCrossVersionTest extends ToolingApiSpecificatio
 
         then:
         def problems = getProblems()
-        problems.size() == 1
-        problems[0].additionalData.asMap == [
-            'keyToString': 'value'
-        ]
+        problems.size() == 0
     }
 }

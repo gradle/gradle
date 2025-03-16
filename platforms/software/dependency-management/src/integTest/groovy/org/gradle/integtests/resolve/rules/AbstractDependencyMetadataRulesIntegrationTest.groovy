@@ -49,12 +49,28 @@ abstract class AbstractDependencyMetadataRulesIntegrationTest extends AbstractMo
         }
 
         buildFile << """
-            configurations { $variantToTest { attributes { attribute(Attribute.of('format', String), 'custom') } } }
-
-            dependencies {
-                $variantToTest group: 'org.test', name: 'moduleA', version: '1.0' ${publishedModulesHaveAttributes ? "" : ", configuration: '$variantToTest'"}
+            configurations {
+                $variantToTest {
+                    attributes {
+                        attribute(Attribute.of('format', String), 'custom')
+                    }
+                }
             }
         """
+
+        if (useMaven() || publishedModulesHaveAttributes) {
+            buildFile << """
+                dependencies {
+                    $variantToTest group: 'org.test', name: 'moduleA', version: '1.0'
+                }
+            """
+        } else {
+            buildFile << """
+                dependencies {
+                    $variantToTest group: 'org.test', name: 'moduleA', version: '1.0', configuration: '$variantToTest'
+                }
+            """
+        }
     }
 
     def "#thing can be added using #notation notation"() {
@@ -679,7 +695,7 @@ abstract class AbstractDependencyMetadataRulesIntegrationTest extends AbstractMo
         buildFile << """
             repositories {
                 maven {
-                    url "$mavenGradleRepo.uri"
+                    url = "$mavenGradleRepo.uri"
                 }
             }
         """
@@ -778,7 +794,7 @@ abstract class AbstractDependencyMetadataRulesIntegrationTest extends AbstractMo
             configurations { anotherConfiguration { attributes { attribute(Attribute.of('format', String), 'custom') } } }
 
             dependencies {
-                anotherConfiguration group: 'org.test', name: 'moduleA', version: '1.0' ${publishedModulesHaveAttributes ? "" : ", configuration: '$variantToTest'"}
+                anotherConfiguration group: 'org.test', name: 'moduleA', version: '1.0' ${publishedModulesHaveAttributes || useMaven() ? "" : ", configuration: '$variantToTest'"}
             }
 
             dependencies {
@@ -831,7 +847,7 @@ abstract class AbstractDependencyMetadataRulesIntegrationTest extends AbstractMo
             }
 
             dependencies {
-                $variantToTest group: 'org.test', name: 'moduleB', version: '1.1' ${publishedModulesHaveAttributes ? "" : ", configuration: '$variantToTest'"}
+                $variantToTest group: 'org.test', name: 'moduleB', version: '1.1' ${publishedModulesHaveAttributes || useMaven() ? "" : ", configuration: '$variantToTest'"}
 
                 components {
                     withModule('org.test:moduleA', ModifyRule)
@@ -896,7 +912,7 @@ abstract class AbstractDependencyMetadataRulesIntegrationTest extends AbstractMo
             }
 
             dependencies {
-                $variantToTest group: 'org.test', name: 'moduleB', version: '1.1' ${publishedModulesHaveAttributes ? "" : ", configuration: '$variantToTest'"}
+                $variantToTest group: 'org.test', name: 'moduleB', version: '1.1' ${publishedModulesHaveAttributes || useMaven() ? "" : ", configuration: '$variantToTest'"}
 
                 components {
                     withModule('org.test:moduleA', ModifyRule)

@@ -142,17 +142,18 @@ public class BuildActionSerializer {
             encoder.writeBoolean(startParameter.isBuildCacheEnabled());
             encoder.writeBoolean(startParameter.isBuildCacheDebugLogging());
             encoder.writeString(startParameter.getWatchFileSystemMode().name());
-            encoder.writeBoolean(startParameter.isWatchFileSystemDebugLogging());
             encoder.writeBoolean(startParameter.isVfsVerboseLogging());
             valueSerializer.write(encoder, startParameter.getConfigurationCache());
             valueSerializer.write(encoder, startParameter.getIsolatedProjects());
             encoder.writeString(startParameter.getConfigurationCacheProblems().name());
-            encoder.writeBoolean(startParameter.isConfigurationCacheIgnoreInputsInTaskGraphSerialization());
+            encoder.writeBoolean(startParameter.isConfigurationCacheIgnoreInputsDuringStore());
             encoder.writeSmallInt(startParameter.getConfigurationCacheMaxProblems());
             encoder.writeNullableString(startParameter.getConfigurationCacheIgnoredFileSystemCheckInputs());
             encoder.writeBoolean(startParameter.isConfigurationCacheDebug());
             encoder.writeBoolean(startParameter.isConfigurationCacheRecreateCache());
+            encoder.writeBoolean(startParameter.isConfigurationCacheParallel());
             encoder.writeBoolean(startParameter.isConfigurationCacheQuiet());
+            encoder.writeSmallInt(startParameter.getConfigurationCacheEntriesPerKey());
             encoder.writeBoolean(startParameter.isConfigureOnDemand());
             encoder.writeBoolean(startParameter.isContinuous());
             encoder.writeLong(startParameter.getContinuousBuildQuietPeriod().toMillis());
@@ -164,6 +165,8 @@ public class BuildActionSerializer {
             encoder.writeBoolean(startParameter.isRefreshKeys());
             encoder.writeBoolean(startParameter.isExportKeys());
             encoder.writeString(startParameter.getWelcomeMessageConfiguration().getWelcomeMessageDisplayMode().name());
+            encoder.writeBoolean(startParameter.isPropertyUpgradeReportEnabled());
+            encoder.writeBoolean(startParameter.isProblemReportGenerationEnabled());
         }
 
         private void writeTaskRequests(Encoder encoder, List<TaskExecutionRequest> taskRequests) throws Exception {
@@ -233,17 +236,18 @@ public class BuildActionSerializer {
             startParameter.setBuildCacheEnabled(decoder.readBoolean());
             startParameter.setBuildCacheDebugLogging(decoder.readBoolean());
             startParameter.setWatchFileSystemMode(WatchMode.valueOf(decoder.readString()));
-            startParameter.setWatchFileSystemDebugLogging(decoder.readBoolean());
             startParameter.setVfsVerboseLogging(decoder.readBoolean());
             startParameter.setConfigurationCache(valueSerializer.read(decoder));
             startParameter.setIsolatedProjects(valueSerializer.read(decoder));
             startParameter.setConfigurationCacheProblems(ConfigurationCacheProblemsOption.Value.valueOf(decoder.readString()));
-            startParameter.setConfigurationCacheIgnoreInputsInTaskGraphSerialization(decoder.readBoolean());
+            startParameter.setConfigurationCacheIgnoreInputsDuringStore(decoder.readBoolean());
             startParameter.setConfigurationCacheMaxProblems(decoder.readSmallInt());
             startParameter.setConfigurationCacheIgnoredFileSystemCheckInputs(decoder.readNullableString());
             startParameter.setConfigurationCacheDebug(decoder.readBoolean());
             startParameter.setConfigurationCacheRecreateCache(decoder.readBoolean());
+            startParameter.setConfigurationCacheParallel(decoder.readBoolean());
             startParameter.setConfigurationCacheQuiet(decoder.readBoolean());
+            startParameter.setConfigurationCacheEntriesPerKey(decoder.readSmallInt());
             startParameter.setConfigureOnDemand(decoder.readBoolean());
             startParameter.setContinuous(decoder.readBoolean());
             startParameter.setContinuousBuildQuietPeriod(Duration.ofMillis(decoder.readLong()));
@@ -258,6 +262,8 @@ public class BuildActionSerializer {
             startParameter.setRefreshKeys(decoder.readBoolean());
             startParameter.setExportKeys(decoder.readBoolean());
             startParameter.setWelcomeMessageConfiguration(new WelcomeMessageConfiguration(WelcomeMessageDisplayMode.valueOf(decoder.readString())));
+            startParameter.setPropertyUpgradeReportEnabled(decoder.readBoolean());
+            startParameter.enableProblemReportGeneration(decoder.readBoolean());
 
             return startParameter;
         }

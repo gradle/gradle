@@ -1,0 +1,86 @@
+/*
+ * Copyright 2024 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import groovy.transform.CompileStatic
+import groovy.transform.CompileDynamic
+import org.gradle.util.GradleVersion
+
+apply plugin: MirrorPlugin
+
+@CompileStatic
+class MirrorPlugin implements Plugin<Gradle> {
+    Map<String, String> mirrors = [:]
+    MirrorPlugin() {
+        def repoMirrorUrls = System.getenv("REPO_MIRROR_URLS")?.split(',')?.collectEntries { mirrorEntry -> mirrorEntry.split(":", 2) } as Map<String, String>
+        if (repoMirrorUrls) {
+            repoMirrorUrls.get('jcenter')?.with { mirrors.put(normalizeUrl('https://jcenter.bintray.com/'), it) }
+            repoMirrorUrls.get('mavencentral')?.with { mirrors.put(normalizeUrl('https://repo.maven.apache.org/maven2/'), it) }
+            repoMirrorUrls.get('google')?.with { mirrors.put(normalizeUrl('https://dl.google.com/dl/android/maven2/'), it) }
+            repoMirrorUrls.get('gradle-prod-plugins')?.with { mirrors.put(normalizeUrl('https://plugins.gradle.org/m2/'), it) }
+        }
+    }
+
+    void apply(Gradle gradle) {
+        gradle.allprojects { Project project ->
+            project.buildscript.configurations["classpath"].incoming.beforeResolve {
+                withMirrors(project.buildscript.repositories)
+            }
+            project.afterEvaluate {
+                withMirrors(project.repositories)
+            }
+        }
+        maybeConfigurePluginManagement(gradle)
+    }
+
+    @CompileDynamic
+    void maybeConfigurePluginManagement(Gradle gradle) {
+        if (GradleVersion.version(gradle.gradleVersion) >= GradleVersion.version("4.4")) {
+            gradle.settingsEvaluated { Settings settings ->
+                withMirrors(settings.pluginManagement.repositories)
+            }
+        }
+        if (GradleVersion.version(gradle.gradleVersion) >= GradleVersion.version("6.8")) {
+            gradle.settingsEvaluated { Settings settings ->
+                withMirrors(settings.dependencyResolutionManagement.repositories)
+            }
+        }
+    }
+
+    void withMirrors(RepositoryHandler repos) {
+        repos.all { repo ->
+            if (repo instanceof MavenArtifactRepository) {
+                mirror(repo)
+            } else if (repo instanceof IvyArtifactRepository) {
+                mirror(repo)
+            }
+        }
+    }
+
+    void mirror(MavenArtifactRepository repo) {
+        repo.url = mirrors.get(normalizeUrl(repo.url), repo.url.toString())
+    }
+
+    void mirror(IvyArtifactRepository repo) {
+        repo.url = mirrors.get(normalizeUrl(repo.url), repo.url.toString())
+    }
+
+    // We see them as equal:
+    // https://repo.maven.apache.org/maven2/ and http://repo.maven.apache.org/maven2
+    static String normalizeUrl(def uri) {
+        String result = uri.toString().replace('https://', 'http://')
+        return result.endsWith("/") ? result : result + "/"
+    }
+}

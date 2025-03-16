@@ -21,17 +21,20 @@ import org.gradle.cache.FileLockManager;
 import org.gradle.cache.IndexedCache;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory;
-import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.vcs.git.internal.GitVersionRef;
 import org.gradle.vcs.internal.VersionControlRepositoryConnection;
 import org.gradle.vcs.internal.VersionRef;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
+import java.util.function.Supplier;
 
+@ServiceScope(Scope.BuildSession.class)
 public class PersistentVcsMetadataCache implements Stoppable {
     private static final VersionRefSerializer VALUE_SERIALIZER = new VersionRefSerializer();
     private final PersistentCache cache;
@@ -53,10 +56,10 @@ public class PersistentVcsMetadataCache implements Stoppable {
 
     @Nullable
     public VersionRef getVersionForSelector(final VersionControlRepositoryConnection repository, final VersionConstraint constraint) {
-        return cache.useCache(new Factory<VersionRef>() {
+        return cache.useCache(new Supplier<VersionRef>() {
             @Nullable
             @Override
-            public VersionRef create() {
+            public VersionRef get() {
                 return workingDirCache.getIfPresent(constraintCacheKey(repository, constraint));
             }
         });

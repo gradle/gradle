@@ -1,6 +1,10 @@
 package org.gradle.internal.declarativedsl.analysis
 
-import org.gradle.internal.declarativedsl.language.DataType
+import org.gradle.declarative.dsl.evaluation.OperationGenerationId
+import org.gradle.declarative.dsl.schema.DataParameter
+import org.gradle.declarative.dsl.schema.DataProperty
+import org.gradle.declarative.dsl.schema.DataType
+import org.gradle.declarative.dsl.schema.FqName
 import org.gradle.internal.declarativedsl.language.Expr
 import org.gradle.internal.declarativedsl.language.FunctionCall
 import org.gradle.internal.declarativedsl.language.LanguageTreeElement
@@ -10,12 +14,19 @@ import org.gradle.internal.declarativedsl.language.LocalValue
 data class ResolutionResult(
     val topLevelReceiver: ObjectOrigin.TopLevelReceiver,
     val assignments: List<AssignmentRecord>,
-    val additions: List<DataAddition>,
+    val additions: List<DataAdditionRecord>,
+    val nestedObjectAccess: List<NestedObjectAccessRecord>,
     val errors: List<ResolutionError>,
+    val assignmentsFromDefaults: List<AssignmentRecord> = emptyList(),
+    val additionsFromDefaults: List<DataAdditionRecord> = emptyList(),
+    val nestedObjectAccessFromDefaults: List<NestedObjectAccessRecord> = emptyList()
 )
 
 
-data class DataAddition(val container: ObjectOrigin, val dataObject: ObjectOrigin)
+data class DataAdditionRecord(val container: ObjectOrigin, val dataObject: ObjectOrigin)
+
+
+data class NestedObjectAccessRecord(val container: ObjectOrigin, val dataObject: ObjectOrigin.AccessAndConfigureReceiver)
 
 
 data class ResolutionError(
@@ -36,13 +47,27 @@ sealed interface ErrorReason {
     data class ValReassignment(val localVal: LocalValue) : ErrorReason
     data class ExternalReassignment(val external: ObjectOrigin.External) : ErrorReason
     data class AssignmentTypeMismatch(val expected: DataType, val actual: DataType) : ErrorReason
+    data class OpaqueArgumentForIdentityParameter(val functionCall: FunctionCall, val parameter: DataParameter, val argument: ObjectOrigin) : ErrorReason
+
+    // TODO: these two are never reported for now, instead it is UnresolvedFunctionCallSignature
     data object UnusedConfigureLambda : ErrorReason
+    data object MissingConfigureLambda : ErrorReason
 
     data object AccessOnCurrentReceiverOnlyViolation : ErrorReason
-    data object MissingConfigureLambda : ErrorReason
     data class DuplicateLocalValue(val name: String) : ErrorReason
     data object UnresolvedAssignmentLhs : ErrorReason // TODO: report candidate with rejection reasons
     data object UnresolvedAssignmentRhs : ErrorReason // TODO: resolution trace here, too?
     data object UnitAssignment : ErrorReason
     data object DanglingPureExpression : ErrorReason
+}
+
+
+class DefaultOperationGenerationId(override val ordinal: Int) : OperationGenerationId {
+    companion object {
+        val preExisting = DefaultOperationGenerationId(-1)
+        val defaults = DefaultOperationGenerationId(0)
+        val finalEvaluation = DefaultOperationGenerationId(1)
+    }
+
+    override fun compareTo(other: OperationGenerationId): Int = compareValues(ordinal, other.ordinal)
 }

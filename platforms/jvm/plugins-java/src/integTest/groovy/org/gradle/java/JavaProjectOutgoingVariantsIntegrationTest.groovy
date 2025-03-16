@@ -18,10 +18,12 @@ package org.gradle.java
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.test.fixtures.maven.MavenFileModule
 
 import java.util.stream.Collectors
 
+@ToBeFixedForIsolatedProjects(because = "allprojects, configure projects from root")
 abstract class JavaProjectOutgoingVariantsIntegrationTest extends AbstractIntegrationSpec {
 
     protected abstract boolean publishWithEcosystemKnowledge()
@@ -42,7 +44,7 @@ abstract class JavaProjectOutgoingVariantsIntegrationTest extends AbstractIntegr
 def artifactType = Attribute.of('artifactType', String)
 
 allprojects {
-    repositories { maven { url '${mavenRepo.uri}' } }
+    repositories { maven { url = '${mavenRepo.uri}' } }
 }
 
 project(':other-java') {

@@ -17,13 +17,13 @@
 package org.gradle.launcher.daemon.server.health.gc;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.gradle.api.specs.Spec;
 import org.gradle.internal.time.Time;
 import org.gradle.util.internal.CollectionUtils;
 
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 public class DefaultGarbageCollectionMonitor implements GarbageCollectionMonitor {
@@ -41,21 +41,17 @@ public class DefaultGarbageCollectionMonitor implements GarbageCollectionMonitor
     public DefaultGarbageCollectionMonitor(GarbageCollectorMonitoringStrategy gcStrategy, ScheduledExecutorService pollingExecutor) {
         this.pollingExecutor = pollingExecutor;
         this.gcStrategy = gcStrategy;
-        this.heapEvents = new DefaultSlidingWindow<GarbageCollectionEvent>(EVENT_WINDOW);
-        this.nonHeapEvents = new DefaultSlidingWindow<GarbageCollectionEvent>(EVENT_WINDOW);
+        this.heapEvents = new DefaultSlidingWindow<>(EVENT_WINDOW);
+        this.nonHeapEvents = new DefaultSlidingWindow<>(EVENT_WINDOW);
         if (gcStrategy != GarbageCollectorMonitoringStrategy.UNKNOWN && !Boolean.getBoolean(DISABLE_POLLING_SYSTEM_PROPERTY)) {
             pollForValues();
         }
     }
 
     private void pollForValues() {
-        GarbageCollectorMXBean garbageCollectorMXBean = CollectionUtils.findFirst(ManagementFactory.getGarbageCollectorMXBeans(), new Spec<GarbageCollectorMXBean>() {
-            @Override
-            public boolean isSatisfiedBy(GarbageCollectorMXBean element) {
-                return element.getName().equals(gcStrategy.getGarbageCollectorName());
-            }
-        });
-        pollingExecutor.scheduleAtFixedRate(new GarbageCollectionCheck(Time.clock(), garbageCollectorMXBean, gcStrategy.getHeapPoolName(), heapEvents, gcStrategy.getNonHeapPoolName(), nonHeapEvents), POLL_DELAY_SECONDS, POLL_INTERVAL_SECONDS, TimeUnit.SECONDS);
+        GarbageCollectorMXBean garbageCollectorMXBean = CollectionUtils.findFirst(ManagementFactory.getGarbageCollectorMXBeans(),
+            gcBean -> gcBean.getName().equals(gcStrategy.getGarbageCollectorName()));
+        ScheduledFuture<?> ignored = pollingExecutor.scheduleAtFixedRate(new GarbageCollectionCheck(Time.clock(), garbageCollectorMXBean, gcStrategy.getHeapPoolName(), heapEvents, gcStrategy.getNonHeapPoolName(), nonHeapEvents), POLL_DELAY_SECONDS, POLL_INTERVAL_SECONDS, TimeUnit.SECONDS);
     }
 
     @Override

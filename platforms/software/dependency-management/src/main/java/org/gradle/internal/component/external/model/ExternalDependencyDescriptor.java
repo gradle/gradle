@@ -16,17 +16,7 @@
 
 package org.gradle.internal.component.external.model;
 
-import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.internal.component.ResolutionFailureHandler;
-import org.gradle.internal.component.model.ComponentGraphResolveState;
-import org.gradle.internal.component.model.ConfigurationMetadata;
-import org.gradle.internal.component.model.ExcludeMetadata;
-import org.gradle.internal.component.model.IvyArtifactName;
-import org.gradle.internal.component.model.GraphVariantSelectionResult;
-
-import java.util.Collection;
-import java.util.List;
 
 /**
  * Represents dependency information as stored in an external descriptor file (POM or IVY.XML).
@@ -45,10 +35,4 @@ public abstract class ExternalDependencyDescriptor {
     public abstract boolean isTransitive();
 
     protected abstract ExternalDependencyDescriptor withRequested(ModuleComponentSelector newRequested);
-
-    protected abstract GraphVariantSelectionResult selectLegacyConfigurations(ComponentIdentifier fromComponent, ConfigurationMetadata fromConfiguration, ComponentGraphResolveState targetComponent, ResolutionFailureHandler resolutionFailureHandler);
-
-    public abstract List<ExcludeMetadata> getConfigurationExcludes(Collection<String> configurations);
-
-    public abstract List<IvyArtifactName> getConfigurationArtifacts(ConfigurationMetadata fromConfiguration);
 }

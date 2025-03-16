@@ -27,6 +27,7 @@ import org.gradle.vcs.git.GitVersionControlSpec
 import org.gradle.vcs.internal.VersionRef
 import org.junit.Rule
 import org.junit.rules.RuleChain
+import spock.lang.Issue;
 import spock.lang.Specification
 
 class GitVersionControlSystemSpec extends Specification {
@@ -215,6 +216,24 @@ class GitVersionControlSystemSpec extends Specification {
         e.cause.message.contains('Exception caught during execution of fetch command')
         e.cause.cause != null
         e.cause.cause.message.contains('URI not supported: https://notarepo.invalid')
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/28823")
+    def 'connection error if SSH repo does not exist'() {
+        given:
+        def target = tmpDir.file('versionDir')
+        repoSpec.url = 'ssh://git@notarepo.invalid:12345/TestGradleLibrary.git'
+
+        when:
+        gitVcs.populate(target, repoHead, repoSpec)
+
+        then:
+        GradleException e = thrown()
+        e.message.contains('Could not clone from ssh://git@notarepo.invalid:12345/TestGradleLibrary.git in')
+        e.cause != null
+        e.cause.message.contains('Failed (UnresolvedAddressException) to execute')
+        e.cause != null
+        e.cause.message.contains('Failed (UnresolvedAddressException) to execute')
     }
 
     def 'treats tags as the available versions and ignores other references'() {

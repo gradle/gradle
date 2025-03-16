@@ -15,7 +15,10 @@
  */
 package org.gradle.tooling;
 
-import javax.annotation.Nullable;
+import org.gradle.api.Incubating;
+import org.gradle.tooling.events.problems.Problem;
+import org.jspecify.annotations.Nullable;
+
 import java.util.List;
 
 /**
@@ -49,4 +52,12 @@ public interface Failure {
      */
     List<? extends Failure> getCauses();
 
+    /**
+     * Returns the problems associated with this failure.
+     * @return The problems, or an empty list if there are no problems.
+     *
+     * @since 8.12
+     */
+    @Incubating
+    List<Problem> getProblems();
 }

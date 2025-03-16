@@ -8,48 +8,52 @@ JVM-specific dependencies blocks and JVM test suite interfaces."""
 errorprone {
     disabledChecks.addAll(
         "OverridesJavaxInjectableMethod", // 1 occurrences
-        "UnusedMethod", // 1 occurrences
-        "UnusedVariable", // 1 occurrences
     )
 }
 
 dependencies {
-    api(project(":base-annotations"))
-    api(project(":base-services"))
-    api(project(":core"))
-    api(project(":core-api"))
-    api(project(":files"))
-    api(project(":platform-base"))
-    api(project(":platform-jvm"))
-    api(project(":process-services"))
-    api(project(":workers"))
+    api(projects.baseServices)
+    api(projects.core)
+    api(projects.coreApi)
+    api(projects.daemonServerWorker)
+    api(projects.files)
+    api(projects.platformBase)
+    api(projects.platformJvm)
+    api(projects.serviceProvider)
+    api(projects.stdlibJavaExtensions)
+    api(projects.workers)
 
     api(libs.groovy)
     api(libs.inject)
-    api(libs.jsr305)
+    api(libs.jspecify)
 
-    implementation(project(":dependency-management"))
-    implementation(project(":logging"))
-    implementation(project(":model-core"))
-    implementation(project(":test-suites-base"))
+    implementation(projects.classloaders)
+    implementation(projects.dependencyManagement)
+    implementation(projects.logging)
+    implementation(projects.modelReflect)
+    implementation(projects.testSuitesBase)
 
+    implementation(libs.commonsLang3)
     implementation(libs.guava)
 
-    testImplementation(project(":native"))
-    testImplementation(project(":resources"))
-    testImplementation(project(":snapshots"))
-    testImplementation(testFixtures(project(":core")))
+    testImplementation(projects.native)
+    testImplementation(projects.resources)
+    testImplementation(projects.snapshots)
+    testImplementation(testFixtures(projects.core))
 
-    integTestImplementation(testFixtures(project(":model-core")))
-    integTestImplementation(testFixtures(project(":resources-http")))
+    integTestImplementation(testFixtures(projects.modelReflect))
+    integTestImplementation(testFixtures(projects.resourcesHttp))
 
     testFixturesImplementation(libs.commonsLang)
     testFixturesImplementation(libs.guava)
-    testFixturesImplementation(project(":internal-integ-testing"))
-    testFixturesImplementation(testFixtures(project(":core")))
+    testFixturesImplementation(projects.internalIntegTesting)
+    testFixturesImplementation(testFixtures(projects.core))
 
-    testRuntimeOnly(project(":distributions-core")) {
+    testRuntimeOnly(projects.distributionsCore) {
         because("AbstractOptionsTest instantiates DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-jvm"))
+    integTestDistributionRuntimeOnly(projects.distributionsJvm)
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

@@ -36,7 +36,9 @@ class DefaultPluginArtifactRepositories implements PluginArtifactRepositories {
         // Create a copy of the shared repository container, so that mutations (eg adding the portal repo) are not reflected in the shared container
         dependencyResolutionServices = factory.create();
         this.sharedRepositories = sharedRepositories;
-        JavaEcosystemSupport.configureSchema(dependencyResolutionServices.getAttributesSchema(), dependencyResolutionServices.getObjectFactory());
+
+        JavaEcosystemSupport.configureServices(dependencyResolutionServices.getAttributesSchema(), dependencyResolutionServices.getAttributeDescribers(), dependencyResolutionServices.getObjectFactory());
+
         RepositoryHandler repositoryHandler = dependencyResolutionServices.getResolveRepositoryHandler();
         for (ArtifactRepository repository : sharedRepositories) {
             // Add a wrapper to the plugin, so that each scope (eg project) can define different exclusive content filters

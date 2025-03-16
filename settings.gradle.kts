@@ -9,9 +9,9 @@ pluginManagement {
             content {
                 val rcAndMilestonesPattern = "\\d{1,2}?\\.\\d{1,2}?(\\.\\d{1,2}?)?-((rc-\\d{1,2}?)|(milestone-\\d{1,2}?))"
                 // GE plugin marker artifact
-                includeVersionByRegex("com.gradle.enterprise", "com.gradle.enterprise.gradle.plugin", rcAndMilestonesPattern)
+                includeVersionByRegex("com.gradle.develocity", "com.gradle.develocity.gradle.plugin", rcAndMilestonesPattern)
                 // GE plugin jar
-                includeVersionByRegex("com.gradle", "gradle-enterprise-gradle-plugin", rcAndMilestonesPattern)
+                includeVersionByRegex("com.gradle", "develocity-gradle-plugin", rcAndMilestonesPattern)
             }
         }
         maven {
@@ -23,13 +23,15 @@ pluginManagement {
         }
         gradlePluginPortal()
     }
+    includeBuild("build-logic-settings")
 }
 
 plugins {
-    id("com.gradle.enterprise").version("3.16.2") // Sync with `build-logic-commons/build-platform/build.gradle.kts`
-    id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.9.1")
-    id("org.gradle.toolchains.foojay-resolver-convention") version ("0.8.0")
-//    id("net.ltgt.errorprone").version("3.1.0")
+    id("gradlebuild.build-environment")
+    id("gradlebuild.configuration-cache-compatibility")
+    id("com.gradle.develocity").version("3.19.2") // Run `java build-logic-settings/UpdateDevelocityPluginVersion.java <new-version>` to update
+    id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.10.2")
+    id("org.gradle.toolchains.foojay-resolver-convention").version("0.9.0")
 }
 
 includeBuild("build-logic-commons")
@@ -39,26 +41,12 @@ apply(from = "gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
 
 val architectureElements = mutableListOf<ArchitectureElementBuilder>()
 
-// If you include a new subproject here, you will need to execute the
-// ./gradlew generateSubprojectsInfo
-// task to update metadata about the build for CI
-
-unassigned {
-    subproject("distributions-dependencies") // platform for dependency versions
-    subproject("core-platform")              // platform for Gradle distribution core
-}
-
-// Gradle Distributions - for testing and for publishing a full distribution
-unassigned {
-    subproject("distributions-full")
-}
+// If you include a new subproject here, consult internal documentation "Adding a new Build Tool subproject" page
 
 // Gradle implementation projects
 unassigned {
     subproject("core")
-    subproject("plugins")
     subproject("build-events")
-    subproject("diagnostics")
     subproject("composite-builds")
     subproject("core-api")
 }
@@ -68,40 +56,84 @@ val core = platform("core") {
 
     // Core Runtime Module
     module("core-runtime") {
-        subproject("base-annotations")
+        subproject("base-asm")
         subproject("base-services")
-        subproject("bootstrap")
+        subproject("build-configuration")
         subproject("build-operations")
+        subproject("build-operations-trace")
         subproject("build-option")
+        subproject("build-process-services")
         subproject("build-profile")
+        subproject("build-state")
+        subproject("classloaders")
         subproject("cli")
+        subproject("client-services")
+        subproject("concurrent")
+        subproject("daemon-main")
+        subproject("daemon-protocol")
+        subproject("daemon-services")
+        subproject("daemon-server")
         subproject("distributions-basics")
         subproject("distributions-core")
         subproject("file-temp")
         subproject("files")
         subproject("functional")
+        subproject("gradle-cli-main")
+        subproject("gradle-cli")
         subproject("installation-beacon")
         subproject("instrumentation-agent")
+        subproject("instrumentation-agent-services")
         subproject("instrumentation-declarations")
+        subproject("instrumentation-reporting")
         subproject("internal-instrumentation-api")
         subproject("internal-instrumentation-processor")
+        subproject("io")
+        subproject("stdlib-java-extensions")
         subproject("launcher")
         subproject("logging")
         subproject("logging-api")
         subproject("messaging")
         subproject("native")
+        subproject("process-memory-services")
         subproject("process-services")
-        subproject("worker-services")
-        subproject("wrapper")
+        subproject("report-rendering")
+        subproject("serialization")
+        subproject("service-lookup")
+        subproject("service-provider")
+        subproject("service-registry-builder")
+        subproject("service-registry-impl")
+        subproject("time")
+        subproject("tooling-api-provider")
+        subproject("versioned-cache")
+        subproject("wrapper-main")
         subproject("wrapper-shared")
     }
 
     // Core Configuration Module
     module("core-configuration") {
         subproject("api-metadata")
+        subproject("base-diagnostics")
         subproject("base-services-groovy")
+        subproject("bean-serialization-services")
         subproject("configuration-cache")
+        subproject("configuration-cache-base")
+        subproject("configuration-problems-base")
+        subproject("core-kotlin-extensions")
+        subproject("core-serialization-codecs")
+        subproject("declarative-dsl-api")
+        subproject("declarative-dsl-core")
+        subproject("declarative-dsl-evaluator")
+        subproject("declarative-dsl-provider")
+        subproject("declarative-dsl-tooling-models")
+        subproject("declarative-dsl-tooling-builders")
+        subproject("declarative-dsl-internal-utils")
+        subproject("dependency-management-serialization-codecs")
+        subproject("encryption-services")
         subproject("file-collections")
+        subproject("file-operations")
+        subproject("flow-services")
+        subproject("graph-serialization")
+        subproject("guava-serialization-codecs")
         subproject("input-tracking")
         subproject("kotlin-dsl")
         subproject("kotlin-dsl-provider-plugins")
@@ -109,27 +141,32 @@ val core = platform("core") {
         subproject("kotlin-dsl-tooling-models")
         subproject("kotlin-dsl-plugins")
         subproject("kotlin-dsl-integ-tests")
+        subproject("stdlib-kotlin-extensions")
+        subproject("stdlib-serialization-codecs")
         subproject("model-core")
+        subproject("model-reflect")
         subproject("model-groovy")
-        subproject("declarative-dsl-api")
-        subproject("declarative-dsl-provider")
-        subproject("declarative-dsl-core")
     }
 
     // Core Execution Module
     module("core-execution") {
         subproject("build-cache")
         subproject("build-cache-base")
-        subproject("build-cache-local")
+        subproject("build-cache-example-client")
         subproject("build-cache-http")
+        subproject("build-cache-local")
         subproject("build-cache-packaging")
         subproject("build-cache-spi")
-        subproject("file-watching")
+        subproject("daemon-server-worker")
         subproject("execution")
+        subproject("execution-e2e-tests")
+        subproject("file-watching")
         subproject("hashing")
         subproject("persistent-cache")
+        subproject("request-handler-worker")
         subproject("snapshots")
-        subproject("worker-processes")
+        subproject("snapshots-worker")
+        subproject("worker-main")
         subproject("workers")
     }
 }
@@ -150,6 +187,7 @@ module("ide") {
     subproject("ide-plugins")
     subproject("problems")
     subproject("problems-api")
+    subproject("problems-rendering")
     subproject("tooling-api")
     subproject("tooling-api-builders")
 }
@@ -159,6 +197,8 @@ val software = platform("software") {
     uses(core)
     subproject("antlr")
     subproject("build-init")
+    subproject("build-init-specs")
+    subproject("build-init-specs-api")
     subproject("dependency-management")
     subproject("plugins-distribution")
     subproject("distributions-publishing")
@@ -175,7 +215,9 @@ val software = platform("software") {
     subproject("reporting")
     subproject("security")
     subproject("signing")
+    subproject("software-diagnostics")
     subproject("testing-base")
+    subproject("testing-base-infrastructure")
     subproject("test-suites-base")
     subproject("version-control")
 }
@@ -185,7 +227,6 @@ val jvm = platform("jvm") {
     uses(core)
     uses(software)
     subproject("code-quality")
-    subproject("core-jvm")
     subproject("distributions-jvm")
     subproject("ear")
     subproject("jacoco")
@@ -194,10 +235,12 @@ val jvm = platform("jvm") {
     subproject("language-java")
     subproject("language-jvm")
     subproject("toolchains-jvm")
+    subproject("toolchains-jvm-shared")
     subproject("java-compiler-plugin")
     subproject("java-platform")
     subproject("normalization-java")
     subproject("platform-jvm")
+    subproject("plugins-application")
     subproject("plugins-groovy")
     subproject("plugins-java")
     subproject("plugins-java-base")
@@ -218,6 +261,7 @@ platform("extensibility") {
     uses(jvm)
     subproject("plugin-use")
     subproject("plugin-development")
+    subproject("unit-test-fixtures")
     subproject("test-kit")
 }
 
@@ -242,24 +286,28 @@ module("enterprise") {
     subproject("enterprise-workers")
 }
 
-module("build-infrastructure") {
-    subproject("precondition-tester")
+packaging {
+    subproject("distributions-dependencies") // platform for dependency versions
+    subproject("core-platform")              // platform for Gradle distribution core
+    subproject("distributions-full")
+    subproject("public-api")                 // Public API publishing
+    subproject("internal-build-reports")     // Internal utility and verification projects
 }
 
-// Internal utility and verification projects
-unassigned {
+testing {
     subproject("architecture-test")
-    subproject("internal-testing")
+    subproject("distributions-integ-tests")
+    subproject("integ-test")
+    subproject("internal-architecture-testing")
     subproject("internal-integ-testing")
     subproject("internal-performance-testing")
-    subproject("internal-architecture-testing")
-    subproject("internal-build-reports")
-    subproject("integ-test")
-    subproject("distributions-integ-tests")
-    subproject("soak")
-    subproject("smoke-test")
+    subproject("internal-testing")
     subproject("performance")
+    subproject("precondition-tester")
+    subproject("public-api-tests")
+    subproject("soak")
     subproject("smoke-ide-test") // eventually should be owned by IDEX team
+    subproject("smoke-test")
 }
 
 rootProject.name = "gradle"
@@ -279,8 +327,8 @@ gradle.settingsEvaluated {
         return@settingsEvaluated
     }
 
-    if (!JavaVersion.current().isJava11) {
-        throw GradleException("This build requires JDK 11. It's currently ${getBuildJavaHome()}. You can ignore this check by passing '-Dorg.gradle.ignoreBuildJavaVersionCheck=true'.")
+    if (JavaVersion.current() != JavaVersion.VERSION_17) {
+        throw GradleException("This build requires JDK 17. It's currently ${getBuildJavaHome()}. You can ignore this check by passing '-Dorg.gradle.ignoreBuildJavaVersionCheck=true'.")
     }
 }
 
@@ -289,7 +337,7 @@ gradle.settingsEvaluated {
 gradle.rootProject {
     tasks.register("architectureDoc", GeneratorTask::class.java) {
         description = "Generates the architecture documentation"
-        outputFile = layout.projectDirectory.file("architecture/README.md")
+        outputFile = layout.projectDirectory.file("architecture/platforms.md")
         elements = provider { architectureElements.map { it.build() } }
     }
 }
@@ -308,16 +356,20 @@ abstract class GeneratorTask : DefaultTask() {
     @TaskAction
     fun generate() {
         val markdownFile = outputFile.asFile.get()
-        val content = markdownFile.readText().lines()
-        val markerPos = content.indexOfFirst { it.contains(markerComment) }
-        if (markerPos < 0) {
-            throw IllegalArgumentException("Could not locate the generated diagram in $markdownFile")
+        val head = if (markdownFile.exists()) {
+            val content = markdownFile.readText().lines()
+            val markerPos = content.indexOfFirst { it.contains(markerComment) }
+            if (markerPos < 0) {
+                throw IllegalArgumentException("Could not locate the generated diagram in $markdownFile")
+            }
+            val endPos = content.subList(markerPos, content.size).indexOfFirst { it.contains(endDiagram) && !it.contains(startDiagram) }
+            if (endPos < 0) {
+                throw IllegalArgumentException("Could not locate the end of the generated diagram in $markdownFile")
+            }
+            content.subList(0, markerPos)
+        } else {
+            emptyList()
         }
-        val endPos = content.subList(markerPos, content.size).indexOfFirst { it.contains(endDiagram) && !it.contains(startDiagram) }
-        if (endPos < 0) {
-            throw IllegalArgumentException("Could not locate the end of the generated diagram in $markdownFile")
-        }
-        val head = content.subList(0, markerPos)
 
         markdownFile.bufferedWriter().use {
             PrintWriter(it).run {
@@ -404,6 +456,18 @@ fun platform(platformName: String, platformConfiguration: PlatformBuilder.() -> 
     platform.platformConfiguration()
     return platform
 }
+
+/**
+ * Defines the packaging module, for project helping package Gradle.
+ */
+fun packaging(moduleConfiguration: ProjectScope.() -> Unit) =
+    ProjectScope("packaging").moduleConfiguration()
+
+/**
+ * Defines the testing module, for project helping test Gradle.
+ */
+fun testing(moduleConfiguration: ProjectScope.() -> Unit) =
+    ProjectScope("testing").moduleConfiguration()
 
 /**
  * Defines a bucket of unassigned projects.

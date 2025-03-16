@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
@@ -37,19 +38,29 @@ import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation.RemovedIn;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.util.internal.CollectionUtils;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType.GETTER;
+import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType.SETTER;
+import static org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility.ACCESSORS_KEPT;
+
 /**
  * Main options for Java compilation.
  */
+@SuppressWarnings("deprecation")
 public abstract class CompileOptions extends AbstractOptions {
     private static final long serialVersionUID = 0;
 
@@ -111,6 +122,7 @@ public abstract class CompileOptions extends AbstractOptions {
      * Tells whether to fail the build when compilation fails. Defaults to {@code true}.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public boolean isFailOnError() {
         return failOnError;
     }
@@ -126,6 +138,7 @@ public abstract class CompileOptions extends AbstractOptions {
      * Tells whether to produce verbose output. Defaults to {@code false}.
      */
     @Console
+    @ToBeReplacedByLazyProperty
     public boolean isVerbose() {
         return verbose;
     }
@@ -141,6 +154,7 @@ public abstract class CompileOptions extends AbstractOptions {
      * Tells whether to log the files to be compiled. Defaults to {@code false}.
      */
     @Console
+    @ToBeReplacedByLazyProperty
     public boolean isListFiles() {
         return listFiles;
     }
@@ -156,6 +170,7 @@ public abstract class CompileOptions extends AbstractOptions {
      * Tells whether to log details of usage of deprecated members or classes. Defaults to {@code false}.
      */
     @Console
+    @ToBeReplacedByLazyProperty
     public boolean isDeprecation() {
         return deprecation;
     }
@@ -171,6 +186,7 @@ public abstract class CompileOptions extends AbstractOptions {
      * Tells whether to log warning messages. The default is {@code true}.
      */
     @Console
+    @ToBeReplacedByLazyProperty
     public boolean isWarnings() {
         return warnings;
     }
@@ -189,6 +205,7 @@ public abstract class CompileOptions extends AbstractOptions {
     @Nullable
     @Optional
     @Input
+    @ToBeReplacedByLazyProperty
     public String getEncoding() {
         return encoding;
     }
@@ -206,6 +223,7 @@ public abstract class CompileOptions extends AbstractOptions {
      * to {@code true}. See {@link DebugOptions#getDebugLevel()} for which debugging information will be generated.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public boolean isDebug() {
         return debug;
     }
@@ -228,9 +246,27 @@ public abstract class CompileOptions extends AbstractOptions {
 
     /**
      * Sets options for generating debugging information.
+     *
+     * @deprecated Setting a new instance of this property is unnecessary. This method will be removed in Gradle 9.0. Use {@link #debugOptions(Action)} instead.
      */
+    @Deprecated
     public void setDebugOptions(DebugOptions debugOptions) {
+        DeprecationLogger.deprecateMethod(CompileOptions.class, "setDebugOptions(DebugOptions)")
+            .replaceWith("debugOptions(Action)")
+            .withContext("Setting a new instance of debugOptions is unnecessary.")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecated_nested_properties_setters")
+            .nagUser();
         this.debugOptions = debugOptions;
+    }
+
+    /**
+     * Execute the given action against {@link #getDebugOptions()}.
+     *
+     * @since 8.11
+     */
+    public void debugOptions(Action<? super DebugOptions> action) {
+        action.execute(debugOptions);
     }
 
     /**
@@ -239,6 +275,7 @@ public abstract class CompileOptions extends AbstractOptions {
      * Defaults to {@code false}.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public boolean isFork() {
         return fork;
     }
@@ -262,9 +299,27 @@ public abstract class CompileOptions extends AbstractOptions {
 
     /**
      * Sets options for running the compiler in a child process.
+     *
+     * @deprecated Setting a new instance of this property is unnecessary. This method will be removed in Gradle 9.0. Use {@link #forkOptions(Action)} instead.
      */
+    @Deprecated
     public void setForkOptions(ForkOptions forkOptions) {
+        DeprecationLogger.deprecateMethod(CompileOptions.class, "setForkOptions(ForkOptions)")
+            .replaceWith("forkOptions(Action)")
+            .withContext("Setting a new instance of forkOptions is unnecessary.")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecated_nested_properties_setters")
+            .nagUser();
         this.forkOptions = forkOptions;
+    }
+
+    /**
+     * Execute the given action against {@link #getForkOptions()}.
+     *
+     * @since 8.11
+     */
+    public void forkOptions(Action<? super ForkOptions> action) {
+        action.execute(forkOptions);
     }
 
     /**
@@ -275,6 +330,7 @@ public abstract class CompileOptions extends AbstractOptions {
     @Nullable
     @Optional
     @CompileClasspath
+    @ToBeReplacedByLazyProperty
     public FileCollection getBootstrapClasspath() {
         return bootstrapClasspath;
     }
@@ -294,6 +350,7 @@ public abstract class CompileOptions extends AbstractOptions {
     @Nullable
     @Optional
     @Input
+    @ToBeReplacedByLazyProperty
     public String getExtensionDirs() {
         return extensionDirs;
     }
@@ -318,6 +375,7 @@ public abstract class CompileOptions extends AbstractOptions {
      * are ignored.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public List<String> getCompilerArgs() {
         return compilerArgs;
     }
@@ -328,11 +386,12 @@ public abstract class CompileOptions extends AbstractOptions {
      * @since 4.5
      */
     @Internal
+    @ToBeReplacedByLazyProperty
     public List<String> getAllCompilerArgs() {
         ImmutableList.Builder<String> builder = ImmutableList.builder();
         builder.addAll(CollectionUtils.stringize(getCompilerArgs()));
         for (CommandLineArgumentProvider compilerArgumentProvider : getCompilerArgumentProviders()) {
-            builder.addAll(compilerArgumentProvider.asArguments());
+            builder.addAll(CollectionUtils.toStringList(compilerArgumentProvider.asArguments()));
         }
         return builder.build();
     }
@@ -343,6 +402,7 @@ public abstract class CompileOptions extends AbstractOptions {
      * @since 4.5
      */
     @Nested
+    @ToBeReplacedByLazyProperty(comment = "Should this be lazy?")
     public List<CommandLineArgumentProvider> getCompilerArgumentProviders() {
         return compilerArgumentProviders;
     }
@@ -358,20 +418,42 @@ public abstract class CompileOptions extends AbstractOptions {
     /**
      * Convenience method to set {@link ForkOptions} with named parameter syntax.
      * Calling this method will set {@code fork} to {@code true}.
+     *
+     * @deprecated This method will be removed in Gradle 9.0
      */
+    @Deprecated
     public CompileOptions fork(Map<String, Object> forkArgs) {
+
+        DeprecationLogger.deprecateMethod(CompileOptions.class, "fork(Map)")
+            .withAdvice("Set properties directly on the 'forkOptions' property instead.")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecated_abstract_options")
+            .nagUser();
+
         fork = true;
-        forkOptions.define(forkArgs);
+        DeprecationLogger.whileDisabled(() -> forkOptions.define(forkArgs));
         return this;
     }
 
     /**
      * Convenience method to set {@link DebugOptions} with named parameter syntax.
      * Calling this method will set {@code debug} to {@code true}.
+     *
+     * @deprecated This method will be removed in Gradle 9.0
      */
+    @Deprecated
     public CompileOptions debug(Map<String, Object> debugArgs) {
+
+        DeprecationLogger.deprecateMethod(CompileOptions.class, "debug(Map)")
+            .withAdvice("Set properties directly on the 'debugOptions' property instead.")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecated_abstract_options")
+            .nagUser();
+
         debug = true;
-        debugOptions.define(debugArgs);
+
+        // Disable deprecation to avoid double-warning
+        DeprecationLogger.whileDisabled(() -> debugOptions.define(debugArgs));
         return this;
     }
 
@@ -387,6 +469,7 @@ public abstract class CompileOptions extends AbstractOptions {
      * informs whether to use incremental compilation feature. See {@link #setIncremental(boolean)}
      */
     @Internal
+    @ToBeReplacedByLazyProperty
     public boolean isIncremental() {
         return incremental;
     }
@@ -430,6 +513,7 @@ public abstract class CompileOptions extends AbstractOptions {
     @IgnoreEmptyDirectories
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
+    @ToBeReplacedByLazyProperty
     public FileCollection getSourcepath() {
         return sourcepath;
     }
@@ -452,6 +536,7 @@ public abstract class CompileOptions extends AbstractOptions {
     @Nullable
     @Optional
     @Classpath
+    @ToBeReplacedByLazyProperty
     public FileCollection getAnnotationProcessorPath() {
         return annotationProcessorPath;
     }
@@ -512,6 +597,14 @@ public abstract class CompileOptions extends AbstractOptions {
      */
     @Optional
     @OutputDirectory
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = GETTER, name = "getAnnotationProcessorGeneratedSourcesDirectory"),
+            @ReplacedAccessor(value = SETTER, name = "setAnnotationProcessorGeneratedSourcesDirectory")
+        },
+        binaryCompatibility = ACCESSORS_KEPT,
+        deprecation = @ReplacedDeprecation(removedIn = RemovedIn.GRADLE9, withDslReference = true)
+    )
     public DirectoryProperty getGeneratedSourceOutputDirectory() {
         return generatedSourceOutputDirectory;
     }
@@ -520,7 +613,6 @@ public abstract class CompileOptions extends AbstractOptions {
      * Returns the directory to place source files generated by annotation processors.
      *
      * @since 4.3
-     *
      * @deprecated Use {@link #getGeneratedSourceOutputDirectory()} instead. This method will be removed in Gradle 9.0.
      */
     @Nullable
@@ -540,7 +632,6 @@ public abstract class CompileOptions extends AbstractOptions {
      * Sets the directory to place source files generated by annotation processors.
      *
      * @since 4.3
-     *
      * @deprecated Use {@link #getGeneratedSourceOutputDirectory()}.set() instead. This method will be removed in Gradle 9.0.
      */
     @Deprecated
@@ -558,7 +649,6 @@ public abstract class CompileOptions extends AbstractOptions {
      * Sets the directory to place source files generated by annotation processors.
      *
      * @since 4.3
-     *
      * @deprecated Use {@link #getGeneratedSourceOutputDirectory()}.set() instead. This method will be removed in Gradle 9.0.
      */
     @Deprecated

@@ -17,17 +17,25 @@
 package org.gradle.api.tasks;
 
 import org.gradle.internal.HasInternalProtocol;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
- * {@code TaskState} provides information about the execution state of a {@link org.gradle.api.Task}. You can obtain a
- * {@code TaskState} instance by calling {@link org.gradle.api.Task#getState()}.
+ * {@code TaskState} provides information about the execution state of a {@link org.gradle.api.Task}.
+ * <p>
+ * You can obtain a {@code TaskState} instance by calling {@link org.gradle.api.Task#getState()}.
+ * <p>
+ * Accessing the details of the task state is only meaningful after the task has been
+ * {@link #getExecuted() executed}.
  */
 @HasInternalProtocol
 public interface TaskState {
     /**
-     * <p>Returns true if this task has been executed.</p>
+     * Returns true if this task has been executed.
+     * <p>
+     * The task is considered executed if an attempt of the execution was made,
+     * and it has a definite outcome.
+     * The outcome itself does not affect the execution status.
+     * For instance, failed or skipped tasks will also be considered executed.
      *
      * @return true if this task has been executed.
      */
@@ -35,6 +43,8 @@ public interface TaskState {
 
     /**
      * Returns the exception describing the task failure, if any.
+     * <p>
+     * Checking this value is meaningful only after the task has been {@link #getExecuted() executed}.
      *
      * @return The exception, or null if the task did not fail.
      */
@@ -43,13 +53,21 @@ public interface TaskState {
 
     /**
      * Throws the task failure, if any. Does nothing if the task did not fail.
+     * <p>
+     * Calling this method is meaningful only after the task has been {@link #getExecuted() executed}.
+     *
+     * @see #getFailure()
      */
     void rethrowFailure();
 
     /**
-     * <p>Checks if the task actually did any work.  Even if a task executes, it may determine that it has nothing to
-     * do.  For example, a compilation task may determine that source files have not changed since the last time a the
-     * task was run.</p>
+     * Checks if the task actually did any work.
+     * <p>
+     * Even if a task executes, it may determine that it has nothing to do.
+     * For example, a compilation task may determine that source files have not changed
+     * since the last time the task was run.
+     * <p>
+     * Checking this value is meaningful only after the task has been {@link #getExecuted() executed}.
      *
      * @return true if this task has been executed and did any work.
      */
@@ -57,6 +75,8 @@ public interface TaskState {
 
     /**
      * Returns true if the execution of this task was skipped for some reason.
+     * <p>
+     * Checking this value is meaningful only after the task has been {@link #getExecuted() executed}.
      *
      * @return true if this task has been executed and skipped.
      */
@@ -64,6 +84,8 @@ public interface TaskState {
 
     /**
      * Returns a message describing why the task was skipped.
+     * <p>
+     * Checking this value is meaningful only after the task has been {@link #getExecuted() executed}.
      *
      * @return the message. returns null if the task was not skipped.
      */
@@ -72,6 +94,8 @@ public interface TaskState {
 
     /**
      * Returns true if the execution of this task was skipped because the task was up-to-date.
+     * <p>
+     * Checking this value is meaningful only after the task has been {@link #getExecuted() executed}.
      *
      * @return true if this task has been considered up-to-date
      * @since 2.5
@@ -80,6 +104,8 @@ public interface TaskState {
 
     /**
      * Returns true if the execution of this task was skipped due to task inputs are empty.
+     * <p>
+     * Checking this value is meaningful only after the task has been {@link #getExecuted() executed}.
      *
      * @return true if this task has no input files assigned
      * @since 3.4

@@ -16,8 +16,11 @@
 
 package org.gradle.internal;
 
+import org.jspecify.annotations.Nullable;
+
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
@@ -26,8 +29,10 @@ import java.util.function.Function;
 /**
  * An object to represent the result of an operation that can potentially fail.
  * The object either holds the result of a successful execution, or an exception encountered during a failed one.
+ * <p>
+ * It is possible for Try to hold null values.
  */
-public abstract class Try<T> {
+public abstract class Try<T extends @Nullable Object> {
 
     private Try() {
     }
@@ -35,6 +40,7 @@ public abstract class Try<T> {
     /**
      * Construct a {@code Try} by executing the given operation.
      * The returned object will either hold the result or the exception thrown during the operation.
+     * If the callable returns null, then the returned Try instance will hold null as its value.
      */
     public static <U> Try<U> ofFailable(Callable<U> failable) {
         try {
@@ -47,8 +53,9 @@ public abstract class Try<T> {
     /**
      * Construct a {@code Try} representing a successful execution.
      * The returned object will hold the given result.
+     * If the result is null, then the returned Try instance will hold null as its value.
      */
-    public static <U> Try<U> successful(U result) {
+    public static <U extends @Nullable Object> Try<U> successful(U result) {
         return new Success<>(result);
     }
 
@@ -56,7 +63,7 @@ public abstract class Try<T> {
      * Construct a {@code Try} representing a failed execution.
      * The returned object will hold the given failure.
      */
-    public static <U> Try<U> failure(Throwable failure) {
+    public static <U extends @Nullable Object> Try<U> failure(Throwable failure) {
         return new Failure<>(failure);
     }
 
@@ -89,7 +96,7 @@ public abstract class Try<T> {
      *
      * Exceptions thrown by the given function are propagated.
      */
-    public abstract <U> Try<U> flatMap(Function<? super T, Try<U>> f);
+    public abstract <U extends @Nullable Object> Try<U> flatMap(Function<? super T, Try<U>> f);
 
     /**
      * If the represented operation was successful, returns the result of applying the given
@@ -98,7 +105,7 @@ public abstract class Try<T> {
      *
      * This is similar to {@link #tryMap(Function)} but propagates any exception the given function throws.
      */
-    public abstract <U> Try<U> map(Function<? super T, U> f);
+    public abstract <U extends @Nullable Object> Try<U> map(Function<? super T, U> f);
 
     /**
      * If the represented operation was successful, returns the result of applying the given
@@ -108,7 +115,7 @@ public abstract class Try<T> {
      * This is similar to {@link #map(Function)} but converts any exception the given function
      * throws into a failed {@code Try}.
      */
-    public abstract <U> Try<U> tryMap(Function<? super T, U> f);
+    public abstract <U extends @Nullable Object> Try<U> tryMap(Function<? super T, U> f);
 
     /**
      * If the represented operation was successful, returns the original result,
@@ -127,7 +134,7 @@ public abstract class Try<T> {
      */
     public abstract void ifSuccessfulOrElse(Consumer<? super T> successConsumer, Consumer<? super Throwable> failureConsumer);
 
-    private static final class Success<T> extends Try<T> {
+    private static final class Success<T extends @Nullable Object> extends Try<T> {
         private final T value;
 
         public Success(T value) {
@@ -155,17 +162,17 @@ public abstract class Try<T> {
         }
 
         @Override
-        public <U> Try<U> flatMap(Function<? super T, Try<U>> f) {
+        public <U extends @Nullable Object> Try<U> flatMap(Function<? super T, Try<U>> f) {
             return f.apply(value);
         }
 
         @Override
-        public <U> Try<U> map(Function<? super T, U> f) {
+        public <U extends @Nullable Object> Try<U> map(Function<? super T, U> f) {
             return Try.successful(f.apply(value));
         }
 
         @Override
-        public <U> Try<U> tryMap(final Function<? super T, U> f) {
+        public <U extends @Nullable Object> Try<U> tryMap(final Function<? super T, U> f) {
             return Try.ofFailable(() -> f.apply(value));
         }
 
@@ -195,12 +202,12 @@ public abstract class Try<T> {
 
             Success<?> success = (Success<?>) o;
 
-            return value.equals(success.value);
+            return Objects.equals(value, success.value);
         }
 
         @Override
         public int hashCode() {
-            return value.hashCode();
+            return Objects.hashCode(value);
         }
 
         @Override
@@ -213,7 +220,7 @@ public abstract class Try<T> {
         private final Throwable failure;
 
         public Failure(Throwable failure) {
-            this.failure = failure;
+            this.failure = Objects.requireNonNull(failure, "null failure is not allowed");
         }
 
         @Override
@@ -252,19 +259,19 @@ public abstract class Try<T> {
 
         @SuppressWarnings("unchecked")
         @Override
-        public <U> Try<U> flatMap(Function<? super T, Try<U>> f) {
+        public <U extends @Nullable Object> Try<U> flatMap(Function<? super T, Try<U>> f) {
             return (Try<U>) this;
         }
 
         @SuppressWarnings("unchecked")
         @Override
-        public <U> Try<U> map(Function<? super T, U> f) {
+        public <U extends @Nullable Object> Try<U> map(Function<? super T, U> f) {
             return (Try<U>) this;
         }
 
         @SuppressWarnings("unchecked")
         @Override
-        public <U> Try<U> tryMap(Function<? super T, U> f) {
+        public <U extends @Nullable Object> Try<U> tryMap(Function<? super T, U> f) {
             return (Try<U>) this;
         }
 

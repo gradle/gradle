@@ -16,17 +16,18 @@
 
 package org.gradle.kotlin.dsl.accessors
 
-import org.gradle.api.Project
+import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.reflect.TypeOf
-
-import org.gradle.kotlin.dsl.typeOf
-
+import org.gradle.internal.service.scopes.Scope
+import org.gradle.internal.service.scopes.ServiceScope
+import org.gradle.kotlin.dsl.*
 import java.io.Serializable
 
 
+@ServiceScope(Scope.UserHome::class)
 interface ProjectSchemaProvider {
 
-    fun schemaFor(project: Project): TypedProjectSchema
+    fun schemaFor(scriptTarget: Any, classLoaderScope: ClassLoaderScope): TypedProjectSchema?
 }
 
 
@@ -50,15 +51,23 @@ data class ProjectSchema<out T>(
     val conventions: List<ProjectSchemaEntry<T>>,
     val tasks: List<ProjectSchemaEntry<T>>,
     val containerElements: List<ProjectSchemaEntry<T>>,
-    val configurations: List<ConfigurationEntry<String>>
-) : Serializable {
+    val configurations: List<ConfigurationEntry<String>>,
+    val modelDefaults: List<ProjectSchemaEntry<T>>,
+    val containerElementFactories: List<ContainerElementFactoryEntry<T>>,
+    val softwareTypeEntries: List<SoftwareTypeEntry<T>>,
+    val scriptTarget: Any? = null
+) {
 
     fun <U> map(f: (T) -> U) = ProjectSchema(
         extensions.map { it.map(f) },
         conventions.map { it.map(f) },
         tasks.map { it.map(f) },
         containerElements.map { it.map(f) },
-        configurations
+        configurations,
+        modelDefaults.map { it.map(f) },
+        containerElementFactories.map { it.map(f) },
+        softwareTypeEntries.map { it.map(f) },
+        scriptTarget
     )
 
     fun isNotEmpty(): Boolean =
@@ -67,6 +76,8 @@ data class ProjectSchema<out T>(
             || tasks.isNotEmpty()
             || containerElements.isNotEmpty()
             || configurations.isNotEmpty()
+            || modelDefaults.isNotEmpty()
+            || containerElementFactories.isNotEmpty()
 }
 
 
@@ -90,4 +101,24 @@ data class ConfigurationEntry<T>(
 
     fun <U> map(f: (T) -> U) =
         ConfigurationEntry(f(target), dependencyDeclarationAlternatives)
+}
+
+
+data class ContainerElementFactoryEntry<out T>(
+    val factoryName: String,
+    val containerReceiverType: T,
+    val publicType: T
+) : Serializable {
+
+    fun <U> map(f: (T) -> U) =
+        ContainerElementFactoryEntry(factoryName, f(containerReceiverType), f(publicType))
+}
+
+data class SoftwareTypeEntry<out T>(
+    val softwareTypeName: String,
+    val modelType: T,
+) : Serializable {
+
+    fun <U> map(f: (T) -> U) =
+        SoftwareTypeEntry(softwareTypeName, f(modelType))
 }

@@ -16,35 +16,51 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.artifacts.component.BuildIdentifier;
+import org.gradle.api.internal.project.ProjectIdentity;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.Collection;
 
 /**
- * A build scoped service that collects information on the local "publications" of each project within a build. A "publication" here means some buildable thing that the project produces that can be consumed outside of the project.
+ * A build tree scoped service that collects information on the local "publications" of each
+ * project within a build tree. A "publication" here means some buildable thing that the project
+ * produces that can be consumed outside of the project.
  *
  * The information is gathered from multiple sources ({@code publishing.publications} container, etc.).
  */
+@ServiceScope(Scope.BuildTree.class)
 @ThreadSafe
 public interface ProjectPublicationRegistry {
-    void registerPublication(ProjectInternal project, ProjectPublication publication);
+
+    /**
+     * Register the given publication as produced by the project with the given ID.
+     */
+    void registerPublication(ProjectIdentity projectIdentity, ProjectPublication publication);
 
     /**
      * Returns the known publications for the given project.
      */
-    <T extends ProjectPublication> Collection<T> getPublications(Class<T> type, Path projectIdentityPath);
+    <T extends ProjectPublication> Collection<T> getPublicationsForProject(Class<T> type, Path projectIdentityPath);
 
     /**
-     * Returns all known publications.
+     * Returns all known publications for the given build.
      */
-    <T extends ProjectPublication> Collection<Reference<T>> getPublications(Class<T> type);
+    <T extends ProjectPublication> Collection<PublicationForProject<T>> getPublicationsForBuild(Class<T> type, BuildIdentifier buildIdentity);
 
-    interface Reference<T> {
-        T get();
+    interface PublicationForProject<T extends ProjectPublication> {
 
-        // Should use ProjectState instead
-        ProjectInternal getProducingProject();
+        /**
+         * The publication produced by the project.
+         */
+        T getPublication();
+
+        /**
+         * The ID of the project that produced the publication.
+         */
+        ProjectIdentity getProducingProjectId();
     }
 }

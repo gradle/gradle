@@ -2,10 +2,8 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
-gradlebuildJava.usedInWorkers()
-
 description = """Basic testing related plugins, which establish conventions for testing output directories,
-and setup basic testing-related features lik a testSuites container and the testing extension.  It provides most of the
+and setup basic testing-related features like a testSuites container and the testing extension.  It provides most of the
 testing-related abstract base types and interfaces for things like Test tasks, listeners and filters.
 
 This project is a implementation dependency of many other testing-related subprojects in the Gradle build.
@@ -13,57 +11,69 @@ This project is a implementation dependency of many other testing-related subpro
 
 errorprone {
     disabledChecks.addAll(
-        "EmptyBlockTag", // 3 occurrences
         "InlineMeInliner", // 2 occurrences
         "MissingCasesInEnumSwitch", // 1 occurrences
-        "OperatorPrecedence", // 1 occurrences
-        "UnusedMethod", // 4 occurrences
     )
 }
 
 dependencies {
-    api(project(":reporting"))
+    api(projects.baseServices)
+    api(projects.buildOperations)
+    api(projects.core)
+    api(projects.coreApi)
+    api(projects.enterpriseLogging)
+    api(projects.stdlibJavaExtensions)
+    api(projects.logging)
+    api(projects.loggingApi)
+    api(projects.messaging)
+    api(projects.native)
+    api(projects.problemsApi)
+    api(projects.reportRendering)
+    api(projects.reporting)
+    api(projects.serialization)
+    api(projects.serviceProvider)
+    api(projects.testingBaseInfrastructure)
+    api(projects.time)
 
-    implementation(project(":base-services"))
-    implementation(project(":messaging"))
-    implementation(project(":native"))
-    implementation(project(":logging"))
-    implementation(project(":process-services"))
-    implementation(project(":worker-processes"))
-    implementation(project(":core-api"))
-    implementation(project(":model-core"))
-    implementation(project(":core"))
-    implementation(project(":base-services-groovy"))
-    implementation(project(":platform-base"))
+    api(libs.groovy)
+    api(libs.guava)
+    api(libs.jspecify)
+    api(libs.inject)
 
-    implementation(libs.slf4jApi)
-    implementation(libs.groovy)
-    implementation(libs.guava)
+    implementation(projects.baseServicesGroovy)
+    implementation(projects.concurrent)
+    implementation(projects.files)
+    implementation(projects.modelCore)
+
     implementation(libs.commonsLang)
+    implementation(libs.commonsIo)
     implementation(libs.kryo)
-    implementation(libs.inject)
-    implementation(libs.ant) // only used for DateUtils
+    implementation(libs.slf4jApi)
 
-    testImplementation(project(":file-collections"))
-    testImplementation(project(":enterprise-operations"))
+    testImplementation(projects.fileCollections)
+    testImplementation(projects.enterpriseOperations)
+    testImplementation(testFixtures(projects.baseServices))
+    testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.logging))
+    testImplementation(testFixtures(projects.messaging))
+    testImplementation(testFixtures(projects.platformBase))
+    testImplementation(testFixtures(projects.serialization))
+    testImplementation(testFixtures(projects.time))
+
     testImplementation(libs.commonsIo)
-    testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":messaging")))
-    testImplementation(testFixtures(project(":platform-base")))
-    testImplementation(testFixtures(project(":logging")))
-    testImplementation(testFixtures(project(":base-services")))
 
-    testFixturesImplementation(project(":base-services"))
-    testFixturesImplementation(project(":model-core"))
-    testFixturesImplementation(project(":internal-integ-testing"))
-    testFixturesImplementation(project(":logging"))
+    testFixturesImplementation(projects.baseServices)
+    testFixturesImplementation(projects.internalIntegTesting)
+    testFixturesImplementation(projects.logging)
+    testFixturesImplementation(projects.modelCore)
+
     testFixturesImplementation(libs.guava)
     testFixturesImplementation(libs.jsoup)
 
-    testRuntimeOnly(project(":distributions-core")) {
+    testRuntimeOnly(projects.distributionsCore) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-core"))
+    integTestDistributionRuntimeOnly(projects.distributionsCore)
 }
 
 strictCompile {
@@ -75,3 +85,6 @@ packageCycles {
 }
 
 integTest.usesJavadocCodeSnippets = true
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

@@ -16,12 +16,14 @@
 
 package org.gradle.api.internal.tasks.compile
 
+
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.jvm.toolchain.JavaInstallationMetadata
 import org.gradle.jvm.toolchain.JavaLanguageVersion
+import org.gradle.jvm.toolchain.internal.JavaToolchain
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Rule
@@ -36,7 +38,12 @@ class DefaultGroovyJavaJointCompileSpecFactoryTest extends Specification {
         CompileOptions options = TestUtil.newInstance(CompileOptions.class, TestUtil.objectFactory())
         options.fork = fork
         options.forkOptions.executable = executable ? Jvm.current().javacExecutable.absolutePath : null
-        DefaultGroovyJavaJointCompileSpecFactory factory = new DefaultGroovyJavaJointCompileSpecFactory(options, null)
+
+        def javaToolchain = Mock(JavaToolchain) {
+            getInstallationPath() >> TestFiles.fileFactory().dir(Jvm.current().javaHome)
+            getLanguageVersion() >> JavaLanguageVersion.of("8")
+        }
+        def factory = new DefaultGroovyJavaJointCompileSpecFactory(options, javaToolchain)
 
         when:
         def spec = factory.create()
@@ -48,7 +55,7 @@ class DefaultGroovyJavaJointCompileSpecFactoryTest extends Specification {
 
         where:
         fork  | executable | implementsForking | implementsCommandLine
-        false | false      | false             | false
+        false | false      | true              | false
         true  | false      | true              | false
         true  | true       | false             | true
     }

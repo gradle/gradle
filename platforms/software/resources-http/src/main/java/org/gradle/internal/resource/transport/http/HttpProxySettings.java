@@ -16,8 +16,10 @@
 package org.gradle.internal.resource.transport.http;
 
 
-import org.gradle.api.credentials.PasswordCredentials;
-import org.gradle.internal.credentials.DefaultPasswordCredentials;
+import com.google.common.base.Preconditions;
+import org.gradle.api.credentials.Credentials;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 public interface HttpProxySettings {
 
@@ -26,16 +28,36 @@ public interface HttpProxySettings {
     class HttpProxy {
         public final String host;
         public final int port;
-        public final PasswordCredentials credentials;
+        public final HttpProxyCredentials credentials;
 
         public HttpProxy(String host, int port, String username, String password) {
             this.host = host;
             this.port = port;
-            if (username == null || username.length() == 0) {
+            if (username == null || username.isEmpty()) {
                 credentials = null;
             } else {
-                credentials = new DefaultPasswordCredentials(username, password);
+                credentials = new HttpProxyCredentials(username, password);
             }
+        }
+    }
+
+    @NullMarked
+    class HttpProxyCredentials implements Credentials {
+        private final String username;
+        private final String password;
+
+        public HttpProxyCredentials(String username, @Nullable String password) {
+            this.username = Preconditions.checkNotNull(username);
+            this.password = password;
+        }
+
+        public String getUsername() {
+            return username;
+        }
+
+        @Nullable
+        public String getPassword() {
+            return password;
         }
     }
 }

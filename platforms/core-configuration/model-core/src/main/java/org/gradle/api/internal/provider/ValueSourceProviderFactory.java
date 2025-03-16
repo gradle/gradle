@@ -23,10 +23,9 @@ import org.gradle.api.provider.ValueSourceParameters;
 import org.gradle.api.provider.ValueSourceSpec;
 import org.gradle.internal.Try;
 import org.gradle.internal.service.scopes.EventScope;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Service to create providers from {@link ValueSource}s.
@@ -35,7 +34,7 @@ import javax.annotation.Nullable;
  *
  * @since 6.1
  */
-@ServiceScope(Scopes.Build.class)
+@ServiceScope(Scope.Build.class)
 public interface ValueSourceProviderFactory {
 
     <T, P extends ValueSourceParameters> Provider<T> createProviderOf(
@@ -61,14 +60,14 @@ public interface ValueSourceProviderFactory {
      * The listener that is notified when the value of the {@code ValueSource} is computed. There is no ordering guarantees with the
      * {@link ValueListener#valueObtained(ValueListener.ObtainedValue, ValueSource)}.
      */
-    @EventScope(Scopes.Build.class)
+    @EventScope(Scope.Build.class)
     interface ComputationListener {
         void beforeValueObtained();
 
         void afterValueObtained();
     }
 
-    @EventScope(Scopes.Build.class)
+    @EventScope(Scope.Build.class)
     interface ValueListener {
         <T, P extends ValueSourceParameters> void valueObtained(
             ObtainedValue<T, P> obtainedValue,
@@ -77,10 +76,11 @@ public interface ValueSourceProviderFactory {
 
         interface ObtainedValue<T, P extends ValueSourceParameters> {
 
-            Try<T> getValue();
+            Try<@Nullable T> getValue();
 
             Class<? extends ValueSource<T, P>> getValueSourceType();
 
+            @Nullable
             Class<P> getValueSourceParametersType();
 
             @Nullable

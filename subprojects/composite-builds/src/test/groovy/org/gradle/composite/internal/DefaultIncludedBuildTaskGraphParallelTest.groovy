@@ -58,16 +58,16 @@ import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.buildtree.BuildTreeWorkGraphPreparer
 import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.concurrent.DefaultExecutorFactory
-import org.gradle.internal.concurrent.DefaultParallelismConfiguration
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.file.Stat
-import org.gradle.internal.operations.TestBuildOperationExecutor
+import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.properties.bean.PropertyWalker
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.resources.ResourceLock
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.snapshot.CaseSensitivity
 import org.gradle.internal.work.DefaultWorkerLeaseService
+import org.gradle.internal.work.DefaultWorkerLimits
 import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.util.Path
 import org.gradle.util.TestUtil
@@ -295,7 +295,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
 
     private BuildWorkGraphController buildWorkGraphController(String displayName, BuildServices services) {
         def builder = Mock(BuildLifecycleController.WorkGraphBuilder)
-        def nodeFactory = new TaskNodeFactory(services.gradle, Stub(BuildTreeWorkGraphController), Stub(NodeValidator), new TestBuildOperationExecutor(), new ExecutionNodeAccessHierarchies(CaseSensitivity.CASE_INSENSITIVE, Stub(Stat)))
+        def nodeFactory = new TaskNodeFactory(services.gradle, Stub(BuildTreeWorkGraphController), Stub(NodeValidator), new TestBuildOperationRunner(), new ExecutionNodeAccessHierarchies(CaseSensitivity.CASE_INSENSITIVE, Stub(Stat)))
         def hierarchies = new ExecutionNodeAccessHierarchies(CaseSensitivity.CASE_SENSITIVE, TestFiles.fileSystem())
         def dependencyResolver = Stub(TaskDependencyResolver)
         _ * dependencyResolver.resolveDependenciesFor(_, _) >> { TaskInternal task, Object dependencies ->
@@ -449,14 +449,14 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         final coordinationService = new DefaultResourceLockCoordinationService()
 
         TreeServices(int workers) {
-            def configuration = new DefaultParallelismConfiguration(true, workers)
-            workerLeaseService = new DefaultWorkerLeaseService(coordinationService, configuration)
+            def workerLimits = new DefaultWorkerLimits(workers)
+            workerLeaseService = new DefaultWorkerLeaseService(coordinationService, workerLimits)
             workerLeaseService.startProjectExecution(true)
             execFactory = new DefaultExecutorFactory()
-            planExecutor = new DefaultPlanExecutor(configuration, execFactory, workerLeaseService, cancellationToken, coordinationService, new DefaultInternalOptions([:]))
+            planExecutor = new DefaultPlanExecutor(workerLimits, execFactory, workerLeaseService, cancellationToken, coordinationService, new DefaultInternalOptions([:]))
             buildTaskGraph = new DefaultIncludedBuildTaskGraph(
                 execFactory,
-                new TestBuildOperationExecutor(),
+                new TestBuildOperationRunner(),
                 buildStateRegistry,
                 workerLeaseService,
                 planExecutor,

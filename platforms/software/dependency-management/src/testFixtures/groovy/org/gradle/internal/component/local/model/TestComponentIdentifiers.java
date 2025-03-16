@@ -15,14 +15,14 @@
  */
 package org.gradle.internal.component.local.model;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.util.Path;
-
-import java.util.Collections;
 
 public class TestComponentIdentifiers {
     public static ProjectComponentIdentifier newProjectId(String projectPath) {
@@ -48,6 +48,6 @@ public class TestComponentIdentifiers {
         if (name == null) {
             name = "root";
         }
-        return new DefaultProjectComponentSelector(new DefaultBuildIdentifier(Path.path(buildPath)), path, path, name, ImmutableAttributes.EMPTY, Collections.emptyList());
+        return new DefaultProjectComponentSelector(new ProjectIdentity(new DefaultBuildIdentifier(Path.path(buildPath)), path, path, name), ImmutableAttributes.EMPTY, ImmutableSet.of());
     }
 }

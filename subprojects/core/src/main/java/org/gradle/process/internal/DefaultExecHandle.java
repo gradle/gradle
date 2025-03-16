@@ -27,8 +27,8 @@ import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.shutdown.ShutdownHooks;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
@@ -46,7 +46,7 @@ import static org.gradle.process.internal.util.LongCommandLineDetectionUtil.hasC
 /**
  * Default implementation for the ExecHandle interface.
  *
- * <h3>State flows</h3>
+ * <h2>State flows</h2>
  *
  * <ul>
  *   <li>INIT -&gt; STARTED -&gt; [SUCCEEDED|FAILED|ABORTED|DETACHED]</li>

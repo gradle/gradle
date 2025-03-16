@@ -37,8 +37,8 @@ import org.gradle.declarative.dsl.model.annotations.Restricted;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.plugin.management.PluginManagementSpec;
 import org.gradle.vcs.SourceControl;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Arrays;
 
@@ -50,7 +50,7 @@ import java.util.Arrays;
  * #DEFAULT_SETTINGS_FILE}</code> settings file. Before Gradle assembles the projects for a build, it creates a
  * <code>Settings</code> instance and executes the settings file against it.</p>
  *
- * <h3>Assembling a Multi-Project Build</h3>
+ * <h2>Assembling a Multi-Project Build</h2>
  *
  * <p>One of the purposes of the <code>Settings</code> object is to allow you to declare the projects which are to be
  * included in the build. You add projects to the build using the {@link #include(String...)} method.  There is always a
@@ -61,9 +61,9 @@ import java.util.Arrays;
  * <p>When a project is included in the build, a {@link ProjectDescriptor} is created. You can use this descriptor to
  * change the default values for several properties of the project.</p>
  *
- * <h3>Using Settings in a Settings File</h3>
+ * <h2>Using Settings in a Settings File</h2>
  *
- * <h4>Dynamic Properties</h4>
+ * <h3>Dynamic Properties</h3>
  *
  * <p>In addition to the properties of this interface, the {@code Settings} object makes some additional read-only
  * properties available to the settings script. This includes properties from the following sources:</p>
@@ -122,17 +122,6 @@ public interface Settings extends PluginAware, ExtensionAware {
      */
     default void include(String... projectPaths) {
         include(Arrays.asList(projectPaths));
-    }
-
-    /**
-     * This is a version of {@link Settings#include(String...)} for just one argument.
-     * FIXME: this public API should not be released!
-     * @since 8.8
-     */
-    @Adding // TODO: support varargs and remove the workaround
-    @Incubating
-    default void include(String projectPath) {
-        include(new String[] {projectPath});
     }
 
     /**
@@ -353,7 +342,6 @@ public interface Settings extends PluginAware, ExtensionAware {
      *
      * @since 3.5
      */
-    @Restricted
     PluginManagementSpec getPluginManagement();
 
     /**
@@ -394,7 +382,6 @@ public interface Settings extends PluginAware, ExtensionAware {
      *
      * @since 6.8
      */
-    @Restricted
     DependencyResolutionManagement getDependencyResolutionManagement();
 
     /**
@@ -430,4 +417,26 @@ public interface Settings extends PluginAware, ExtensionAware {
      */
     @Incubating
     void caches(Action<? super CacheConfigurations> cachesConfiguration);
+
+    /**
+     * Returns the model defaults object for this build.
+     *
+     * This is an experimental feature.
+     *
+     * @since 8.10
+     */
+    @Incubating
+    SharedModelDefaults getDefaults();
+
+    /**
+     * Configures the model defaults for this build.
+     *
+     * This is an experimental feature.
+     *
+     * @param action the configuration to apply
+     *
+     * @since 8.10
+     */
+    @Incubating
+    void defaults(Action<? super SharedModelDefaults> action);
 }

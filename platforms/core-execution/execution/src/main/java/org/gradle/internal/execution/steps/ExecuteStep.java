@@ -25,7 +25,7 @@ import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
@@ -43,17 +43,17 @@ import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.UP_
 
 public class ExecuteStep<C extends ChangingOutputsContext> implements Step<C, Result> {
 
-    private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildOperationRunner buildOperationRunner;
 
-    public ExecuteStep(BuildOperationExecutor buildOperationExecutor) {
-        this.buildOperationExecutor = buildOperationExecutor;
+    public ExecuteStep(BuildOperationRunner buildOperationRunner) {
+        this.buildOperationRunner = buildOperationRunner;
     }
 
     @Override
     public Result execute(UnitOfWork work, C context) {
         Class<? extends UnitOfWork> workType = work.getClass();
         UnitOfWork.Identity identity = context.getIdentity();
-        return buildOperationExecutor.call(new CallableBuildOperation<Result>() {
+        return buildOperationRunner.call(new CallableBuildOperation<Result>() {
             @Override
             public Result call(BuildOperationContext operationContext) {
                 Result result = executeInternal(work, context);

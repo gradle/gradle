@@ -16,7 +16,6 @@
 
 package org.gradle.plugins.ide.internal.tooling;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
@@ -25,6 +24,7 @@ import org.gradle.plugins.ide.internal.tooling.model.IsolatedGradleProjectIntern
 import org.gradle.plugins.ide.internal.tooling.model.LaunchableGradleTask;
 import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
 import org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.List;
 import java.util.Objects;
@@ -35,7 +35,7 @@ import static org.gradle.plugins.ide.internal.tooling.ToolingModelBuilderSupport
 /**
  * Builds the {@link IsolatedGradleProjectInternal} that contains information about a project and its tasks.
  */
-@NonNullApi
+@NullMarked
 public class IsolatedGradleProjectInternalBuilder implements ParameterizedToolingModelBuilder<IsolatedGradleProjectParameter> {
 
     @Override

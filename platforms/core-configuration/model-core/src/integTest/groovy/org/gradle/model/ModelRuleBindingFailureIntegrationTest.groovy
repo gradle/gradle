@@ -29,7 +29,7 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
 
     def "unbound rule by-type subject and inputs are reported"() {
         given:
-        buildScript """
+        buildFile """
             class MyPlugin {
                 static class MyThing1 {}
                 static class MyThing2 {}
@@ -79,7 +79,7 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
 
     def "unbound rule by-path subject and inputs are reported"() {
         given:
-        buildScript """
+        buildFile """
             class MyPlugin {
                 static class MyThing1 {}
                 static class MyThing2 {}
@@ -121,7 +121,7 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
 
     def "unbound dsl rule by-path subject and inputs are reported"() {
         given:
-        buildScript '''
+        buildFile '''
             @Managed interface Thing { }
 
             model {
@@ -156,7 +156,7 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
 
     def "suggestions are provided for unbound by-path references"() {
         given:
-        buildScript """
+        buildFile """
             class MyPlugin {
                 static class Rules extends RuleSource {
                     @Mutate
@@ -189,7 +189,7 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
 
     def "fails on ambiguous by-type reference"() {
         given:
-        buildScript """
+        buildFile """
             class Plugin1 {
                 static class Rules extends RuleSource {
                     @Model
@@ -235,7 +235,7 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
 
     def "fails on incompatible by-type reference"() {
         given:
-        buildScript """
+        buildFile """
             class Plugin1 {
                 static class Rules extends RuleSource {
                     @Mutate
@@ -261,7 +261,7 @@ This element was created by Project.<init>.tasks() and can be mutated as the fol
 
     def "reports failure to bind subject or input due to null reference"() {
         given:
-        buildScript """
+        buildFile """
 @Managed interface Person extends Named {
     Person getParent()
     void setParent(Person p)
@@ -322,7 +322,7 @@ model {
 
     def "partially bound rules are reported and the report includes the elements bound to"() {
         given:
-        buildScript """
+        buildFile """
             class MyPlugin {
                 static class MyThing1 {}
                 static class MyThing2 {}

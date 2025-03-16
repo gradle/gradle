@@ -4,52 +4,47 @@ plugins {
 
 description = "Implementation of types that represent containers of files"
 
-errorprone {
-    disabledChecks.addAll(
-        "HidingField", // 2 occurrences
-        "InlineMeSuggester", // 1 occurrences
-    )
-}
-
 dependencies {
-    api(project(":base-annotations"))
-    api(project(":base-services"))
-    api(project(":core-api"))
-    api(project(":files"))
-    api(project(":model-core"))
-    api(project(":logging"))
-    api(project(":native"))
+    api(projects.stdlibJavaExtensions)
+    api(projects.baseServices)
+    api(projects.coreApi)
+    api(projects.files)
+    api(projects.modelCore)
+    api(projects.logging)
+    api(projects.native)
 
     api(libs.groovy)
     api(libs.guava)
     api(libs.inject)
-    api(libs.jsr305)
+    api(libs.jspecify)
 
-    implementation(project(":base-services-groovy"))
+    implementation(projects.io)
+    implementation(projects.baseServicesGroovy)
 
     implementation(libs.slf4jApi)
     implementation(libs.commonsIo)
 
     compileOnly(libs.jetbrainsAnnotations)
 
-    testImplementation(project(":process-services"))
-    testImplementation(project(":resources"))
-    testImplementation(project(":snapshots"))
-    testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":core-api")))
-    testImplementation(testFixtures(project(":model-core")))
+    testImplementation(projects.processServices)
+    testImplementation(projects.resources)
+    testImplementation(projects.snapshots)
+    testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.coreApi))
+    testImplementation(testFixtures(projects.modelCore))
+    testImplementation(testFixtures(projects.modelReflect))
     testImplementation(libs.groovyDateUtil)
 
-    testFixturesImplementation(project(":base-services"))
-    testFixturesImplementation(project(":core-api"))
-    testFixturesImplementation(project(":native"))
+    testFixturesImplementation(projects.baseServices)
+    testFixturesImplementation(projects.coreApi)
+    testFixturesImplementation(projects.native)
 
     testFixturesImplementation(libs.guava)
 
-    testRuntimeOnly(project(":distributions-core")) {
+    testRuntimeOnly(projects.distributionsCore) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-core"))
+    integTestDistributionRuntimeOnly(projects.distributionsCore)
 }
 
 strictCompile {
@@ -59,4 +54,7 @@ strictCompile {
 packageCycles {
     // Some cycles have been inherited from the time these classes were in :core
     excludePatterns.add("org/gradle/api/internal/file/collections/**")
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

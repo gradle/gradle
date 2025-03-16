@@ -17,6 +17,9 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+
+import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 
 class AntBuilderLoggingIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -49,6 +52,7 @@ class AntBuilderLoggingIntegrationTest extends AbstractIntegrationSpec {
         outputDoesNotContain("VERBOSE message")
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "can increase verbosity of Ant logging" () {
         buildFile << """
             ant.lifecycleLogLevel = "INFO"
@@ -67,6 +71,7 @@ class AntBuilderLoggingIntegrationTest extends AbstractIntegrationSpec {
         outputDoesNotContain("VERBOSE message")
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "can decrease verbosity of Ant logging" () {
         buildFile << """
             ant.lifecycleLogLevel = "ERROR"

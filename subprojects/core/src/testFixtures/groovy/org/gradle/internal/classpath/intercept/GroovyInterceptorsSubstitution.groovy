@@ -17,6 +17,7 @@
 package org.gradle.internal.classpath.intercept
 
 import org.gradle.internal.classpath.GroovyCallInterceptorsProvider
+import org.gradle.internal.instrumentation.api.groovybytecode.CallInterceptor
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter
 
 class GroovyInterceptorsSubstitution extends TestInterceptorsSubstitution<CallSiteInterceptorSet> {

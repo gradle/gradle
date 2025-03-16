@@ -42,6 +42,17 @@ public final class ExternalResourceReadBuildOperationType implements BuildOperat
          */
         long getBytesRead();
 
+        /**
+         * Whether the resource is missing.
+         * <p>
+         * Missing means that the resource does not exist.
+         * For example, for an HTTP resource, a 404 response would mean that the resource is missing.
+         * See {@code org.gradle.api.resources.MissingResourceException}
+         *
+         * @since 8.11
+         */
+        boolean isMissing();
+
     }
 
     private ExternalResourceReadBuildOperationType() {

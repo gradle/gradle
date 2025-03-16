@@ -34,17 +34,6 @@ fun scrapeRichReport(richReportFile: File): RichReport =
 
 
 private
-fun Document.scrapeMessagesForSeverity_OLD(severity: String): List<String> =
-
-    select("tr.severity-$severity").map { tr ->
-        tr.select("td")[1]
-            .select("span")
-            .text()
-            .substringBefore(" If you did this intentionally")
-    }
-
-
-private
 fun Document.scrapeMessagesForSeverity(severity: String): List<ReportMessage> =
 
     select("tr.severity-$severity").map { tr ->

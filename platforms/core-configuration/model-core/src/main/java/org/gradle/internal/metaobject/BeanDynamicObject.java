@@ -38,8 +38,8 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.JavaPropertyReflectionUtil;
 import org.gradle.internal.state.ModelObject;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
@@ -219,6 +219,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
     }
 
     private class MetaClassAdapter {
+        @SuppressWarnings("unused") // May be used dynamically.
         protected String getDisplayName() {
             return BeanDynamicObject.this.getDisplayName();
         }
@@ -296,6 +297,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             }
         }
 
+        // used in subclasses
         protected DynamicInvokeResult getOpaqueProperty(String name) {
             return DynamicInvokeResult.notFound();
         }
@@ -465,10 +467,13 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             throw setGetterOnlyProperty(name);
         }
 
+        @SuppressWarnings("unused")
         protected DynamicInvokeResult setOpaqueProperty(MetaClass metaClass, String name, @Nullable Object value) {
             return DynamicInvokeResult.notFound();
         }
 
+        @SuppressWarnings("MixedMutabilityReturnType")
+        // This might be too invasive to fix properly because it is in the dynamic code.
         public Map<String, ?> getProperties() {
             if (!includeProperties) {
                 return Collections.emptyMap();
@@ -502,6 +507,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             return properties;
         }
 
+        // used in subclasses
         protected void getOpaqueProperties(Map<String, Object> properties) {
         }
 

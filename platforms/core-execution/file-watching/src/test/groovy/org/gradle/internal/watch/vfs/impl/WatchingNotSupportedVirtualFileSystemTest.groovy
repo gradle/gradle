@@ -16,13 +16,12 @@
 
 package org.gradle.internal.watch.vfs.impl
 
-import org.gradle.internal.operations.TestBuildOperationExecutor
+import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.snapshot.CaseSensitivity
 import org.gradle.internal.snapshot.SnapshotHierarchy
 import org.gradle.internal.vfs.impl.DefaultSnapshotHierarchy
 import org.gradle.internal.watch.registry.WatchMode
 import org.gradle.internal.watch.vfs.VfsLogging
-import org.gradle.internal.watch.vfs.WatchLogging
 import spock.lang.Specification
 
 class WatchingNotSupportedVirtualFileSystemTest extends Specification {
@@ -31,17 +30,17 @@ class WatchingNotSupportedVirtualFileSystemTest extends Specification {
         empty() >> emptySnapshotHierarchy
     }
     def watchingNotSupportedVfs = new WatchingNotSupportedVirtualFileSystem(nonEmptySnapshotHierarchy)
-    def buildOperationRunner = new TestBuildOperationExecutor()
+    def buildOperationRunner = new TestBuildOperationRunner()
 
     def "invalidates the virtual file system before and after the build (watch mode: #watchMode.description)"() {
         when:
-        watchingNotSupportedVfs.afterBuildStarted(watchMode, VfsLogging.NORMAL, WatchLogging.NORMAL, buildOperationRunner)
+        watchingNotSupportedVfs.afterBuildStarted(watchMode, VfsLogging.NORMAL, buildOperationRunner)
         then:
         watchingNotSupportedVfs.root == emptySnapshotHierarchy
 
         when:
         watchingNotSupportedVfs.updateRootUnderLock { root -> nonEmptySnapshotHierarchy }
-        watchingNotSupportedVfs.beforeBuildFinished(watchMode, VfsLogging.NORMAL, WatchLogging.NORMAL, buildOperationRunner, Integer.MAX_VALUE)
+        watchingNotSupportedVfs.beforeBuildFinished(watchMode, VfsLogging.NORMAL, buildOperationRunner, Integer.MAX_VALUE)
         watchingNotSupportedVfs.afterBuildFinished()
         then:
         watchingNotSupportedVfs.root == emptySnapshotHierarchy

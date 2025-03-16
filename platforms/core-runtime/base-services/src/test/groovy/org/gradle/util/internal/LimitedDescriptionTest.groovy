@@ -20,6 +20,7 @@ import spock.lang.Specification
 
 class LimitedDescriptionTest extends Specification {
 
+    @SuppressWarnings("deprecation")
     def desc = new LimitedDescription(2)
 
     def "has limited description"() {

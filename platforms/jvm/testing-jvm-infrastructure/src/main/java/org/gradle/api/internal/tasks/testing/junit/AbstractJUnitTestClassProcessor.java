@@ -22,24 +22,18 @@ import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.internal.actor.Actor;
 import org.gradle.internal.actor.ActorFactory;
-import org.gradle.internal.id.IdGenerator;
-import org.gradle.internal.time.Clock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public abstract class AbstractJUnitTestClassProcessor implements TestClassProcessor {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractJUnitTestClassProcessor.class);
 
-    protected final IdGenerator<?> idGenerator;
-    protected final Clock clock;
     private final ActorFactory actorFactory;
     private Actor resultProcessorActor;
     private Action<String> executor;
 
-    public AbstractJUnitTestClassProcessor(IdGenerator<?> idGenerator, ActorFactory actorFactory, Clock clock) {
-        this.idGenerator = idGenerator;
+    public AbstractJUnitTestClassProcessor(ActorFactory actorFactory) {
         this.actorFactory = actorFactory;
-        this.clock = clock;
     }
 
     @Override

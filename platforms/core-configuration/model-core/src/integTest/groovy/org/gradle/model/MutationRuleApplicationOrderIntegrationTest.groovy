@@ -23,7 +23,7 @@ import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 class MutationRuleApplicationOrderIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
-        buildScript '''
+        buildFile '''
             class MutationRecorder {
                 def mutations = []
             }

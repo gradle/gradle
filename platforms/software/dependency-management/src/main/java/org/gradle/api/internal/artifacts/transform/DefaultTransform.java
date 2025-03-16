@@ -24,8 +24,8 @@ import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.InputArtifactDependencies;
 import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.TransformParameters;
-import org.gradle.api.artifacts.transform.VariantTransformConfigurationException;
 import org.gradle.api.file.FileSystemLocation;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -36,8 +36,9 @@ import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.properties.FileParameterUtils;
 import org.gradle.api.internal.tasks.properties.InputParameterUtils;
-import org.gradle.api.problems.internal.ProblemReport;
-import org.gradle.api.problems.internal.DefaultProblemCategory;
+import org.gradle.api.problems.internal.GradleCoreProblemGroup;
+import org.gradle.api.problems.internal.InternalProblem;
+import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reflect.InjectionPointQualifier;
 import org.gradle.internal.Describables;
@@ -65,7 +66,7 @@ import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.model.ValueCalculator;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.properties.InputBehavior;
@@ -84,11 +85,12 @@ import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.internal.TextUtil;
 import org.gradle.work.InputChanges;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+import java.util.Locale;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -128,7 +130,7 @@ public class DefaultTransform implements Transform {
         DirectorySensitivity dependenciesDirectorySensitivity,
         LineEndingSensitivity artifactLineEndingSensitivity,
         LineEndingSensitivity dependenciesLineEndingSensitivity,
-        BuildOperationExecutor buildOperationExecutor,
+        BuildOperationRunner buildOperationRunner,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         IsolatableFactory isolatableFactory,
         FileCollectionFactory fileCollectionFactory,
@@ -154,9 +156,13 @@ public class DefaultTransform implements Transform {
         this.dependenciesDirectorySensitivity = dependenciesDirectorySensitivity;
         this.artifactLineEndingSensitivity = artifactLineEndingSensitivity;
         this.dependenciesLineEndingSensitivity = dependenciesLineEndingSensitivity;
-        this.isolatedParameters = calculatedValueContainerFactory.create(Describables.of("parameters of", this),
-            new IsolateTransformParameters(parameterObject, implementationClass, cacheable, owner, parameterPropertyWalker, isolatableFactory, buildOperationExecutor, classLoaderHierarchyHasher,
-                fileCollectionFactory));
+        this.isolatedParameters = calculatedValueContainerFactory.create(
+            Describables.of("parameters of", this),
+            new IsolateTransformParameters(
+                parameterObject, implementationClass, cacheable, owner, parameterPropertyWalker,
+                isolatableFactory, buildOperationRunner, classLoaderHierarchyHasher, fileCollectionFactory,
+                (InternalProblems) internalServices.get(InternalProblems.class),
+                (DocumentationRegistry) internalServices.get(DocumentationRegistry.class)));
     }
 
     /**
@@ -204,9 +210,9 @@ public class DefaultTransform implements Transform {
                 validationContext.visitPropertyProblem(problem ->
                     problem
                         .forProperty(propertyName)
-                        .label("is declared to be sensitive to absolute paths")
+                        .id(TextUtil.screamingSnakeToKebabCase(CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY), "Property declared to be sensitive to absolute paths", GradleCoreProblemGroup.validation().property()) // TODO (donat) missing test coverage
                         .documentedAt(userManual("validation_problems", "cacheable_transform_cant_use_absolute_sensitivity"))
-                        .category(DefaultProblemCategory.VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY))
+                        .contextualLabel("is declared to be sensitive to absolute paths")
                         .severity(ERROR)
                         .details("This is not allowed for cacheable transforms")
                         .solution("Use a different normalization strategy via @PathSensitive, @Classpath or @CompileClasspath"));
@@ -226,7 +232,7 @@ public class DefaultTransform implements Transform {
 
     @Override
     public boolean isIsolated() {
-        return isolatedParameters.getOrNull() != null;
+        return isolatedParameters.isFinalized();
     }
 
     @Override
@@ -296,9 +302,10 @@ public class DefaultTransform implements Transform {
         PropertyWalker propertyWalker,
         Hasher hasher,
         Object parameterObject,
-        boolean cacheable
+        boolean cacheable,
+        InternalProblems problems
     ) {
-        DefaultTypeValidationContext validationContext = DefaultTypeValidationContext.withoutRootType(cacheable);
+        DefaultTypeValidationContext validationContext = DefaultTypeValidationContext.withoutRootType(cacheable, problems);
         InputFingerprinter.Result result = inputFingerprinter.fingerprintInputProperties(
             ImmutableSortedMap.of(),
             ImmutableSortedMap.of(),
@@ -363,9 +370,9 @@ public class DefaultTransform implements Transform {
                     validationContext.visitPropertyProblem(problem ->
                         problem
                             .forProperty(propertyName)
-                            .label("declares an output")
-                            .documentedAt(userManual("validation_problems", ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT.toLowerCase()))
-                            .category(DefaultProblemCategory.VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT))
+                            .id(TextUtil.screamingSnakeToKebabCase(ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT), "Artifact transform should not declare output", GradleCoreProblemGroup.validation().property()) // TODO (donat) missing test coverage
+                            .contextualLabel("declares an output")
+                            .documentedAt(userManual("validation_problems", ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT.toLowerCase(Locale.ROOT)))
                             .severity(ERROR)
                             .details("is annotated with an output annotation")
                             .solution("Remove the output property and use the TransformOutputs parameter from transform(TransformOutputs) instead")
@@ -374,7 +381,7 @@ public class DefaultTransform implements Transform {
             })
         );
 
-        ImmutableList<ProblemReport> validationMessages = validationContext.getProblems();
+        ImmutableList<InternalProblem> validationMessages = validationContext.getProblems();
         if (!validationMessages.isEmpty()) {
             throw new DefaultMultiCauseException(
                 String.format(validationMessages.size() == 1
@@ -562,11 +569,13 @@ public class DefaultTransform implements Transform {
         private final DomainObjectContext owner;
         private final IsolatableFactory isolatableFactory;
         private final PropertyWalker parameterPropertyWalker;
-        private final BuildOperationExecutor buildOperationExecutor;
+        private final BuildOperationRunner buildOperationRunner;
         private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
         private final FileCollectionFactory fileCollectionFactory;
         private final boolean cacheable;
         private final Class<?> implementationClass;
+        private final InternalProblems problems;
+        private final DocumentationRegistry documentationRegistry;
 
         public IsolateTransformParameters(
             @Nullable TransformParameters parameterObject,
@@ -575,9 +584,11 @@ public class DefaultTransform implements Transform {
             DomainObjectContext owner,
             PropertyWalker parameterPropertyWalker,
             IsolatableFactory isolatableFactory,
-            BuildOperationExecutor buildOperationExecutor,
+            BuildOperationRunner buildOperationRunner,
             ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-            FileCollectionFactory fileCollectionFactory
+            FileCollectionFactory fileCollectionFactory,
+            InternalProblems problems,
+            DocumentationRegistry documentationRegistry
         ) {
             this.parameterObject = parameterObject;
             this.implementationClass = implementationClass;
@@ -585,9 +596,11 @@ public class DefaultTransform implements Transform {
             this.owner = owner;
             this.parameterPropertyWalker = parameterPropertyWalker;
             this.isolatableFactory = isolatableFactory;
-            this.buildOperationExecutor = buildOperationExecutor;
+            this.buildOperationRunner = buildOperationRunner;
             this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
             this.fileCollectionFactory = fileCollectionFactory;
+            this.problems = problems;
+            this.documentationRegistry = documentationRegistry;
         }
 
         @Nullable
@@ -671,7 +684,7 @@ public class DefaultTransform implements Transform {
             } catch (Exception e) {
                 TreeFormatter formatter = new TreeFormatter();
                 formatter.node("Could not isolate parameters ").appendValue(parameterObject).append(" of artifact transform ").appendType(implementationClass);
-                throw new VariantTransformConfigurationException(formatter.toString(), e);
+                throw new VariantTransformConfigurationException(formatter.toString(), e, documentationRegistry);
             }
         }
 
@@ -684,7 +697,7 @@ public class DefaultTransform implements Transform {
 
             if (parameterObject != null) {
                 TransformParameters isolatedTransformParameters = isolatedParameterObject.isolate();
-                buildOperationExecutor.run(new RunnableBuildOperation() {
+                buildOperationRunner.run(new RunnableBuildOperation() {
                     @Override
                     public void run(BuildOperationContext context) {
                         // TODO wolfs - schedule fingerprinting separately, it can be done without having the project lock
@@ -694,7 +707,8 @@ public class DefaultTransform implements Transform {
                             parameterPropertyWalker,
                             hasher,
                             isolatedTransformParameters,
-                            cacheable
+                            cacheable,
+                            problems
                         );
                         context.setResult(FingerprintTransformInputsOperation.Result.INSTANCE);
                     }

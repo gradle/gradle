@@ -40,8 +40,8 @@ import org.gradle.internal.RunDefaultTasksExecutionRequest;
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.logging.DefaultLoggingConfiguration;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -100,8 +100,8 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     private List<String> writeDependencyVerifications = emptyList();
     private List<String> lockedDependenciesToUpdate = emptyList();
     private DependencyVerificationMode verificationMode = DependencyVerificationMode.STRICT;
-    private boolean isRefreshKeys;
-    private boolean isExportKeys;
+    private boolean refreshKeys;
+    private boolean exportKeys;
     private WelcomeMessageConfiguration welcomeMessageConfiguration = new WelcomeMessageConfiguration(WelcomeMessageDisplayMode.ONCE);
 
     /**
@@ -266,8 +266,8 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         p.writeDependencyVerifications = writeDependencyVerifications;
         p.lockedDependenciesToUpdate = new ArrayList<>(lockedDependenciesToUpdate);
         p.verificationMode = verificationMode;
-        p.isRefreshKeys = isRefreshKeys;
-        p.isExportKeys = isExportKeys;
+        p.refreshKeys = refreshKeys;
+        p.exportKeys = exportKeys;
         p.welcomeMessageConfiguration = welcomeMessageConfiguration;
         return p;
     }
@@ -404,18 +404,47 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         }
     }
 
+    /**
+     * Key-value map of project properties. These are derived from the command-line arguments (-P) and do not reflect the final project properties available.
+     *
+     * Changing these properties may be too late to impact the build configuration.
+     *
+     * @return map of properties
+     */
     public Map<String, String> getProjectProperties() {
         return projectProperties;
     }
 
+    /**
+     * Sets the project properties. This completely replaces the map of project properties.
+     *
+     * Changing these properties may be too late to impact the build configuration.
+     *
+     * @param projectProperties new map of properties
+     */
     public void setProjectProperties(Map<String, String> projectProperties) {
         this.projectProperties = projectProperties;
     }
 
+
+    /**
+     * Key-value map of system properties. These are derived from the command-line arguments (-D) and do not reflect the final system properties available.
+     *
+     * Changing these properties may be too late to impact the build configuration.
+     *
+     * @return map of properties
+     */
     public Map<String, String> getSystemPropertiesArgs() {
         return systemPropertiesArgs;
     }
 
+    /**
+     * Sets the system properties. This completely replaces the map of system properties.
+     *
+     * Changing these properties may be too late to impact the build configuration.
+     *
+     * @param systemPropertiesArgs new map of properties
+     */
     public void setSystemPropertiesArgs(Map<String, String> systemPropertiesArgs) {
         this.systemPropertiesArgs = systemPropertiesArgs;
     }
@@ -455,10 +484,20 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         return this;
     }
 
+    /**
+     * Is the build running as a dry-run? Dry-run means task actions do not execute for the root build.
+     *
+     * @return true if the build is running as a dry-run
+     */
     public boolean isDryRun() {
         return dryRun;
     }
 
+    /**
+     * Enables or disables dry-run.
+     *
+     * @param dryRun true if the build should run as a dry-run
+     */
     public void setDryRun(boolean dryRun) {
         this.dryRun = dryRun;
     }
@@ -735,6 +774,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         return "StartParameter{"
             + "taskRequests=" + taskRequests
             + ", excludedTaskNames=" + excludedTaskNames
+            + ", buildProjectDependencies=" + buildProjectDependencies
             + ", currentDir=" + currentDir
             + ", projectDir=" + projectDir
             + ", projectProperties=" + projectProperties
@@ -743,19 +783,32 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
             + ", gradleHome=" + gradleHomeDir
             + ", logLevel=" + getLogLevel()
             + ", showStacktrace=" + getShowStacktrace()
+            + ", settingsFile=" + settingsFile
             + ", buildFile=" + buildFile
             + ", initScripts=" + initScripts
             + ", dryRun=" + dryRun
             + ", rerunTasks=" + rerunTasks
+            + ", profile=" + profile
+            + ", continueOnFailure=" + continueOnFailure
             + ", offline=" + offline
+            + ", projectCacheDir=" + projectCacheDir
             + ", refreshDependencies=" + refreshDependencies
+            + ", buildCacheEnabled=" + buildCacheEnabled
+            + ", buildCacheDebugLogging=" + buildCacheDebugLogging
             + ", parallelProjectExecution=" + isParallelProjectExecutionEnabled()
             + ", configureOnDemand=" + configureOnDemand
+            + ", continuous=" + continuous
             + ", maxWorkerCount=" + getMaxWorkerCount()
-            + ", buildCacheEnabled=" + buildCacheEnabled
+            + ", includedBuilds=" + includedBuilds
+            + ", buildScan=" + buildScan
+            + ", noBuildScan=" + noBuildScan
             + ", writeDependencyLocks=" + writeDependencyLocks
+            + ", writeDependencyVerifications=" + writeDependencyVerifications
+            + ", lockedDependenciesToUpdate=" + lockedDependenciesToUpdate
             + ", verificationMode=" + verificationMode
-            + ", refreshKeys=" + isRefreshKeys
+            + ", refreshKeys=" + refreshKeys
+            + ", exportKeys=" + exportKeys
+            + ", welcomeMessageConfiguration=" + welcomeMessageConfiguration
             + '}';
     }
 
@@ -923,7 +976,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * @since 6.2
      */
     public void setRefreshKeys(boolean refresh) {
-        isRefreshKeys = refresh;
+        refreshKeys = refresh;
     }
 
     /**
@@ -932,7 +985,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * @since 6.2
      */
     public boolean isRefreshKeys() {
-        return isRefreshKeys;
+        return refreshKeys;
     }
 
     /**
@@ -946,7 +999,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * @since 6.2
      */
     public boolean isExportKeys() {
-        return isExportKeys;
+        return exportKeys;
     }
 
     /**
@@ -960,7 +1013,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * @since 6.2
      */
     public void setExportKeys(boolean exportKeys) {
-        isExportKeys = exportKeys;
+        this.exportKeys = exportKeys;
     }
 
     /**

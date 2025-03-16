@@ -55,7 +55,7 @@ public interface VirtualFileSystem {
      * If the snapshotted location is invalidated while snapshotting,
      * then the snapshot is not stored in the VFS to avoid inconsistent state.
      */
-    <T> T store(String baseLocation, StoringAction<T> storingAction);
+    <T> T storeWithAction(String baseLocation, StoringAction<T> storingAction);
 
     /**
      * Snapshotting action which produces possibly more than one snapshot.

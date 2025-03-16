@@ -17,10 +17,11 @@ package org.gradle.profile
 
 import org.gradle.StartParameter
 import org.gradle.api.tasks.TaskState
+import org.gradle.internal.buildevents.BuildStartedTime
 import spock.lang.Specification
 
 class BuildProfileTest extends Specification {
-    private profile = new BuildProfile(new StartParameter())
+    private profile = new BuildProfile(new StartParameter(), new BuildStartedTime(0))
 
     def "creates dependency set profile on first get"() {
         expect:
@@ -69,7 +70,7 @@ class BuildProfileTest extends Specification {
         param.setExcludedTaskNames(["one", "two"])
 
         when:
-        profile = new BuildProfile(param)
+        profile = new BuildProfile(param, new BuildStartedTime(0))
 
         then:
         profile.buildDescription.contains(" -x one -x two foo bar")
@@ -80,7 +81,7 @@ class BuildProfileTest extends Specification {
         def param = new StartParameter()
 
         when:
-        profile = new BuildProfile(param)
+        profile = new BuildProfile(param, new BuildStartedTime(0))
 
         then:
         profile.buildDescription.contains(" (no tasks specified)")
@@ -92,5 +93,23 @@ class BuildProfileTest extends Specification {
 
         then:
         profile.buildStartedDescription == "Started on: 2010/02/01 - 12:25:00"
+    }
+
+    def "provides sane elapsed times if configuration phase skipped"() {
+        given:
+        def buildStartedAt = 1000L
+        def buildFinishedAt = 2000L
+        def startParameter = new StartParameter()
+        def buildStartedTime = new BuildStartedTime(buildStartedAt)
+
+        when:
+        profile = new BuildProfile(startParameter, buildStartedTime)
+        profile.setBuildFinished(buildFinishedAt)
+
+        then:
+        profile.getElapsedStartup() == 0
+        profile.getElapsedSettings() == 0
+        profile.getElapsedProjectsLoading() == 0
+        profile.getElapsedTotal() == 1000
     }
 }

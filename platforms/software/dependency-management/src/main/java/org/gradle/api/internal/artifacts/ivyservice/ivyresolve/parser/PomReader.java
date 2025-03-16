@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
+import com.google.common.collect.ImmutableList;
 import org.apache.commons.io.IOUtils;
 import org.apache.ivy.core.IvyPatternHelper;
 import org.gradle.api.artifacts.ModuleIdentifier;
@@ -28,6 +29,7 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.gradle.internal.xml.XmlFactories;
+import org.jspecify.annotations.NonNull;
 import org.w3c.dom.Comment;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -38,7 +40,6 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
-import javax.annotation.Nonnull;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -73,7 +74,6 @@ public class PomReader implements PomParent {
     private static final String GROUP_ID = "groupId";
     private static final String ARTIFACT_ID = "artifactId";
     private static final String VERSION = "version";
-    private static final String DESCRIPTION = "description";
     private static final String PARENT = "parent";
     private static final String SCOPE = "scope";
     private static final String CLASSIFIER = "classifier";
@@ -221,13 +221,13 @@ public class PomReader implements PomParent {
         ARTIFACT_ID("project.artifactId", "pom.artifactId", "artifactId"),
         VERSION("project.version", "pom.version", "version");
 
-        private final String[] names;
+        private final ImmutableList<String> names;
 
         GavProperty(String... names) {
-            this.names = names;
+            this.names = ImmutableList.copyOf(names);
         }
 
-        public String[] getNames() {
+        public ImmutableList<String> getNames() {
             return names;
         }
     }
@@ -341,7 +341,7 @@ public class PomReader implements PomParent {
         return replaceProps(val);
     }
 
-    @Nonnull
+    @NonNull
     public String getPackaging() {
         String val = getFirstChildText(projectElement, PACKAGING);
         if (val == null) {
@@ -373,9 +373,9 @@ public class PomReader implements PomParent {
             String relocGroupId = getFirstChildText(relocation, GROUP_ID);
             String relocArtId = getFirstChildText(relocation, ARTIFACT_ID);
             String relocVersion = getFirstChildText(relocation, VERSION);
-            relocGroupId = relocGroupId == null ? getGroupId() : relocGroupId;
-            relocArtId = relocArtId == null ? getArtifactId() : relocArtId;
-            relocVersion = relocVersion == null ? getVersion() : relocVersion;
+            relocGroupId = relocGroupId == null ? getGroupId() : replaceProps(relocGroupId);
+            relocArtId = relocArtId == null ? getArtifactId() : replaceProps(relocArtId);
+            relocVersion = relocVersion == null ? getVersion() : replaceProps(relocVersion);
             return DefaultModuleVersionIdentifier.newId(relocGroupId, relocArtId, relocVersion);
         }
     }
@@ -604,7 +604,7 @@ public class PomReader implements PomParent {
 
         public boolean isOptional() {
             Element e = getFirstChildElement(depElement, OPTIONAL);
-            return (e != null) && "true".equalsIgnoreCase(getTextContent(e));
+            return (e != null) && "true".equalsIgnoreCase(getTextContent(e).trim());
         }
     }
 

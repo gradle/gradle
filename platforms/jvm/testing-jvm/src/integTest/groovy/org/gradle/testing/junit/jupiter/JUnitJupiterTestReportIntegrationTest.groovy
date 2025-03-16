@@ -29,7 +29,7 @@ import static org.hamcrest.CoreMatchers.is
 class JUnitJupiterTestReportIntegrationTest extends AbstractTestReportIntegrationTest implements JUnitJupiterMultiVersionTest {
     def "outputs over lifecycle"() {
         when:
-        buildScript """
+        buildFile """
             $junitSetup
             test.reports.junitXml.outputPerTestCase = true
         """
@@ -95,7 +95,7 @@ class JUnitJupiterTestReportIntegrationTest extends AbstractTestReportIntegratio
 
     def "collects output for failing non-root suite descriptors"() {
         given:
-        buildScript """
+        buildFile """
             $junitSetup
             dependencies {
                 testImplementation(platform('org.junit:junit-bom:$version'))

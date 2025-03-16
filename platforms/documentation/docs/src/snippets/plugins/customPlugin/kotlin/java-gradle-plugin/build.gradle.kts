@@ -30,9 +30,11 @@ gradlePlugin {
 // end::use-and-configure-plugin[]
 
 publishing {
+    // tag::local-maven[]
     repositories {
         maven {
             url = uri(layout.buildDirectory.dir("repo"))
         }
     }
+    // end::local-maven[]
 }

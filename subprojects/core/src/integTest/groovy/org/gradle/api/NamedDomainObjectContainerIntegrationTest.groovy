@@ -17,7 +17,10 @@
 package org.gradle.api
 
 import groovy.transform.SelfType
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Issue
+
+import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 
 @SelfType(AbstractDomainObjectContainerIntegrationTest)
 trait AbstractNamedDomainObjectContainerIntegrationTest {
@@ -48,6 +51,7 @@ trait AbstractNamedDomainObjectContainerIntegrationTest {
 
 
 class NamedDomainObjectContainerIntegrationTest extends AbstractDomainObjectContainerIntegrationTest implements AbstractNamedDomainObjectContainerIntegrationTest {
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "can mutate the task container from named container"() {
         buildFile """
             testContainer.configureEach {

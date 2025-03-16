@@ -16,16 +16,10 @@
 
 package gradlebuild.performance.tasks
 
-import gradlebuild.basics.BuildEnvironmentExtension
-import gradlebuild.basics.kotlindsl.execAndGetStdout
-import io.mockk.every
-import io.mockk.mockkStatic
-import io.mockk.unmockkStatic
 import org.gradle.internal.os.OperatingSystem
 // Using star import to workaround https://youtrack.jetbrains.com/issue/KTIJ-24390
 import org.gradle.kotlin.dsl.*
 import org.gradle.testfixtures.ProjectBuilder
-import org.junit.After
 import org.junit.Assume
 import org.junit.Before
 import org.junit.Test
@@ -37,29 +31,20 @@ class DetermineBaselinesTest {
     val project = ProjectBuilder.builder().build()
 
     private
-    val buildEnvironmentExtension = project.extensions.create("buildEnvironment", BuildEnvironmentExtension::class.java)
-
+    val defaultPerformanceBaselines = "7.5-commit-123456"
 
     private
-    val defaultPerformanceBaselines = "7.5-commit-123456"
+    val commandExecutor: TestCommandExecutor = TestCommandExecutor()
+        .registerCommand(listOf("git", "remote", "-v"), "origin https://github.com/gradle/gradle.git (fetch)")
 
     @Before
     fun setUp() {
         project.file("version.txt").writeText("1.0")
-
-        // mock project.execAndGetStdout
-        mockkStatic("gradlebuild.basics.kotlindsl.Kotlin_dsl_upstream_candidatesKt")
-        mockGitOperation(listOf("git", "remote", "-v"), "origin https://github.com/gradle/gradle.git (fetch)")
-    }
-
-    @After
-    fun cleanUp() {
-        unmockkStatic("gradlebuild.basics.kotlindsl.Kotlin_dsl_upstream_candidatesKt")
     }
 
     @Test
     fun `keeps flakiness-detection-commit as it is in coordinator build`() {
-        verifyBaselineDetermination("any", true, flakinessDetectionCommitBaseline, flakinessDetectionCommitBaseline)
+        verifyBaselineDetermination("any", true, FLAKINESS_DETECTION_COMMIT_BASELINE, FLAKINESS_DETECTION_COMMIT_BASELINE)
     }
 
     @Test
@@ -70,7 +55,7 @@ class DetermineBaselinesTest {
         mockGitOperation(listOf("git", "rev-parse", "--short", "current"), "current")
 
         // then
-        verifyBaselineDetermination("any", false, flakinessDetectionCommitBaseline, "5.0-commit-current")
+        verifyBaselineDetermination("any", false, FLAKINESS_DETECTION_COMMIT_BASELINE, "5.0-commit-current")
     }
 
     @Test
@@ -122,16 +107,11 @@ class DetermineBaselinesTest {
 
     private
     fun createDetermineBaselinesTask(isDistributed: Boolean) =
-        project.tasks.create("determineBaselines", DetermineBaselines::class.java, isDistributed)
+        project.tasks.register("determineBaselines", DetermineBaselines::class.java, isDistributed, commandExecutor).get()
 
     private
     fun mockGitOperation(args: List<String>, expectedOutput: String) =
-        every { project.execAndGetStdout(*(args.toTypedArray())) } returns expectedOutput
-
-    private
-    fun setCurrentBranch(branch: String) {
-        buildEnvironmentExtension.gitBranch = branch
-    }
+        commandExecutor.registerCommand(args, expectedOutput)
 
     private
     fun verifyBaselineDetermination(currentBranch: String, isCoordinatorBuild: Boolean, configuredBaseline: String?, determinedBaseline: String) {
@@ -146,5 +126,27 @@ class DetermineBaselinesTest {
 
         // then
         Assertions.assertEquals(determinedBaseline, determineBaselinesTask.determinedBaselines.get())
+    }
+
+    private
+    class TestCommandExecutor : CommandExecutor {
+
+        private
+        val commands = mutableMapOf<List<String>, String>()
+
+        override fun execAndGetStdout(vararg args: String): String {
+            val argsList = args.toList()
+            if (commands[argsList] != null) {
+                return commands[argsList]!!
+            }
+
+            val knownCommands = commands.keys.joinToString("\n") { "    - " + it.joinToString(" ") }
+            error("Unexpected command: ${args.joinToString(" ")}. Known commands:\n$knownCommands")
+        }
+
+        fun registerCommand(args: List<String>, expectedOutput: String): TestCommandExecutor {
+            commands[args] = expectedOutput
+            return this
+        }
     }
 }

@@ -20,6 +20,8 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import org.gradle.api.reflect.ObjectInstantiationException;
+import org.gradle.model.internal.asm.AsmClassGeneratorUtils;
+import org.jspecify.annotations.Nullable;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -49,7 +51,7 @@ public class DirectInstantiator implements Instantiator {
     }
 
     @Override
-    public <T> T newInstance(Class<? extends T> type, Object... params) {
+    public <T> T newInstance(Class<? extends T> type, @Nullable Object... params) {
         try {
             Class<?>[] argTypes = wrapArgs(params);
             Constructor<?> match = null;
@@ -67,7 +69,7 @@ public class DirectInstantiator implements Instantiator {
         }
     }
 
-    private Class<?>[] wrapArgs(Object[] params) {
+    private Class<?>[] wrapArgs(@Nullable Object[] params) {
         Class<?>[] result = new Class<?>[params.length];
         for (int i = 0; i < result.length; i++) {
             Object param = params[i];
@@ -76,7 +78,7 @@ public class DirectInstantiator implements Instantiator {
             }
             Class<?> pType = param.getClass();
             if (pType.isPrimitive()) {
-                pType = JavaReflectionUtil.getWrapperTypeForPrimitiveType(pType);
+                pType = AsmClassGeneratorUtils.getWrapperTypeForPrimitiveType(pType);
             }
             result[i] = pType;
         }
@@ -128,7 +130,7 @@ public class DirectInstantiator implements Instantiator {
                     if (argumentType == null) {
                         return false;
                     }
-                    parameterType = JavaReflectionUtil.getWrapperTypeForPrimitiveType(parameterType);
+                    parameterType = AsmClassGeneratorUtils.getWrapperTypeForPrimitiveType(parameterType);
                 }
                 if (argumentType != null && !parameterType.isAssignableFrom(argumentType)) {
                     return false;

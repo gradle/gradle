@@ -26,7 +26,6 @@ public interface MonitoredCleanupAction extends Describable {
     /**
      * Perform the cleanup action, returning true if any resources were actually cleaned up.
      *
-     * @param progressMonitor
      * @return true if resources were cleaned
      */
     boolean execute(CleanupProgressMonitor progressMonitor);

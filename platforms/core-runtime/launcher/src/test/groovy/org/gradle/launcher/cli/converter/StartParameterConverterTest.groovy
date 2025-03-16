@@ -79,7 +79,8 @@ class StartParameterConverterTest extends Specification {
     def "can provide system property on command-line"() {
         expect:
         def parameter = convert("-Dsome.prop", "-Dother.prop=123")
-        parameter.systemPropertiesArgs == ["some.prop": "", "other.prop": "123"]
+        parameter.systemPropertiesArgs["some.prop"] == ""
+        parameter.systemPropertiesArgs["other.prop"] == "123"
     }
 
     def "can provide project property on command-line"() {
@@ -91,20 +92,20 @@ class StartParameterConverterTest extends Specification {
     def "can provide start parameter option as command-line option"() {
         expect:
         def parameter = convert("--configuration-cache")
-        parameter.configurationCache.get()
+        parameter.getConfigurationCache().get()
     }
 
     def "can provide start parameter option as system property on command-line"() {
         expect:
         def parameter = convert("-Dorg.gradle.configuration-cache=true")
-        parameter.configurationCache.get()
+        parameter.getConfigurationCache().get()
     }
 
     def "can provide start parameter option as persistent property"() {
         expect:
         userHome.file("gradle.properties") << "org.gradle.configuration-cache=true"
         def parameter = convert()
-        parameter.configurationCache.get()
+        parameter.getConfigurationCache().get()
     }
 
     def "system property on command-line has precedence over persistent property"() {

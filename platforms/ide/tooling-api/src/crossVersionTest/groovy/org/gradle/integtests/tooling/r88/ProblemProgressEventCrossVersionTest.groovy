@@ -17,6 +17,7 @@
 package org.gradle.integtests.tooling.r88
 
 import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
+import org.gradle.integtests.tooling.fixture.ProblemsApiGroovyScriptUtils
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
@@ -27,10 +28,10 @@ import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.problems.ProblemEvent
 
 import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk17
-import static org.gradle.integtests.tooling.r86.ProblemProgressEventCrossVersionTest.assertProblemDetailsForTAPIProblemEvent
 import static org.gradle.integtests.tooling.r86.ProblemProgressEventCrossVersionTest.getProblemReportTaskString
 
-@ToolingApiVersion(">=8.8")
+@ToolingApiVersion("=8.8")
+@TargetGradleVersion(">=8.8")
 class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
     def withReportProblemTask(@GroovyBuildScriptLanguage String taskActionMethodBody) {
@@ -76,15 +77,14 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         listener.problems.size() == 0
     }
 
-    @TargetGradleVersion(">=8.5")
+    @TargetGradleVersion(">=8.8 <8.9")
     def "Problems expose details via Tooling API events with failure"() {
         given:
         withReportProblemTask """
-            getProblems().forNamespace("org.example.plugin").reporting {
-                it.label("shortProblemMessage")
+            getProblems().${ProblemsApiGroovyScriptUtils.report(targetVersion)} {
+                it.id("id", "shortProblemMessage")
                 $documentationConfig
                 .lineInFileLocation("/tmp/foo", 1, 2, 3)
-                .category("main", "sub", "id")
                 $detailsConfig
                 .additionalData("aKey", "aValue")
                 .severity(Severity.WARNING)
@@ -97,9 +97,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         def problems = runTask()
 
         then:
-        assertProblemDetailsForTAPIProblemEvent(problems, expectedDetails, expecteDocumentation)
-        def location = problems[0].locations[1]
-        problems[0].failure == null
+        problems.size() == 0
 
         where:
         detailsConfig              | expectedDetails | documentationConfig                         | expecteDocumentation
@@ -107,7 +105,56 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         ''                         | null            | ''                                          | null
     }
 
-    @TargetGradleVersion(">=8.8")
+    @TargetGradleVersion(">=8.6 <=8.7")
+    def "Problems expose details via Tooling API events with failure 8.6 to 8.7"() {
+        given:
+        withReportProblemTask """
+            getProblems().${ProblemsApiGroovyScriptUtils.report(targetVersion)} {
+                it.label("shortProblemMessage")
+                .category("main", "sub", "id")
+                $documentationConfig
+                .lineInFileLocation("/tmp/foo", 1, 2, 3)
+                $detailsConfig
+                .additionalData("aKey", "aValue")
+                .severity(Severity.WARNING)
+                .solution("try this instead")
+            }
+        """
+
+        when:
+
+        def problems = runTask()
+
+        then:
+        problems.size() == 0
+
+        where:
+        detailsConfig              | expectedDetails | documentationConfig                         | expecteDocumentation
+        '.details("long message")' | "long message"  | '.documentedAt("https://docs.example.org")' | 'https://docs.example.org'
+        ''                         | null            | ''                                          | null
+    }
+    @TargetGradleVersion("=8.5")
+    def "Problems don't crash the run in 8.5"() {
+        given:
+        withReportProblemTask """
+            getProblems().create {
+                it.label("shortProblemMessage")
+                .undocumented()
+                .category("main", "sub", "id")
+                .additionalData("aKey", "aValue")
+                .severity(Severity.WARNING)
+                .solution("try this instead")
+            }
+        """
+
+        when:
+
+        def problems = runTask()
+
+        then:
+        problems.size() == 0
+    }
+
     def "Can serialize groovy compilation error"() {
         buildFile """
             tasks.register("foo) {
@@ -119,31 +166,19 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         when:
         withConnection {
             it.model(CustomModel)
-                .setJavaHome(jdk17.javaHome)
+                .setJavaHome(jdk17?.javaHome)
                 .addProgressListener(listener)
                 .get()
         }
 
         then:
         thrown(BuildException)
-        def problems = listener.problems
-        org.gradle.integtests.tooling.r87.ProblemProgressEventCrossVersionTest.validateCompilationProblem(problems, buildFile)
-        problems[0].failure.failure.message == "Could not compile build file '$buildFile.absolutePath'."
+        listener.problems.size() == 0
     }
 
-    @TargetGradleVersion(">=8.6")
     def "Problems expose summary Tooling API events"() {
         given:
-        withReportProblemTask """
-            for(int i = 0; i < 10; i++) {
-                problems.forNamespace("org.example.plugin").reporting{
-                    it.label("The 'standard-plugin' is deprecated")
-                        .category("deprecation", "plugin")
-                        .severity(Severity.WARNING)
-                        .solution("Please use 'standard-plugin-2' instead of this plugin")
-                    }
-            }
-        """
+        withMultipleProblems('deprecation', "The 'standard-plugin' is deprecated")
 
         when:
         def listener = new ProblemProgressListener()
@@ -154,74 +189,37 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         }
 
         then:
-        def problems = listener.problems
-        problems.size() == 2
-
-        def firstProblem = problems[0]
-        firstProblem.label.label == "The 'standard-plugin' is deprecated"
-        firstProblem.details.details == null
-
-        def aggregatedProblems = problems[1]
-
-        def aggregations =  aggregatedProblems.aggregations
-        aggregations.size() == 1
-        aggregations[0].label.label == "The 'standard-plugin' is deprecated"
-        aggregations[0].problemDescriptors.size() == 10
+        listener.problems.size() == 0
     }
 
-//    @TargetGradleVersion(">=8.8")
-//    def "Can serialize groovy compilation error"() {
-//        buildFile """
-//            tasks.register("foo) {
-//        """
-//
-//        given:
-//        def listener = new ProblemProgressListener()
-//
-//        when:
-//        withConnection {
-//            it.model(CustomModel)
-//                .setJavaHome(jdk17.javaHome)
-//                .addProgressListener(listener)
-//                .get()
-//        }
-//
-//        then:
-//        thrown(BuildException)
-//        def problems = listener.problems
-//        validateCompilationProblem(problems)
-//        problems[0].failure.failure.message == "Could not compile build file '$buildFile.absolutePath'."
-//    }
+    @TargetGradleVersion(">=8.6 <=8.7")
+    def "Problems expose summary Tooling API events 8.6 to 8.7"() {
+        given:
+        withMultipleProblems('deprecation', "The 'standard-plugin' is deprecated")
 
-//    void validateCompilationProblem(List<ProblemEvent> problems) {
-//        problems.size() == 1
-//        problems[0].label.label == "Could not compile build file '$buildFile.absolutePath'."
-//        problems[0].category.category == 'compilation'
-//    }
-//
-//    @TargetGradleVersion("=8.6")
-//    def "8.6 version doesn't send failure"() {
-//        buildFile """
-//            tasks.register("foo) {
-//        """
-//
-//        given:
-//        def listener = new ProblemProgressListener()
-//
-//        when:
-//        withConnection {
-//            it.model(CustomModel)
-//                .setJavaHome(jdk17.javaHome)
-//                .addProgressListener(listener)
-//                .get()
-//        }
-//
-//        then:
-//        thrown(BuildException)
-//        def problems = listener.problems
-//        validateCompilationProblem(problems)
-//        problems[0].failure == null
-//    }
+        when:
+        def listener = new ProblemProgressListener()
+        withConnection { connection ->
+            connection.newBuild().forTasks('reportProblem')
+                .addProgressListener(listener)
+                .run()
+        }
+
+        then:
+        listener.problems.size() == 0
+    }
+
+    def withMultipleProblems(String name, String displayName) {
+        withReportProblemTask """
+            for(int i = 0; i < 10; i++) {
+                problems.${ProblemsApiGroovyScriptUtils.report(targetVersion, name, displayName)} {
+                    it.${ProblemsApiGroovyScriptUtils.id(targetVersion, name, displayName)}
+                        .severity(Severity.WARNING)
+                        .solution("Please use 'standard-plugin-2' instead of this plugin")
+                    }
+            }
+        """
+    }
 
     class ProblemProgressListener implements ProgressListener {
 

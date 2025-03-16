@@ -18,8 +18,8 @@ package org.gradle.internal.exceptions;
 
 import org.gradle.api.GradleException;
 import org.gradle.util.internal.TreeVisitor;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -51,6 +51,7 @@ public class ContextAwareException extends GradleException {
             contextVisitor.visitCause(cause);
             visitCauses(cause, contextVisitor);
         }
+        contextVisitor.endVisiting();
     }
 
     private void visitCauses(Throwable t, TreeVisitor<? super Throwable> visitor) {

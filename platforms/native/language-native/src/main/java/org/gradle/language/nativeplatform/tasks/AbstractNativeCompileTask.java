@@ -16,7 +16,6 @@
 package org.gradle.language.nativeplatform.tasks;
 
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Transformer;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
@@ -74,7 +73,10 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     private final ConfigurableFileCollection source;
     private final Map<String, String> macros = new LinkedHashMap<String, String>();
     private final ListProperty<String> compilerArgs;
-    private final IncrementalCompilerBuilder.IncrementalCompiler incrementalCompiler;
+    // Don't serialize the compiler. It holds state that is mostly only required at execution time and that can be calculated from the other fields of this task
+    // after being deserialized. However, it is also required to calculate the producers of the header files to calculate the work graph.
+    // It would be better to provide some way for a task to express these things separately.
+    private transient IncrementalCompilerBuilder.IncrementalCompiler incrementalCompiler;
 
     public AbstractNativeCompileTask() {
         ObjectFactory objectFactory = getProject().getObjects();
@@ -88,12 +90,13 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
         this.compilerArgs = getProject().getObjects().listProperty(String.class);
         this.targetPlatform = objectFactory.property(NativePlatform.class);
         this.toolChain = objectFactory.property(NativeToolChain.class);
-        this.incrementalCompiler = getIncrementalCompilerBuilder().newCompiler(this, source, includes.plus(systemIncludes), macros, toolChain.map(new Transformer<Boolean, NativeToolChain>() {
-            @Override
-            public Boolean transform(NativeToolChain nativeToolChain) {
-                return nativeToolChain instanceof Gcc || nativeToolChain instanceof Clang;
-            }
-        }));
+    }
+
+    private IncrementalCompilerBuilder.IncrementalCompiler getIncrementalCompiler() {
+        if (incrementalCompiler == null) {
+            incrementalCompiler = getIncrementalCompilerBuilder().newCompiler(this, source, includes.plus(systemIncludes), macros, toolChain.map(nativeToolChain -> nativeToolChain instanceof Gcc || nativeToolChain instanceof Clang));
+        }
+        return incrementalCompiler;
     }
 
     @Inject
@@ -148,7 +151,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     private <T extends NativeCompileSpec> WorkResult doCompile(T spec, PlatformToolProvider platformToolProvider) {
         Class<T> specType = Cast.uncheckedCast(spec.getClass());
         Compiler<T> baseCompiler = platformToolProvider.newCompiler(specType);
-        Compiler<T> incrementalCompiler = this.incrementalCompiler.createCompiler(baseCompiler);
+        Compiler<T> incrementalCompiler = getIncrementalCompiler().createCompiler(baseCompiler);
         Compiler<T> loggingCompiler = BuildOperationLoggingCompilerDecorator.wrap(incrementalCompiler);
         return loggingCompiler.execute(spec);
     }
@@ -310,6 +313,6 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     @InputFiles
     @PathSensitive(PathSensitivity.NAME_ONLY)
     protected FileCollection getHeaderDependencies() {
-        return incrementalCompiler.getHeaderFiles();
+        return getIncrementalCompiler().getHeaderFiles();
     }
 }

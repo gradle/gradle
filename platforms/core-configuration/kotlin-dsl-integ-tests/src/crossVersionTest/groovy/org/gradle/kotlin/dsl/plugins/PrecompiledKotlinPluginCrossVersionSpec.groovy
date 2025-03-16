@@ -18,8 +18,8 @@ package org.gradle.kotlin.dsl.plugins
 
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetVersions
-import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.util.GradleVersion
 
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepository
@@ -51,7 +51,11 @@ class PrecompiledKotlinPluginCrossVersionSpec extends CrossVersionIntegrationSpe
         precompiledKotlinPluginsBuiltWith(previous)
 
         when:
-        def result = pluginsAppliedWith(current)
+        def executor = pluginsAppliedWith(current)
+        if (previous.version < GradleVersion.version('6.0')) {
+            3.times { executor.expectDocumentedDeprecationWarning("Applying a Kotlin DSL precompiled script plugin published with Gradle versions < 6.0. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Use a version of the plugin published with Gradle >= 6.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#kotlin_dsl_precompiled_gradle_lt_6") }
+        }
+        def result = executor.run()
 
         then:
         result.assertOutputContains("My gradle plugin applied!")
@@ -71,7 +75,7 @@ class PrecompiledKotlinPluginCrossVersionSpec extends CrossVersionIntegrationSpe
         precompiledKotlinPluginsBuiltWith(current)
 
         when:
-        def result = pluginsAppliedWith(previous)
+        def result = pluginsAppliedWith(previous).run()
 
         then:
         result.assertOutputContains("My gradle plugin applied!")
@@ -134,14 +138,15 @@ class PrecompiledKotlinPluginCrossVersionSpec extends CrossVersionIntegrationSpe
         version(distribution)
             .inDirectory(file("plugin"))
             .withTasks("publish")
+            .noDeprecationChecks()
             .run()
     }
 
-    private ExecutionResult pluginsAppliedWith(GradleDistribution distribution) {
+    private GradleExecuter pluginsAppliedWith(GradleDistribution distribution) {
         file("consumer/init.gradle.kts").text = """
             initscript {
                 repositories {
-                    maven(url = "${mavenRepo.uri}")
+                    maven(url = uri("${mavenRepo.uri}"))
                 }
                 dependencies {
                     classpath("com.example:plugin:1.0")
@@ -152,7 +157,7 @@ class PrecompiledKotlinPluginCrossVersionSpec extends CrossVersionIntegrationSpe
         file("consumer/settings.gradle.kts").text = """
             pluginManagement {
                 repositories {
-                    maven(url = "${mavenRepo.uri}")
+                    maven(url = uri("${mavenRepo.uri}"))
                 }
             }
             ${supportsSettingsPluginsBlock ? """
@@ -162,7 +167,7 @@ class PrecompiledKotlinPluginCrossVersionSpec extends CrossVersionIntegrationSpe
             """ : """
             buildscript {
                 repositories {
-                    maven(url = "${mavenRepo.uri}")
+                    maven(url = uri("${mavenRepo.uri}"))
                 }
                 dependencies {
                     classpath("com.example:plugin:1.0")
@@ -181,6 +186,5 @@ class PrecompiledKotlinPluginCrossVersionSpec extends CrossVersionIntegrationSpe
             .withArgument("-I")
             .withArgument("init.gradle.kts")
             .withTasks("myTask")
-            .run()
     }
 }

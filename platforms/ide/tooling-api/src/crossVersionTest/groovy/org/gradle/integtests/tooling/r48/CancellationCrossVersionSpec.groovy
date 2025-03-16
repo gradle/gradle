@@ -20,11 +20,8 @@ import org.gradle.integtests.tooling.CancellationSpec
 import org.gradle.integtests.tooling.fixture.ActionQueriesModelThatRequiresConfigurationPhase
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.TestResultHandler
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.GradleConnector
-import org.gradle.tooling.ProjectConnection
 
-@ToolingApiVersion(">=4.8")
 @TargetGradleVersion(">=4.8")
 class CancellationCrossVersionSpec extends CancellationSpec {
     def "can cancel phased build action execution during configuration phase"() {
@@ -35,13 +32,13 @@ class CancellationCrossVersionSpec extends CancellationSpec {
         def resultHandler = new TestResultHandler()
 
         when:
-        withConnection { ProjectConnection connection ->
-            def action = connection.action()
-            action.projectsLoaded(new ActionQueriesModelThatRequiresConfigurationPhase(), Stub(IntermediateResultHandlerCollector))
-            def build = action.build()
-            build.withCancellationToken(cancel.token())
-            collectOutputs(build)
-            build.run(resultHandler)
+        withConnection { connection ->
+            connection.action()
+                .projectsLoaded(new ActionQueriesModelThatRequiresConfigurationPhase(), Stub(IntermediateResultHandlerCollector))
+                .build()
+                .withCancellationToken(cancel.token())
+                .run(resultHandler)
+
             sync.waitForAllPendingCalls(resultHandler)
             cancel.cancel()
             sync.releaseAll()

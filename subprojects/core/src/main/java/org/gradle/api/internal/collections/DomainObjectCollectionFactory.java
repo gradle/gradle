@@ -25,7 +25,10 @@ import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.NamedDomainObjectList;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.internal.CompositeDomainObjectSet;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
+@ServiceScope({Scope.Global.class, Scope.Project.class})
 public interface DomainObjectCollectionFactory {
     /**
      * Creates a {@link NamedDomainObjectContainer} for managing named objects of the specified type.

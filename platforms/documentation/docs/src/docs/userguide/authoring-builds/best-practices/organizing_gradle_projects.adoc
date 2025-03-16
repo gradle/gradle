@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Gradle, Inc.
+// Copyright (C) 2024 Gradle, Inc.
 //
 // Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
@@ -139,7 +139,7 @@ Complex build logic is usually a good candidate for being encapsulated either as
 Custom task and plugin implementations should not live in the build script.
 It is very convenient to use `buildSrc` for that purpose as long as the code does not need to be shared among multiple, independent projects.
 
-The directory `buildSrc` is treated as an <<composite_builds.adoc#composite_build_intro,included build>>. Upon discovery of the directory, Gradle automatically compiles and tests this code and puts it in the classpath of your build script.
+The directory `buildSrc` is treated as an <<composite_builds.adoc#composite_build_intro,included build>>. Upon discovery of the directory, Gradle automatically compiles this code and puts it in the classpath of your build script.
 For multi-project builds there can be only one `buildSrc` directory, which has to sit in the root project directory.
 `buildSrc` should be preferred over <<plugins.adoc#sec:script_plugins,script plugins>> as it is easier to maintain, refactor and test the code.
 

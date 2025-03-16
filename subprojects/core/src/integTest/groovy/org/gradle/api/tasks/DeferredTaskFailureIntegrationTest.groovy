@@ -16,6 +16,9 @@
 
 package org.gradle.api.tasks
 
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
+
 class DeferredTaskFailureIntegrationTest extends AbstractDeferredTaskDefinitionIntegrationTest {
     def "reports failure in task constructor when task realized"() {
         createDirs("child")
@@ -215,6 +218,10 @@ class DeferredTaskFailureIntegrationTest extends AbstractDeferredTaskDefinitionI
         [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
     }
 
+    @Requires(
+        value = IntegTestPreconditions.NotIsolatedProjects,
+        reason = "Exercises IP incompatible behavior"
+    )
     def "cannot execute #description on another project during lazy task creation action execution"() {
         createDirs("nested", "other")
         settingsFile << "include 'nested', 'other'"
@@ -235,6 +242,10 @@ class DeferredTaskFailureIntegrationTest extends AbstractDeferredTaskDefinitionI
         [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
     }
 
+    @Requires(
+        value = IntegTestPreconditions.NotIsolatedProjects,
+        reason = "Exercises IP incompatible behavior"
+    )
     def "cannot execute #description on another project during lazy task configuration action execution"() {
         createDirs("nested", "other")
         settingsFile << "include 'nested', 'other'"

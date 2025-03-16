@@ -17,18 +17,15 @@
 package org.gradle.internal.enterprise.impl;
 
 import org.gradle.StartParameter;
-import org.gradle.api.internal.GradleInternal;
 import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.enterprise.GradleEnterprisePluginBuildState;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.scopeids.id.UserScopeId;
 import org.gradle.internal.scopeids.id.WorkspaceScopeId;
-import org.gradle.internal.service.scopes.Scopes;
-import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.Clock;
 import org.gradle.launcher.daemon.server.scaninfo.DaemonScanInfo;
 
-@ServiceScope(Scopes.Gradle.class)
 public class DefaultGradleEnterprisePluginBuildState implements GradleEnterprisePluginBuildState {
 
     private final Clock clock;
@@ -36,7 +33,8 @@ public class DefaultGradleEnterprisePluginBuildState implements GradleEnterprise
     private final BuildInvocationScopeId buildInvocationId;
     private final WorkspaceScopeId workspaceId;
     private final UserScopeId userId;
-    private final GradleInternal gradle;
+    private final StartParameter startParameter;
+    private final ServiceRegistry serviceRegistry;
 
     public DefaultGradleEnterprisePluginBuildState(
         Clock clock,
@@ -44,14 +42,16 @@ public class DefaultGradleEnterprisePluginBuildState implements GradleEnterprise
         BuildInvocationScopeId buildInvocationId,
         WorkspaceScopeId workspaceId,
         UserScopeId userId,
-        GradleInternal gradle
+        StartParameter startParameter,
+        ServiceRegistry serviceRegistry
     ) {
         this.clock = clock;
         this.buildStartedTime = buildStartedTime;
         this.buildInvocationId = buildInvocationId;
         this.workspaceId = workspaceId;
         this.userId = userId;
-        this.gradle = gradle;
+        this.startParameter = startParameter;
+        this.serviceRegistry = serviceRegistry;
     }
 
     @Override
@@ -81,11 +81,11 @@ public class DefaultGradleEnterprisePluginBuildState implements GradleEnterprise
 
     @Override
     public DaemonScanInfo getDaemonScanInfo() {
-        return (DaemonScanInfo) gradle.getServices().find(DaemonScanInfo.class);
+        return (DaemonScanInfo) serviceRegistry.find(DaemonScanInfo.class);
     }
 
     @Override
     public StartParameter getStartParameter() {
-        return gradle.getStartParameter();
+        return startParameter;
     }
 }

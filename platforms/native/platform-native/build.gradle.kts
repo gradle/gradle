@@ -10,70 +10,76 @@ errorprone {
         "EqualsUnsafeCast", // 1 occurrences
         "GetClassOnClass", // 1 occurrences
         "HidingField", // 1 occurrences
-        "ImmutableEnumChecker", // 2 occurrences
         "ReferenceEquality", // 2 occurrences
         "StaticAssignmentInConstructor", // 1 occurrences
-        "StringCaseLocaleUsage", // 3 occurrences
         "StringCharset", // 2 occurrences
-        "StringSplitter", // 1 occurrences
-        "UnnecessaryParentheses", // 1 occurrences
-        "UnnecessaryTypeArgument", // 2 occurrences
         "UnusedMethod", // 11 occurrences
-        "UnusedTypeParameter", // 1 occurrences
         "UnusedVariable", // 6 occurrences
     )
 }
 
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":logging"))
-    implementation(project(":native"))
-    implementation(project(":process-services"))
-    implementation(project(":file-collections"))
-    implementation(project(":core-api"))
-    implementation(project(":model-core"))
-    implementation(project(":core"))
-    implementation(project(":workers"))
-    implementation(project(":platform-base"))
-    implementation(project(":diagnostics"))
+    api(projects.serviceProvider)
+    api(projects.baseDiagnostics)
+    api(projects.baseServices)
+    api(projects.buildOperations)
+    api(projects.core)
+    api(projects.coreApi)
+    api(projects.fileCollections)
+    api(projects.files)
+    api(projects.hashing)
+    api(projects.logging)
+    api(projects.modelCore)
+    api(projects.native)
+    api(projects.softwareDiagnostics)
+    api(projects.stdlibJavaExtensions)
+    api(projects.platformBase)
+    api(projects.workers)
 
-    implementation(libs.nativePlatform)
-    implementation(libs.groovy)
-    implementation(libs.slf4jApi)
-    implementation(libs.guava)
+    api(libs.jspecify)
+    api(libs.inject)
+    api(libs.nativePlatform)
+    api(libs.slf4jApi)
+
+    implementation(projects.daemonServerWorker)
+    implementation(projects.enterpriseLogging)
+    implementation(projects.io)
+    implementation(projects.loggingApi)
+    implementation(projects.serviceLookup)
+
     implementation(libs.commonsLang)
     implementation(libs.commonsIo)
-    implementation(libs.snakeyaml)
     implementation(libs.gson)
-    implementation(libs.inject)
+    implementation(libs.guava)
+    implementation(libs.snakeyaml)
 
-    testFixturesApi(project(":resources"))
-    testFixturesApi(testFixtures(project(":ide")))
-    testFixturesImplementation(testFixtures(project(":core")))
-    testFixturesImplementation(project(":internal-integ-testing"))
-    testFixturesImplementation(project(":native"))
-    testFixturesImplementation(project(":platform-base"))
-    testFixturesImplementation(project(":file-collections"))
-    testFixturesImplementation(project(":process-services"))
-    testFixturesImplementation(project(":snapshots"))
+    testFixturesApi(projects.resources)
+    testFixturesApi(testFixtures(projects.ide))
+    testFixturesImplementation(testFixtures(projects.core))
+    testFixturesImplementation(projects.internalIntegTesting)
+    testFixturesImplementation(projects.native)
+    testFixturesImplementation(projects.platformBase)
+    testFixturesImplementation(projects.fileCollections)
+    testFixturesImplementation(projects.processServices)
+    testFixturesImplementation(projects.snapshots)
     testFixturesImplementation(libs.guava)
     testFixturesImplementation(libs.nativePlatform)
     testFixturesImplementation(libs.groovyXml)
     testFixturesImplementation(libs.commonsLang)
     testFixturesImplementation(libs.commonsIo)
 
-    testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":messaging")))
-    testImplementation(testFixtures(project(":platform-base")))
-    testImplementation(testFixtures(project(":model-core")))
-    testImplementation(testFixtures(project(":diagnostics")))
-    testImplementation(testFixtures(project(":base-services")))
-    testImplementation(testFixtures(project(":snapshots")))
+    testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.messaging))
+    testImplementation(testFixtures(projects.platformBase))
+    testImplementation(testFixtures(projects.modelCore))
+    testImplementation(testFixtures(projects.baseServices))
+    testImplementation(testFixtures(projects.snapshots))
+    testImplementation(testFixtures(projects.time))
 
-    testRuntimeOnly(project(":distributions-core")) {
+    testRuntimeOnly(projects.distributionsCore) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-native")) {
+    integTestDistributionRuntimeOnly(projects.distributionsNative) {
         because("Required 'ideNative' to test visual studio project file generation for generated sources")
     }
 }
@@ -86,3 +92,6 @@ packageCycles {
 }
 
 integTest.usesJavadocCodeSnippets = true
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

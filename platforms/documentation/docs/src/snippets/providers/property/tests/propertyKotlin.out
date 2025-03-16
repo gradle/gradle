@@ -1,0 +1,11 @@
+Hello, World from a Property!
+Hello, World from a Provider!
+
+------------------------------------------------------------
+Root project 'property-provider'
+------------------------------------------------------------
+
+classpath
+No dependencies
+
+A web-based, searchable dependency report is available by adding the --scan option.

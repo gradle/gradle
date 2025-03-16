@@ -34,8 +34,8 @@ import org.gradle.internal.resource.ReadableContent;
 import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -161,6 +161,7 @@ public class LocalFileStandInExternalResource extends AbstractExternalResource i
     }
 
     @Override
+    @SuppressWarnings("overloads")
     public ExternalResourceReadResult<Void> withContent(Action<? super InputStream> readAction) {
         if (!localFile.exists()) {
             throw ResourceExceptions.getMissing(getURI());

@@ -15,10 +15,15 @@
  */
 package org.gradle.api.internal.plugins
 
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.internal.VersionNumber
+import org.junit.Rule
 import spock.lang.Specification
 
 class GroovyJarFileTest extends Specification {
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
+
     def "parse non-Groovy file"() {
         expect:
         GroovyJarFile.parse(new File("groovy-other-2.0.5.jar")) == null
@@ -85,5 +90,26 @@ class GroovyJarFileTest extends Specification {
         "/lib/groovy-5.0.2-indy.jar" | "5.0.2" | "org.apache.groovy:groovy:5.0.2:indy"
     }
 
+    def "parse symlinked Jar"(String symlinkName, String fileName, String version, String dependencyNotation) {
+        def actualFile = tmpDir.file(fileName).touch()
+        def symlinkFile = tmpDir.file(symlinkName).createLink(actualFile)
+
+        def jar = GroovyJarFile.parse(symlinkFile)
+
+        expect:
+        jar != null
+        jar.file == actualFile
+        jar.baseName == "groovy"
+        jar.version == VersionNumber.parse("$version")
+        !jar.groovyAll
+        !jar.indy
+        jar.dependencyNotation == "$dependencyNotation"
+
+        where:
+        symlinkName            | fileName           | version | dependencyNotation
+        "Maven-groovy-2.x.jar" | "groovy-2.0.5.jar" | "2.0.5" | "org.codehaus.groovy:groovy:2.0.5"
+        "Maven-groovy-4.x.jar" | "groovy-4.1.0.jar" | "4.1.0" | "org.apache.groovy:groovy:4.1.0"
+        "Maven-groovy-5.x.jar" | "groovy-5.0.2.jar" | "5.0.2" | "org.apache.groovy:groovy:5.0.2"
+    }
 
 }

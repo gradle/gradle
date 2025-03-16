@@ -18,8 +18,8 @@ package org.gradle.internal.watch.vfs.impl;
 
 import com.google.common.collect.ImmutableList;
 import net.rubygrapefruit.platform.NativeException;
-import net.rubygrapefruit.platform.internal.jni.InotifyInstanceLimitTooLowException;
-import net.rubygrapefruit.platform.internal.jni.InotifyWatchesLimitTooLowException;
+import org.gradle.fileevents.internal.InotifyInstanceLimitTooLowException;
+import org.gradle.fileevents.internal.InotifyWatchesLimitTooLowException;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRunner;
@@ -31,7 +31,7 @@ import org.gradle.internal.watch.WatchingNotSupportedException;
 import org.gradle.internal.watch.registry.FileWatcherRegistry;
 import org.gradle.internal.watch.registry.FileWatcherRegistryFactory;
 import org.gradle.internal.watch.registry.WatchMode;
-import org.gradle.internal.watch.registry.impl.DaemonDocumentationIndex;
+import org.gradle.internal.watch.registry.impl.FileSystemWatchingDocumentationIndex;
 import org.gradle.internal.watch.registry.impl.SnapshotCollectingDiffListener;
 import org.gradle.internal.watch.vfs.BuildFinishedFileSystemWatchingBuildOperationType;
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
@@ -39,7 +39,6 @@ import org.gradle.internal.watch.vfs.BuildStartedFileSystemWatchingBuildOperatio
 import org.gradle.internal.watch.vfs.FileChangeListeners;
 import org.gradle.internal.watch.vfs.FileSystemWatchingStatistics;
 import org.gradle.internal.watch.vfs.VfsLogging;
-import org.gradle.internal.watch.vfs.WatchLogging;
 import org.gradle.internal.watch.vfs.WatchableFileSystemDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,7 +60,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
     private static final String FILE_WATCHING_ERROR_MESSAGE_AT_END_OF_BUILD = "Gradle was unable to watch the file system for changes";
 
     private final FileWatcherRegistryFactory watcherRegistryFactory;
-    private final DaemonDocumentationIndex daemonDocumentationIndex;
+    private final FileSystemWatchingDocumentationIndex fileSystemWatchingDocumentationIndex;
     private final FileWatchingFilter locationsWrittenByCurrentBuild;
     private final WatchableFileSystemDetector watchableFileSystemDetector;
     private final FileChangeListeners fileChangeListeners;
@@ -80,14 +79,14 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
     public WatchingVirtualFileSystem(
         FileWatcherRegistryFactory watcherRegistryFactory,
         SnapshotHierarchy root,
-        DaemonDocumentationIndex daemonDocumentationIndex,
+        FileSystemWatchingDocumentationIndex fileSystemWatchingDocumentationIndex,
         FileWatchingFilter locationsWrittenByCurrentBuild,
         WatchableFileSystemDetector watchableFileSystemDetector,
         FileChangeListeners fileChangeListeners
     ) {
         super(root);
         this.watcherRegistryFactory = watcherRegistryFactory;
-        this.daemonDocumentationIndex = daemonDocumentationIndex;
+        this.fileSystemWatchingDocumentationIndex = fileSystemWatchingDocumentationIndex;
         this.locationsWrittenByCurrentBuild = locationsWrittenByCurrentBuild;
         this.watchableFileSystemDetector = watchableFileSystemDetector;
         this.fileChangeListeners = fileChangeListeners;
@@ -110,7 +109,6 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
     public boolean afterBuildStarted(
         WatchMode watchMode,
         VfsLogging vfsLogging,
-        WatchLogging watchLogging,
         BuildOperationRunner buildOperationRunner
     ) {
         warningLogger = watchMode.loggerForWarnings(LOGGER);
@@ -164,9 +162,6 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
                             }
                         }
                     }
-                    if (watchRegistry != null) {
-                        watchRegistry.setDebugLoggingEnabled(watchLogging == WatchLogging.DEBUG);
-                    }
                     context.setResult(new BuildStartedFileSystemWatchingBuildOperationType.Result() {
                                           @Override
                                           public boolean isWatchingEnabled() {
@@ -218,7 +213,6 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
     public void beforeBuildFinished(
         WatchMode watchMode,
         VfsLogging vfsLogging,
-        WatchLogging watchLogging,
         BuildOperationRunner buildOperationRunner,
         int maximumNumberOfWatchedHierarchies
     ) {
@@ -465,7 +459,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
         if (exception instanceof InotifyInstanceLimitTooLowException) {
             warningLogger.warn("{}. The inotify instance limit is too low. {}",
                 fileWatchingErrorMessage,
-                daemonDocumentationIndex.getLinkToSection("sec:inotify_instances_limit")
+                fileSystemWatchingDocumentationIndex.getLinkToSection("sec:inotify_instances_limit")
             );
         } else if (exception instanceof InotifyWatchesLimitTooLowException) {
             warningLogger.warn("{}. The inotify watches limit is too low.", fileWatchingErrorMessage);

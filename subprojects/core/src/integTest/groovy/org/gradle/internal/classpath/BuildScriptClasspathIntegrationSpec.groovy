@@ -21,6 +21,7 @@ import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.api.internal.cache.CacheConfigurationsInternal
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
 import org.gradle.integtests.fixtures.executer.ArtifactBuilder
 import org.gradle.test.fixtures.file.TestFile
@@ -35,6 +36,7 @@ import spock.lang.Unroll
 import java.nio.file.Files
 import java.util.stream.Collectors
 
+import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
 class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implements FileAccessTimeJournalFixture {
@@ -102,6 +104,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         loopNumber << (1..6).toList()
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "build script classloader copies only non-cached jar files to cache"() {
         given:
         createBuildFileThatPrintsClasspathURLs("""
@@ -135,7 +138,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
             buildscript {
                 repositories {
                     flatDir { dirs 'repo' }
-                    maven { url "${repo.uri}" }
+                    maven { url = "${repo.uri}" }
                 }
                 dependencies {
                     ${dependencies}
@@ -229,6 +232,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         outputContains("hello again")
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "cleans up unused cached entries in the Jars cache"() {
         given:
         executer.requireIsolatedDaemons() // needs to stop daemon
@@ -307,7 +311,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
             buildscript {
                 ${mavenCentralRepository()}
                 dependencies {
-                    classpath("org.bouncycastle:bcprov-jdk15on:1.66")
+                    classpath("org.bouncycastle:bcprov-jdk18on:1.77")
                 }
             }
 
@@ -360,7 +364,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
             """
         }
 
-        buildScript("""
+        buildFile("""
             buildscript {
                 dependencies {
                     classpath "org.gradle.test:mrjar:1.+"
@@ -383,18 +387,18 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
             }
         """)
 
-        def java8Home = AvailableJavaHomes.getJdk8().javaHome
-        def java11Home = AvailableJavaHomes.getJdk11().javaHome
+        def jdk8 = AvailableJavaHomes.getJdk8()
+        def jdk11 = AvailableJavaHomes.getJdk11()
 
         when:
-        executer.withJavaHome(java8Home).withArguments("-Porg.gradle.java.installations.paths=$java8Home,$java11Home")
+        executer.withJvm(jdk8).withArguments("-Porg.gradle.java.installations.paths=${jdk8.javaHome},${jdk11.javaHome}")
         succeeds("printFoo")
 
         then:
         outputContains("JAR = DEFAULT")
 
         when:
-        executer.withJavaHome(java11Home).withArguments("-Porg.gradle.java.installations.paths=$java8Home,$java11Home")
+        executer.withJvm(jdk11).withArguments("-Porg.gradle.java.installations.paths=${jdk8.javaHome},${jdk11.javaHome}")
         succeeds("printFoo")
 
         then:
@@ -425,10 +429,24 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
                 """)
             }
         }
-        buildScript("""
+        buildFile("""
             abstract class LambdaTask extends DefaultTask {
                 @Input
                 abstract ListProperty<Runnable> getMyActions()
+
+                @Input
+                abstract Property<Class<?>> getActionClass()
+
+                @TaskAction
+                def printLambdaCount() {
+                    println("generated method count = \${getDeserializeMethodsCount(actionClass.get())}")
+                }
+
+                def getDeserializeMethodsCount(Class<?> cls) {
+                    return Arrays.stream(cls.getDeclaredMethods()).filter {
+                        it.name.startsWith('\$deserializeLambda')
+                    }.count()
+                }
 
                 @TaskAction
                 def runMyActions() {
@@ -438,18 +456,9 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
                 }
             }
 
-            def getDeserializeMethodsCount(Class<?> cls) {
-                return Arrays.stream(cls.getDeclaredMethods()).filter {
-                    it.name.startsWith('\$deserializeLambda')
-                }.count()
-            }
-
             tasks.register("lambda", LambdaTask) {
                 myActions = new ManyLambdas().createLotsOfLambdas()
-
-                doFirst {
-                    println("generated method count = \${getDeserializeMethodsCount(ManyLambdas)}")
-                }
+                actionClass = ManyLambdas
             }
         """)
 
@@ -499,9 +508,9 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
             tasks.register("printMessage") { doLast { println (new org.gradle.test.BuildClass().message()) } }
         """}
 
-        settingsScript("""
+        settingsFile """
             include "reproducible", "current"
-        """)
+        """
 
         file("reproducible/build.gradle").text = subprojectSource(reproducibleJar)
         file("current/build.gradle").text = subprojectSource(currentTimestampJar)
@@ -543,7 +552,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
     }
 
     TestFile getArtifactTransformCacheDir() {
-        return userHomeCacheDir.file(CacheLayout.TRANSFORMS.key)
+        return getGradleVersionedCacheDir().file(CacheLayout.TRANSFORMS.getName())
     }
 
     /**

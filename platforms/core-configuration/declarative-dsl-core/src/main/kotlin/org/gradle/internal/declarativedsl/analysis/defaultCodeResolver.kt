@@ -1,36 +1,38 @@
 package org.gradle.internal.declarativedsl.analysis
 
+import org.gradle.declarative.dsl.evaluation.AnalysisStatementFilter
+import org.gradle.declarative.dsl.evaluation.OperationGenerationId
 import org.gradle.internal.declarativedsl.language.Assignment
 import org.gradle.internal.declarativedsl.language.DataStatement
 import org.gradle.internal.declarativedsl.language.Expr
 import org.gradle.internal.declarativedsl.language.LocalValue
-import org.gradle.internal.declarativedsl.language.PropertyAccess
+import org.gradle.internal.declarativedsl.language.NamedReference
 
 
-fun defaultCodeResolver(elementFilter: AnalysisStatementFilter = analyzeEverything): ResolverImpl {
+fun defaultCodeResolver(generationId: OperationGenerationId = DefaultOperationGenerationId.finalEvaluation, elementFilter: AnalysisStatementFilter = analyzeEverything): ResolverImpl {
     return ResolverServicesContainer().run {
         analysisStatementFilter = elementFilter
         functionCallResolver = FunctionCallResolverImpl(this, this)
         expressionResolver = ExpressionResolverImpl(this, functionCallResolver)
-        propertyAccessResolver = PropertyAccessResolverImpl(expressionResolver)
+        namedReferenceResolver = NamedReferenceResolverImpl(expressionResolver)
         errorCollector = ErrorCollectorImpl()
-        statementResolver = StatementResolverImpl(propertyAccessResolver, expressionResolver, errorCollector)
+        statementResolver = StatementResolverImpl(namedReferenceResolver, expressionResolver, errorCollector)
         codeAnalyzer = CodeAnalyzerImpl(analysisStatementFilter, statementResolver)
 
-        ResolverImpl(codeAnalyzer, errorCollector)
+        ResolverImpl(codeAnalyzer, errorCollector, generationId)
     }
 }
 
 
-fun tracingCodeResolver(elementFilter: AnalysisStatementFilter = analyzeEverything): TracingResolver {
+fun tracingCodeResolver(generationId: OperationGenerationId = DefaultOperationGenerationId.finalEvaluation, elementFilter: AnalysisStatementFilter = analyzeEverything): TracingResolver {
     return ResolverServicesContainer().run {
         analysisStatementFilter = elementFilter
         functionCallResolver = FunctionCallResolverImpl(this, this)
-        propertyAccessResolver = PropertyAccessResolverImpl(this)
+        namedReferenceResolver = NamedReferenceResolverImpl(this)
 
         val tracer = ResolutionTracer(
             ExpressionResolverImpl(this, functionCallResolver),
-            StatementResolverImpl(propertyAccessResolver, this, this),
+            StatementResolverImpl(namedReferenceResolver, this, this),
             ErrorCollectorImpl()
         )
         statementResolver = tracer
@@ -39,39 +41,40 @@ fun tracingCodeResolver(elementFilter: AnalysisStatementFilter = analyzeEverythi
 
         codeAnalyzer = CodeAnalyzerImpl(analysisStatementFilter, statementResolver)
 
-        TracingResolver(ResolverImpl(codeAnalyzer, errorCollector), tracer)
+        TracingResolver(ResolverImpl(codeAnalyzer, errorCollector, generationId), tracer)
     }
 }
 
 
 private
-class ResolverServicesContainer : StatementResolver, PropertyAccessResolver, ExpressionResolver, CodeAnalyzer, ErrorCollector {
+class ResolverServicesContainer : StatementResolver, NamedReferenceResolver, ExpressionResolver, CodeAnalyzer, ErrorCollector {
     lateinit var analysisStatementFilter: AnalysisStatementFilter
     lateinit var statementResolver: StatementResolver
-    lateinit var propertyAccessResolver: PropertyAccessResolver
+    lateinit var namedReferenceResolver: NamedReferenceResolver
     lateinit var functionCallResolver: FunctionCallResolver
     lateinit var expressionResolver: ExpressionResolver
     lateinit var codeAnalyzer: CodeAnalyzer
     lateinit var errorCollector: ErrorCollector
 
-    override fun doResolveExpression(context: AnalysisContext, expr: Expr): ObjectOrigin? =
-        expressionResolver.doResolveExpression(context, expr)
+    override fun doResolveExpression(context: AnalysisContext, expr: Expr, expectedType: ExpectedTypeData): TypedOrigin? =
+        expressionResolver.doResolveExpression(context, expr, expectedType)
 
     override fun analyzeStatementsInProgramOrder(context: AnalysisContext, elements: List<DataStatement>) {
         codeAnalyzer.analyzeStatementsInProgramOrder(context, elements)
     }
 
-    override fun doResolvePropertyAccessToObjectOrigin(
+    override fun doResolveNamedReferenceToObjectOrigin(
         analysisContext: AnalysisContext,
-        propertyAccess: PropertyAccess
-    ): ObjectOrigin? =
-        propertyAccessResolver.doResolvePropertyAccessToObjectOrigin(analysisContext, propertyAccess)
+        namedReference: NamedReference,
+        expectedType: ExpectedTypeData
+    ): TypedOrigin? =
+        namedReferenceResolver.doResolveNamedReferenceToObjectOrigin(analysisContext, namedReference, expectedType)
 
-    override fun doResolvePropertyAccessToAssignable(
+    override fun doResolveNamedReferenceToAssignable(
         analysisContext: AnalysisContext,
-        propertyAccess: PropertyAccess
+        namedReference: NamedReference
     ): PropertyReferenceResolution? =
-        propertyAccessResolver.doResolvePropertyAccessToAssignable(analysisContext, propertyAccess)
+        namedReferenceResolver.doResolveNamedReferenceToAssignable(analysisContext, namedReference)
 
     override fun doResolveAssignment(context: AnalysisContext, assignment: Assignment): AssignmentRecord? =
         statementResolver.doResolveAssignment(context, assignment)

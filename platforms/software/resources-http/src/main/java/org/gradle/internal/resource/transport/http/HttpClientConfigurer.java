@@ -15,7 +15,6 @@
  */
 package org.gradle.internal.resource.transport.http;
 
-import com.google.common.collect.Lists;
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
@@ -59,7 +58,6 @@ import org.apache.http.protocol.HttpCoreContext;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.credentials.HttpHeaderCredentials;
 import org.gradle.api.credentials.PasswordCredentials;
-import org.gradle.api.specs.Spec;
 import org.gradle.authentication.Authentication;
 import org.gradle.authentication.http.BasicAuthentication;
 import org.gradle.authentication.http.DigestAuthentication;
@@ -184,19 +182,18 @@ public class HttpClientConfigurer {
     }
 
     private void configureProxy(HttpClientBuilder builder, CredentialsProvider credentialsProvider, HttpSettings httpSettings) {
-        HttpProxySettings.HttpProxy httpProxy = httpSettings.getProxySettings().getProxy();
-        HttpProxySettings.HttpProxy httpsProxy = httpSettings.getSecureProxySettings().getProxy();
+        useCredentialsForProxy(credentialsProvider, httpSettings.getProxySettings().getProxy());
+        useCredentialsForProxy(credentialsProvider, httpSettings.getSecureProxySettings().getProxy());
 
-        for (HttpProxySettings.HttpProxy proxy : Lists.newArrayList(httpProxy, httpsProxy)) {
-            if (proxy != null) {
-                if (proxy.credentials != null) {
-                    AllSchemesAuthentication authentication = new AllSchemesAuthentication(proxy.credentials);
-                    authentication.addHost(proxy.host, proxy.port);
-                    useCredentials(credentialsProvider, Collections.singleton(authentication));
-                }
-            }
-        }
         builder.setRoutePlanner(new SystemDefaultRoutePlanner(ProxySelector.getDefault()));
+    }
+
+    private void useCredentialsForProxy(CredentialsProvider credentialsProvider, HttpProxySettings.HttpProxy httpsProxy) {
+        if (httpsProxy != null && httpsProxy.credentials != null) {
+            AllSchemesAuthentication authentication1 = new AllSchemesAuthentication(httpsProxy.credentials);
+            authentication1.addHost(httpsProxy.host, httpsProxy.port);
+            useCredentials(credentialsProvider, Collections.singleton(authentication1));
+        }
     }
 
     private void useCredentials(CredentialsProvider credentialsProvider, Collection<? extends Authentication> authentications) {
@@ -221,20 +218,30 @@ public class HttpClientConfigurer {
                     credentialsProvider.setCredentials(new AuthScope(host, port, AuthScope.ANY_REALM, scheme), httpCredentials);
 
                     LOGGER.debug("Using {} for authenticating against '{}:{}' using {}", httpHeaderCredentials, host, port, scheme);
-                } else if (credentials instanceof PasswordCredentials) {
-                    PasswordCredentials passwordCredentials = (PasswordCredentials) credentials;
+                } else if (credentials instanceof PasswordCredentials || credentials instanceof HttpProxySettings.HttpProxyCredentials) {
+                    String username;
+                    String password;
+                    if (credentials instanceof PasswordCredentials) {
+                        PasswordCredentials passwordCredentials = (PasswordCredentials) credentials;
+                        username = passwordCredentials.getUsername();
+                        password = passwordCredentials.getPassword();
+                    } else {
+                        HttpProxySettings.HttpProxyCredentials proxyCredentials = (HttpProxySettings.HttpProxyCredentials) credentials;
+                        username = proxyCredentials.getUsername();
+                        password = proxyCredentials.getPassword();
+                    }
 
                     if (authentication instanceof AllSchemesAuthentication) {
-                        NTLMCredentials ntlmCredentials = new NTLMCredentials(passwordCredentials);
+                        NTLMCredentials ntlmCredentials = new NTLMCredentials(username, password);
                         Credentials httpCredentials = new NTCredentials(ntlmCredentials.getUsername(), ntlmCredentials.getPassword(), ntlmCredentials.getWorkstation(), ntlmCredentials.getDomain());
                         credentialsProvider.setCredentials(new AuthScope(host, port, AuthScope.ANY_REALM, AuthSchemes.NTLM), httpCredentials);
 
-                        LOGGER.debug("Using {} and {} for authenticating against '{}:{}' using {}", passwordCredentials, ntlmCredentials, host, port, AuthSchemes.NTLM);
+                        LOGGER.debug("Using {} and {} for authenticating against '{}:{}' using {}", credentials, ntlmCredentials, host, port, AuthSchemes.NTLM);
                     }
 
-                    Credentials httpCredentials = new UsernamePasswordCredentials(passwordCredentials.getUsername(), passwordCredentials.getPassword());
+                    Credentials httpCredentials = new UsernamePasswordCredentials(username, password);
                     credentialsProvider.setCredentials(new AuthScope(host, port, AuthScope.ANY_REALM, scheme), httpCredentials);
-                    LOGGER.debug("Using {} for authenticating against '{}:{}' using {}", passwordCredentials, host, port, scheme);
+                    LOGGER.debug("Using {} for authenticating against '{}:{}' using {}", credentials, host, port, scheme);
                 } else {
                     throw new IllegalArgumentException(String.format("Credentials must be an instance of: %s or %s", PasswordCredentials.class.getCanonicalName(), HttpHeaderCredentials.class.getCanonicalName()));
                 }
@@ -243,12 +250,7 @@ public class HttpClientConfigurer {
     }
 
     private boolean isPreemptiveEnabled(Collection<Authentication> authentications) {
-        return CollectionUtils.any(authentications, new Spec<Authentication>() {
-            @Override
-            public boolean isSatisfiedBy(Authentication element) {
-                return element instanceof BasicAuthentication || element instanceof HttpHeaderAuthentication;
-            }
-        });
+        return CollectionUtils.any(authentications, element -> element instanceof BasicAuthentication || element instanceof HttpHeaderAuthentication);
     }
 
     public void configureUserAgent(HttpClientBuilder builder) {

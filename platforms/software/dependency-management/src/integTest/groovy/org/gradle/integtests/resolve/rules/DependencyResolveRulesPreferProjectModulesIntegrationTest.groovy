@@ -34,47 +34,49 @@ class DependencyResolveRulesPreferProjectModulesIntegrationTest extends Abstract
     }
 
     def "preferProjectModules() only influence dependency declarations in the subproject it is used in"() {
-        createDirs("ModuleC", "Subproject_with_preferProjectModules", "Subproject_without_preferProjectModules")
-        settingsFile << 'include "ModuleC", "Subproject_with_preferProjectModules", "Subproject_without_preferProjectModules"'
+        settingsFile << """
+            include "ModuleC"
+            include "Subproject_with_preferProjectModules"
+            include "Subproject_without_preferProjectModules"
+        """
 
-        buildFile << """
-            project(":ModuleC") {
-                group "myorg"
-                version = "1.0"
+        file("ModuleC/build.gradle") << """
+            group = "myorg"
+            version = "1.0"
 
-                configurations { conf }
-                configurations.create("default").extendsFrom(configurations.conf)
+            configurations { conf }
+            configurations.create("default").extendsFrom(configurations.conf)
+        """
+
+        file("Subproject_with_preferProjectModules/build.gradle") << """
+            repositories { maven { url = "${mavenRepo.uri}" } }
+
+            configurations { conf }
+            configurations.create("default").extendsFrom(configurations.conf)
+
+            configurations.conf.resolutionStrategy {
+                preferProjectModules()
             }
 
-            project(":Subproject_with_preferProjectModules") {
-                repositories { maven { url "${mavenRepo.uri}" } }
-
-                configurations { conf }
-                configurations.create("default").extendsFrom(configurations.conf)
-
-                configurations.conf.resolutionStrategy {
-                    preferProjectModules()
-                }
-
-                dependencies {
-                    conf "myorg:ModuleB:1.0"
-                    conf project(":ModuleC")
-                }
+            dependencies {
+                conf "myorg:ModuleB:1.0"
+                conf project(":ModuleC")
             }
+        """
 
-            project(":Subproject_without_preferProjectModules") {
-                repositories { maven { url "${mavenRepo.uri}" } }
+        file("Subproject_without_preferProjectModules/build.gradle") << """
+            repositories { maven { url = "${mavenRepo.uri}" } }
 
-                configurations { conf }
-                configurations.create("default").extendsFrom(configurations.conf)
+            configurations { conf }
+            configurations.create("default").extendsFrom(configurations.conf)
 
-                dependencies {
-                    conf project(":Subproject_with_preferProjectModules")
-                    conf "myorg:ModuleB:1.0"
-                    conf project(":ModuleC")
-                }
+            dependencies {
+                conf project(":Subproject_with_preferProjectModules")
+                conf "myorg:ModuleB:1.0"
+                conf project(":ModuleC")
             }
-"""
+        """
+
         when:
         succeeds('Subproject_with_preferProjectModules:checkDeps')
 
@@ -117,43 +119,43 @@ class DependencyResolveRulesPreferProjectModulesIntegrationTest extends Abstract
     }
 
     def "preferProjectModules() does not propagate to extending configurations"() {
-        createDirs("ModuleC", "ProjectA")
-        settingsFile << 'include "ModuleC", "ProjectA"'
+        settingsFile << """
+            include "ModuleC"
+            include "ProjectA"
+        """
 
-        buildFile << """
-            project(":ModuleC") {
-                group "myorg"
-                version = "1.0"
+        file("ModuleC/build.gradle") << """
+            group = "myorg"
+            version = "1.0"
 
-                configurations {
-                    baseConf
-                    conf.extendsFrom(baseConf)
-                }
-                configurations.create("default").extendsFrom(configurations.baseConf)
+            configurations {
+                baseConf
+                conf.extendsFrom(baseConf)
+            }
+            configurations.create("default").extendsFrom(configurations.baseConf)
+        """
+
+        file("ProjectA/build.gradle") << """
+            repositories { maven { url = "${mavenRepo.uri}" } }
+
+            configurations {
+                baseConf
+                conf.extendsFrom(baseConf)
+            }
+            configurations.create("default").extendsFrom(configurations.baseConf)
+
+            configurations.baseConf.resolutionStrategy {
+                preferProjectModules()
             }
 
-            project(":ProjectA") {
-                repositories { maven { url "${mavenRepo.uri}" } }
+            dependencies {
+                conf "myorg:ModuleB:1.0"
+                conf project(":ModuleC")
 
-                configurations {
-                    baseConf
-                    conf.extendsFrom(baseConf)
-                }
-                configurations.create("default").extendsFrom(configurations.baseConf)
-
-                configurations.baseConf.resolutionStrategy {
-                    preferProjectModules()
-                }
-
-                dependencies {
-                    conf "myorg:ModuleB:1.0"
-                    conf project(":ModuleC")
-
-                    baseConf "myorg:ModuleB:1.0"
-                    baseConf project(":ModuleC")
-                }
+                baseConf "myorg:ModuleB:1.0"
+                baseConf project(":ModuleC")
             }
-"""
+        """
 
         when:
         succeeds('ProjectA:checkDeps')

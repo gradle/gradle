@@ -17,8 +17,7 @@
 package org.gradle.api.problems.internal;
 
 import org.gradle.internal.operations.OperationIdentifier;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 
 /**
@@ -33,6 +32,5 @@ public interface ProblemEmitter {
      *
      * @param problem The problem to emit.
      */
-    void emit(ProblemReport problem, @Nullable OperationIdentifier id);
-
+    void emit(InternalProblem problem, @Nullable OperationIdentifier id);
 }

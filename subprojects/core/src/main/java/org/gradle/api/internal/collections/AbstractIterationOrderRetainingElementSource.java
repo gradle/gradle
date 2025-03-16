@@ -20,6 +20,9 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterators;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
+import it.unimi.dsi.fastutil.ints.IntSets;
 import org.gradle.api.Action;
 import org.gradle.api.internal.DefaultMutationGuard;
 import org.gradle.api.internal.MutationGuard;
@@ -33,13 +36,13 @@ import org.gradle.api.internal.provider.Collectors.TypedCollector;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.ConcurrentModificationException;
-import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
@@ -49,7 +52,7 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
     // or provided.  We construct a correct iteration order from this set.
     private final List<Element<T>> inserted = new ArrayList<>();
 
-    private final MutationGuard mutationGuard = new DefaultMutationGuard();
+    private final MutationGuard lazyGuard = new DefaultMutationGuard();
 
     private Action<T> pendingAddedAction;
     private EventSubscriptionVerifier<T> subscriptionVerifier = type -> false;
@@ -62,7 +65,12 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
 
     @Override
     public boolean isEmpty() {
-        return inserted.isEmpty();
+        for (Element<T> element : inserted) {
+            if (element.size() != 0) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override
@@ -221,8 +229,8 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
     }
 
     @Override
-    public MutationGuard getMutationGuard() {
-        return mutationGuard;
+    public MutationGuard getLazyBehaviorGuard() {
+        return lazyGuard;
     }
 
     protected class RealizedElementCollectionIterator implements Iterator<T> {
@@ -316,11 +324,11 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
     }
 
     protected static class Element<T> extends TypedCollector<T> {
-        private List<T> cache;
-        private final List<T> removedValues = new ArrayList<>();
-        private final Set<T> realizedValues = new HashSet<>();
-        private final Set<Integer> duplicates = new HashSet<>(); // TODO IntSet
+        private List<T> cache = null;
+        private List<T> removedValues = null;
+        private IntSet duplicates = IntSets.emptySet();
         private boolean realized;
+
         private final Action<T> realizeAction;
 
         Element(@Nullable Class<? extends T> type, Collector<T> delegate, Action<T> realizeAction) {
@@ -344,9 +352,12 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
                 // Collect elements discarding potential side effects aggregated in the returned value
                 super.collectInto(builder);
                 cache = new ArrayList<>(builder.build());
-                cache.removeAll(removedValues);
+                if (removedValues != null) {
+                    cache.removeAll(removedValues);
+                }
                 realized = true;
                 if (realizeAction != null) {
+                    Set<T> realizedValues = new LinkedHashSet<>();
                     for (T value : cache) {
                         if (!realizedValues.contains(value)) {
                             realizeAction.execute(value);
@@ -373,6 +384,9 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
         }
 
         public boolean remove(T value) {
+            if (removedValues == null) {
+                removedValues = new ArrayList<>();
+            }
             removedValues.add(value);
             if (cache != null) {
                 return cache.remove(value);
@@ -385,13 +399,16 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
         }
 
         void setDuplicate(int index) {
+            if (duplicates == IntSets.EMPTY_SET) {
+                duplicates = new IntOpenHashSet(1);
+            }
             duplicates.add(index);
         }
 
         void clearCache() {
             cache = null;
             realized = false;
-            duplicates.clear();
+            duplicates = IntSets.emptySet();
         }
 
         @Override

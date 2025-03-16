@@ -19,8 +19,8 @@ package org.gradle.api.internal.tasks;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.util.internal.CollectionUtils;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,7 +29,7 @@ public class TaskStateInternal implements TaskState {
     private boolean actionable = true;
     private boolean didWork;
     private RuntimeException failure;
-    private TaskExecutionOutcome outcome;
+    private volatile TaskExecutionOutcome outcome;
 
     @Nullable
     private String skipReasonMessage;
@@ -65,10 +65,8 @@ public class TaskStateInternal implements TaskState {
     /**
      * The detailed reason why the task was skipped, if provided.
      *
-     * @see org.gradle.api.Task#onlyIf(String, org.gradle.api.specs.Spec)
-     *
      * @return the reason. returns null if the task was not skipped or if the reason was not provided.
-     *
+     * @see org.gradle.api.Task#onlyIf(String, org.gradle.api.specs.Spec)
      * @since 7.6
      */
     @Nullable
@@ -78,6 +76,7 @@ public class TaskStateInternal implements TaskState {
 
     /**
      * Sets the detailed reason why the task was skipped.
+     *
      * @see TaskStateInternal#getSkipReasonMessage()
      */
     public void setSkipReasonMessage(@Nullable String skipReasonMessage) {

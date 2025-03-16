@@ -17,13 +17,13 @@
 package org.gradle.internal.resources;
 
 import org.gradle.internal.Factory;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
 
 import java.util.Collection;
 
-@ServiceScope(Scopes.BuildSession.class)
+@ServiceScope(Scope.BuildSession.class)
 public interface ProjectLeaseRegistry {
     /**
      * Get the lock for the state of all projects of the given build. This lock provides exclusive access to the state of all projects in the build.While this lock is held, no project state locks can be held.

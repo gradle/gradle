@@ -30,14 +30,14 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDepen
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleFactoryHelper;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.notations.DependencyNotationParser;
 import org.gradle.api.internal.notations.ProjectDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 
 
@@ -50,7 +50,7 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
     private final NotationParser<Object, Capability> capabilityNotationParser;
     private final ObjectFactory objectFactory;
     private final ProjectDependencyFactory projectDependencyFactory;
-    private final ImmutableAttributesFactory attributesFactory;
+    private final AttributesFactory attributesFactory;
 
     public DefaultDependencyFactory(
         Instantiator instantiator,
@@ -59,7 +59,7 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
         NotationParser<Object, Capability> capabilityNotationParser,
         ObjectFactory objectFactory,
         ProjectDependencyFactory projectDependencyFactory,
-        ImmutableAttributesFactory attributesFactory
+        AttributesFactory attributesFactory
     ) {
         this.instantiator = instantiator;
         this.dependencyNotationParser = dependencyNotationParser;
@@ -96,6 +96,7 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
     @SuppressWarnings("rawtypes")
     public org.gradle.api.artifacts.ClientModule createModule(Object dependencyNotation, Closure configureClosure) {
         org.gradle.api.artifacts.ClientModule clientModule = clientModuleNotationParser.parseNotation(dependencyNotation);
+        injectServices(clientModule);
         if (configureClosure != null) {
             configureModule(clientModule, configureClosure);
         }

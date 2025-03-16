@@ -12,10 +12,10 @@ java {
 }
 
 android {
-    compileSdkVersion(28)
+    compileSdk = 28
     defaultConfig {
-        minSdkVersion(24)
-        targetSdkVersion(28)
+        minSdk = 24
+        targetSdk = 28
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8

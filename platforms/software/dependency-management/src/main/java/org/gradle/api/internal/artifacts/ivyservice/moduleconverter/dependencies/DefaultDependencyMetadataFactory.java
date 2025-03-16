@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ModuleDependency;
@@ -24,13 +24,15 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependencyConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DependencyConstraintInternal;
+import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.util.internal.WrapUtil;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 
@@ -56,10 +58,17 @@ public class DefaultDependencyMetadataFactory implements DependencyMetadataFacto
 
     private ComponentSelector createSelector(DependencyConstraint dependencyConstraint) {
         if (dependencyConstraint instanceof DefaultProjectDependencyConstraint) {
-            return DefaultProjectComponentSelector.newSelector(((DefaultProjectDependencyConstraint) dependencyConstraint).getProjectDependency().getDependencyProject());
+            ProjectDependencyInternal projectDependency = (ProjectDependencyInternal) ((DefaultProjectDependencyConstraint) dependencyConstraint).getProjectDependency();
+
+            return new DefaultProjectComponentSelector(
+                projectDependency.getTargetProjectIdentity(),
+                ((ImmutableAttributes) projectDependency.getAttributes()).asImmutable(),
+                ImmutableSet.of()
+            );
         }
+
         return DefaultModuleComponentSelector.newSelector(
-            DefaultModuleIdentifier.newId(nullToEmpty(dependencyConstraint.getGroup()), nullToEmpty(dependencyConstraint.getName())), dependencyConstraint.getVersionConstraint(), dependencyConstraint.getAttributes(), ImmutableList.of());
+            DefaultModuleIdentifier.newId(nullToEmpty(dependencyConstraint.getGroup()), nullToEmpty(dependencyConstraint.getName())), dependencyConstraint.getVersionConstraint(), dependencyConstraint.getAttributes(), ImmutableSet.of());
     }
 
     private DependencyMetadataConverter findFactoryForDependency(ModuleDependency dependency) {

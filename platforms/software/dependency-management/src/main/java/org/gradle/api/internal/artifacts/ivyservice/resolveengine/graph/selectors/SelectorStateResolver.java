@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
@@ -208,7 +207,7 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
             ResolvedVersionConstraint versionConstraint = selector.getVersionConstraint();
             if (versionConstraint != null && versionConstraint.getRejectedSelector() != null) {
                 if (rejectSelectors == null) {
-                    rejectSelectors = Lists.newArrayListWithCapacity(selectors.size());
+                    rejectSelectors = new ArrayList<>(selectors.size());
                 }
                 rejectSelectors.add(versionConstraint.getRejectedSelector());
             }

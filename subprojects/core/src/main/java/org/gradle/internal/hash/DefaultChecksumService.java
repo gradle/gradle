@@ -23,6 +23,7 @@ import org.gradle.api.internal.changedetection.state.FileTimeStampInspector;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 
 import java.io.File;
+import java.util.Locale;
 
 public class DefaultChecksumService implements ChecksumService {
     private final CachingFileHasher md5;
@@ -77,7 +78,7 @@ public class DefaultChecksumService implements ChecksumService {
 
     @Override
     public HashCode hash(File src, String algorithm) {
-        switch (algorithm.toLowerCase()) {
+        switch (algorithm.toLowerCase(Locale.ROOT)) {
             case "md5":
                 return md5(src);
             case "sha1":

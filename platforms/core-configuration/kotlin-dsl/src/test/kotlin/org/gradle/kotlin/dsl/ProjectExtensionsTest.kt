@@ -129,7 +129,7 @@ class ProjectExtensionsTest {
         try {
             project.the<CustomConvention>()
             fail("UnknownDomainObjectException not thrown")
-        } catch (ex: UnknownDomainObjectException) {
+        } catch (_: UnknownDomainObjectException) {
             // expected
         }
 
@@ -158,7 +158,7 @@ class ProjectExtensionsTest {
         try {
             project.configure<CustomConvention> {}
             fail("UnknownDomainObjectException not thrown")
-        } catch (ex: UnknownDomainObjectException) {
+        } catch (_: UnknownDomainObjectException) {
             // expected
         }
 

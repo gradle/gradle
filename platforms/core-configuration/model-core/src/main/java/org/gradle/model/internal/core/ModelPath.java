@@ -20,12 +20,12 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CharMatcher;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
-import com.google.common.collect.Lists;
-import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.GradleException;
 import org.gradle.internal.exceptions.Contextual;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
@@ -311,7 +311,7 @@ public class ModelPath implements Iterable<String>, Comparable<ModelPath> {
 
     private static String[] splitPath(String path) {
         // Let's make sure we never need to reallocate
-        List<String> components = Lists.newArrayListWithCapacity(path.length());
+        List<String> components = new ArrayList<>(path.length());
         StringTokenizer tokenizer = new StringTokenizer(path, ".");
         while (tokenizer.hasMoreTokens()) {
             String component = tokenizer.nextToken();

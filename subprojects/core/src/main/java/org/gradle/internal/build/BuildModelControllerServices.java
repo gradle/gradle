@@ -18,19 +18,18 @@ package org.gradle.internal.build;
 
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.BuildScopeServices;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Contributes build scoped services.
  */
-@ServiceScope(Scopes.BuildTree.class)
+@ServiceScope(Scope.BuildTree.class)
 public interface BuildModelControllerServices {
     /**
-     * Makes the following services available:
+     * Provides an action to make the following services available in the {@link Scope.Build} scope:
      *
      * <ul>
      *     <li>{@link BuildLifecycleController}</li>
@@ -42,6 +41,6 @@ public interface BuildModelControllerServices {
     Supplier servicesForBuild(BuildDefinition buildDefinition, BuildState owner, @Nullable BuildState parentBuild);
 
     interface Supplier {
-        void applyServicesTo(ServiceRegistration registration, BuildScopeServices services);
+        void applyServicesTo(ServiceRegistration registration, ServiceRegistry buildScopeServices);
     }
 }

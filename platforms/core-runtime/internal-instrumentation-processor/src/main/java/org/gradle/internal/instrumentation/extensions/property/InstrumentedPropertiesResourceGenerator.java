@@ -19,7 +19,9 @@ package org.gradle.internal.instrumentation.extensions.property;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
+import org.gradle.internal.instrumentation.model.CallableInfo;
 import org.gradle.internal.instrumentation.model.ParameterInfo;
 import org.gradle.internal.instrumentation.processor.codegen.InstrumentationResourceGenerator;
 import org.objectweb.asm.Type;
@@ -29,6 +31,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.UncheckedIOException;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
@@ -68,8 +71,8 @@ public class InstrumentedPropertiesResourceGenerator implements InstrumentationR
             public void write(OutputStream outputStream) {
                 Map<String, List<CallInterceptionRequest>> requests = filteredRequests.stream()
                     .collect(groupingBy(InstrumentedPropertiesResourceGenerator::getFqName));
-                List<PropertyEntry> entries = toPropertyEntries(requests);
-                try (Writer writer = new OutputStreamWriter(outputStream)) {
+                List<UpgradedProperty> entries = toPropertyEntries(requests);
+                try (Writer writer = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8)) {
                     writer.write(mapper.writeValueAsString(entries));
                 } catch (IOException e) {
                     throw new UncheckedIOException(e);
@@ -85,7 +88,7 @@ public class InstrumentedPropertiesResourceGenerator implements InstrumentationR
         return containingType + "#" + propertyName;
     }
 
-    private static List<PropertyEntry> toPropertyEntries(Map<String, List<CallInterceptionRequest>> requests) {
+    private static List<UpgradedProperty> toPropertyEntries(Map<String, List<CallInterceptionRequest>> requests) {
         return requests.entrySet().stream()
             .sorted(Map.Entry.comparingByKey())
             .map(e -> toPropertyEntry(e.getValue()))
@@ -93,41 +96,42 @@ public class InstrumentedPropertiesResourceGenerator implements InstrumentationR
     }
 
     @SuppressWarnings("OptionalGetWithoutIsPresent")
-    private static PropertyEntry toPropertyEntry(List<CallInterceptionRequest> requests) {
-        CallInterceptionRequest request = requests.get(0);
-        PropertyUpgradeRequestExtra upgradeExtra = request.getRequestExtras().getByType(PropertyUpgradeRequestExtra.class).get();
+    private static UpgradedProperty toPropertyEntry(List<CallInterceptionRequest> requests) {
+        CallInterceptionRequest firstRequest = requests.get(0);
+        PropertyUpgradeRequestExtra upgradeExtra = firstRequest.getRequestExtras().getByType(PropertyUpgradeRequestExtra.class).get();
         String propertyName = upgradeExtra.getPropertyName();
-        String methodName = upgradeExtra.getInterceptedPropertyAccessorName();
-        String methodDescriptor = upgradeExtra.getInterceptedPropertyAccessorDescriptor();
-        String containingType = request.getInterceptedCallable().getOwner().getType().getClassName();
-        List<UpgradedMethod> upgradedMethods = requests.stream()
-            .map(CallInterceptionRequest::getInterceptedCallable)
-            .map(intercepted -> {
+        String methodName = upgradeExtra.getMethodName();
+        String methodDescriptor = upgradeExtra.getMethodDescriptor();
+        String containingType = firstRequest.getInterceptedCallable().getOwner().getType().getClassName();
+        List<ReplacedAccessor> upgradedAccessors = requests.stream()
+            .map(request -> {
+                PropertyUpgradeRequestExtra requestExtra = request.getRequestExtras().getByType(PropertyUpgradeRequestExtra.class).get();
+                CallableInfo intercepted = request.getInterceptedCallable();
                 Type returnType = intercepted.getReturnType().getType();
                 Type[] parameterTypes = intercepted.getParameters().stream()
                     .map(ParameterInfo::getParameterType)
                     .toArray(Type[]::new);
-                return new UpgradedMethod(intercepted.getCallableName(), Type.getMethodDescriptor(returnType, parameterTypes));
+                return new ReplacedAccessor(intercepted.getCallableName(), Type.getMethodDescriptor(returnType, parameterTypes), requestExtra.getBinaryCompatibility());
             })
-            .sorted(Comparator.comparing((UpgradedMethod o) -> o.name).thenComparing(o -> o.descriptor))
+            .sorted(Comparator.comparing((ReplacedAccessor o) -> o.name).thenComparing(o -> o.descriptor))
             .collect(Collectors.toList());
-        return new PropertyEntry(containingType, propertyName, methodName, methodDescriptor, upgradedMethods);
+        return new UpgradedProperty(containingType, propertyName, methodName, methodDescriptor, upgradedAccessors);
     }
 
     @JsonPropertyOrder(alphabetic = true)
-    static class PropertyEntry {
+    static class UpgradedProperty {
         private final String propertyName;
         private final String methodName;
         private final String methodDescriptor;
         private final String containingType;
-        private final List<UpgradedMethod> upgradedMethods;
+        private final List<ReplacedAccessor> replacedAccessors;
 
-        public PropertyEntry(String containingType, String propertyName, String methodName, String methodDescriptor, List<UpgradedMethod> upgradedMethods) {
+        public UpgradedProperty(String containingType, String propertyName, String methodName, String methodDescriptor, List<ReplacedAccessor> replacedAccessors) {
             this.containingType = containingType;
             this.propertyName = propertyName;
             this.methodName = methodName;
             this.methodDescriptor = methodDescriptor;
-            this.upgradedMethods = upgradedMethods;
+            this.replacedAccessors = replacedAccessors;
         }
 
         public String getContainingType() {
@@ -146,19 +150,21 @@ public class InstrumentedPropertiesResourceGenerator implements InstrumentationR
             return methodDescriptor;
         }
 
-        public List<UpgradedMethod> getUpgradedMethods() {
-            return upgradedMethods;
+        public List<ReplacedAccessor> getReplacedAccessors() {
+            return replacedAccessors;
         }
     }
 
     @JsonPropertyOrder(alphabetic = true)
-    static class UpgradedMethod {
+    static class ReplacedAccessor {
         private final String name;
         private final String descriptor;
+        private final BinaryCompatibility binaryCompatibility;
 
-        public UpgradedMethod(String name, String descriptor) {
+        public ReplacedAccessor(String name, String descriptor, BinaryCompatibility binaryCompatibility) {
             this.name = name;
             this.descriptor = descriptor;
+            this.binaryCompatibility = binaryCompatibility;
         }
 
         public String getName() {
@@ -167,6 +173,10 @@ public class InstrumentedPropertiesResourceGenerator implements InstrumentationR
 
         public String getDescriptor() {
             return descriptor;
+        }
+
+        public BinaryCompatibility getBinaryCompatibility() {
+            return binaryCompatibility;
         }
     }
 }

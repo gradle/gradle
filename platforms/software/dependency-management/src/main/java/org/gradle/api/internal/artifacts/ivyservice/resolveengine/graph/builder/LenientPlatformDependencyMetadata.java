@@ -16,13 +16,13 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
 import org.gradle.api.artifacts.VersionConstraint;
+import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.capabilities.Capability;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.DependencyMetadata;
@@ -33,11 +33,11 @@ import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata;
 import org.gradle.internal.component.model.VariantGraphResolveState;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 class LenientPlatformDependencyMetadata implements ModuleDependencyMetadata, ForcingDependencyMetadata {
     private final ResolveState resolveState;
@@ -79,11 +79,13 @@ class LenientPlatformDependencyMetadata implements ModuleDependencyMetadata, For
     }
 
     @Override
-    public GraphVariantSelectionResult selectVariants(GraphVariantSelector variantSelector, ImmutableAttributes consumerAttributes, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities) {
+    public GraphVariantSelectionResult selectVariants(GraphVariantSelector variantSelector, ImmutableAttributes consumerAttributes, ComponentGraphResolveState targetComponentState, ImmutableAttributesSchema consumerSchema, Set<CapabilitySelector> explicitRequestedCapabilities) {
         if (targetComponentState instanceof LenientPlatformGraphResolveState) {
-            VariantGraphResolveState variant = ((LenientPlatformGraphResolveState) targetComponentState).getDefaultVariant(from, platformId);
+            LenientPlatformGraphResolveState lenientPlatform = (LenientPlatformGraphResolveState) targetComponentState;
+            VariantGraphResolveState variant = lenientPlatform.getCandidatesForGraphVariantSelection().getVariantForSourceNode(from, platformId);
             return new GraphVariantSelectionResult(Collections.singletonList(variant), false);
         }
+
         // the target component exists, so we need to fallback to the traditional selection process
         return new LocalComponentDependencyMetadata(cs, null, Collections.emptyList(), Collections.emptyList(), false, false, true, false, false, null).selectVariants(variantSelector, consumerAttributes, targetComponentState, consumerSchema, explicitRequestedCapabilities);
     }

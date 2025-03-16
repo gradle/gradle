@@ -20,7 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.ConfigurableUserClassFilePermissions;
 import org.gradle.api.file.ConfigurableFilePermissions;
-import org.gradle.api.model.ObjectFactory;
 
 import javax.inject.Inject;
 
@@ -40,10 +39,10 @@ public class DefaultConfigurableFilePermissions extends AbstractFilePermissions 
     private final ConfigurableUserClassFilePermissionsInternal other;
 
     @Inject
-    public DefaultConfigurableFilePermissions(ObjectFactory objectFactory, int unixNumeric) {
-        this.user = objectFactory.newInstance(DefaultConfigurableUserClassFilePermissions.class, getUserPartOf(unixNumeric));
-        this.group = objectFactory.newInstance(DefaultConfigurableUserClassFilePermissions.class, getGroupPartOf(unixNumeric));
-        this.other = objectFactory.newInstance(DefaultConfigurableUserClassFilePermissions.class, getOtherPartOf(unixNumeric));
+    public DefaultConfigurableFilePermissions(int unixNumeric) {
+        this.user = new DefaultConfigurableUserClassFilePermissions(getUserPartOf(unixNumeric));
+        this.group = new DefaultConfigurableUserClassFilePermissions(getGroupPartOf(unixNumeric));
+        this.other = new DefaultConfigurableUserClassFilePermissions(getOtherPartOf(unixNumeric));
     }
 
     @Override
@@ -94,6 +93,10 @@ public class DefaultConfigurableFilePermissions extends AbstractFilePermissions 
 
     @Override
     public void unix(int unixNumeric) {
+        if (unixNumeric < 0 || unixNumeric >= 512) {
+            throw new IllegalArgumentException(unixNumeric + " is not a valid unix numeric permission from the range of [0, 512)");
+        }
+
         user.unix(getUserPartOf(unixNumeric));
         group.unix(getGroupPartOf(unixNumeric));
         other.unix(getOtherPartOf(unixNumeric));

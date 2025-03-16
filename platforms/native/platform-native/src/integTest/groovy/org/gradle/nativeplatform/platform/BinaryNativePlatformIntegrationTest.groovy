@@ -16,9 +16,9 @@
 
 package org.gradle.nativeplatform.platform
 
-import net.rubygrapefruit.platform.Native
 import net.rubygrapefruit.platform.SystemInfo
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
@@ -28,6 +28,7 @@ import org.gradle.nativeplatform.fixtures.binaryinfo.DumpbinBinaryInfo
 import org.gradle.nativeplatform.fixtures.binaryinfo.FileArchOnlyBinaryInfo
 import org.gradle.nativeplatform.fixtures.binaryinfo.OtoolBinaryInfo
 import org.gradle.nativeplatform.fixtures.binaryinfo.ReadelfBinaryInfo
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
 
@@ -53,16 +54,17 @@ model {
         testApp.writeSources(file("src/main"))
     }
 
-    // Tests will only work on x86 and x86-64 architectures
     def currentArch() {
         // On windows we currently target i386 by default, even on amd64
-        if (OperatingSystem.current().windows || Native.get(SystemInfo).architecture == SystemInfo.Architecture.i386) {
+        if (OperatingSystem.current().windows || NativeServices.instance.get(SystemInfo).architecture == SystemInfo.Architecture.i386) {
             return [name: "x86", altName: "i386"]
+        }
+        if (DefaultNativePlatform.getCurrentArchitecture().arm64) {
+            return [name: "aarch64", altName: "arm64"]
         }
         return [name: "x86-64", altName: "amd64"]
     }
 
-    @ToBeFixedForConfigurationCache
     def "build binary for a default target platform"() {
         given:
         def arch = currentArch()
@@ -78,7 +80,6 @@ model {
     }
 
     @RequiresInstalledToolChain(SUPPORTS_32)
-    @ToBeFixedForConfigurationCache
     def "configure component for a single target platform"() {
         when:
         buildFile << """
@@ -110,7 +111,6 @@ model {
         executable("build/exe/main/main").exec().out == "i386 ${os.familyName}" * 2
     }
 
-    @ToBeFixedForConfigurationCache
     def "defaults to current platform when platforms are defined but not targeted"() {
         def arch = currentArch()
         when:
@@ -138,7 +138,6 @@ model {
     }
 
     @RequiresInstalledToolChain(SUPPORTS_32)
-    @ToBeFixedForConfigurationCache
     def "library with matching platform is enforced by dependency resolution"() {
         given:
         testApp.executable.writeSources(file("src/exe"))
@@ -181,7 +180,6 @@ model {
         executable("build/exe/exe/exe").exec().out == "i386 ${os.familyName}" * 2
     }
 
-    @ToBeFixedForConfigurationCache
     def "library with no platform defined is correctly chosen by dependency resolution"() {
         def arch = currentArch()
 
@@ -212,7 +210,6 @@ model {
     }
 
     @RequiresInstalledToolChain(SUPPORTS_32_AND_64)
-    @ToBeFixedForConfigurationCache
     def "build binary for multiple target architectures"() {
         when:
         buildFile << """
@@ -261,7 +258,6 @@ model {
     }
 
     @RequiresInstalledToolChain(SUPPORTS_32)
-    @ToBeFixedForConfigurationCache
     def "can configure binary for multiple target operating systems"() {
         String currentOs
         if (os.windows) {
@@ -318,7 +314,6 @@ model {
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "fails with reasonable error message when trying to build for an #type"() {
         when:
         buildFile << """

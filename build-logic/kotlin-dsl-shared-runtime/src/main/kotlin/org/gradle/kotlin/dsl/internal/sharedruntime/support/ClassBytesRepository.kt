@@ -39,15 +39,18 @@ typealias ClassBytesIndex = (String) -> ClassBytesSupplier?
  */
 class ClassBytesRepository(
     platformClassLoader: ClassLoader,
-    private val classPathFiles: List<File>,
+    classPathFiles: List<File>,
     classPathDependencies: List<File> = emptyList(),
 ) : Closeable {
+
+    private
+    val relevantClassPathFiles = classPathFiles.filter { it.isDirectory || (it.isFile && it.length() > 0) }
 
     private
     val openJars = mutableMapOf<File, JarFile>()
 
     private
-    val classBytesIndex = (classPathFiles + classPathDependencies + platformClassLoader).map { classBytesIndexFor(it) }
+    val classBytesIndex = (relevantClassPathFiles + classPathDependencies + platformClassLoader).map { classBytesIndexFor(it) }
 
     /**
      * Class file bytes for Kotlin source name, if found.
@@ -59,7 +62,7 @@ class ClassBytesRepository(
      * All found class files bytes by Kotlin source name.
      */
     fun allClassesBytesBySourceName(): Sequence<Pair<String, ClassBytesSupplier>> =
-        classPathFiles.asSequence()
+        relevantClassPathFiles.asSequence()
             .flatMap { sourceNamesFrom(it) }
             .mapNotNull { sourceName ->
                 classBytesSupplierForSourceName(sourceName)?.let { sourceName to it }
@@ -152,13 +155,13 @@ val File.isClassPathArchive
 
 private
 val String.isClassFilePath
-    get() = endsWith(classFileExtension)
-        && !endsWith("package-info$classFileExtension")
+    get() = endsWith(CLASS_FILE_EXTENSION)
+        && !endsWith("package-info$CLASS_FILE_EXTENSION")
         && !matches(compilerGeneratedClassFilePath)
 
 
 private
-const val classFileExtension = ".class"
+const val CLASS_FILE_EXTENSION = ".class"
 
 
 private
@@ -172,7 +175,7 @@ val slashOrDollar = Regex("[/$]")
 // visible for testing
 fun kotlinSourceNameOf(classFilePath: String): String =
     classFilePath
-        .removeSuffix(classFileExtension)
+        .removeSuffix(CLASS_FILE_EXTENSION)
         .removeSuffix("Kt")
         .replace(slashOrDollar, ".")
 
@@ -192,7 +195,7 @@ fun nestedClassFilePathCandidatesFor(path: String): Sequence<String> =
 
 private
 fun candidateClassFiles(path: String) =
-    sequenceOf("$path$classFileExtension", "${path}Kt$classFileExtension")
+    sequenceOf("$path$CLASS_FILE_EXTENSION", "${path}Kt$CLASS_FILE_EXTENSION")
 
 
 private

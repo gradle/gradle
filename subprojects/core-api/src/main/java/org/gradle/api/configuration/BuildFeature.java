@@ -16,48 +16,66 @@
 
 package org.gradle.api.configuration;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.provider.Provider;
 
 /**
- * Status of a feature in a build that affects Gradle behavior,
- * and may impose additional requirements on plugins or build scripts.
+ * Status of a Gradle feature in the current invocation, such as Configuration Cache.
  * <p>
- * It is possible to check if the feature is {@link #getActive() active} in the current build.
- * The {@link #getRequested() requested} property shows whether the user opted in or opted out from the feature.
+ * Gradle features can be enabled or disabled via <a href="https://docs.gradle.org/current/userguide/build_environment.html">build options</a>,
+ * but in some cases other flags or features can affect that.
+ * For this reason, the {@link #getRequested()} status represents the configuration of a feature in isolation,
+ * and the {@link #getActive()} status represents the final result, after everything has been taken into account.
+ * <p>
+ * Some flags disable features.
+ * For instance, {@code --export-keys} flag always disables {@link BuildFeatures#getConfigurationCache() Configuration Cache}.
+ * If {@code --configuration-cache} is provided at the same time, then {@code configurationCache.requested.get() == true},
+ * but {@code configurationCache.active.get() == false}.
+ * <p>
+ * Some features automatically enable other features.
+ * For instance, enabling {@link BuildFeatures#getIsolatedProjects() Isolated Projects} enables Configuration Cache.
+ * So that {@code configurationCache.requested} has no value, but {@code configurationCache.active.get() == true}.
  *
  * @see BuildFeatures
  * @since 8.5
  */
-@Incubating
 public interface BuildFeature {
 
     /**
-     * Whether the feature was requested for the build.
-     * <p>
-     * The provider <b>can be undefined</b> if the user did not explicitly opt in or opt out from a feature.
-     * Use {@link Provider#getOrNull()} to safely retrieve a nullable value or check {@link Provider#isPresent()}.
-     * <p>
-     * This method is primarily useful for gathering feature usage statistics, as it corresponds to the user intention.
-     * <p>
-     * Note that the requested state does not always imply that the feature is active in the build.
-     * In case an effective status is needed, use {@link #getActive()}.
+     * How the feature was requested:
+     * <ul>
+     *     <li>true - explicitly enabled (e.g. {@code --configuration-cache})
+     *     <li>false - explicitly disabled (e.g. {@code --no-configuration-cache})
+     *     <li>provider has no value - no preference, default behavior
+     * </ul>
      *
+     * Use {@link Provider#getOrNull()} to safely retrieve a nullable value or check {@link Provider#isPresent()}
+     * as the <b>provider can have no value</b> in the case there is no explicit request.
+     * <p>
+     * Note that enabling the feature doesn't necessary mean the feature will be activated.
+     * See {@link BuildFeature} for more details.
+     * <p>
+     * Use {@link #getActive()} to get the effective status of the feature.
+     *
+     * @return The provider that <b>can have no value</b> and its value denotes the requested status of a feature
      * @since 8.5
      */
     Provider<Boolean> getRequested();
 
     /**
-     * Whether the feature is active in the build.
-     * <p>
-     * The provider is always defined and its value denotes the effective status of a feature in a build.
-     * <p>
-     * This method is primarily useful for conditional logic in plugins or build scripts.
-     * For instance, optional features of a plugin could be disabled if they are incompatible with a given build feature.
-     * <p>
-     * Note that a feature may be not active even it was requested.
-     * This can be caused by other build features or build options requested for the build.
+     * Effective status of the feature:
+     * <ul>
+     *     <li>true - the feature is active and taking effect
+     *     <li>false - the feature is deactivated
+     * </ul>
      *
+     * This method provides only generic information about the status of the feature.
+     * It does not provide information about a behavior that is specific for any given feature.
+     * For instance, it <b>does not</b> say whether Configuration Cache got a hit or a miss for a given invocation.
+     * <p>
+     * Note that a feature can get activated even if not explicitly enabled.
+     * See {@link BuildFeature} for more details.
+     *
+     * @return The provider that is always has a value and its value denotes the effective status of a feature
      * @since 8.5
      */
     Provider<Boolean> getActive();

@@ -17,8 +17,9 @@
 package org.gradle.launcher.continuous
 
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.TestDeploymentFixture
+
+import java.util.concurrent.TimeUnit
 
 import static org.gradle.util.internal.CollectionUtils.single
 
@@ -30,7 +31,6 @@ class DeploymentContinuousBuildIntegrationTest extends AbstractContinuousIntegra
         buildTimeout = 30
     }
 
-    @ToBeFixedForConfigurationCache
     def "deployment promoted to continuous build reports accurate build time" () {
         when:
         withoutContinuousBuild()
@@ -43,7 +43,6 @@ class DeploymentContinuousBuildIntegrationTest extends AbstractContinuousIntegra
         buildTimes[0] >= buildTimes[1]
     }
 
-    @ToBeFixedForConfigurationCache
     def "deployment in continuous build reports accurate build time" () {
         when:
         succeeds("runDeployment")
@@ -63,7 +62,18 @@ class DeploymentContinuousBuildIntegrationTest extends AbstractContinuousIntegra
         lastBuildTime >= single(buildTimes)
     }
 
-    List<Integer> getBuildTimes() {
-        return (output =~ /BUILD SUCCESSFUL in (\d+)s/).collect { it[1].toString().toInteger() }
+    List<Long> getBuildTimes() {
+        return (output =~ /BUILD SUCCESSFUL in (\d+)(m?s)/).collect { buildTimeFromString(it[1].toString(), it[2].toString()) }
+    }
+
+    private long buildTimeFromString(String time, String unit) {
+        switch (unit) {
+            case "ms":
+                return time.toInteger()
+            case "s":
+                return TimeUnit.SECONDS.toMillis(time.toInteger())
+            default:
+                throw new IllegalArgumentException("Unexpected time unit: $unit")
+        }
     }
 }

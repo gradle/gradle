@@ -23,6 +23,7 @@ import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
+import org.gradle.api.internal.artifacts.ProjectComponentIdentifierInternal
 import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.build.BuildModelControllerServices
 import org.gradle.internal.build.BuildState
@@ -65,9 +66,10 @@ class DefaultIncludedBuildTest extends Specification {
         def projectId = new DefaultProjectComponentIdentifier(Stub(BuildIdentifier), Path.path("id"), Path.path("project"), "name")
 
         expect:
-        def id = build.idToReferenceProjectFromAnotherBuild(projectId)
+        def id = build.idToReferenceProjectFromAnotherBuild(projectId) as ProjectComponentIdentifierInternal
         id.identityPath == projectId.identityPath
         id.identityPath.path == projectId.buildTreePath
+        id.buildTreePath == projectId.buildTreePath
         id.projectPath == projectId.projectPath
         id.projectName == projectId.projectName
     }

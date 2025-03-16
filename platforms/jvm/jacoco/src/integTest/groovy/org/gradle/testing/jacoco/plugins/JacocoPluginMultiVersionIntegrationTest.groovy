@@ -37,6 +37,7 @@ class JacocoPluginMultiVersionIntegrationTest extends JacocoMultiVersionIntegrat
 
     def "generates html report only as default"() {
         when:
+        executer.withArgument("--no-problems-report")
         succeeds('test', 'jacocoTestReport')
 
         then:
@@ -75,8 +76,8 @@ class JacocoPluginMultiVersionIntegrationTest extends JacocoMultiVersionIntegrat
                 reports.xml.required = true
                 reports.csv.required = true
             }
-            reporting{
-                baseDir = "\$buildDir/customReports"
+            reporting {
+                baseDirectory = layout.buildDirectory.dir("customReports")
             }"""
 
         when:
@@ -255,6 +256,32 @@ public class ThingTest {
         succeeds 'test', 'jacocoTestReport', '--info'
         htmlReport().totalCoverage() == 100
         htmlReport().numberOfClasses() == 2000
+    }
+
+    def "allows specifying a source encoding"() {
+        given:
+        testDirectory.createDir('src/main/java/foo').file('Bar.java').canonicalFile.write('''
+            // öäüß
+            package foo;
+            public class Bar {}
+        ''', 'UTF-8')
+
+        buildFile << """
+            jacocoTestReport {
+                sourceEncoding = '$encoding'
+            }
+        """
+
+        when:
+        succeeds('test', 'jacocoTestReport')
+
+        then:
+        htmlReport().sourceCode('foo', 'Bar.java').contains('öäüß') == match
+
+        where:
+        encoding     || match
+        'UTF-8'      || true
+        'ISO-8859-1' || false
     }
 
     private JacocoReportFixture htmlReport(String basedir = "${REPORTING_BASE}/jacoco/test/html") {

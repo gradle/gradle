@@ -23,7 +23,6 @@ import com.google.common.collect.MultimapBuilder;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.file.Directory;
 import org.gradle.api.internal.DocumentationRegistry;
@@ -37,11 +36,12 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.util.internal.GFileUtils;
 import org.gradle.util.internal.GUtil;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
@@ -140,8 +140,7 @@ public class BuildScriptBuilder {
      * @param comment A description of why the plugin is required
      */
     public BuildScriptBuilder plugin(@Nullable String comment, String pluginId) {
-        block.plugins.add(new PluginSpec(pluginId, null, comment));
-        return this;
+        return plugin(comment, pluginId, null, null);
     }
 
     /**
@@ -159,10 +158,10 @@ public class BuildScriptBuilder {
      *
      * @param comment A description of why the plugin is required
      */
-    public BuildScriptBuilder plugin(@Nullable String comment, String pluginId, @Nullable String version) {
+    public BuildScriptBuilder plugin(@Nullable String comment, String pluginId, @Nullable String version, @Nullable String pluginAlias) {
         AbstractStatement plugin;
         if (useVersionCatalog && version != null) {
-            String versionCatalogRef = buildContentGenerationContext.getVersionCatalogDependencyRegistry().registerPlugin(pluginId, version);
+            String versionCatalogRef = buildContentGenerationContext.getVersionCatalogDependencyRegistry().registerPlugin(pluginId, version, pluginAlias);
             plugin = new PluginSpec(versionCatalogRef, comment);
         } else {
             plugin = new PluginSpec(pluginId, version, comment);
@@ -960,7 +959,7 @@ public class BuildScriptBuilder {
         }
     }
 
-    @NonNullApi
+    @NullMarked
     private static class StatementGroup extends AbstractStatement {
         private final List<Statement> statements = new ArrayList<>();
 
@@ -1871,8 +1870,8 @@ public class BuildScriptBuilder {
         private String indent = "";
         private String eolComment = null;
         private int commentCount = 0;
-        private boolean needSeparatorLine = true;
-        private boolean firstStatementOfBlock = false;
+        private boolean needSeparatorLine = false;
+        private boolean firstStatementOfBlock = true;
         private boolean hasSeparatorLine = false;
 
         PrettyPrinter(Syntax syntax, PrintWriter writer, BuildInitComments comments) {
@@ -1899,6 +1898,9 @@ public class BuildScriptBuilder {
                 }
             }
             println(" */");
+
+            firstStatementOfBlock = false;
+            needSeparatorLine = true;
         }
 
         public void printBlock(String blockSelector, BlockBody blockBody) {
@@ -2185,7 +2187,7 @@ public class BuildScriptBuilder {
             return blockStatement;
         }
 
-        @Nonnull
+        @NonNull
         private String getLiteral(String container, String elementName, @Nullable String elementType, String varName) {
             if (varName == null) {
                 if (elementType == null) {

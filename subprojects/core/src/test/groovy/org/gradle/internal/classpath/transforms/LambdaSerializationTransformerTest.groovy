@@ -16,7 +16,7 @@
 
 package org.gradle.internal.classpath.transforms
 
-import org.gradle.internal.classanalysis.AsmConstants
+import org.gradle.model.internal.asm.AsmConstants
 import org.gradle.internal.classpath.ClassWithActionLambda
 import org.gradle.internal.classpath.ClassWithCapturelessLambda
 import org.gradle.internal.classpath.ClassWithObjectCapturingLambda

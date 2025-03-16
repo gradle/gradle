@@ -61,4 +61,22 @@ public class DefaultConfigurableRules<DETAILS> implements ConfigurableRules<DETA
     public String toString() {
         return configurableRules.toString();
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        DefaultConfigurableRules<?> that = (DefaultConfigurableRules<?>) o;
+        return configurableRules.equals(that.configurableRules);
+    }
+
+    @Override
+    public int hashCode() {
+        return configurableRules.hashCode();
+    }
 }

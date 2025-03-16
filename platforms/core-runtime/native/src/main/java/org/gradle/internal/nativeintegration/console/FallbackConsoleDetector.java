@@ -23,6 +23,7 @@ public class FallbackConsoleDetector implements ConsoleDetector {
     }
 
     @Override
+    @SuppressWarnings("SystemConsoleNull")
     public boolean isConsoleInput() {
         return System.console() != null;
     }

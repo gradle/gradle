@@ -25,6 +25,7 @@ import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.process.ExecResult;
@@ -313,7 +314,9 @@ public interface Script {
      *
      * @param closure The closure for configuring the execution.
      * @return the result of the execution
+     * @deprecated Since 8.11. This method will be removed in Gradle 9.0. Use {@link org.gradle.process.ExecOperations#javaexec(Action)} or {@link ProviderFactory#javaexec(Action)} instead.
      */
+    @Deprecated
     ExecResult javaexec(@DelegatesTo(JavaExecSpec.class) Closure closure);
 
     /**
@@ -321,7 +324,9 @@ public interface Script {
      *
      * @param action The action for configuring the execution.
      * @return the result of the execution
+     * @deprecated Since 8.11. This method will be removed in Gradle 9.0. Use {@link org.gradle.process.ExecOperations#javaexec(Action)} or {@link ProviderFactory#javaexec(Action)} instead.
      */
+    @Deprecated
     ExecResult javaexec(Action<? super JavaExecSpec> action);
 
     /**
@@ -329,7 +334,9 @@ public interface Script {
      *
      * @param closure The closure for configuring the execution.
      * @return the result of the execution
+     * @deprecated Since 8.11. This method will be removed in Gradle 9.0. Use {@link org.gradle.process.ExecOperations#exec(Action)} or {@link ProviderFactory#exec(Action)} instead.
      */
+    @Deprecated
     ExecResult exec(@DelegatesTo(ExecSpec.class) Closure closure);
 
     /**
@@ -337,7 +344,9 @@ public interface Script {
      *
      * @param action The action for configuring the execution.
      * @return the result of the execution
+     * @deprecated Since 8.11. This method will be removed in Gradle 9.0. Use {@link org.gradle.process.ExecOperations#exec(Action)} or {@link ProviderFactory#exec(Action)} instead.
      */
+    @Deprecated
     ExecResult exec(Action<? super ExecSpec> action);
 
     /**

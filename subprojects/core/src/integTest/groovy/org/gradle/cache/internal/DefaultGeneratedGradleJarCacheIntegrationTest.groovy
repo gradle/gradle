@@ -19,7 +19,7 @@ package org.gradle.cache.internal
 import org.gradle.api.Action
 import org.gradle.cache.internal.scopes.DefaultCacheScopeMapping
 import org.gradle.cache.internal.scopes.DefaultGlobalScopedCacheBuilderFactory
-import org.gradle.internal.agents.AgentStatus
+import org.gradle.internal.instrumentation.agent.AgentStatus
 import org.gradle.internal.logging.services.LoggingServiceRegistry
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistryBuilder

@@ -16,32 +16,40 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.attributes.AttributesSchema;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.AttributeDescriberRegistry;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * Provides access to services required for dependency resolution.
- * <p>
- * Note that changes to this type, even seemingly safe ones such as narrowing the return types, can
- * cause problems for IDEs (the IDE tests should fail upon such changes, alerting us to
- * this problem).  Thus, this internal API should be treated as semi-public.
  */
+@ServiceScope(Scope.Project.class)
 public interface DependencyResolutionServices {
     RepositoryHandler getResolveRepositoryHandler();
 
+    // This method is currently referenced by IDEA, here:
+    // https://github.com/JetBrains/intellij-community/blob/de935f2d08d531cb4ecad6594dfe09f55b1f8b6f/plugins/gradle/tooling-extension-impl/src/org/jetbrains/plugins/gradle/tooling/builder/VersionCatalogsModelBuilder.java#L50
+    // Therefore, we cannot change its signature.
     ConfigurationContainer getConfigurationContainer();
 
     DependencyHandler getDependencyHandler();
 
     DependencyLockingHandler getDependencyLockingHandler();
 
-    ImmutableAttributesFactory getAttributesFactory();
+    AttributesFactory getAttributesFactory();
 
     AttributesSchema getAttributesSchema();
 
     ObjectFactory getObjectFactory();
+
+    DependencyFactory getDependencyFactory();
+
+    AttributeDescriberRegistry getAttributeDescribers();
 }

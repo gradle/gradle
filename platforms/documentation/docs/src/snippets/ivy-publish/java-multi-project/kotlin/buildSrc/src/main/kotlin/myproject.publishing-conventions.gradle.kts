@@ -19,7 +19,7 @@ publishing {
     repositories {
         ivy {
             // change to point to your repo, e.g. http://my.org/repo
-            url = uri("${rootProject.buildDir}/repo")
+            url = uri(rootProject.layout.buildDirectory.dir("repo"))
         }
     }
     publications {

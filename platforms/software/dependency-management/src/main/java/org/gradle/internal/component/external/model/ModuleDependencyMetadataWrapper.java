@@ -31,7 +31,7 @@ public class ModuleDependencyMetadataWrapper extends DelegatingDependencyMetadat
     @Override
     public ModuleDependencyMetadata withRequestedVersion(VersionConstraint requestedVersion) {
         ModuleComponentSelector selector = getSelector();
-        ModuleComponentSelector newSelector = DefaultModuleComponentSelector.newSelector(selector.getModuleIdentifier(), requestedVersion, selector.getAttributes(), selector.getRequestedCapabilities());
+        ModuleComponentSelector newSelector = DefaultModuleComponentSelector.newSelector(selector.getModuleIdentifier(), requestedVersion, selector.getAttributes(), selector.getCapabilitySelectors());
         return new ModuleDependencyMetadataWrapper(delegate.withTarget(newSelector));
     }
 

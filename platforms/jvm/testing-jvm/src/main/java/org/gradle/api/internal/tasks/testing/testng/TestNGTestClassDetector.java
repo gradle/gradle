@@ -16,7 +16,7 @@
 package org.gradle.api.internal.tasks.testing.testng;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.internal.classanalysis.AsmConstants;
+import org.gradle.model.internal.asm.AsmConstants;
 import org.gradle.api.internal.tasks.testing.detection.TestClassVisitor;
 import org.gradle.api.internal.tasks.testing.detection.TestFrameworkDetector;
 import org.objectweb.asm.AnnotationVisitor;

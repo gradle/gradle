@@ -16,41 +16,32 @@
 
 package org.gradle.tooling.events.problems.internal;
 
-import org.gradle.tooling.events.problems.Label;
 import org.gradle.tooling.events.problems.ProblemAggregation;
-import org.gradle.tooling.events.problems.ProblemCategory;
-import org.gradle.tooling.events.problems.ProblemDescriptor;
+import org.gradle.tooling.events.problems.ProblemContext;
+import org.gradle.tooling.events.problems.ProblemDefinition;
 
 import java.util.List;
 
 public class DefaultProblemAggregation implements ProblemAggregation {
 
-    private final ProblemCategory problemCategory;
-    private final Label problemLabel;
-    private final List<ProblemDescriptor> problemDescriptors;
+    ProblemDefinition problemDefinition;
+    private final List<ProblemContext> problemContextDetails;
 
     public DefaultProblemAggregation(
-        ProblemCategory problemCategory,
-        Label problemLabel,
-        List<ProblemDescriptor> problemDescriptors
+        ProblemDefinition problemDefinition,
+        List<ProblemContext> problemContextDetails
     ) {
-        this.problemDescriptors = problemDescriptors;
-        this.problemCategory = problemCategory;
-        this.problemLabel = problemLabel;
+        this.problemDefinition = problemDefinition;
+        this.problemContextDetails = problemContextDetails;
     }
 
     @Override
-    public ProblemCategory getCategory() {
-        return problemCategory;
+    public ProblemDefinition getDefinition() {
+        return problemDefinition;
     }
 
     @Override
-    public Label getLabel() {
-        return problemLabel;
-    }
-
-    @Override
-    public List<ProblemDescriptor> getProblemDescriptors() {
-        return problemDescriptors;
+    public List<ProblemContext> getProblemContext() {
+        return problemContextDetails;
     }
 }

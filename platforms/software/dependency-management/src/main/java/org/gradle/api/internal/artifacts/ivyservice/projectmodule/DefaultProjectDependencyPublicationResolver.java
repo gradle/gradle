@@ -30,11 +30,11 @@ import org.gradle.execution.ProjectConfigurer;
 import org.gradle.internal.Cast;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.logging.text.TreeFormatter;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -53,7 +53,7 @@ import java.util.stream.Collectors;
  * This resolver can determine the coordinates of a project's root component
  * or can resolve the coordinates of a specific variant of that component.
  */
-@ServiceScope(Scopes.Build.class)
+@ServiceScope(Scope.Build.class)
 public class DefaultProjectDependencyPublicationResolver implements ProjectDependencyPublicationResolver {
     private final ProjectPublicationRegistry publicationRegistry;
     private final ProjectConfigurer projectConfigurer;
@@ -200,7 +200,7 @@ public class DefaultProjectDependencyPublicationResolver implements ProjectDepen
      * with the given coordinate type.
      */
     private <T> Map<ProjectComponentPublication, T> getPublications(Path identityPath, Class<T> coordsType) {
-        Collection<ProjectComponentPublication> allPublications = publicationRegistry.getPublications(ProjectComponentPublication.class, identityPath);
+        Collection<ProjectComponentPublication> allPublications = publicationRegistry.getPublicationsForProject(ProjectComponentPublication.class, identityPath);
         Map<ProjectComponentPublication, T> publications = new LinkedHashMap<>(allPublications.size());
         for (ProjectComponentPublication publication : allPublications) {
             T coordinates = publication.getCoordinates(coordsType);

@@ -32,7 +32,7 @@ class IvyPublishBasicIntegTest extends AbstractIvyPublishIntegTest {
 
             publishing {
                 repositories {
-                    ivy { url "${ivyRepo.uri}" }
+                    ivy { url = "${ivyRepo.uri}" }
                 }
             }
         """
@@ -54,7 +54,7 @@ class IvyPublishBasicIntegTest extends AbstractIvyPublishIntegTest {
 
             publishing {
                 repositories {
-                    ivy { url "${ivyRepo.uri}" }
+                    ivy { url = "${ivyRepo.uri}" }
                 }
                 publications {
                     ivy(IvyPublication)
@@ -103,7 +103,7 @@ class IvyPublishBasicIntegTest extends AbstractIvyPublishIntegTest {
 
             publishing {
                 repositories {
-                    ivy { url "${ivyRepo.uri}" }
+                    ivy { url = "${ivyRepo.uri}" }
                 }
                 publications {
                     ivy(IvyPublication) {
@@ -145,7 +145,7 @@ class IvyPublishBasicIntegTest extends AbstractIvyPublishIntegTest {
 
             publishing {
                 repositories {
-                    ivy { url "${ivyRepo.uri}" }
+                    ivy { url = "${ivyRepo.uri}" }
                 }
                 publications {
                     ivy(IvyPublication) {
@@ -175,8 +175,8 @@ class IvyPublishBasicIntegTest extends AbstractIvyPublishIntegTest {
 
             publishing {
                 repositories {
-                    ivy { url "${ivyRepo.uri}" }
-                    ivy { url "${ivyRepo2.uri}" }
+                    ivy { url = "${ivyRepo.uri}" }
+                    ivy { url = "${ivyRepo2.uri}" }
                 }
                 publications {
                     ivy(IvyPublication)
@@ -244,7 +244,7 @@ class IvyPublishBasicIntegTest extends AbstractIvyPublishIntegTest {
             ${ivyTestRepository()}
             publishing {
                 repositories {
-                    ivy { url "${ivyRepo.uri}" }
+                    ivy { url = "${ivyRepo.uri}" }
                 }
                 publications {
                     ivy(IvyPublication) {
@@ -286,7 +286,7 @@ class IvyPublishBasicIntegTest extends AbstractIvyPublishIntegTest {
 
             publishing {
                 repositories {
-                    ivy { url "${ivyRepo.uri}" }
+                    ivy { url = "${ivyRepo.uri}" }
                 }
                 publications {
                     ivy(IvyPublication) {
@@ -321,7 +321,7 @@ class IvyPublishBasicIntegTest extends AbstractIvyPublishIntegTest {
 
             publishing {
                 repositories {
-                    ivy { url "${ivyRepo.uri}" }
+                    ivy { url = "${ivyRepo.uri}" }
                 }
                 publications {
                     ivy(IvyPublication) {
@@ -362,7 +362,7 @@ In general publishing dependencies to enforced platforms is a mistake: enforced 
 
             publishing {
                 repositories {
-                    ivy { url "${ivyRepo.uri}" }
+                    ivy { url = "${ivyRepo.uri}" }
                 }
                 publications {
                     ivy(IvyPublication) {

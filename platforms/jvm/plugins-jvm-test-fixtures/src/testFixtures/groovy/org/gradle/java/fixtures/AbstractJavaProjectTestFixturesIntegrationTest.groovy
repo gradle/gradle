@@ -16,6 +16,7 @@
 
 package org.gradle.java.fixtures
 
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.GradleModuleMetadata
 import org.gradle.test.fixtures.maven.MavenPom
@@ -197,6 +198,7 @@ hamcrest-core-1.3.jar
         succeeds 'compileTestJava'
     }
 
+    @ToBeFixedForIsolatedProjects(because = "allprojects, capabilities are not IP safe")
     def "can consume test fixtures of subproject"() {
         settingsFile << """
             include 'sub'
@@ -224,6 +226,7 @@ hamcrest-core-1.3.jar
         )
     }
 
+    @ToBeFixedForIsolatedProjects(because = "allprojects, capabilities are not IP safe")
     def "changing coordinates of subproject doesn't break consumption of fixtures"() {
         settingsFile << """
             include 'sub'
@@ -265,7 +268,7 @@ hamcrest-core-1.3.jar
             publishing {
                 repositories {
                     maven {
-                        url "\${buildDir}/repo"
+                        url = layout.buildDirectory.dir("repo")
                     }
                     publications {
                         maven(MavenPublication) {
@@ -324,7 +327,7 @@ hamcrest-core-1.3.jar
             publishing {
                 repositories {
                     maven {
-                        url "\${buildDir}/repo"
+                        url = layout.buildDirectory.dir("repo")
                     }
                     publications {
                         maven(MavenPublication) {
@@ -379,7 +382,7 @@ hamcrest-core-1.3.jar
             }
             repositories {
                 maven {
-                    url "${mavenRepo.uri}"
+                    url = "${mavenRepo.uri}"
                 }
             }
         """

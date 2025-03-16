@@ -16,12 +16,10 @@
 
 package org.gradle.language.cpp
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppApp
 
 class CppCustomHeaderDependencyIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
-    @ToBeFixedForConfigurationCache
     def "can consume a directory as a header dependency"() {
         def app = new CppApp()
         settingsFile << """
@@ -56,7 +54,7 @@ class CppCustomHeaderDependencyIntegrationTest extends AbstractInstalledToolChai
 
             repositories {
                 ${repoType} {
-                    url file('lib/repo')
+                    url = file('lib/repo')
                 }
             }
 
@@ -144,7 +142,7 @@ class CppCustomHeaderDependencyIntegrationTest extends AbstractInstalledToolChai
                 }
                 repositories {
                     ${repoType} {
-                        url file('repo')
+                        url = file('repo')
                     }
                 }
             }

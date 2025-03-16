@@ -169,7 +169,7 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
         VariableExpression parentInputsVariable = inputsVariable;
         try {
             inputs = new InputReferences();
-            inputsVariable = new VariableExpression("__rule_inputs_var_" + (counter++), POTENTIAL_INPUTS);
+            inputsVariable = new VariableExpression("__rule_inputs_var_" + counter++, POTENTIAL_INPUTS);
             inputsVariable.setClosureSharedVariable(true);
             super.visitClosureExpression(expression);
             BlockStatement code = (BlockStatement) expression.getCode();

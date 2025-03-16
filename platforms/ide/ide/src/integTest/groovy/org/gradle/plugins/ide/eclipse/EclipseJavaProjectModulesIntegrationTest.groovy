@@ -16,12 +16,14 @@
 
 package org.gradle.plugins.ide.eclipse
 
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 
 @Requires(UnitTestPreconditions.Jdk9OrLater)
 class EclipseJavaProjectModulesIntegrationTest extends AbstractEclipseIntegrationSpec {
 
+    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/13479")
     def "depend on modular project"() {
         setup:
         /*

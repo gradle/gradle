@@ -25,7 +25,9 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.java.archives.Manifest;
 import org.gradle.api.jvm.ModularitySpec;
+import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.SourceSetContainer;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 
 /**
@@ -42,6 +44,7 @@ public interface JavaPluginExtension {
     /**
      * Returns the source compatibility used for compiling Java sources.
      */
+    @ToBeReplacedByLazyProperty
     JavaVersion getSourceCompatibility();
 
     /**
@@ -58,6 +61,7 @@ public interface JavaPluginExtension {
     /**
      * Returns the target compatibility used for compiling Java sources.
      */
+    @ToBeReplacedByLazyProperty
     JavaVersion getTargetCompatibility();
 
     /**
@@ -155,6 +159,7 @@ public interface JavaPluginExtension {
      *
      * @since 6.4
      */
+    @Nested
     ModularitySpec getModularity();
 
     /**
@@ -165,6 +170,7 @@ public interface JavaPluginExtension {
      *
      * @since 6.7
      */
+    @Nested
     JavaToolchainSpec getToolchain();
 
     /**
@@ -288,5 +294,6 @@ public interface JavaPluginExtension {
      *
      * @since 7.1
      */
+    @ToBeReplacedByLazyProperty
     boolean getAutoTargetJvmDisabled();
 }

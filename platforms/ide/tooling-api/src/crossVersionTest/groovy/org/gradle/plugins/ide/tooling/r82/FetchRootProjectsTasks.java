@@ -20,16 +20,19 @@ import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.Task;
+import org.gradle.tooling.model.gradle.GradleBuild;
 
+import java.util.ArrayList;
 import java.util.List;
-
-import static java.util.stream.Collectors.toList;
 
 public class FetchRootProjectsTasks implements BuildAction<List<Task>> {
     @Override
     public List<Task> execute(BuildController controller) {
-        return controller.getBuildModel().getEditableBuilds().stream()
-            .flatMap(build -> controller.getModel(build.getRootProject(), GradleProject.class).getTasks().stream())
-            .collect(toList());
+        List<Task> result = new ArrayList<>();
+        for (GradleBuild build : controller.getBuildModel().getEditableBuilds()) {
+            GradleProject rootProject = controller.getModel(build.getRootProject(), GradleProject.class);
+            result.addAll(rootProject.getTasks());
+        }
+        return result;
     }
 }

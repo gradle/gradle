@@ -15,6 +15,8 @@
  */
 package org.gradle.api.tasks;
 
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+
 /**
  * A {@code VerificationTask} is a task which performs some verification of the artifacts produced by a build.
  */
@@ -32,5 +34,6 @@ public interface VerificationTask {
      * @return false, when the build should break on failure, true when the failures should be ignored.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     boolean getIgnoreFailures();
 }

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.Describable;
+import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
@@ -26,8 +27,8 @@ import org.gradle.internal.fingerprint.FileNormalizer;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.work.InputChanges;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 
 /**
@@ -36,7 +37,7 @@ import java.io.File;
  * This encapsulates the public interface {@link org.gradle.api.artifacts.transform.TransformAction} into an internal type.
  */
 public interface Transform extends Describable, TaskDependencyContainer {
-    Class<?> getImplementationClass();
+    Class<? extends TransformAction<?>> getImplementationClass();
 
     ImmutableAttributes getFromAttributes();
 

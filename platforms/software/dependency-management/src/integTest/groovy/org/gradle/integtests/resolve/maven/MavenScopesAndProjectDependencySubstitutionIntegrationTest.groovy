@@ -27,22 +27,21 @@ class MavenScopesAndProjectDependencySubstitutionIntegrationTest extends Abstrac
         resolve.prepare()
         resolve.addDefaultVariantDerivationStrategy()
         resolve.expectDefaultConfiguration("runtime")
-        createDirs("child1", "child2")
         settingsFile << """
             rootProject.name = 'testproject'
-            include 'child1', 'child2'
-        """
-        buildFile << """
-            allprojects {
+            include 'child1'
+            include 'child2'
+            dependencyResolutionManagement {
                 repositories {
-                    maven { url '${mavenRepo.uri}' }
-                    ivy { url '${ivyRepo.uri}' }
+                    maven { url = '${mavenRepo.uri}' }
+                    ivy { url = "${ivyRepo.uri}" }
                 }
             }
-            project(':child1') {
-                configurations {
-                    conf
-                }
+        """
+
+        file("child1/build.gradle") << """
+            configurations {
+                conf
             }
         """
     }
@@ -56,32 +55,32 @@ class MavenScopesAndProjectDependencySubstitutionIntegrationTest extends Abstrac
             .publish()
         mavenRepo.module("org.test", "dont-ignore-me", "1.0").publish()
 
-        buildFile << """
-project(':child1') {
-    dependencies {
-        conf 'org.test:maven:1.0'
-    }
-    configurations.conf.resolutionStrategy.dependencySubstitution {
-        substitute module('org.test:replaced:1.0') using project(':child2')
-    }
-}
-project(':child2') {
-    configurations {
-        compile
-        runtime
-        master
-        other
-        create("default")
-    }
-    dependencies {
-        compile 'org.test:m1:1.0'
-        runtime 'org.test:m2:1.0'
-        master 'org.test:m3:1.0'
-        other 'org.test.ignore-me:1.0'
-        "default" 'org.test:dont-ignore-me:1.0'
-    }
-}
-"""
+        file("child1/build.gradle") << """
+            dependencies {
+                conf 'org.test:maven:1.0'
+            }
+            configurations.conf.resolutionStrategy.dependencySubstitution {
+                substitute module('org.test:replaced:1.0') using project(':child2')
+            }
+        """
+
+        file("child2/build.gradle") << """
+            configurations {
+                compile
+                runtime
+                master
+                other
+                create("default")
+            }
+            dependencies {
+                compile 'org.test:m1:1.0'
+                runtime 'org.test:m2:1.0'
+                master 'org.test:m3:1.0'
+                other 'org.test.ignore-me:1.0'
+                "default" 'org.test:dont-ignore-me:1.0'
+            }
+        """
+
         expect:
         succeeds 'child1:checkDep'
         resolve.expectGraph {
@@ -105,26 +104,29 @@ project(':child2') {
             .dependsOn("org.test", "replaced", "1.0")
             .publish()
 
-        buildFile << """
-project(':child1') {
-    dependencies {
-        conf 'org.test:maven:1.0'
-    }
-    configurations.conf.resolutionStrategy.dependencySubstitution {
-        substitute module('org.test:replaced:1.0') using project(':child2')
-    }
-}
-project(':child2') {
-    apply plugin: 'java'
-    dependencies {
-        implementation 'org.test:m1:1.0'
-        runtimeOnly 'org.test:m2:1.0'
-        compileOnly 'org.test.ignore-me:1.0'
-        testImplementation 'org.test.ignore-me:1.0'
-        testRuntimeOnly 'org.test.ignore-me:1.0'
-    }
-}
-"""
+        file("child1/build.gradle") << """
+            dependencies {
+                conf 'org.test:maven:1.0'
+            }
+            configurations.conf.resolutionStrategy.dependencySubstitution {
+                substitute module('org.test:replaced:1.0') using project(':child2')
+            }
+        """
+
+        file("child2/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+
+            dependencies {
+                implementation 'org.test:m1:1.0'
+                runtimeOnly 'org.test:m2:1.0'
+                compileOnly 'org.test.ignore-me:1.0'
+                testImplementation 'org.test.ignore-me:1.0'
+                testRuntimeOnly 'org.test.ignore-me:1.0'
+            }
+        """
+
         expect:
         succeeds 'child1:checkDep'
         resolve.expectGraph {
@@ -140,7 +142,7 @@ project(':child2') {
         }
     }
 
-    def "a dependency on compile scope of maven module includes the default of target project when they are present"() {
+    def "a dependency on maven module includes the default of target project when they are present"() {
         mavenRepo.module("org.test", "m1", "1.0").publish()
         mavenRepo.module("org.test", "m2", "1.0").publish()
         mavenRepo.module("org.test", "maven", "1.0")
@@ -148,32 +150,32 @@ project(':child2') {
             .publish()
         mavenRepo.module("org.test", "dont-ignore-me", "1.0").publish()
 
-        buildFile << """
-project(':child1') {
-    dependencies {
-        conf group: 'org.test', name: 'maven', version: '1.0', configuration: 'compile'
-    }
-    configurations.conf.resolutionStrategy.dependencySubstitution {
-        substitute module('org.test:replaced:1.0') using project(':child2')
-    }
-}
-project(':child2') {
-    configurations {
-        compile
-        runtime
-        master
-        other
-        create("default")
-    }
-    dependencies {
-        compile 'org.test:m1:1.0'
-        master 'org.test:m2:1.0'
-        runtime 'org.test.ignore-me:1.0'
-        other 'org.test.ignore-me:1.0'
-        "default" 'org.test:dont-ignore-me:1.0'
-    }
-}
-"""
+        file("child1/build.gradle") << """
+            dependencies {
+                conf group: 'org.test', name: 'maven', version: '1.0'
+            }
+            configurations.conf.resolutionStrategy.dependencySubstitution {
+                substitute module('org.test:replaced:1.0') using project(':child2')
+            }
+        """
+
+        file("child2/build.gradle") << """
+            configurations {
+                compile
+                runtime
+                master
+                other
+                create("default")
+            }
+            dependencies {
+                compile 'org.test:m1:1.0'
+                master 'org.test:m2:1.0'
+                runtime 'org.test.ignore-me:1.0'
+                other 'org.test.ignore-me:1.0'
+                "default" 'org.test:dont-ignore-me:1.0'
+            }
+        """
+
         expect:
         succeeds 'child1:checkDep'
         resolve.expectGraph {
@@ -191,34 +193,36 @@ project(':child2') {
     }
 
     @ToBeFixedForConfigurationCache(because = "broken file collection")
-    def "a dependency on compile scope of maven module includes the runtime dependencies of target project that is using the Java plugin"() {
+    def "a dependency on maven module includes the runtime dependencies of target project that is using the Java plugin"() {
         mavenRepo.module("org.test", "m1", "1.0").publish()
         mavenRepo.module("org.test", "m2", "1.0").publish()
         mavenRepo.module("org.test", "maven", "1.0")
             .dependsOn("org.test", "replaced", "1.0")
             .publish()
 
-        buildFile << """
-project(':child1') {
-    dependencies {
-        conf group: 'org.test', name: 'maven', version: '1.0', configuration: 'compile'
-    }
-    configurations.conf.resolutionStrategy.dependencySubstitution {
-        substitute module('org.test:replaced:1.0') using project(':child2')
-    }
-}
-project(':child2') {
-    apply plugin: 'java'
-    dependencies {
-        implementation 'org.test:m1:1.0'
-        runtimeOnly 'org.test:m2:1.0'
+        file("child1/build.gradle") << """
+            dependencies {
+                conf group: 'org.test', name: 'maven', version: '1.0'
+            }
+            configurations.conf.resolutionStrategy.dependencySubstitution {
+                substitute module('org.test:replaced:1.0') using project(':child2')
+            }
+        """
 
-        compileOnly 'org.test:ignore-me:1.0'
-        testImplementation 'org.test:ignore-me:1.0'
-        testRuntimeOnly 'org.test:ignore-me:1.0'
-    }
-}
-"""
+        file("child2/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+            dependencies {
+                implementation 'org.test:m1:1.0'
+                runtimeOnly 'org.test:m2:1.0'
+
+                compileOnly 'org.test:ignore-me:1.0'
+                testImplementation 'org.test:ignore-me:1.0'
+                testRuntimeOnly 'org.test:ignore-me:1.0'
+            }
+        """
+
         expect:
         succeeds 'child1:checkDep'
         resolve.expectGraph {

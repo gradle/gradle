@@ -17,5 +17,7 @@
 /**
  * Classes for instrumentation metadata.
  */
-@org.gradle.api.NonNullApi
+@NullMarked
 package org.gradle.internal.instrumentation.api.metadata;
+
+import org.jspecify.annotations.NullMarked;

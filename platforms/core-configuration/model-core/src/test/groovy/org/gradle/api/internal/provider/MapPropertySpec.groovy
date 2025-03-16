@@ -23,6 +23,7 @@ import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.internal.Describables
+import org.gradle.internal.evaluation.CircularEvaluationException
 import org.gradle.internal.state.ManagedFactory
 import org.gradle.util.TestUtil
 import org.gradle.util.internal.TextUtil
@@ -1222,26 +1223,6 @@ The value of this property is derived from: <source>""")
         "getOrElse" | _
     }
 
-    def "may configure incrementally based on convention value"() {
-        given:
-        property.convention(['k0': '1'])
-        property.withActualValue {
-            it.putAll(['k1': '2', 'k2': '3'])
-            it.put('k2', '4')
-        }
-
-        expect:
-        assertValueIs(['k0': '1', 'k1': '2', 'k2': '4'])
-        property.explicit
-
-        when:
-        property.unset()
-
-        then:
-        assertValueIs(['k0': '1'])
-        !property.explicit
-    }
-
     def "may configure incrementally based on convention value using insert"() {
         given:
         property.convention(['k0': '1'])
@@ -1260,19 +1241,6 @@ The value of this property is derived from: <source>""")
         !property.explicit
     }
 
-    def "may configure explicit value incrementally"() {
-        given:
-        property.set([:])
-        property.withActualValue {
-            it.put('k0', '1')
-            it.putAll(['k1': '2', 'k2': '3'])
-            it.put('k2', '4')
-        }
-        expect:
-        assertValueIs(['k0': '1', 'k1': '2', 'k2': '4'])
-        assert property.explicit
-    }
-
     def "may configure explicit value incrementally using insert"() {
         given:
         property.set([:])
@@ -1280,18 +1248,6 @@ The value of this property is derived from: <source>""")
         property.insertAll(['k1': '2', 'k2': '3'])
         property.insert('k2', '4')
 
-        expect:
-        assertValueIs(['k0': '1', 'k1': '2', 'k2': '4'])
-        assert property.explicit
-    }
-
-    def "may configure actual value incrementally"() {
-        given:
-        property.withActualValue {
-            it.put('k0', '1')
-            it.putAll(['k1': '2', 'k2': '3'])
-            it.put('k2', '4')
-        }
         expect:
         assertValueIs(['k0': '1', 'k1': '2', 'k2': '4'])
         assert property.explicit
@@ -1305,17 +1261,6 @@ The value of this property is derived from: <source>""")
         expect:
         assertValueIs(['k0': '1', 'k1': '2', 'k2': '4'])
         assert property.explicit
-    }
-
-    def "may replace values originally set via convention"() {
-        given:
-        property.convention(['k0': '1', 'k1': '2', 'k2': '3'])
-        property.withActualValue {
-            it.put('k1', '4')
-        }
-        expect:
-        assertValueIs(['k0': '1', 'k1': '4', 'k2': '3'])
-        property.explicit
     }
 
     def "may replace values originally set via convention using insert"() {
@@ -1334,111 +1279,37 @@ The value of this property is derived from: <source>""")
         }
 
         when:
-        operations.each {operation -> operation.call(property) }
+        operations.each { operation -> operation.call(property) }
 
         then:
         expected == null || property.getOrNull() == ImmutableMap.copyOf(expected)
         expected != null || !property.present
 
         where:
-        expected            | initial                   | operations                                            | label
-        [k1: "1"]           | { }                       | { it.put("k1", "1") }                                 | "put"
-        [k1: "1"]           | { }                       | { it.insert("k1", "1") }                              | "insert"
-        null                | { it.set(notDefined()) }  | { it.put("k1", "1") }                                 | "put to missing"
-        [k1: "1"]           | { it.set(notDefined()) }  | { it.insert("k1", "1") }                              | "insert to missing"
-        null                | { }                       | { it.put("k1", notDefined()) }                        | "put missing"
-        []                  | { }                       | { it.insert("k1", notDefined()) }                     | "insert missing"
-        [k1: "1"]           | { it.empty() }            | { it.put("k1", "1") }                                 | "put after emptying"
-        [k1: "1"]           | { it.empty() }            | { it.insert("k1", "1") }                              | "insert after emptying"
-        [k1: "1"]           | { it.set([:]) }           | { it.put("k1", "1") }                                 | "put to empty"
-        [k1: "1"]           | { it.set([:]) }           | { it.insert("k1", "1") }                              | "insert to empty"
-        [k2: "2"]           | { }                       | { it.put("k1", notDefined()) ; it.insert("k2", "2") } | "put missing then append"
-        [k2: "2"]           | { }                       | { it.insert("k1", notDefined()) ; it.put("k2", "2") } | "insert missing then add"
-        [k2: "2"]           | { it.set([k0: "0"]) }     | { it.put("k1", notDefined()) ; it.insert("k2", "2") } | "put missing to non-empty then append"
-        [k0: "0", k2: "2"]  | { it.set([k0: "0"]) }     | { it.insert("k1", notDefined()) ; it.put("k2", "2") } | "insert missing to non-empty then add"
+        expected  | initial                  | operations                                           | label
+        [k1: "1"] | {}                       | { it.put("k1", "1") }                                | "put"
+        [k1: "1"] | {}                       | { it.insert("k1", "1") }                             | "insert"
+        null      | { it.set(notDefined()) } | { it.put("k1", "1") }                                | "put to missing"
+        null      | { it.set(notDefined()) } | { it.insert("k1", "1") }                             | "insert to missing"
+        null      | {}                       | { it.put("k1", notDefined()) }                       | "put missing"
+        null      | {}                       | { it.insert("k1", notDefined()) }                    | "insert missing"
+        [k1: "1"] | { it.empty() }           | { it.put("k1", "1") }                                | "put after emptying"
+        [k1: "1"] | { it.empty() }           | { it.insert("k1", "1") }                             | "insert after emptying"
+        [k1: "1"] | { it.set([:]) }          | { it.put("k1", "1") }                                | "put to empty"
+        [k1: "1"] | { it.set([:]) }          | { it.insert("k1", "1") }                             | "insert to empty"
+        null      | {}                       | { it.put("k1", notDefined()); it.insert("k2", "2") } | "put missing then append"
+        null      | {}                       | { it.insert("k1", notDefined()); it.put("k2", "2") } | "insert missing then add"
+        null      | { it.set([k0: "0"]) }    | { it.put("k1", notDefined()); it.insert("k2", "2") } | "put missing to non-empty then append"
+        null      | { it.set([k0: "0"]) }    | { it.insert("k1", notDefined()); it.put("k2", "2") } | "insert missing to non-empty then add"
     }
 
-    def "inserting into an undefined property is undefined-safe"() {
+    def "inserting into an undefined property is undefined"() {
         given:
         property.set((Map) null)
         property.insert('k4', '4')
 
         expect:
-        assertValueIs(['k4': '4'])
-    }
-
-    def "inserting after putting an undefined element provider is undefined-safe"() {
-        given:
-        property.putAll(Providers.of([k1: '1', k2: '2']))
-        property.put('k3', notDefined())
-        property.insert('k4', '4')
-
-        expect:
-        assertValueIs([k4: '4'])
-    }
-
-    def "inserting after putting an undefined map provider is undefined-safe"() {
-        given:
-        property.putAll(Providers.of([k1: '1', k2: '2']))
-        property.putAll(notDefined())
-        property.insert('k4', '4')
-
-        expect:
-        assertValueIs([k4: '4'])
-    }
-
-    def "inserting an undefined value provider is undefined-safe"() {
-        given:
-        property.insert("k1", notDefined())
-
-        expect:
-        assertValueIs([:])
-    }
-
-    def "inserting an undefined map provider is undefined-safe"() {
-        given:
-        property.insertAll(notDefined())
-
-        expect:
-        assertValueIs([:])
-    }
-
-    def "putting after inserting an undefined map provider into an empty map is left-side undefined-safe"() {
-        given:
-        property.insertAll(notDefined())
-        property.put("k1", "1")
-
-        expect:
-        assertValueIs([k1: '1'])
-    }
-
-    def "putting after inserting an undefined value provider into an empty map is left-side undefined-safe"() {
-        given:
-        property.insert("k1", notDefined())
-        property.put("k2", "2")
-
-        expect:
-        assertValueIs([k2: '2'])
-    }
-
-    def "putting after inserting an undefined map provider into a non-empty map is left-side undefined-safe"() {
-        given:
-        property.set(["k0": "0"])
-        property.insertAll(notDefined())
-        property.put("k1", "1")
-
-        expect:
-        assertValueIs([k0: '0', k1: '1'])
-    }
-
-    def "putting after inserting an undefined value provider into a non-emoty map is left-side undefined-safe"() {
-        given:
-        property.put("k0", "0")
-        property.insert("k1", notDefined())
-        property.put("k2", "2")
-
-        expect:
-        assertValueIs([k0: '0', k2: '2'])
+        !property.present
     }
 
     def "putting an undefined value provider after inserting is not right-side undefined-safe"() {
@@ -1461,35 +1332,6 @@ The value of this property is derived from: <source>""")
         property.getOrNull() == null
     }
 
-    def "putting after inserting an undefined value provider is undefined-safe"() {
-        given:
-        property.put("k0", "0")
-        property.insert("k1", notDefined())
-        property.put("k2", "2")
-
-        expect:
-        assertValueIs([k0: '0', k2: '2'])
-    }
-
-    def "execution time value is present if only undefined-safe operations are performed"() {
-        given:
-        property.set(notDefined())
-        property.put("a", notDefined())
-        property.insert("b", "2")
-        property.putAll([c: '3'])
-        property.putAll([d: '4'])
-        property.insert("e", notDefined())
-
-        expect:
-        assertValueIs([b: '2', c: '3', d: '4'])
-
-        when:
-        def execTimeValue = property.calculateExecutionTimeValue()
-
-        then:
-        assertMapIs([b: '2', c: '3', d: '4'], execTimeValue.toValue().get())
-    }
-
     def "execution time value is missing if any undefined-safe operations are performed in the tail"() {
         given:
         property.set(notDefined())
@@ -1510,86 +1352,14 @@ The value of this property is derived from: <source>""")
         execTimeValue.toValue().isMissing()
     }
 
-    def "property restores undefined-safe items"() {
-        given:
-        property.put("a", "1")
-        property.insertAll(supplierWithChangingExecutionTimeValues(Map, value, value))
-        property.put("c", "3")
-
-        when:
-        def execTimeValue = property.calculateExecutionTimeValue()
-        def property2 = property()
-        property2.fromState(execTimeValue)
-
-        then:
-        assertValueIs(result, property2)
-
-        where:
-        value       | result
-        [b: "2"]    | [a: "1", b: "2", c: "3"]
-        null        | [a: "1", c: "3"]
-    }
-
-    def "property remains undefined-safe after restored"() {
-        given:
-        property.put("a", notDefined())
-        property.insert("b", "2")
-        // changing execution time values or else we would end up with fixed values
-        property.putAll(supplierWithChangingExecutionTimeValues([c: '3'], [c: '3a'], [c: '3b'], [c: '3c'], [c: '3d'], [c: '3e']))
-        property.putAll(supplierWithValues([d: '4']))
-        property.insert("e", notDefined())
-
-        when:
-        def execTimeValue = property.calculateExecutionTimeValue()
-        def property2 = property()
-        property2.fromState(execTimeValue)
-
-        then:
-        assertValueIs([b: '2', c: '3a', d: '4'], property2)
-
-        when:
-        property2.put("f", "6")
-        property2.insert("g", "7")
-        property2.insert("h", notDefined())
-        def execTimeValue2 = property2.calculateExecutionTimeValue()
-
-        then:
-        assertValueIs([b: '2', c: '3b', d: '4', f: '6', g: '7'], property2)
-
-        when:
-        def property3 = property()
-        property3.fromState(execTimeValue2)
-
-        then:
-        assertValueIs([b: '2', c: '3d', d: '4', f: '6', g: '7'], property3)
-    }
-
-    def "keySet provider has some values when property with no value is added via insert"() {
+    def "keySet provider has no values when property with no value is added via insert"() {
         given:
         property.set((Map) null)
-        property.put("k1", "1")
-        property.put("k2", notDefined())
         property.insert("k3", "3")
-        property.put("k4", "4")
         def keySetProvider = property.keySet()
 
         expect:
-        keySetProvider.present
-        keySetProvider.get() == ["k3", "k4"] as Set
-    }
-
-    def "keySet provider has no value when property with no value is added via insert"() {
-        given:
-        property.set((Map) null)
-        property.put("k1", "1")
-        property.put("k2", notDefined())
-        property.insert("k3", "3")
-        property.put("k4", "4")
-        def keySetProvider = property.keySet()
-
-        expect:
-        keySetProvider.present
-        keySetProvider.get() == ["k3", "k4"] as Set
+        !keySetProvider.present
     }
 
     def "can set explicit value to convention"() {
@@ -1651,14 +1421,11 @@ The value of this property is derived from: <source>""")
         return brokenSupplier(String)
     }
 
-    private void assertValueIs(Map<String, String> expected, MapProperty<String, String> property = this.property) {
-        assert property.present
-        def actual = property.get()
-        assertImmutable(actual)
-        assertMapIs(expected, actual)
+    protected void assertValueIs(Map<String, String> expected, MapProperty<String, String> property = this.property) {
+        assertPropertyValueIs(expected, property)
     }
 
-    protected void assertMapIs(Map<String, String> expected, Map<String, String> actual) {
+    protected void assertEqualValues(Map<String, String> expected, Map<String, String> actual) {
         actual.each {
             assert it.key instanceof String
             assert it.value instanceof String
@@ -1675,82 +1442,82 @@ The value of this property is derived from: <source>""")
         }
     }
 
-    def "update can modify property"() {
+    def "replace can modify property"() {
         given:
         property.set(someValue())
 
         when:
-        property.update { it.map { someOtherValue() } }
+        property.replace { it.map { someOtherValue() } }
 
         then:
         property.get() == someOtherValue()
     }
 
-    def "update can modify property with convention"() {
+    def "replace can modify property with convention"() {
         given:
         property.convention(someValue())
 
         when:
-        property.update { it.map { someOtherValue() } }
+        property.replace { it.map { someOtherValue() } }
 
         then:
         property.get() == someOtherValue()
     }
 
-    def "update is not applied to later property modifications"() {
+    def "replace is not applied to later property modifications"() {
         given:
         property.set(someValue())
 
         when:
-        property.update { it.map { m -> m.collectEntries { k, v -> [v, k] } } }
+        property.replace { it.map { m -> m.collectEntries { k, v -> [v, k] } } }
         property.set(someOtherValue())
 
         then:
         property.get() == someOtherValue()
     }
 
-    def "update argument is live"() {
+    def "replace argument is live"() {
         given:
         def upstream = property().value(someValue())
         property.set(upstream)
 
         when:
-        property.update { it.map { m -> m.collectEntries { k, v -> [v, k] } } }
+        property.replace { it.map { m -> m.collectEntries { k, v -> [v, k] } } }
         upstream.set(someOtherValue())
 
         then:
         property.get() == someOtherValue().collectEntries { k, v -> [v, k] }
     }
 
-    def "returning null from update unsets the property"() {
+    def "returning null from replace unsets the property"() {
         given:
         property.set(someValue())
 
         when:
-        property.update { null }
+        property.replace { null }
 
         then:
         !property.isPresent()
     }
 
-    def "returning null from update unsets the property falling back to convention"() {
+    def "returning null from replace unsets the property falling back to convention"() {
         given:
         property.value(someValue()).convention(someOtherValue())
 
         when:
-        property.update { null }
+        property.replace { null }
 
         then:
         property.get() == someOtherValue()
     }
 
-    def "update transformation runs eagerly"() {
+    def "replace transformation runs eagerly"() {
         given:
         Transformer<Provider<String>, Provider<String>> transform = Mock()
         property.set(someValue())
 
         when:
-        property.update(transform)
+        property.replace(transform)
 
         then:
         1 * transform.transform(_)
@@ -1778,6 +1545,34 @@ The value of this property is derived from: <source>""")
         assertValueIs(['k1': '1', 'k2': '4', 'k3': '3'])
     }
 
+    def "value coercion is applied to #description after configuration cache round-trip"() {
+        given:
+        GString gstringKey = "${'key'}"
+        GString gstringValue = "${'value'}"
+
+        appendAction(property, gstringKey, gstringValue)
+        def value = property.calculateExecutionTimeValue()
+
+        when:
+        def restoredProperty = property()
+        restoredProperty.fromState(value)
+
+        then:
+        restoredProperty.get().forEach { Object k, Object v ->
+            assert k instanceof String
+            assert v instanceof String
+        }
+
+        where:
+        description               | appendAction
+        "fixed map value"         | { p, k, v -> p.putAll([(k): v]) }
+        "fixed map provider"      | { p, k, v -> p.putAll(Providers.of([(k): v])) }
+        "changing map provider"   | { p, k, v -> p.putAll(Providers.changing { [(k): v] }) }
+        "fixed entry value"       | { p, k, v -> p.put(k, v) }
+        "fixed entry provider"    | { p, k, v -> p.put(k, Providers.of(v).map { it }) } // map {} here hides the fact that provider returns a GString
+        "changing entry provider" | { p, k, v -> p.put(k, Providers.changing { v }) }
+    }
+
     static class MapPropertyCircularChainEvaluationTest extends PropertySpec.PropertyCircularChainEvaluationSpec<Map<String, String>> {
         @Override
         DefaultMapProperty<String, String> property() {
@@ -1796,7 +1591,7 @@ The value of this property is derived from: <source>""")
             consumer.accept(property)
 
             then:
-            thrown(EvaluationContext.CircularEvaluationException)
+            thrown(CircularEvaluationException)
 
             where:
             consumer << throwingConsumers()
@@ -1814,7 +1609,7 @@ The value of this property is derived from: <source>""")
             consumer.accept(property)
 
             then:
-            thrown(EvaluationContext.CircularEvaluationException)
+            thrown(CircularEvaluationException)
 
             where:
             consumer << throwingConsumers() - [GET_PRODUCER]
@@ -1850,7 +1645,7 @@ The value of this property is derived from: <source>""")
             consumer.accept(property)
 
             then:
-            thrown(EvaluationContext.CircularEvaluationException)
+            thrown(CircularEvaluationException)
 
             where:
             consumer << throwingConsumers()
@@ -1868,7 +1663,7 @@ The value of this property is derived from: <source>""")
             consumer.accept(property)
 
             then:
-            thrown(EvaluationContext.CircularEvaluationException)
+            thrown(CircularEvaluationException)
 
             where:
             consumer << throwingConsumers() - [GET_PRODUCER]
@@ -1895,16 +1690,16 @@ The value of this property is derived from: <source>""")
         @Override
         List<Consumer<ProviderInternal<?>>> throwingConsumers() {
             return super.throwingConsumers() + super.throwingConsumers().collectMany {
-                it != GET_PRODUCER ? combineWithExtraGetters(it) : []
+                combineWithExtraGetters(it)
             }
         }
 
         @Override
         List<? extends Consumer<ProviderInternal<?>>> safeConsumers() {
-            return super.safeConsumers() +
+            def safeConsumers = super.safeConsumers() + GET_PRODUCER
+            return safeConsumers +
                 extraMapPropertyProviderGetters() as List<Consumer<ProviderInternal<?>>> +
-                super.safeConsumers().collectMany { combineWithExtraGetters(it) } +
-                combineWithExtraGetters(GET_PRODUCER)
+                safeConsumers.collectMany { combineWithExtraGetters(it) }
         }
 
         private List<Consumer<ProviderInternal<?>>> combineWithExtraGetters(Consumer<ProviderInternal<?>> targetConsumer) {
@@ -1965,16 +1760,27 @@ The value of this property is derived from: <source>""")
 
         where:
         valueDescription             | initializer                                             || stringValue
-        "default"                    | { property() }                                          || "Map(string->String, {})"
-        "empty"                      | { property().value([:]) }                               || "Map(string->String, {})"
-        "unset"                      | { propertyWithNoValue() }                               || "Map(string->String, missing)"
-        "[k: v]"                     | { property().value(k: "v") }                            || "Map(string->String, {k=v})"
-        "[k1: v1, k2: v2]"           | { property().value(k1: "v1", k2: "v2") }                || "Map(string->String, {k1=v1, k2=v2})"
-        "[k1: v1] + [k2: v2]"        | { property().tap { put("k1", "v1"); put("k2", "v2") } } || "Map(string->String, {k1=v1} + {k2=v2})"
-        "provider {k: v}"            | { property().value(Providers.of([k: "v"])) }            || "Map(string->String, fixed(class ${LinkedHashMap.name}, {k=v}))"
-        "[k: provider {v}]"          | { property().tap { put("k", Providers.of("v")) } }      || "Map(string->String, entry{k=fixed(class ${String.name}, v)})"
+        "default"                    | { property() }                                          || "Map(String->String, {})"
+        "empty"                      | { property().value([:]) }                               || "Map(String->String, {})"
+        "unset"                      | { propertyWithNoValue() }                               || "Map(String->String, missing)"
+        "[k: v]"                     | { property().value(k: "v") }                            || "Map(String->String, {k=v})"
+        "[k1: v1, k2: v2]"           | { property().value(k1: "v1", k2: "v2") }                || "Map(String->String, {k1=v1, k2=v2})"
+        "[k1: v1] + [k2: v2]"        | { property().tap { put("k1", "v1"); put("k2", "v2") } } || "Map(String->String, {k1=v1} + {k2=v2})"
+        "provider {k: v}"            | { property().value(Providers.of([k: "v"])) }            || "Map(String->String, fixed(class ${LinkedHashMap.name}, {k=v}))"
+        "[k: provider {v}]"          | { property().tap { put("k", Providers.of("v")) } }      || "Map(String->String, entry{k=fixed(class ${String.name}, v)})"
 
         // The following case abuses Groovy lax type-checking to put an invalid value into the property.
-        "[k: (Object) provider {v}]" | { property().value(k: Providers.of("v")) }              || "Map(string->String, {k=fixed(class ${String.name}, v)})"
+        "[k: (Object) provider {v}]" | { property().value(k: Providers.of("v")) }              || "Map(String->String, {k=fixed(class ${String.name}, v)})"
+    }
+
+    def "can add a lot of providers"() {
+        given:
+        (0..<100000).each {
+            property.putAll(supplierWithProducer(Mock(Task), ImmutableMap.of(it.toString(), it.toString())))
+        }
+
+        expect:
+        property.get().size() == 100000
+        property.getProducer().visitProducerTasks {}
     }
 }

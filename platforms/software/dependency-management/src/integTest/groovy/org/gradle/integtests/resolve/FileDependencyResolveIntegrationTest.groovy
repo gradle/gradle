@@ -30,26 +30,29 @@ class FileDependencyResolveIntegrationTest extends AbstractDependencyResolutionT
 
     def "can specify producer task for file dependency"() {
         settingsFile << "include 'sub'; rootProject.name='main'"
-        buildFile << '''
-            allprojects {
-                configurations { compile }
-                task jar {
-                    def jarFile = file("${project.name}.jar")
-                    doLast {
-                        jarFile.text = 'content'
-                    }
+        def common = """
+            configurations { compile }
+            task jar {
+                def jarFile = file("\${project.name}.jar")
+                doLast {
+                    jarFile.text = 'content'
                 }
             }
+        """
+        buildFile << """
+            $common
             dependencies {
                 compile project(path: ':sub', configuration: 'compile')
                 compile files('main.jar') { builtBy jar }
             }
-'''
-        file("sub/build.gradle") << '''
+        """
+
+        file("sub/build.gradle") << """
+            $common
             dependencies {
                 compile files('sub.jar') { builtBy jar }
             }
-'''
+        """
 
         when:
         run ":checkDeps"
@@ -70,18 +73,19 @@ class FileDependencyResolveIntegrationTest extends AbstractDependencyResolutionT
 
     def "result includes files that match pattern at the time queried"() {
         settingsFile << "include 'sub'; rootProject.name='main'"
-        buildFile << '''
-            allprojects {
-                configurations { compile }
-                task jar {
-                    def jar1 = file("${project.name}-1.jar")
-                    def jar2 = file("${project.name}-2.jar")
-                    doLast {
-                        jar1.text = 'content'
-                        jar2.text = 'content'
-                    }
+        def common = """
+            configurations { compile }
+            task jar {
+                def jar1 = file("\${project.name}-1.jar")
+                def jar2 = file("\${project.name}-2.jar")
+                doLast {
+                    jar1.text = 'content'
+                    jar2.text = 'content'
                 }
             }
+        """
+        buildFile << """
+            $common
             dependencies {
                 compile project(path: ':sub', configuration: 'compile')
                 compile fileTree(dir: projectDir, include: '*.jar', builtBy: [jar])
@@ -89,12 +93,14 @@ class FileDependencyResolveIntegrationTest extends AbstractDependencyResolutionT
 
             // Nothing built yet, result should be empty
             assert configurations.compile.files.empty
-'''
-        file("sub/build.gradle") << '''
+        """
+
+        file("sub/build.gradle") << """
+            $common
             dependencies {
                 compile fileTree(dir: projectDir, include: '*.jar', builtBy: [jar])
             }
-'''
+        """
 
         when:
         run ":checkDeps"
@@ -135,7 +141,7 @@ class FileDependencyResolveIntegrationTest extends AbstractDependencyResolutionT
                     assert files.files == [jarFile] as Set
                 }
             }
-'''
+        '''
 
         when:
         run ":help"
@@ -152,17 +158,18 @@ class FileDependencyResolveIntegrationTest extends AbstractDependencyResolutionT
 
     def "files referenced by file dependency are included when there is a cycle in the dependency graph"() {
         settingsFile << "include 'sub'; rootProject.name='main'"
-        buildFile << '''
-            allprojects {
-                configurations { conf }
-                task jar {
-                    def outputFile = file("${project.name}.jar")
-                    outputs.file outputFile
-                    doLast {
-                        outputFile.text = 'content'
-                    }
+        def common = """
+            configurations { conf }
+            task jar {
+                def outputFile = file("\${project.name}.jar")
+                outputs.file outputFile
+                doLast {
+                    outputFile.text = 'content'
                 }
             }
+        """
+        buildFile << """
+            $common
             configurations {
                 compile
             }
@@ -171,13 +178,15 @@ class FileDependencyResolveIntegrationTest extends AbstractDependencyResolutionT
                 conf project(path: ':sub', configuration: 'conf')
                 conf jar.outputs.files
             }
-        '''
-        file("sub/build.gradle") << '''
+        """
+
+        file("sub/build.gradle") << """
+            $common
             dependencies {
                 conf jar.outputs.files
                 conf project(path: ':', configuration: 'conf')
             }
-        '''
+        """
 
         when:
         run ":checkDeps"
@@ -202,27 +211,30 @@ class FileDependencyResolveIntegrationTest extends AbstractDependencyResolutionT
 
     def "files referenced by file dependency are not included or built when referenced by a non-transitive dependency"() {
         settingsFile << "include 'sub'; rootProject.name='main'"
-        buildFile << '''
-            allprojects {
-                configurations { compile }
-                task jar {
-                    def outputFile = file("${project.name}.jar")
-                    outputs.file outputFile
-                    doLast {
-                        outputFile.text = 'content'
-                    }
+        def common = """
+            configurations { compile }
+            task jar {
+                def outputFile = file("\${project.name}.jar")
+                outputs.file outputFile
+                doLast {
+                    outputFile.text = 'content'
                 }
             }
+        """
+        buildFile << """
+            $common
             dependencies {
                 compile project(path: ':sub', configuration: 'compile', transitive: false)
                 compile jar.outputs.files
             }
-'''
-        file("sub/build.gradle") << '''
+        """
+
+        file("sub/build.gradle") << """
+            $common
             dependencies {
                 compile jar.outputs.files
             }
-'''
+        """
 
         when:
         run ":checkDeps"
@@ -244,19 +256,17 @@ class FileDependencyResolveIntegrationTest extends AbstractDependencyResolutionT
         settingsFile << "rootProject.name='main'"
         file("someDir").createDir()
         buildFile << '''
-            allprojects {
-                configurations {
-                    compile {
-                        attributes {
-                            attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, "thing")
-                        }
+            configurations {
+                compile {
+                    attributes {
+                        attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, "thing")
                     }
                 }
-                dependencies {
-                    attributesSchema {
-                        attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE) {
-                            compatibilityRules.add(DirectoryIsOk)
-                        }
+            }
+            dependencies {
+                attributesSchema {
+                    attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE) {
+                        compatibilityRules.add(DirectoryIsOk)
                     }
                 }
             }
@@ -270,7 +280,7 @@ class FileDependencyResolveIntegrationTest extends AbstractDependencyResolutionT
                     }
                 }
             }
-'''
+        '''
 
         when:
         run ":checkDeps"

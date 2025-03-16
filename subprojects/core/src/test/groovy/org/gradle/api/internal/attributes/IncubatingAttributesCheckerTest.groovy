@@ -17,14 +17,13 @@
 package org.gradle.api.internal.attributes
 
 import org.gradle.api.attributes.Category
-import org.gradle.api.attributes.TestSuiteType
+import org.gradle.api.attributes.TestSuiteName
 import org.gradle.api.attributes.Usage
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class IncubatingAttributesCheckerTest extends Specification {
-    def attributesFactory = AttributeTestUtil.attributesFactory()
 
     // region: Single Attribute tests
     def "attribute without any @Incubating is not reported"() {
@@ -34,7 +33,7 @@ class IncubatingAttributesCheckerTest extends Specification {
 
     def "attribute with @Incubating annotation on class is reported"() {
         expect:
-        !IncubatingAttributesChecker.isIncubating(TestSuiteType.TEST_SUITE_TYPE_ATTRIBUTE)
+        !IncubatingAttributesChecker.isIncubating(TestSuiteName.TEST_SUITE_NAME_ATTRIBUTE)
     }
 
     def "attribute without @Incubating annotation on class, with @Incubating on value is reported"() {
@@ -55,7 +54,7 @@ class IncubatingAttributesCheckerTest extends Specification {
 
     // region: AttributeContainer tests
     def "container with attribute which doesn't use @Incubating is not reported"() {
-        def container = new DefaultMutableAttributeContainer(attributesFactory)
+        def container = AttributeTestUtil.attributesFactory().mutable()
         container.attribute(Usage.USAGE_ATTRIBUTE, TestUtil.objectFactory().named(Usage, Usage.JAVA_API))
 
         expect:
@@ -63,15 +62,15 @@ class IncubatingAttributesCheckerTest extends Specification {
     }
 
     def "container with @Incubating attribute is reported"() {
-        def container = new DefaultMutableAttributeContainer(attributesFactory)
-        container.attribute(TestSuiteType.TEST_SUITE_TYPE_ATTRIBUTE, TestUtil.objectFactory().named(TestSuiteType, TestSuiteType.INTEGRATION_TEST))
+        def container = AttributeTestUtil.attributesFactory().mutable()
+        container.attribute(TestSuiteName.TEST_SUITE_NAME_ATTRIBUTE, TestUtil.objectFactory().named(TestSuiteName, "foo"))
 
         expect:
         IncubatingAttributesChecker.isAnyIncubating(container)
     }
 
     def "container with attribute without @Incubating annotation on class, with @Incubating on value is reported"() {
-        def container = new DefaultMutableAttributeContainer(attributesFactory)
+        def container = AttributeTestUtil.attributesFactory().mutable()
         container.attribute(Category.CATEGORY_ATTRIBUTE, TestUtil.objectFactory().named(Category, Category.VERIFICATION))
 
         expect:
@@ -79,7 +78,7 @@ class IncubatingAttributesCheckerTest extends Specification {
     }
 
     def "container with attribute without @Incubating annotation on class, with @Incubating on different value is not reported"() {
-        def container = new DefaultMutableAttributeContainer(attributesFactory)
+        def container = AttributeTestUtil.attributesFactory().mutable()
         container.attribute(Category.CATEGORY_ATTRIBUTE, TestUtil.objectFactory().named(Category, Category.LIBRARY))
 
         expect:

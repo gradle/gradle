@@ -2,7 +2,8 @@ if (gradle.parent == null) {
     useLogger(new CustomLogger())
 }
 
-class CustomLogger extends BuildAdapter implements BuildListener, ProjectEvaluationListener, TaskExecutionListener, TaskActionListener {
+// InternalListener suppresses deprecation warnings which mess up the test
+class CustomLogger extends BuildAdapter implements BuildListener, ProjectEvaluationListener, TaskExecutionListener, TaskActionListener, org.gradle.internal.InternalListener {
     def logger = Logging.getLogger('init-script')
 
     public void buildFinished(BuildResult result) {

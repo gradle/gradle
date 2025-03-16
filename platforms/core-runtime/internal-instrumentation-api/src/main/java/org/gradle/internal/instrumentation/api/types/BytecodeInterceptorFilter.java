@@ -17,7 +17,6 @@
 package org.gradle.internal.instrumentation.api.types;
 
 import java.util.EnumSet;
-import java.util.Set;
 
 /**
  * Request for interceptors. Currently, we support filter just for interception types, but in the feature we could also filter per version etc.
@@ -26,19 +25,22 @@ import java.util.Set;
  */
 public enum BytecodeInterceptorFilter {
     INSTRUMENTATION_ONLY(EnumSet.of(BytecodeInterceptorType.INSTRUMENTATION)),
-    ALL(EnumSet.of(BytecodeInterceptorType.INSTRUMENTATION, BytecodeInterceptorType.BYTECODE_UPGRADE));
+    INSTRUMENTATION_AND_BYTECODE_REPORT(EnumSet.of(BytecodeInterceptorType.INSTRUMENTATION, BytecodeInterceptorType.BYTECODE_UPGRADE_REPORT)),
+    INSTRUMENTATION_AND_BYTECODE_UPGRADE(EnumSet.of(BytecodeInterceptorType.INSTRUMENTATION, BytecodeInterceptorType.BYTECODE_UPGRADE)),
+    ALL(EnumSet.of(BytecodeInterceptorType.INSTRUMENTATION, BytecodeInterceptorType.BYTECODE_UPGRADE_REPORT, BytecodeInterceptorType.BYTECODE_UPGRADE));
 
-    private final Set<BytecodeInterceptorType> instrumentationTypes;
+    @SuppressWarnings("ImmutableEnumChecker")
+    private final EnumSet<BytecodeInterceptorType> instrumentationTypes;
 
-    BytecodeInterceptorFilter(Set<BytecodeInterceptorType> instrumentationTypes) {
+    BytecodeInterceptorFilter(EnumSet<BytecodeInterceptorType> instrumentationTypes) {
         this.instrumentationTypes = instrumentationTypes;
     }
 
-    public boolean matches(BytecodeInterceptor bytecodeInterceptor) {
+    public boolean matches(FilterableBytecodeInterceptor bytecodeInterceptor) {
         return instrumentationTypes.contains(bytecodeInterceptor.getType());
     }
 
-    public boolean matches(BytecodeInterceptorFactory bytecodeInterceptorFactory) {
+    public boolean matches(FilterableBytecodeInterceptorFactory bytecodeInterceptorFactory) {
         return instrumentationTypes.contains(bytecodeInterceptorFactory.getType());
     }
 }

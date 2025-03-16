@@ -55,8 +55,8 @@ import org.gradle.api.publish.ivy.internal.dependency.IvyDependency;
 import org.gradle.api.publish.ivy.internal.dependency.IvyExcludeRule;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -328,10 +328,10 @@ public class IvyComponentParser {
         private ResolvedCoordinates resolveDependency(ModuleDependency dependency) {
 
             if (!dependency.getAttributes().isEmpty()) {
-                warnings.addUnsupported(String.format("%s:%s:%s declared with Gradle attributes", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
+                warnings.addUnsupported(String.format("dependency on %s declared with Gradle attributes", dependency));
             }
-            if (!dependency.getRequestedCapabilities().isEmpty()) {
-                warnings.addUnsupported(String.format("%s:%s:%s declared with Gradle capabilities", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
+            if (!dependency.getCapabilitySelectors().isEmpty()) {
+                warnings.addUnsupported(String.format("dependency on %s declared with Gradle capabilities", dependency));
             }
 
             if (dependency instanceof ProjectDependency) {

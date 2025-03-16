@@ -31,11 +31,8 @@ public interface ExecutionStateChanges {
 
     InputChangesInternal createInputChanges();
 
-    BeforeExecutionState getBeforeExecutionState();
-
     static ExecutionStateChanges incremental(
         ImmutableList<String> changeDescriptions,
-        BeforeExecutionState beforeExecutionState,
         InputFileChanges inputFileChanges,
         IncrementalInputProperties incrementalInputProperties
     ) {
@@ -48,11 +45,6 @@ public interface ExecutionStateChanges {
             @Override
             public InputChangesInternal createInputChanges() {
                 return new IncrementalInputChanges(inputFileChanges, incrementalInputProperties);
-            }
-
-            @Override
-            public BeforeExecutionState getBeforeExecutionState() {
-                return beforeExecutionState;
             }
         };
     }
@@ -71,11 +63,6 @@ public interface ExecutionStateChanges {
             @Override
             public InputChangesInternal createInputChanges() {
                 return new NonIncrementalInputChanges(beforeExecutionState.getInputFileProperties(), incrementalInputProperties);
-            }
-
-            @Override
-            public BeforeExecutionState getBeforeExecutionState() {
-                return beforeExecutionState;
             }
         };
     }

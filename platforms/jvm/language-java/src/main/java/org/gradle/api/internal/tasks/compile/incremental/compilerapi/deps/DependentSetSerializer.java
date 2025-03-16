@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.internal.tasks.compile.incremental.serialization.HierarchicalNameSerializer;
+import org.gradle.internal.serialize.HierarchicalNameSerializer;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;

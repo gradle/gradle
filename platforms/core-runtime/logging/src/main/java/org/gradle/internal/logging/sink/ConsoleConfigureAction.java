@@ -27,6 +27,7 @@ import org.gradle.internal.nativeintegration.services.NativeServices;
 
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.nio.charset.Charset;
 
 public class ConsoleConfigureAction {
     public static void execute(OutputEventRenderer renderer, ConsoleOutput consoleOutput) {
@@ -99,7 +100,7 @@ public class ConsoleConfigureAction {
 
     private static Console consoleFor(OutputStream stdout, ConsoleMetaData consoleMetaData, ColorMap colourMap) {
         boolean force = !consoleMetaData.isWrapStreams();
-        OutputStreamWriter outStr = new OutputStreamWriter(force ? stdout : AnsiConsoleUtil.wrapOutputStream(stdout));
+        OutputStreamWriter outStr = new OutputStreamWriter(force ? stdout : AnsiConsoleUtil.wrapOutputStream(stdout), Charset.defaultCharset());
         return new AnsiConsole(outStr, outStr, colourMap, consoleMetaData, force);
     }
 }

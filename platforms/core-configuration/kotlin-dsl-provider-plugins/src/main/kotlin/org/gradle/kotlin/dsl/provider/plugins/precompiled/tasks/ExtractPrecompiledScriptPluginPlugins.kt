@@ -19,6 +19,8 @@ package org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.provider.ListProperty
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.IgnoreEmptyDirectories
 import org.gradle.api.tasks.InputFiles
@@ -27,18 +29,14 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
-
 import org.gradle.kotlin.dsl.execution.Program
 import org.gradle.kotlin.dsl.execution.ProgramKind
 import org.gradle.kotlin.dsl.execution.ProgramParser
 import org.gradle.kotlin.dsl.execution.ProgramSource
 import org.gradle.kotlin.dsl.execution.ProgramTarget
-
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.PrecompiledScriptPlugin
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.scriptPluginFilesOf
-
 import org.gradle.kotlin.dsl.support.KotlinScriptType
-
 import java.io.File
 
 
@@ -54,20 +52,20 @@ abstract class ExtractPrecompiledScriptPluginPlugins : DefaultTask() {
 
     @get:Internal
     internal
-    lateinit var plugins: List<PrecompiledScriptPlugin>
+    abstract val plugins: ListProperty<PrecompiledScriptPlugin>
 
     @get:InputFiles
     @get:IgnoreEmptyDirectories
     @get:PathSensitive(PathSensitivity.RELATIVE)
     @Suppress("unused")
     internal
-    val scriptFiles: Set<File>
+    val scriptFiles: Provider<Set<File>>
         get() = scriptPluginFilesOf(plugins)
 
     @TaskAction
     fun extract() {
         outputDir.withOutputDirectory {
-            extractPrecompiledScriptPluginPluginsTo(it, plugins)
+            extractPrecompiledScriptPluginPluginsTo(it, plugins.get())
         }
     }
 }

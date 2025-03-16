@@ -4,40 +4,41 @@ plugins {
 
 description = "Implementation for interacting with repositories over HTTP"
 
-errorprone {
-    disabledChecks.addAll(
-        "StringCaseLocaleUsage", // 2 occurrences
-        "UnusedMethod", // 4 occurrences
-        "UnusedVariable", // 1 occurrences
-    )
-}
-
 dependencies {
-    api(project(":resources"))
-    implementation(project(":base-services"))
-    implementation(project(":core-api"))
-    implementation(project(":core"))
-    implementation(project(":model-core"))
-    implementation(project(":logging"))
+    api(projects.stdlibJavaExtensions)
+    api(projects.serviceProvider)
+    api(projects.coreApi)
+    api(projects.core)
+    api(projects.logging)
+    api(projects.resources)
 
-    implementation(libs.commonsHttpclient)
-    implementation(libs.slf4jApi)
-    implementation(libs.jclToSlf4j)
-    implementation(libs.jcifs)
-    implementation(libs.guava)
-    implementation(libs.commonsLang)
+    api(libs.commonsHttpclient)
+    api(libs.httpcore)
+    api(libs.jspecify)
+
+    implementation(projects.baseServices)
+    implementation(projects.hashing)
+    implementation(projects.loggingApi)
+
     implementation(libs.commonsIo)
+    implementation(libs.commonsLang)
+    implementation(libs.guava)
+    implementation(libs.jcifs)
     implementation(libs.jsoup)
+    implementation(libs.slf4jApi)
 
-    testImplementation(project(":internal-integ-testing"))
+    testImplementation(projects.internalIntegTesting)
     testImplementation(libs.jettyWebApp)
-    testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":logging")))
+    testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.logging))
 
-    testFixturesImplementation(project(":base-services"))
-    testFixturesImplementation(project(":logging"))
-    testFixturesImplementation(project(":internal-integ-testing"))
+    testFixturesImplementation(projects.baseServices)
+    testFixturesImplementation(projects.logging)
+    testFixturesImplementation(projects.internalIntegTesting)
     testFixturesImplementation(libs.slf4jApi)
 
-    integTestDistributionRuntimeOnly(project(":distributions-core"))
+    integTestDistributionRuntimeOnly(projects.distributionsCore)
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

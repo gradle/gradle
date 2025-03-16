@@ -24,7 +24,7 @@ class ConfigurationCycleIntegrationTest extends AbstractIntegrationSpec {
 
     def "configuration cycle error contains information useful for troubleshooting"() {
         when:
-        buildScript '''
+        buildFile '''
             class Rules extends RuleSource {
                 @Model
                 String first(@Path("second") String second) {
@@ -71,7 +71,7 @@ first
 
     def "cycles involving multiple rules of same phase are detected"() {
         when:
-        buildScript '''
+        buildFile '''
             class Rules extends RuleSource {
                 @Model List<String> m1() { [] }
                 @Model List<String> m2() { [] }
@@ -108,7 +108,7 @@ m1
 
     def "cycles involving multiple rules of different phase are detected"() {
         when:
-        buildScript '''
+        buildFile '''
             class Rules extends RuleSource {
                 @Model List<String> m1() { [] }
                 @Model List<String> m2() { [] }

@@ -20,22 +20,21 @@ import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
-import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ComponentState
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ModuleResolveState
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.NodeState
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ResolveState
 import org.gradle.api.internal.capabilities.CapabilityInternal
+import org.gradle.internal.component.external.model.DefaultImmutableCapability
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-import org.gradle.internal.component.external.model.ImmutableCapabilities
-import org.gradle.internal.component.model.VariantGraphResolveMetadata
 import org.gradle.internal.component.model.VariantGraphResolveState
 import spock.lang.Issue
 import spock.lang.Specification
-import spock.lang.Subject
 
 class DefaultCapabilitiesConflictHandlerTest extends Specification {
 
-    @Subject
-    DefaultCapabilitiesConflictHandler handler = new DefaultCapabilitiesConflictHandler()
+    ResolveState resolveState = Mock(ResolveState)
+    DefaultCapabilitiesConflictHandler handler = new DefaultCapabilitiesConflictHandler([])
 
     private long id
 
@@ -98,30 +97,24 @@ class DefaultCapabilitiesConflictHandlerTest extends Specification {
             getId() >> mvi
             getComponentId() >> DefaultModuleComponentIdentifier.newId(mvi)
             isCandidateForConflictResolution() >> true
+            getModule() >> Mock(ModuleResolveState)
+            isSelected() >> true
         }
     }
 
     CapabilityInternal capability(String group="org", String name="cap") {
-        Mock(CapabilityInternal) {
-            getGroup() >> group
-            getName() >> name
-        }
+        new DefaultImmutableCapability(group, name, null)
     }
 
     NodeState node(ComponentState cs) {
-        def metadata = Mock(VariantGraphResolveMetadata) {
-            getDependencies() >> []
-            getCapabilities() >> ImmutableCapabilities.of([])
-        }
-        def state = Mock(VariantGraphResolveState) {
-            getMetadata() >> metadata
-        }
-        return new NodeState(id++, Mock(ResolvedConfigurationIdentifier) { getId() >> Mock(ModuleVersionIdentifier) }, cs, state, true) {
+        def state = Stub(VariantGraphResolveState)
+        def node = new NodeState(id++, cs, resolveState, state, true) {
             @Override
             boolean isSelected() {
-
-                return true;
+                return true
             }
         }
+        cs.addNode(node)
+        return node
     }
 }

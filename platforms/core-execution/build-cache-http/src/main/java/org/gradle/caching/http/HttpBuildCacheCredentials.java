@@ -17,8 +17,8 @@
 package org.gradle.caching.http;
 
 import org.gradle.api.credentials.PasswordCredentials;
-
-import javax.annotation.Nullable;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Password credentials for a HTTP build cache backend.
@@ -36,6 +36,7 @@ public class HttpBuildCacheCredentials implements PasswordCredentials {
      */
     @Override
     @Nullable
+    @ToBeReplacedByLazyProperty
     public String getUsername() {
         return username;
     }
@@ -57,6 +58,7 @@ public class HttpBuildCacheCredentials implements PasswordCredentials {
      */
     @Override
     @Nullable
+    @ToBeReplacedByLazyProperty
     public String getPassword() {
         return password;
     }

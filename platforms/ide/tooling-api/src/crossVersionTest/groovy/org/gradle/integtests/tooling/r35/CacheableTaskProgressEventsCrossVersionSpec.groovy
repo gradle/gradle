@@ -27,6 +27,7 @@ import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
 import org.gradle.util.GradleVersion
 
+@ToolingApiVersion("<8.12")
 class CacheableTaskProgressEventsCrossVersionSpec extends ToolingApiSpecification {
     def setup() {
         buildFile << """
@@ -55,7 +56,6 @@ class CacheableTaskProgressEventsCrossVersionSpec extends ToolingApiSpecificatio
         file("input").text = "input file"
     }
 
-    @ToolingApiVersion('>=3.3')
     @TargetGradleVersion('>=3.5')
     def "cacheable task generates build operations for load and store"() {
         when:
@@ -73,7 +73,6 @@ class CacheableTaskProgressEventsCrossVersionSpec extends ToolingApiSpecificatio
         readingOperations(pullFromCacheResults).size() == maybeIncludeLocalBuildOperations(1)
     }
 
-    @ToolingApiVersion('>=3.3')
     @TargetGradleVersion('>=3.5')
     def "cacheable task generates build operations when using remote cache"() {
         TestFile localCache = file('local-cache')

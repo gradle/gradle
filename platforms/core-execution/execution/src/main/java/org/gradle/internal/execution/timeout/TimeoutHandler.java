@@ -19,13 +19,16 @@ package org.gradle.internal.execution.timeout;
 import org.gradle.api.Describable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.operations.BuildOperationRef;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.time.Duration;
 
 /**
  * Manages timeouts for threads, interrupting them if the timeout is exceeded.
  */
+@ServiceScope(Scope.UserHome.class)
 public interface TimeoutHandler extends Stoppable {
     /**
      * Starts a timeout for the given thread. The thread is interrupted if the given timeout is exceeded.

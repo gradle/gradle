@@ -16,9 +16,12 @@
 
 import gradlebuild.basics.GradleModuleApiAttribute
 import gradlebuild.basics.PublicApi
+import gradlebuild.basics.buildVersionQualifier
 import gradlebuild.basics.kotlindsl.configureKotlinCompilerForGradleBuild
 import gradlebuild.basics.tasks.ClasspathManifest
 import gradlebuild.basics.tasks.PackageListGenerator
+import gradlebuild.configureAsApiElements
+import gradlebuild.configureAsRuntimeElements
 import gradlebuild.docs.GradleUserManualPlugin
 import gradlebuild.docs.dsl.source.ExtractDslMetaDataTask
 import gradlebuild.docs.dsl.source.GenerateApiMapping
@@ -28,7 +31,6 @@ import gradlebuild.instrumentation.extensions.InstrumentationMetadataExtension.C
 import gradlebuild.instrumentation.extensions.InstrumentationMetadataExtension.Companion.INSTRUMENTED_SUPER_TYPES_MERGE_TASK
 import gradlebuild.instrumentation.extensions.InstrumentationMetadataExtension.Companion.UPGRADED_PROPERTIES_MERGE_TASK
 import gradlebuild.kotlindsl.generator.tasks.GenerateKotlinExtensionsForGradleApi
-import gradlebuild.packaging.GradleDistributionSpecs
 import gradlebuild.packaging.GradleDistributionSpecs.allDistributionSpec
 import gradlebuild.packaging.GradleDistributionSpecs.binDistributionSpec
 import gradlebuild.packaging.GradleDistributionSpecs.docsDistributionSpec
@@ -82,10 +84,10 @@ pluginsRuntimeOnly.description = "To define dependencies to the Gradle modules t
 val agentsRuntimeOnly by bucket()
 agentsRuntimeOnly.description = "To define dependencies to the Gradle modules that represent Java agents packaged in the distribution (lib/agents/*.jar)"
 
-coreRuntimeOnly.withDependencies {
-    // use 'withDependencies' to not attempt to find platform project during script compilation
-    add(project.dependencies.create(dependencies.platform(project(":distributions-dependencies"))))
-}
+// Use lazy API to not attempt to find platform project during script compilation
+coreRuntimeOnly.dependencies.addLater(provider {
+    dependencies.platform(dependencies.create(project(":distributions-dependencies")))
+})
 
 // Configurations to resolve dependencies
 val runtimeClasspath by libraryResolver(listOf(coreRuntimeOnly, pluginsRuntimeOnly))
@@ -94,7 +96,7 @@ val coreRuntimeClasspath by libraryResolver(listOf(coreRuntimeOnly))
 coreRuntimeClasspath.description = "Resolves to all Jars, including transitives, that make up the core of the distribution (needed to decide if a Jar goes into 'plugins' or not)"
 val agentsRuntimeClasspath by libraryResolver(listOf(agentsRuntimeOnly))
 agentsRuntimeClasspath.description = "Resolves to all Jars that need to be added as agents"
-val gradleScriptPath by startScriptResolver(":launcher")
+val gradleScriptPath by startScriptResolver(":gradle-cli-main")
 gradleScriptPath.description = "Resolves to the Gradle start scripts (bin/*) - automatically adds dependency to the :launcher project"
 val sourcesPath by sourcesResolver(listOf(coreRuntimeOnly, pluginsRuntimeOnly))
 sourcesPath.description = "Resolves the source code of all Gradle modules Jars (required for the All distribution)"
@@ -115,7 +117,7 @@ val generateRelocatedPackageList by tasks.registering(PackageListGenerator::clas
     outputFile = generatedTxtFileFor("api-relocated")
 }
 
-// Extract pubic API metadata from source code of Gradle module Jars packaged in the distribution (used by the two tasks below to handle default imports in build scripts)
+// Extract public API metadata from source code of Gradle module Jars packaged in the distribution (used by the two tasks below to handle default imports in build scripts)
 val dslMetaData by tasks.registering(ExtractDslMetaDataTask::class) {
     source(gradleApiSources)
     destinationFile = generatedBinFileFor("dsl-meta-data.bin")
@@ -185,6 +187,7 @@ dependencies {
     kotlinDslSharedRuntime(kotlin("stdlib", embeddedKotlinVersion))
     kotlinDslSharedRuntime("org.ow2.asm:asm-tree")
     kotlinDslSharedRuntime("com.google.code.findbugs:jsr305")
+    kotlinDslSharedRuntime("org.jspecify:jspecify")
 }
 val gradleApiKotlinExtensions by tasks.registering(GenerateKotlinExtensionsForGradleApi::class) {
     sharedRuntimeClasspath.from(kotlinDslSharedRuntimeClasspath)
@@ -206,9 +209,6 @@ val compileGradleApiKotlinExtensions = tasks.named("compileGradleApiKotlinExtens
     source(gradleApiKotlinExtensions)
     libraries.from(runtimeClasspath)
     destinationDirectory = layout.buildDirectory.dir("classes/kotlin-dsl-extensions")
-
-    @Suppress("DEPRECATION")
-    ownModuleName = "gradle-kotlin-dsl-extensions"
 }
 
 val gradleApiKotlinExtensionsClasspathManifest by tasks.registering(ClasspathManifest::class) {
@@ -230,7 +230,14 @@ val gradleApiKotlinExtensionsJar by tasks.registering(Jar::class) {
 }
 
 // A standard Java runtime variant for embedded integration testing
-consumableVariant("runtime", LibraryElements.JAR, Bundling.EXTERNAL, listOf(coreRuntimeOnly, pluginsRuntimeOnly), runtimeApiInfoJar, gradleApiKotlinExtensionsJar)
+consumableVariant("runtime", listOf(coreRuntimeOnly, pluginsRuntimeOnly), listOf(runtimeApiInfoJar, gradleApiKotlinExtensionsJar)) {
+    configureAsRuntimeElements(objects)
+}
+
+consumableVariant("api", listOf(coreRuntimeOnly, pluginsRuntimeOnly), listOf(runtimeApiInfoJar, gradleApiKotlinExtensionsJar)) {
+    configureAsApiElements(objects)
+}
+
 // To make all source code of a distribution accessible transitively
 consumableSourcesVariant("transitiveSources", listOf(coreRuntimeOnly, pluginsRuntimeOnly), gradleApiKotlinExtensions.map { it.destinationDirectory })
 // A platform variant without 'runtime-api-info' artifact such that distributions can depend on each other
@@ -262,8 +269,12 @@ fun configureDistribution(name: String, distributionSpec: CopySpec, buildDistLif
     val zipRootFolder = if (normalized) {
         moduleIdentity.version.map { "gradle-${it.baseVersion.version}" }
     } else {
-        moduleIdentity.version.map { "gradle-${it.version}" }
+        moduleIdentity.version.map { "gradle-${it.version}" }.map {
+            if (buildVersionQualifier.isPresent) it.replace("-${buildVersionQualifier.get()}", "")
+            else it
+        }
     }
+
     val installation = tasks.register<Sync>("${name}Installation") {
         group = "distribution"
         into(layout.buildDirectory.dir("$name distribution"))
@@ -289,9 +300,21 @@ fun configureDistribution(name: String, distributionSpec: CopySpec, buildDistLif
     }
 
     // A 'installation' variant providing a folder where the distribution is present in the final format for forked integration testing
-    consumableVariant("${name}Installation", "gradle-$name-installation", Bundling.EMBEDDED, emptyList(), installation)
+    consumableVariant("${name}Installation", emptyList(), listOf(installation)) {
+        configureAsRuntimeElements(objects)
+        attributes {
+            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named("gradle-$name-installation"))
+            attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.EMBEDDED))
+        }
+    }
     // A variant providing the zipped distribution as additional input for tests that test the final distribution or require a distribution as test data
-    consumableVariant("${name}DistributionZip", "gradle-$name-distribution-zip", Bundling.EMBEDDED, emptyList(), distributionZip)
+    consumableVariant("${name}DistributionZip", emptyList(), listOf(distributionZip)) {
+        configureAsRuntimeElements(objects)
+        attributes {
+            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named("gradle-$name-distribution-zip"))
+            attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.EMBEDDED))
+        }
+    }
 }
 
 fun generatedBinFileFor(name: String) =
@@ -334,9 +357,9 @@ fun startScriptResolver(defaultDependency: String) =
         isCanBeResolved = true
         isCanBeConsumed = false
         isVisible = false
-        withDependencies {
-            add(project.dependencies.create(project(defaultDependency)))
-        }
+        dependencies.addLater(provider {
+            project.dependencies.create(project(defaultDependency))
+        })
     }
 
 fun sourcesResolver(extends: List<Configuration>) =
@@ -362,24 +385,19 @@ fun docsResolver(defaultDependency: String) =
         isCanBeResolved = true
         isCanBeConsumed = false
         isVisible = false
-        withDependencies {
-            add(project.dependencies.create(project(defaultDependency)))
-        }
+        dependencies.addLater(provider {
+            project.dependencies.create(project(defaultDependency))
+        })
     }
 
-fun consumableVariant(name: String, elements: String, bundling: String, extends: List<Configuration>, vararg artifacts: Any) =
+fun consumableVariant(name: String, extends: List<Configuration>, artifacts: List<Any>, configure: Action<Configuration> = Action {}) =
     configurations.create("${name}Elements") {
-        attributes {
-            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
-            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
-            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(elements))
-            attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(bundling))
-        }
         isCanBeResolved = false
         isCanBeConsumed = true
         isVisible = false
         extends.forEach { extendsFrom(it) }
         artifacts.forEach { outgoing.artifact(it) }
+        configure(this)
     }
 
 fun consumableSourcesVariant(name: String, extends: List<Configuration>, vararg artifacts: Any) =

@@ -21,35 +21,35 @@ import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.ivyservice.ResolvedArtifactCollectingVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
+import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.provider.BuildableBackedProvider;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.model.CalculatedValue;
-import org.gradle.internal.model.CalculatedValueContainerFactory;
+import org.gradle.internal.model.CalculatedValueFactory;
 
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
-import java.util.function.Supplier;
 
 public class DefaultArtifactCollection implements ArtifactCollectionInternal {
     private final ResolutionBackedFileCollection fileCollection;
     private final boolean lenient;
     private final CalculatedValue<ArtifactSetResult> result;
 
-    public DefaultArtifactCollection(ResolutionBackedFileCollection files, boolean lenient, ResolutionHost resolutionHost, CalculatedValueContainerFactory calculatedValueContainerFactory) {
+    public DefaultArtifactCollection(ResolutionBackedFileCollection files, boolean lenient, ResolutionHost resolutionHost, CalculatedValueFactory calculatedValueFactory) {
         this.fileCollection = files;
         this.lenient = lenient;
-        this.result = calculatedValueContainerFactory.create(resolutionHost.displayName("files"), (Supplier<ArtifactSetResult>) () -> {
+        this.result = calculatedValueFactory.create(resolutionHost.displayName("files"), () -> {
             ResolvedArtifactCollectingVisitor visitor = new ResolvedArtifactCollectingVisitor();
-            fileCollection.getSelectedArtifacts().visitArtifacts(visitor, lenient);
+            fileCollection.getArtifacts().visitArtifacts(visitor, lenient);
 
             Set<ResolvedArtifactResult> artifactResults = visitor.getArtifacts();
             Set<Throwable> failures = visitor.getFailures();
 
             if (!lenient) {
-                resolutionHost.rethrowFailure("artifacts", failures);
+                resolutionHost.rethrowFailuresAndReportProblems("artifacts", failures);
             }
             return new ArtifactSetResult(artifactResults, failures);
         });
@@ -78,7 +78,7 @@ public class DefaultArtifactCollection implements ArtifactCollectionInternal {
 
     @Override
     public Provider<Set<ResolvedArtifactResult>> getResolvedArtifacts() {
-        return new BuildableBackedProvider<>(getArtifactFiles(), Cast.uncheckedCast(Set.class), new ArtifactCollectionResolvedArtifactsFactory(this));
+        return new BuildableBackedProvider<>((FileCollectionInternal) getArtifactFiles(), Cast.uncheckedCast(Set.class), new ArtifactCollectionResolvedArtifactsFactory(this));
     }
 
     @Override
@@ -96,7 +96,7 @@ public class DefaultArtifactCollection implements ArtifactCollectionInternal {
     @Override
     public void visitArtifacts(ArtifactVisitor visitor) {
         // TODO - if already resolved, use the results
-        fileCollection.getSelectedArtifacts().visitArtifacts(visitor, lenient);
+        fileCollection.getArtifacts().visitArtifacts(visitor, lenient);
     }
 
     private void ensureResolved() {

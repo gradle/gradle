@@ -141,7 +141,7 @@ class JavaModuleCompileIntegrationTest extends AbstractJavaModuleCompileIntegrat
                 id 'java-library'
             }
             repositories {
-                maven { url '${mavenRepo.uri}' }
+                maven { url = '${mavenRepo.uri}' }
             }
             dependencies {
                 api 'org:moda:1.0'

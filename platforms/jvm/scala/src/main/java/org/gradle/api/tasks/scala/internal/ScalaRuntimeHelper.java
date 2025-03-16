@@ -16,7 +16,8 @@
 
 package org.gradle.api.tasks.scala.internal;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

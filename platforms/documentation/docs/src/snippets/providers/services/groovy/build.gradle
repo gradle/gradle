@@ -1,0 +1,294 @@
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.TaskAction
+import org.gradle.workers.WorkAction
+import org.gradle.workers.WorkParameters
+import org.gradle.workers.WorkerExecutor
+import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
+import org.gradle.tooling.provider.model.ToolingModelBuilder
+
+plugins {
+    id 'groovy'
+}
+
+repositories {
+    mavenCentral()
+}
+
+// tag::object-factory[]
+tasks.register("myObjectFactoryTask") {
+    doLast {
+        def objectFactory = project.objects
+        def myProperty = objectFactory.property(String)
+        myProperty.set("Hello, Gradle!")
+        println myProperty.get()
+    }
+}
+// end::object-factory[]
+
+// tag::object-factory-inject[]
+abstract class MyObjectFactoryTask extends DefaultTask {
+    private ObjectFactory objectFactory
+
+    @Inject //@javax.inject.Inject
+    MyObjectFactoryTask(ObjectFactory objectFactory) {
+        this.objectFactory = objectFactory
+    }
+
+    @TaskAction
+    void doTaskAction() {
+        var outputDirectory = objectFactory.directoryProperty()
+        outputDirectory.convention(project.layout.projectDirectory)
+        println(outputDirectory.get())
+    }
+}
+
+tasks.register("myInjectedObjectFactoryTask",MyObjectFactoryTask) {}
+// end::object-factory-inject[]
+
+// tag::project-layout[]
+tasks.register('showLayout') {
+    doLast {
+        def layout = project.layout
+        println "Project Directory: ${layout.projectDirectory}"
+        println "Build Directory: ${layout.buildDirectory.get()}"
+    }
+}
+// end::project-layout[]
+
+// tag::project-layout-inject[]
+abstract class MyProjectLayoutTask extends DefaultTask {
+    private ProjectLayout projectLayout
+
+    @Inject //@javax.inject.Inject
+    MyProjectLayoutTask(ProjectLayout projectLayout) {
+        this.projectLayout = projectLayout
+    }
+
+    @TaskAction
+    void doTaskAction() {
+        var outputDirectory = projectLayout.projectDirectory
+        println(outputDirectory)
+    }
+}
+
+tasks.register("myInjectedProjectLayoutTask",MyProjectLayoutTask) {}
+// end::project-layout-inject[]
+
+// tag::provider-factory[]
+tasks.register('printMessage') {
+    doLast {
+        def providerFactory = project.providers
+        def messageProvider = providerFactory.provider { "Hello, Gradle!" }
+        println messageProvider.get()
+    }
+}
+// end::provider-factory[]
+
+// tag::provider-factory-inject[]
+abstract class MyProviderFactoryTask extends DefaultTask {
+    private ProviderFactory providerFactory
+
+    @Inject //@javax.inject.Inject
+    MyProviderFactoryTask(ProviderFactory providerFactory) {
+        this.providerFactory = providerFactory
+    }
+
+    @TaskAction
+    void doTaskAction() {
+        var outputDirectory = providerFactory.provider { "build/my-file.txt" }
+        println(outputDirectory.get())
+    }
+}
+
+tasks.register("myInjectedProviderFactoryTask",MyProviderFactoryTask) {}
+// end::provider-factory-inject[]
+
+// tag::worker-executor[]
+abstract class MyWorkAction implements WorkAction<WorkParameters.None> {
+    private final String greeting;
+
+    @Inject
+    public MyWorkAction() {
+        this.greeting = "Hello from a Worker!";
+    }
+
+    @Override
+    public void execute() {
+        System.out.println(greeting);
+    }
+}
+
+abstract class MyWorkerTask extends DefaultTask {
+    @Input
+    abstract Property<Boolean> getBooleanFlag()
+
+    @Inject
+    abstract WorkerExecutor getWorkerExecutor()
+
+    @TaskAction
+    void doThings() {
+        workerExecutor.noIsolation().submit(MyWorkAction) {}
+    }
+}
+
+tasks.register("myWorkTask", MyWorkerTask) {}
+// end::worker-executor[]
+
+// tag::file-system-inject[]
+abstract class MyFileSystemOperationsTask extends DefaultTask {
+    private FileSystemOperations fileSystemOperations
+
+    @Inject //@javax.inject.Inject
+    MyFileSystemOperationsTask(FileSystemOperations fileSystemOperations) {
+        this.fileSystemOperations = fileSystemOperations
+    }
+
+    @TaskAction
+    void doTaskAction() {
+        fileSystemOperations.sync {
+            from 'src'
+            into 'dest'
+        }
+    }
+}
+
+tasks.register("myInjectedFileSystemOperationsTask", MyFileSystemOperationsTask)
+// end::file-system-inject[]
+
+// tag::file-system-adhoc[]
+interface InjectedFsOps {
+    @Inject //@javax.inject.Inject
+    FileSystemOperations getFs()
+}
+
+tasks.register('myAdHocFileSystemOperationsTask') {
+    def injected = project.objects.newInstance(InjectedFsOps)
+    doLast {
+        injected.fs.copy {
+            from 'source'
+            into 'destination'
+        }
+    }
+}
+// end::file-system-adhoc[]
+
+// tag::archive-op-inject[]
+abstract class MyArchiveOperationsTask extends DefaultTask {
+    private ArchiveOperations archiveOperations
+    private ProjectLayout layout
+    private FileSystemOperations fs
+
+    @Inject
+    MyArchiveOperationsTask(ArchiveOperations archiveOperations, ProjectLayout layout, FileSystemOperations fs) {
+        this.archiveOperations = archiveOperations
+        this.layout = layout
+        this.fs = fs
+    }
+
+    @TaskAction
+    void doTaskAction() {
+        fs.sync {
+            from(archiveOperations.zipTree(layout.projectDirectory.file("sources.jar")))
+            into(layout.buildDirectory.dir("unpacked-sources"))
+        }
+    }
+}
+
+tasks.register("myInjectedArchiveOperationsTask", MyArchiveOperationsTask)
+// end::archive-op-inject[]
+
+// tag::archive-op-adhoc[]
+interface InjectedArcOps {
+    @Inject //@javax.inject.Inject
+    ArchiveOperations getArcOps()
+}
+
+tasks.register('myAdHocArchiveOperationsTask') {
+    def injected = project.objects.newInstance(InjectedArcOps)
+    def archiveFile = "${projectDir}/sources.jar"
+
+    doLast {
+        injected.arcOps.zipTree(archiveFile)
+    }
+}
+// end::archive-op-adhoc[]
+
+// tag::exec-op-inject[]
+abstract class MyExecOperationsTask extends DefaultTask {
+    private ExecOperations execOperations
+
+    @Inject //@javax.inject.Inject
+    MyExecOperationsTask(ExecOperations execOperations) {
+        this.execOperations = execOperations
+    }
+
+    @TaskAction
+    void doTaskAction() {
+        execOperations.exec {
+            commandLine 'ls', '-la'
+        }
+    }
+}
+
+tasks.register("myInjectedExecOperationsTask", MyExecOperationsTask)
+// end::exec-op-inject[]
+
+// tag::exec-op-adhoc[]
+interface InjectedExecOps {
+    @Inject //@javax.inject.Inject
+    ExecOperations getExecOps()
+}
+
+tasks.register('myAdHocExecOperationsTask') {
+    def injected = project.objects.newInstance(InjectedExecOps)
+
+    doLast {
+        injected.execOps.exec {
+            commandLine 'ls', '-la'
+        }
+    }
+}
+// end::exec-op-adhoc[]
+
+// tag::tooling-model[]
+// Implements the ToolingModelBuilder interface.
+// This interface is used in Gradle to define custom tooling models that can
+// be accessed by IDEs or other tools through the Gradle tooling API.
+class OrtModelBuilder implements ToolingModelBuilder {
+    private Map<String, String> repositories = [:]
+
+    private Set<String> platformCategories = ["platform", "enforced-platform"]
+
+    private Set<ModuleComponentIdentifier> visitedDependencies = []
+    private Set<ModuleVersionIdentifier> visitedProjects = []
+
+    private static final logger = Logging.getLogger(OrtModelBuilder.class)
+    private List<String> errors = []
+    private List<String> warnings = []
+
+    @Override
+    boolean canBuild(String modelName) {
+        return false
+    }
+
+    @Override
+    Object buildAll(String modelName, Project project) {
+        return null
+    }
+}
+
+// Plugin is responsible for registering a custom tooling model builder
+// (OrtModelBuilder) with the ToolingModelBuilderRegistry, which allows
+// IDEs and other tools to access the custom tooling model.
+class OrtModelPlugin implements Plugin<Project> {
+    ToolingModelBuilderRegistry registry
+
+    OrtModelPlugin(ToolingModelBuilderRegistry registry) {
+        this.registry = registry
+    }
+
+    void apply(Project project) {
+        registry.register(new OrtModelBuilder())
+    }
+}
+// end::tooling-model[]

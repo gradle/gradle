@@ -23,10 +23,11 @@ import org.gradle.internal.properties.annotations.AbstractPropertyAnnotationHand
 import org.gradle.internal.properties.annotations.PropertyMetadata;
 
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.OPTIONAL;
+import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.REPLACES_EAGER_PROPERTY;
 
 public class LocalStatePropertyAnnotationHandler extends AbstractPropertyAnnotationHandler {
     public LocalStatePropertyAnnotationHandler() {
-        super(LocalState.class, Kind.OTHER, ModifierAnnotationCategory.annotationsOf(OPTIONAL));
+        super(LocalState.class, Kind.OTHER, ModifierAnnotationCategory.annotationsOf(OPTIONAL, REPLACES_EAGER_PROPERTY));
     }
 
     @Override

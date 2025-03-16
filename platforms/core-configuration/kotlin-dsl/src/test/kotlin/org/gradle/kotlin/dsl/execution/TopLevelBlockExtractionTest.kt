@@ -135,9 +135,9 @@ class TopLevelBlockExtractionTest {
 
     private
     fun extractBuildscriptBlockFrom(script: String) =
-        lex(script, buildscript).document.topLevelBlocks.singleBlockSectionOrNull()?.wholeRange
+        lex(script, arrayOf(buildscript)).document.topLevelBlocks.singleBlockSectionOrNull()?.wholeRange
 
     private
     fun extractPluginAndPluginManagementBlockFrom(script: String) =
-        lex(script, pluginManagement, plugins).document.topLevelBlocks
+        lex(script, arrayOf(pluginManagement, plugins)).document.topLevelBlocks
 }

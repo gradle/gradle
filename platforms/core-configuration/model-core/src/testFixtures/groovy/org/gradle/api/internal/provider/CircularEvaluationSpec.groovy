@@ -17,7 +17,7 @@
 package org.gradle.api.internal.provider
 
 
-import org.gradle.api.internal.provider.EvaluationContext.CircularEvaluationException
+import org.gradle.internal.evaluation.CircularEvaluationException
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 

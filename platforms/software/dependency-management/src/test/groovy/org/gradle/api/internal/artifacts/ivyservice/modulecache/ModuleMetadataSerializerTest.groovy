@@ -21,6 +21,7 @@ import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
+import org.gradle.api.internal.artifacts.capability.CapabilitySelectorSerializer
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorParser
@@ -154,10 +155,11 @@ class ModuleMetadataSerializerTest extends Specification {
 
     private ModuleMetadataSerializer moduleMetadataSerializer() {
         new ModuleMetadataSerializer(
-                new DesugaredAttributeContainerSerializer(AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator()),
-                mavenMetadataFactory,
-                ivyMetadataFactory,
-                new ModuleSourcesSerializer([:])
+            new DesugaredAttributeContainerSerializer(AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator()),
+            new CapabilitySelectorSerializer(),
+            mavenMetadataFactory,
+            ivyMetadataFactory,
+            new ModuleSourcesSerializer([:])
         )
     }
 

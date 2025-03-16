@@ -8,12 +8,14 @@ version = "1.0"
 
 // tag::add-plugin-variant[]
 val gradle7 = sourceSets.create("gradle7")
+
 java {
     registerFeature(gradle7.name) {
         usingSourceSet(gradle7)
         capability(project.group.toString(), project.name, project.version.toString()) // <1>
     }
 }
+
 configurations.configureEach {
     if (isCanBeConsumed && name.startsWith(gradle7.name))  {
         attributes {
@@ -22,6 +24,7 @@ configurations.configureEach {
         }
     }
 }
+
 tasks.named<Copy>(gradle7.processResourcesTaskName) { // <3>
     val copyPluginDescriptors = rootSpec.addChild()
     copyPluginDescriptors.into("META-INF/gradle-plugins")

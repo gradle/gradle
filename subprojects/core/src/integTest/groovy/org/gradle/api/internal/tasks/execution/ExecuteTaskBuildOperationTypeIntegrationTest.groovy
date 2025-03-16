@@ -27,7 +27,7 @@ class ExecuteTaskBuildOperationTypeIntegrationTest extends AbstractIntegrationSp
 
     def "emits operation for task execution"() {
         when:
-        buildScript """
+        buildFile """
             task t {}
         """
         succeeds "t"
@@ -50,7 +50,7 @@ class ExecuteTaskBuildOperationTypeIntegrationTest extends AbstractIntegrationSp
 
     def "emits operation result for failed task execution"() {
         when:
-        buildScript """
+        buildFile """
             task t {
                 doLast {
                     throw new RuntimeException("!")
@@ -71,7 +71,7 @@ class ExecuteTaskBuildOperationTypeIntegrationTest extends AbstractIntegrationSp
     @UnsupportedWithConfigurationCache
     def "does not emit result for beforeTask failure"() {
         when:
-        buildScript """
+        buildFile """
             task t {
                 doLast {}
             }
@@ -94,7 +94,7 @@ class ExecuteTaskBuildOperationTypeIntegrationTest extends AbstractIntegrationSp
     @UnsupportedWithConfigurationCache
     def "does emit result for afterTask failure"() {
         when:
-        buildScript """
+        buildFile """
             task t {
                 doLast {}
             }
@@ -117,7 +117,7 @@ class ExecuteTaskBuildOperationTypeIntegrationTest extends AbstractIntegrationSp
     @UnsupportedWithConfigurationCache
     def "afterTask failure is included with task failure"() {
         when:
-        buildScript """
+        buildFile """
             task t {
                 doLast {
                     throw new RuntimeException("!")

@@ -33,7 +33,6 @@ import org.gradle.internal.watch.options.FileSystemWatchingSettingsFinalizedProg
 import org.gradle.internal.watch.registry.WatchMode;
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
 import org.gradle.internal.watch.vfs.VfsLogging;
-import org.gradle.internal.watch.vfs.WatchLogging;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -80,9 +79,6 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
         VfsLogging verboseVfsLogging = startParameter.isVfsVerboseLogging()
             ? VfsLogging.VERBOSE
             : VfsLogging.NORMAL;
-        WatchLogging debugWatchLogging = startParameter.isWatchFileSystemDebugLogging()
-            ? WatchLogging.DEBUG
-            : WatchLogging.NORMAL;
 
         LOGGER.info("Watching the file system is configured to be {}", watchFileSystemMode.getDescription());
 
@@ -119,7 +115,6 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
         boolean actuallyWatching = virtualFileSystem.afterBuildStarted(
             watchFileSystemMode,
             verboseVfsLogging,
-            debugWatchLogging,
             buildOperationRunner
         );
         LOGGER.info("File system watching is {}", actuallyWatching ? "active" : "inactive");
@@ -143,7 +138,6 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
             virtualFileSystem.beforeBuildFinished(
                 watchFileSystemMode,
                 verboseVfsLogging,
-                debugWatchLogging,
                 buildOperationRunner,
                 maximumNumberOfWatchedHierarchies
             );

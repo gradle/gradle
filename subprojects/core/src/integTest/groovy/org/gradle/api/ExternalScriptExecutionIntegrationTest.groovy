@@ -18,6 +18,7 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.executer.ArtifactBuilder
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.file.TestFile
@@ -161,6 +162,7 @@ assert 'value' == doStuff.someProp
     }
 
     @Test
+    @ToBeFixedForIsolatedProjects(because = "allprojects, access to root project")
     void cachesScriptClassForAGivenScript() {
         createDirs("a", "b")
         testFile('settings.gradle') << 'include \'a\', \'b\''

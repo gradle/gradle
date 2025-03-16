@@ -17,6 +17,7 @@
 package org.gradle.initialization.buildsrc
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 
 import static org.gradle.integtests.fixtures.SuggestionsMessages.GET_HELP
 import static org.gradle.integtests.fixtures.SuggestionsMessages.INFO_DEBUG
@@ -47,6 +48,7 @@ class BuildSrcIdentityIntegrationTest extends AbstractIntegrationSpec {
         "rootProject.name='someLib'" | "configured root project name"
     }
 
+    @ToBeFixedForIsolatedProjects(because = "allprojects")
     def "includes build identifier in dependency report with #display"() {
         createDirs("buildSrc", "buildSrc/b1", "buildSrc/b2")
         file("buildSrc/settings.gradle") << """
@@ -85,7 +87,7 @@ runtimeClasspath - Runtime classpath of source set 'main'.
         def buildSrc = file("buildSrc/build.gradle")
         buildSrc << """
             repositories {
-                maven { url '$mavenRepo.uri' }
+                maven { url = '$mavenRepo.uri' }
             }
 
             dependencies {
@@ -151,6 +153,7 @@ Required by:
         "rootProject.name='someLib'" | "configured root project name"
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Configure projects from root")
     def "includes build identifier in dependency resolution results with #display"() {
         given:
         createDirs("buildSrc", "buildSrc/a")

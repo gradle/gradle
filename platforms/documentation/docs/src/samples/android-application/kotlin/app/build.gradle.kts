@@ -1,5 +1,5 @@
 plugins {
-    id("com.android.application") version "7.3.0"
+    id("com.android.application") version "8.3.0"
 }
 
 repositories {
@@ -8,11 +8,12 @@ repositories {
 }
 
 android {
-    compileSdkVersion(30)
+    compileSdk = 30
     defaultConfig {
         applicationId = "org.gradle.samples"
-        minSdkVersion(16)
-        targetSdkVersion(30)
+        namespace = "org.gradle.samples"
+        minSdk = 16
+        targetSdk = 30
         versionCode = 1
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"

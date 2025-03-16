@@ -20,18 +20,18 @@ import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.internal.buildtree.NestedBuildTree;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.function.Consumer;
 
 /**
  * A registry of all the builds present in a build tree.
  */
-@ServiceScope(Scopes.BuildTree.class)
+@ServiceScope(Scope.BuildTree.class)
 public interface BuildStateRegistry {
     /**
      * Creates the root build.
@@ -79,9 +79,14 @@ public interface BuildStateRegistry {
     void finalizeIncludedBuilds();
 
     /**
+     * Notifies the registry about root build inclusion.
+     */
+    default void onRootBuildInclude(RootBuildState rootBuild, BuildState referrer, boolean asPluginBuild) {}
+
+    /**
      * Creates an included build. An included build is-a nested build whose projects and outputs are treated as part of the composite build.
      */
-    IncludedBuildState addIncludedBuild(BuildDefinition buildDefinition);
+    IncludedBuildState addIncludedBuild(BuildDefinition buildDefinition, BuildState referrer);
 
     /**
      * Creates an included build. An included build is-a nested build whose projects and outputs are treated as part of the composite build.
@@ -110,9 +115,4 @@ public interface BuildStateRegistry {
      * Visits all registered builds, ordered by {@link BuildState#getIdentityPath()}
      */
     void visitBuilds(Consumer<? super BuildState> visitor);
-
-    /**
-     * Restarts each build in the tree.
-     */
-    void resetStateForAllBuilds();
 }

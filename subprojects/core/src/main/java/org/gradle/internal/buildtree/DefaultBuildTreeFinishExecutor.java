@@ -16,13 +16,13 @@
 
 package org.gradle.internal.buildtree;
 
-import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.build.NestedBuildState;
+import org.gradle.internal.exception.ExceptionAnalyser;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 

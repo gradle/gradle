@@ -17,10 +17,14 @@
 package org.gradle.initialization.buildsrc
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.util.GradleVersion
+
+import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 
 class BuildSrcGradlePluginApiVersionAttributeIntegrationTest extends AbstractIntegrationSpec {
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "buildSrc applies Gradle plugin API version attribute to source set classpath configurations"() {
         file("buildSrc/settings.gradle") << "include('sub')"
 

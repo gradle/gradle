@@ -1,3 +1,19 @@
+<!--
+  ~ Copyright 2025 the original author or authors.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
 <div class="layout">
     <header class="site-layout__header site-header" itemscope="itemscope" itemtype="https://schema.org/WPHeader">
         <nav class="site-header__navigation" itemscope="itemscope" itemtype="https://schema.org/SiteNavigationElement">
@@ -26,18 +42,24 @@
                             </svg>
                         </a>
                         <script type="text/javascript">
-                            const themeToggleBtn = document.querySelector('.theme-toggle');
-                            const theme = localStorage.getItem('theme');
-                            theme && document.body.classList.add(theme);
-                            const handleThemeToggle = () => {
-                              document.body.classList.toggle('dark-mode');
-                              if (document.body.classList.contains('dark-mode')) {
-                                localStorage.setItem('theme', 'dark-mode');
+                            const btn = document.querySelector(".theme-toggle");
+                            const prefersDarkScheme = window.matchMedia("(prefers-color-scheme: dark)");
+                            const currentTheme = localStorage.getItem("theme");
+                            if (currentTheme == "dark") {
+                              document.body.classList.toggle("dark-theme");
+                            } else if (currentTheme == "light") {
+                              document.body.classList.toggle("light-theme");
+                            }
+                            btn.addEventListener("click", function () {
+                              if (prefersDarkScheme.matches) {
+                                document.body.classList.toggle("light-theme");
+                                var theme = document.body.classList.contains("light-theme")? "light" : "dark";
                               } else {
-                                localStorage.removeItem('theme');
+                                document.body.classList.toggle("dark-theme");
+                                var theme = document.body.classList.contains("dark-theme")? "dark" : "light";
                               }
-                            };
-                            themeToggleBtn.addEventListener('click', handleThemeToggle);
+                              localStorage.setItem("theme", theme);
+                            });
                         </script>
                     </li>
                     <li class="site-header__navigation-item site-header__navigation-submenu-section" tabindex="0">
@@ -63,7 +85,10 @@
                         </div>
                     </li>
                     <li class="site-header__navigation-item" itemprop="name">
-                        <a target="_top" class="site-header__navigation-link" href="https://gradle.org/training/" itemprop="url">Training</a>
+                        <a target="_top" class="site-header__navigation-link" href="https://dpeuniversity.gradle.com/" itemprop="url">DPE University</a>
+                    </li>
+                    <li class="site-header__navigation-item" itemprop="name">
+                        <a target="_top" class="site-header__navigation-link" href="https://gradle.org/training/" itemprop="url">Events</a>
                     </li>
                     <li class="site-header__navigation-item site-header__navigation-submenu-section" tabindex="0">
                         <span class="site-header__navigation-link">
@@ -106,13 +131,11 @@
     <main class="main-content">
         <!-- Primary Navigation -->
         <nav class="docs-navigation">
-            <div class="search-container">
-                <input type="search" name="q" id="search-input" class="search-input" placeholder="Search the docs"/>
-            </div>
+            <div class="search-container"></div>
             <h3 id="overview">Overview</h3>
             <ul>
                 <li><a href="../userguide/userguide.html">What is Gradle?</a></li>
-                <li><a href="../userguide/about_manual.html">The User Manual</a></li>
+                <li><a href="../userguide/quick_start.html">Quick Start</a></li>
             </ul>
 
             <h3 id="what-is-new">Releases</h3>
@@ -135,6 +158,7 @@
                         <li><a href="../userguide/migrating_from_ant.html">from Ant</a></li>
                     </ul>
                 </li>
+                <li><a href="../userguide/troubleshooting.html">Troubleshooting</a></li>
                 <li><a href="../userguide/compatibility.html">Compatibility Notes</a></li>
                 <li><a href="../userguide/feature_lifecycle.html">Gradle's Feature Lifecycle</a></li>
             </ul>
@@ -142,7 +166,7 @@
             <h3 id="running-gradle-builds">Running Gradle Builds</h3>
             <ul>
                 <li><a href="../userguide/getting_started_eng.html">Getting Started</a></li>
-                <li><a class="nav-dropdown" data-toggle="collapse" href="#running-introduction" aria-expanded="false" aria-controls="introduction">Core Concepts</a>
+                <li><a class="nav-dropdown" data-toggle="collapse" href="#running-introduction" aria-expanded="false" aria-controls="introduction">Learning the Basics</a>
                     <ul id="running-introduction">
                         <li><a href="../userguide/gradle_basics.html">1. Gradle Basics</a></li>
                         <li><a href="../userguide/gradle_wrapper_basics.html">2. Gradle Wrapper Basics</a></li>
@@ -157,7 +181,7 @@
 
                     </ul>
                 </li>
-                <li><a class="nav-dropdown" data-toggle="collapse" aria-expanded="false">Tutorial</a>
+                <li><a class="nav-dropdown" data-toggle="collapse" aria-expanded="false">Beginner Tutorial</a>
                     <ul id="running-tutorial">
                         <li><a href="../userguide/part1_gradle_init.html">1. Initializing the Project</a></li>
                         <li><a href="../userguide/part2_gradle_tasks.html">2. Running Tasks</a></li>
@@ -169,7 +193,6 @@
                     </ul>
                 </li>
                 <li><a href="../userguide/gradle_ides.html">Gradle in the IDE</a></li>
-                <li><a href="../userguide/continuous_builds.html">Continuous Build</a></li>
             </ul>
 
             <h3 id="authoring-gradle-builds">Authoring Gradle Builds</h3>
@@ -188,15 +211,22 @@
                         <li><a href="../userguide/writing_plugins.html">9. Writing Plugins</a></li>
                     </ul>
                 </li>
-                <li><a class="nav-dropdown" data-toggle="collapse" aria-expanded="false">Tutorial</a>
+                <li><a class="nav-dropdown" data-toggle="collapse" aria-expanded="false">Advanced Tutorial</a>
                     <ul id="authoring-tutorial">
-                        <li><a href="../userguide/partr1_gradle_init.html">1. Initializing the Project</a></li>
-                        <li><a href="../userguide/partr2_build_lifecycle.html">2. Understanding the Build Lifecycle</a></li>
-                        <li><a href="../userguide/partr3_multi_project_builds.html">3. Multi-Project Builds</a></li>
-                        <li><a href="../userguide/partr4_settings_file.html">4. Writing the Settings File</a></li>
-                        <li><a href="../userguide/partr5_build_scripts.html">5. Writing a Build Script</a></li>
-                        <li><a href="../userguide/partr6_writing_tasks.html">6. Writing Tasks</a></li>
-                        <li><a href="../userguide/partr7_writing_plugins.html">7. Writing Plugins</a></li>
+                        <li><a href="../userguide/part1_gradle_init_project.html">1. Initializing the Project</a></li>
+                        <li><a href="../userguide/part2_build_lifecycle.html">2. Understanding the Build Lifecycle</a></li>
+                        <li><a href="../userguide/part3_multi_project_builds.html">3. Multi-Project Builds</a></li>
+                        <li><a href="../userguide/part4_settings_file.html">4. Writing the Settings File</a></li>
+                        <li><a href="../userguide/part5_build_scripts.html">5. Writing a Build Script</a></li>
+                        <li><a href="../userguide/part6_writing_tasks.html">6. Writing Tasks</a></li>
+                        <li><a href="../userguide/part7_writing_plugins.html">7. Writing Plugins</a></li>
+                    </ul>
+                </li>
+                <li><a class="nav-dropdown" data-toggle="collapse" href="#gradle-properties" aria-expanded="false" aria-controls="gradle-properties">Gradle Types</a>
+                    <ul id="gradle-properties-topics">
+                        <li><a href="../userguide/properties_providers.html">Understanding Properties and Providers</a></li>
+                        <li><a href="../userguide/collections.html">Understanding Collections</a></li>
+                        <li><a href="../userguide/service_injection.html">Understanding Services and Service Injection</a></li>
                     </ul>
                 </li>
                 <li><a class="nav-dropdown" data-toggle="collapse" href="#authoring-multi-project-builds" aria-expanded="false" aria-controls="authoring-multi-project-builds">Structuring Builds</a>
@@ -210,110 +240,132 @@
                 </li>
                 <li><a class="nav-dropdown" data-toggle="collapse" href="#developing-tasks" aria-expanded="false" aria-controls="developing-tasks">Developing Tasks</a>
                     <ul id="developing-tasks">
-                        <li><a href="../userguide/more_about_tasks.html">Tasks</a></li>
-                        <li><a href="../userguide/lifecycle_tasks.html">Lifecycle Tasks</a></li>
-                        <li><a href="../userguide/actionable_tasks.html">Actionable Tasks</a></li>
-                        <li><a href="../userguide/lazy_configuration.html">Lazy Task Configuration</a></li>
-                        <li><a href="../userguide/worker_api.html">Parallel Tasks</a></li>
-                        <li><a href="../userguide/custom_tasks.html">Advanced Tasks</a></li>
+                        <li><a href="../userguide/more_about_tasks.html">Understanding Tasks</a></li>
+                        <li><a href="../userguide/controlling_task_execution.html">Controlling Task Execution</a></li>
+                        <li><a href="../userguide/organizing_tasks.html">Organizing Tasks</a></li>
+                        <li><a href="../userguide/implementing_custom_tasks.html">Implementing Custom Tasks</a></li>
+                        <li><a href="../userguide/lazy_configuration.html">Configuring Tasks Lazily</a></li>
+                        <li><a href="../userguide/worker_api.html">Developing Parallel Tasks</a></li>
+                        <li><a href="../userguide/custom_tasks.html">Developing Advanced Tasks</a></li>
+                        <li><a href="../userguide/build_services.html">Using Shared Build Services</a></li>
                     </ul>
                 </li>
                 <li><a class="nav-dropdown" data-toggle="collapse" href="#developing-plugins" aria-expanded="false" aria-controls="developing-plugins">Developing Plugins</a>
                     <ul id="developing-plugins">
-                        <li><a href="../userguide/custom_plugins.html">Starting Plugin Development</a></li>
-                        <li><a href="../userguide/designing_gradle_plugins.html">Designing Plugins</a></li>
-                        <li><a href="../userguide/implementing_gradle_plugins.html">Implementing Plugins</a></li>
+                        <li><a href="../userguide/custom_plugins.html">Understanding Plugins</a></li>
+                        <li><a href="../userguide/implementing_gradle_plugins.html">Understanding Implementation Options</a></li>
+                        <li><a href="../userguide/implementing_gradle_plugins_precompiled.html">Implementing Pre-compiled Script Plugins</a></li>
+                        <li><a href="../userguide/implementing_gradle_plugins_binary.html">Implementing Binary Plugins</a></li>
                         <li><a href="../userguide/testing_gradle_plugins.html">Testing Plugins</a></li>
                         <li><a href="../userguide/publishing_gradle_plugins.html">Publishing Plugins</a></li>
-                    </ul>
-                </li>
-                <li><a class="nav-dropdown" data-toggle="collapse" href="#authoring-sustainable-builds" aria-expanded="false" aria-controls="authoring-sustainable-builds">Best Practices</a>
-                    <ul id="authoring-sustainable-builds">
-                        <li><a href="../userguide/organizing_gradle_projects.html">Organizing Build Logic</a></li>
-                        <li><a href="../userguide/authoring_maintainable_build_scripts.html">Following Best Practices</a></li>
+                        <li><a href="../userguide/reporting_problems.html">Reporting Problems</a></li>
                     </ul>
                 </li>
                 <li><a class="nav-dropdown" data-toggle="collapse" href="#other-developing-topics" aria-expanded="false" aria-controls="other-developing-topics">Other Topics</a>
                     <ul id="other-developing-topics">
-                        <li><a href="../userguide/directory_layout.html">Gradle-managed Directories</a></li>
                         <li><a href="../userguide/working_with_files.html">Working with Files</a></li>
-                        <li><a href="../userguide/logging.html">Working with Logging</a></li>
-                        <li><a href="../userguide/potential_traps.html">Avoiding Traps</a></li>
-                        <li><a href="../userguide/build_environment.html">Configuring the Build Environment</a></li>
                         <li><a href="../userguide/init_scripts.html">Initialization Scripts</a></li>
-                        <li><a href="../userguide/custom_gradle_types.html">Writing Custom Gradle Types and Service Injection</a></li>
-                        <li><a href="../userguide/build_services.html">Shared Build Services</a></li>
                         <li><a href="../userguide/dataflow_actions.html">Dataflow Actions</a></li>
-                        <li><a href="../userguide/test_kit.html">Testing a Build with TestKit</a></li>
+                        <li><a href="../userguide/test_kit.html">Testing with TestKit</a></li>
                         <li><a href="../userguide/ant.html">Using Ant from Gradle</a></li>
                     </ul>
                 </li>
-            </ul>
-
-            <h3 id="authoring-gradle-builds-java">Authoring JVM Builds</h3>
-            <ul>
-                <li><a href="../userguide/building_java_projects.html">Building Java &amp; JVM projects</a></li>
-                <li><a href="../userguide/java_testing.html">Testing Java &amp; JVM projects</a></li>
-                <li><a class="nav-dropdown" data-toggle="collapse" href="#java-toolchains" aria-expanded="false" aria-controls="java-toolchains">Java Toolchains</a>
-                    <ul id="java-toolchains">
-                        <li><a href="../userguide/toolchains.html">Toolchains for JVM projects</a></li>
-                        <li><a href="../userguide/toolchain_plugins.html">Toolchain Resolver Plugins</a></li>
-                    </ul>
-                </li>
-                <li><a href="../userguide/dependency_management_for_java_projects.html">Managing Dependencies</a></li>
-                <li><a class="nav-dropdown" data-toggle="collapse" href="#jvm-plugins" aria-expanded="false" aria-controls="jvm-plugins">JVM Plugins</a>
-                    <ul id="jvm-plugins">
-                        <li><a href="../userguide/java_library_plugin.html">Java Library Plugin</a></li>
-                        <li><a href="../userguide/application_plugin.html">Java Application Plugin</a></li>
-                        <li><a href="../userguide/java_platform_plugin.html">Java Platform Plugin</a></li>
-                        <li><a href="../userguide/groovy_plugin.html">Groovy Plugin</a></li>
-                        <li><a href="../userguide/scala_plugin.html">Scala Plugin</a></li>
+                <li><a class="nav-dropdown" data-toggle="collapse" href="#how-to" aria-expanded="false" aria-controls="how-to">How-To-Guides</a>
+                    <ul id="how-to-authoring">
+                        <li><a href="../userguide/how_to_convert_single_build_to_multi_build.html">How to Convert a Single-Project Build into a Multi-Project Build</a></li>
                     </ul>
                 </li>
             </ul>
 
-            <h3 id="managing-dependencies">Working with Dependencies</h3>
+            <h3 id="optimizing-build-performance">Optimizing Gradle Builds</h3>
             <ul>
-                <li><a href="../userguide/dependency_management_terminology.html">Terminology</a></li>
+                <li><a href="../userguide/build_environment.html">Configuring the Build Environment</a></li>
+                <li><a href="../userguide/directory_layout.html">Gradle-managed Directories</a></li>
+                <li><a href="../userguide/logging.html">Logging with Gradle</a></li>
+                <li><a href="../userguide/config_gradle.html">Configuring Gradle</a></li>
+                <li><a href="../userguide/performance.html">Improving Performance</a></li>
+                <li><a class="nav-dropdown" data-toggle="collapse" href="#build-cache" aria-expanded="false" aria-controls="optimizing-build-performance">Build Cache</a>
+                    <ul id="build-cache">
+                        <li><a href="../userguide/build_cache.html">Enabling and Configuring</a></li>
+                        <li><a href="../userguide/build_cache_use_cases.html">Why use the Build Cache?</a></li>
+                        <li><a href="../userguide/build_cache_performance.html">Understanding the Impact</a></li>
+                        <li><a href="../userguide/build_cache_concepts.html">Learning Basic Concepts</a></li>
+                        <li><a href="../userguide/caching_java_projects.html">Caching Java Project</a></li>
+                        <li><a href="../userguide/caching_android_projects.html">Caching Android Project</a></li>
+                        <li><a href="../userguide/build_cache_debugging.html">Debugging Caching Issues</a></li>
+                        <li><a href="../userguide/common_caching_problems.html">Troubleshooting</a></li>
+                    </ul>
+                </li>
+                <li><a href="../userguide/configuration_cache.html">Configuration Cache</a></li>
+                <li><a href="../userguide/continuous_builds.html">Continuous Builds</a></li>
+                <li><a href="../userguide/inspect.html">Inspecting Builds</a></li>
+                <li><a href="../userguide/isolated_projects.html">Isolated Projects</a></li>
+                <li><a href="../userguide/file_system_watching.html">File System Watching</a></li>
+            </ul>
+
+            <h3 id="managing-dependencies">Dependency Management</h3>
+            <ul>
+                <li><a href="../userguide/getting_started_dep_man.html">Getting Started</a></li>
                 <li><a class="nav-dropdown" data-toggle="collapse" href="#learning-the-basics-dependency-management" aria-expanded="false" aria-controls="learning-the-basics-dependency-management">Learning the Basics</a>
                     <ul id="learning-the-basics-dependency-management">
-                        <li><a href="../userguide/core_dependency_management.html">What is Dependency Management?</a></li>
-                        <li><a href="../userguide/declaring_repositories.html">Declaring Repositories</a></li>
-                        <li><a href="../userguide/declaring_dependencies.html">Declaring Dependencies</a></li>
-                        <li><a href="../userguide/library_vs_application.html">Understanding Library and Application Differences</a></li>
-                        <li><a href="../userguide/viewing_debugging_dependencies.html">Viewing and Debugging Dependencies</a></li>
-                        <li><a href="../userguide/dependency_resolution.html">Understanding Resolution</a></li>
-                        <li><a href="../userguide/dependency_verification.html">Verifying dependencies</a></li>
+                        <li><a href="../userguide/declaring_dependencies.html">1. Declaring Dependencies</a></li>
+                        <li><a href="../userguide/dependency_configurations.html">2. Dependency Configurations</a></li>
+                        <li><a href="../userguide/declaring_repositories.html">3. Declaring Repositories</a></li>
+                        <li><a href="../userguide/centralizing_dependencies.html">4. Centralizing Dependencies</a></li>
+                        <li><a href="../userguide/dependency_constraints_conflicts.html">5. Dependency Constraints and Conflict Resolution</a></li>
                     </ul>
                 </li>
-                <li><a class="nav-dropdown" data-toggle="collapse" href="#declaring-dependency-versions" aria-expanded="false" aria-controls="declaring-dependency-versions">Declaring Versions</a>
-                    <ul id="declaring-dependency-versions">
-                        <li><a href="../userguide/single_versions.html">Declaring Versions and Ranges</a></li>
-                        <li><a href="../userguide/rich_versions.html">Declaring Rich Versions</a></li>
-                        <li><a href="../userguide/dynamic_versions.html">Handling Changing Versions</a></li>
+                <li><a class="nav-dropdown" data-toggle="collapse" href="#understanding_dep_res" aria-expanded="false" aria-controls="understanding_dep_res">Advanced Concepts</a>
+                    <ul id="understanding_dep_res">
+                        <li><a href="../userguide/dependency_resolution.html">1. Dependency Resolution</a></li>
+                        <li><a href="../userguide/graph_resolution.html">2. Graph Resolution</a></li>
+                        <li><a href="../userguide/variant_aware_resolution.html">3. Variant Selection</a></li>
+                        <li><a href="../userguide/artifact_resolution.html">4. Artifact Resolution</a></li>
+                    </ul>
+                </li>
+                <li><a class="nav-dropdown" data-toggle="collapse" href="#declaring-dependencies" aria-expanded="false" aria-controls="declaring-dependencies">Declaring Dependencies</a>
+                    <ul id="declaring-dependencies">
+                        <li><a href="../userguide/declaring_dependencies_basics.html">Declaring Dependencies Basics</a></li>
+                        <li><a href="../userguide/viewing_debugging_dependencies.html">Viewing Dependencies</a></li>
+                        <li><a href="../userguide/dependency_versions.html">Declaring Versions and Ranges</a></li>
+                        <li><a href="../userguide/dependency_constraints.html">Declaring Dependency Constraints</a></li>
+                        <li><a href="../userguide/declaring_configurations.html">Creating Dependency Configurations</a></li>
+                        <li><a href="../userguide/gradle_dependencies.html">Gradle Distribution-Specific Dependencies</a></li>
+                        <li><a href="../userguide/dependency_verification.html">Verifying Dependencies</a></li>
+                    </ul>
+                </li>
+                <li><a class="nav-dropdown" data-toggle="collapse" href="#declaring-repositories" aria-expanded="false" aria-controls="declaring-repositories">Declaring Repositories</a>
+                    <ul id="declaring-repositories">
+                        <li><a href="../userguide/declaring_repositories_basics.html">Declaring Repositories Basics</a></li>
+                        <li><a href="../userguide/centralizing_repositories.html">Centralizing Repository Declarations</a></li>
+                        <li><a href="../userguide/supported_repository_types.html">Repository Types</a></li>
+                        <li><a href="../userguide/supported_metadata_formats.html">Metadata Formats</a></li>
+                        <li><a href="../userguide/supported_repository_protocols.html">Supported Protocols</a></li>
+                        <li><a href="../userguide/filtering_repository_content.html">Filtering Repository Content</a></li>
+                    </ul>
+                </li>
+                <li><a class="nav-dropdown" data-toggle="collapse" href="#centralizing-dependencies" aria-expanded="false" aria-controls="centralizing-dependencies">Centralizing Dependencies</a>
+                    <ul id="centralizing-dependencies">
+                        <li><a href="../userguide/platforms.html">Creating Platforms</a></li>
+                        <li><a href="../userguide/version_catalogs.html">Creating Version Catalogs</a></li>
+                        <li><a href="../userguide/centralizing_catalog_platform.html">Using Catalogs with Platforms</a></li>
+                    </ul>
+                </li>
+                <li><a class="nav-dropdown" data-toggle="collapse" href="#dependency-management" aria-expanded="false" aria-controls="dependency-management">Managing Dependencies</a>
+                    <ul id="dependency-management">
                         <li><a href="../userguide/dependency_locking.html">Locking Versions</a></li>
+                        <li><a href="../userguide/resolution_rules.html">Using Resolution Rules</a></li>
+                        <li><a href="../userguide/component_metadata_rules.html">Modifying Dependency Metadata</a></li>
+                        <li><a href="../userguide/dependency_caching.html">Caching Dependencies</a></li>
                     </ul>
                 </li>
-                <li><a class="nav-dropdown" data-toggle="collapse" href="#controlling-transitive-dependencies" aria-expanded="false" aria-controls="controlling-transitive-dependencies">Controlling Transitives</a>
-                    <ul id="controlling-transitive-dependencies">
-                        <li><a href="../userguide/dependency_constraints.html">Upgrading Versions</a></li>
-                        <li><a href="../userguide/dependency_downgrade_and_exclude.html">Downgrading and Excluding</a></li>
-                        <li><a href="../userguide/platforms.html">Sharing Versions</a></li>
-                        <li><a href="../userguide/dependency_version_alignment.html">Aligning Dependencies</a></li>
-                        <li><a href="../userguide/dependency_capability_conflict.html">Handling Mutually Exclusive Dependencies</a></li>
-                        <li><a href="../userguide/component_metadata_rules.html">Fixing Metadata</a></li>
-                        <li><a href="../userguide/resolution_rules.html">Customizing Resolution</a></li>
-                        <li><a href="../userguide/resolution_strategy_tuning.html">Preventing accidental upgrades</a></li>
-                    </ul>
-                </li>
-                <li><a class="nav-dropdown" data-toggle="collapse" href="#modeling-features" aria-expanded="false" aria-controls="modeling-features">Producing and Consuming Variants of Libraries</a>
-                    <ul id="modeling-features">
-                        <li><a href="../userguide/component_capabilities.html">Declaring Capabilities of a Library</a></li>
-                        <li><a href="../userguide/feature_variants.html">Modeling Feature Variants and Optional Dependencies</a></li>
-                        <li><a href="../userguide/variant_model.html">Understanding Variant Selection</a></li>
-                        <li><a href="../userguide/variant_attributes.html">Declaring Variant Attributes</a></li>
-                        <li><a href="../userguide/cross_project_publications.html">Sharing Outputs of Projects</a></li>
-                        <li><a href="../userguide/artifact_transforms.html">Transforming Artifacts</a></li>
+                <li><a class="nav-dropdown" data-toggle="collapse" href="#dependency-resolution" aria-expanded="false" aria-controls="dependency-resolution">Controlling Dependency Resolution</a>
+                    <ul id="dependency-resolution">
+                        <li><a href="../userguide/dependency_resolution_consistency.html">Consistent Dependency Resolution</a></li>
+                        <li><a href="../userguide/component_capabilities.html">Capabilities</a></li>
+                        <li><a href="../userguide/variant_attributes.html">Variants and Attributes</a></li>
+                        <li><a href="../userguide/artifact_views.html">Artifact Views</a></li>
+                        <li><a href="../userguide/artifact_transforms.html">Artifact Transforms</a></li>
                     </ul>
                 </li>
                 <li><a class="nav-dropdown" data-toggle="collapse" href="#publishing" aria-expanded="false" aria-controls="publishing">Publishing Libraries</a>
@@ -326,48 +378,65 @@
                         <li><a href="../userguide/publishing_ivy.html">Ivy Publish Plugin</a></li>
                     </ul>
                 </li>
-            </ul>
-
-            <h3 id="optimizing-build-performance">Optimizing Build Performance</h3>
-            <ul>
-                <li><a href="../userguide/performance.html">Improving Performance of Gradle Builds</a></li>
-                <li><a href="../userguide/gradle_daemon.html">Gradle Daemon</a></li>
-                <li><a href="../userguide/file_system_watching.html">File System Watching</a></li>
-                <li><a href="../userguide/incremental_build.html">Incremental Build</a></li>
-                <li><a class="nav-dropdown" data-toggle="collapse" href="#build-cache" aria-expanded="false" aria-controls="optimizing-build-performance">Using the Build Cache</a>
-                    <ul id="build-cache">
-                        <li><a href="../userguide/build_cache.html">Enabling and Configuring</a></li>
-                        <li><a href="../userguide/build_cache_use_cases.html">Why use the Build Cache?</a></li>
-                        <li><a href="../userguide/build_cache_performance.html">Understanding the Impact</a></li>
-                        <li><a href="../userguide/build_cache_concepts.html">Learning Basic Concepts</a></li>
-                        <li><a href="../userguide/caching_java_projects.html">Caching Java Project</a></li>
-                        <li><a href="../userguide/caching_android_projects.html">Caching Android Project</a></li>
-                        <li><a href="../userguide/build_cache_debugging.html">Debugging Caching Issues</a></li>
-                        <li><a href="../userguide/common_caching_problems.html">Troubleshooting</a></li>
+                <li><a class="nav-dropdown" data-toggle="collapse" href="#how-to" aria-expanded="false" aria-controls="how-to">How-To-Guides</a>
+                    <ul id="how-to">
+                        <li><a href="../userguide/how_to_downgrade_transitive_dependencies.html">How to Downgrade Transitive Dependencies</a></li>
+                        <li><a href="../userguide/how_to_upgrade_transitive_dependencies.html">How to Upgrade Transitive Dependencies</a></li>
+                        <li><a href="../userguide/how_to_exclude_transitive_dependencies.html">How to Exclude Transitive Dependencies</a></li>
+                        <li><a href="../userguide/how_to_prevent_accidental_dependency_upgrades.html">How to Prevent Accidental or Eager Dependency Upgrades</a></li>
+                        <li><a href="../userguide/how_to_align_dependency_versions.html">How to Align Dependency Versions</a></li>
+                        <li><a href="../userguide/how_to_share_outputs_between_projects.html">How to Share Outputs Between Projects</a></li>
+                        <li><a href="../userguide/how_to_resolve_specific_artifacts.html">How to Resolve Specific Artifacts from a Module Dependency</a></li>
+                        <li><a href="../userguide/how_to_use_local_forks.html">How to Use a Local Fork of a Module Dependency</a></li>
+                        <li><a href="../userguide/how_to_fix_version_catalog_problems.html">How to Fix Version Catalog Problems</a></li>
+                        <li><a href="../userguide/how_to_create_feature_variants_of_a_library.html">How to Create Feature Variants of a Library</a></li>
                     </ul>
                 </li>
-                <li><a href="../userguide/configuration_cache.html">Using the Configuration Cache</a></li>
-                <li><a href="../userguide/inspect.html">Inspecting Gradle Builds</a></li>
-                <li><a href="../userguide/config_gradle.html">Configuring Gradle</a></li>
-                <li><a href="../userguide/project_properties.html">Project Properties</a></li>
-                <li><a href="../userguide/networking.html">Gradle Networking</a></li>
             </ul>
 
-            <h3 id="authoring-gradle-builds-native">Authoring C++/Swift Builds</h3>
+            <h3 id="platforms">Platforms</h3>
             <ul>
-                <li><a href="../userguide/building_cpp_projects.html">Building C++ projects</a></li>
-                <li><a href="../userguide/cpp_testing.html">Testing C++ projects</a></li>
-                <li><a href="../userguide/building_swift_projects.html">Building Swift projects</a></li>
-                <li><a href="../userguide/swift_testing.html">Testing Swift projects</a></li>
+                <li><a class="nav-dropdown" data-toggle="collapse" href="#jvm" aria-expanded="false" aria-controls="jvm">JVM Builds</a>
+                    <ul id="jvm">
+                        <li><a href="../userguide/building_java_projects.html">Building Java &amp; JVM projects</a></li>
+                        <li><a href="../userguide/java_testing.html">Testing Java &amp; JVM projects</a></li>
+                        <li><a class="nav-dropdown" data-toggle="collapse" href="#java-toolchains" aria-expanded="false" aria-controls="java-toolchains">Java Toolchains</a>
+                            <ul id="java-toolchains">
+                                <li><a href="../userguide/toolchains.html">Toolchains for JVM projects</a></li>
+                                <li><a href="../userguide/toolchain_plugins.html">Toolchain Resolver Plugins</a></li>
+                            </ul>
+                        </li>
+                        <li><a href="../userguide/dependency_management_for_java_projects.html">Managing Dependencies</a></li>
+                        <li><a class="nav-dropdown" data-toggle="collapse" href="#jvm-plugins" aria-expanded="false" aria-controls="jvm-plugins">JVM Plugins</a>
+                            <ul id="jvm-plugins">
+                                <li><a href="../userguide/java_library_plugin.html">Java Library Plugin</a></li>
+                                <li><a href="../userguide/application_plugin.html">Java Application Plugin</a></li>
+                                <li><a href="../userguide/java_platform_plugin.html">Java Platform Plugin</a></li>
+                                <li><a href="../userguide/groovy_plugin.html">Groovy Plugin</a></li>
+                                <li><a href="../userguide/scala_plugin.html">Scala Plugin</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+                <li><a class="nav-dropdown" data-toggle="collapse" href="#cpp" aria-expanded="false" aria-controls="cpp">C++ Builds</a>
+                    <ul id="cpp">
+                        <li><a href="../userguide/building_cpp_projects.html">Building C++ projects</a></li>
+                        <li><a href="../userguide/cpp_testing.html">Testing C++ projects</a></li>
+                    </ul>
+                </li>
+                <li><a class="nav-dropdown" data-toggle="collapse" href="#swift" aria-expanded="false" aria-controls="swift">Swift Builds</a>
+                    <ul id="swift">
+                        <li><a href="../userguide/building_swift_projects.html">Building Swift projects</a></li>
+                        <li><a href="../userguide/swift_testing.html">Testing Swift projects</a></li>
+                    </ul>
+                </li>
             </ul>
 
-            <h3 id="gradle-on-ci">Gradle on CI</h3>
+            <h3 id="third-party-integration">Integration</h3>
             <ul>
-                <!-- TODO ADD STUFF FROM Third party integration.html -->
-                <li><a href="../userguide/jenkins.html">Jenkins</a></li>
-                <li><a href="../userguide/teamcity.html">TeamCity</a></li>
-                <li><a href="../userguide/github-actions.html">GitHub Actions</a></li>
-                <li><a href="../userguide/travis-ci.html">Travis CI</a></li>
+                <li><a href="../userguide/third_party_integration.html">Third-party Tools</a></li>
+                <li><a href="../userguide/tooling_api.html">Tooling API</a></li>
+                <li><a href="../userguide/test_reporting_api.html">Test Reporting API</a></li>
             </ul>
 
             <h3 id="reference">Reference</h3>
@@ -380,15 +449,21 @@
                         <li><a href="../userguide/kotlin_dsl.html">Kotlin DSL Primer</a></li>
                         <li><a href="../kotlin-dsl/index.html" target="_blank">Kotlin DSL API</a></li>
                         <li><a href="../userguide/migrating_from_groovy_to_kotlin_dsl.html">Groovy to Kotlin DSL Migration</a></li>
-                        <li><a href="../samples/index.html">Samples</a></li>
                     </ul>
                 </li>
-                <li><a href="../userguide/command_line_interface.html">Command-Line Interface</a></li>
                 <li><a href="../userguide/gradle_wrapper.html">Gradle Wrapper</a></li>
-                <li><a href="../userguide/plugin_reference.html">Core Plugins</a></li>
-                <li id="third-party-integration"><a href="../userguide/third_party_integration.html">Gradle &amp; Third-party Tools</a></li>
-                <li><a href="../userguide/userguide_single.html">User Manual Single Page</a></li>
-                <li><a href="../userguide/userguide.pdf">User Manual PDF</a></li>
+                <li><a href="../userguide/gradle_daemon.html">Gradle Daemon</a></li>
+                <li><a href="../userguide/command_line_interface.html">Command-Line Interface</a></li>
+                <li><a class="nav-dropdown" data-toggle="collapse" href="#core-plugins" aria-expanded="false" aria-controls="core-plugins">Core Plugins</a>
+                    <ul id="core-plugins">
+                        <li><a href="../userguide/plugin_reference.html">List of Core Plugins</a></li>
+                    </ul>
+                </li>
+                <li><a href="../samples/index.html">Samples</a></li>
+                <li><a href="../userguide/glossary.html">Glossary</a></li>
+                <li><a href="https://community.gradle.org/cookbook/">Cookbook</a></li>
+                <li><a href="../userguide/userguide_single.html">Single Page Version</a></li>
+                <li><a href="../userguide/userguide.pdf">PDF Version</a></li>
             </ul>
         </nav>
         <!-- End Primary Navigation -->

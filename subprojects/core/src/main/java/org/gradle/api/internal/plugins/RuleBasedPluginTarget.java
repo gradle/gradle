@@ -24,8 +24,7 @@ import org.gradle.model.internal.inspect.ExtractedRuleSource;
 import org.gradle.model.internal.inspect.ModelRuleExtractor;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.model.internal.registry.ModelRegistry;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class RuleBasedPluginTarget implements PluginTarget {
 
@@ -34,11 +33,11 @@ public class RuleBasedPluginTarget implements PluginTarget {
     private final ModelRuleExtractor ruleInspector;
     private final ModelRuleSourceDetector ruleDetector;
 
-    public RuleBasedPluginTarget(ProjectInternal target, ModelRuleExtractor ruleInspector, ModelRuleSourceDetector ruleDetector) {
+    public RuleBasedPluginTarget(ProjectInternal target, PluginTarget imperativeTarget, ModelRuleExtractor ruleInspector, ModelRuleSourceDetector ruleDetector) {
         this.target = target;
         this.ruleInspector = ruleInspector;
         this.ruleDetector = ruleDetector;
-        this.imperativeTarget = new ImperativeOnlyPluginTarget<ProjectInternal>(target);
+        this.imperativeTarget = imperativeTarget;
     }
 
     @Override

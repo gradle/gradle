@@ -15,10 +15,10 @@
  */
 package org.gradle.internal.component.model;
 
-import com.google.common.collect.Lists;
 import org.gradle.internal.Cast;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -77,7 +77,7 @@ public class MutableModuleSources implements ModuleSources {
 
     private void maybeCreateStore() {
         if (moduleSources == null) {
-            moduleSources = Lists.newArrayListWithExpectedSize(2);
+            moduleSources = new ArrayList<>(2);
         }
     }
 

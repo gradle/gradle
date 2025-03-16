@@ -18,19 +18,20 @@ package org.gradle.launcher.cli.converter;
 
 import org.gradle.api.Project;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.specs.Spec;
 import org.gradle.initialization.BuildLayoutParametersBuildOptions;
 import org.gradle.initialization.ParallelismBuildOptions;
 import org.gradle.initialization.StartParameterBuildOptions;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.Cast;
+import org.gradle.internal.buildconfiguration.DaemonJvmPropertiesDefaults;
 import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
 import org.gradle.launcher.configuration.AllProperties;
 import org.gradle.launcher.configuration.BuildLayoutResult;
 import org.gradle.launcher.configuration.InitialProperties;
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
+import org.gradle.launcher.daemon.toolchain.ToolchainBuildOptions;
 import org.gradle.util.internal.CollectionUtils;
 
 import java.io.File;
@@ -57,6 +58,7 @@ public class LayoutToPropertiesConverter {
         allBuildOptions.addAll(new WelcomeMessageBuildOptions().getAllOptions()); // TODO maybe a new converter also here
         allBuildOptions.addAll(new DaemonBuildOptions().getAllOptions());
         allBuildOptions.addAll(new ParallelismBuildOptions().getAllOptions());
+        allBuildOptions.addAll(new ToolchainBuildOptions().getAllOptions());
     }
 
     public AllProperties convert(InitialProperties initialProperties, BuildLayoutResult layout) {
@@ -66,7 +68,10 @@ public class LayoutToPropertiesConverter {
         configureFromHomeDir(layout.getGradleUserHomeDir(), properties);
         configureFromSystemPropertiesOfThisJvm(Cast.uncheckedNonnullCast(properties));
         properties.putAll(initialProperties.getRequestedSystemProperties());
-        return new Result(properties, initialProperties);
+
+        Map<String, String> daemonJvmProperties = new HashMap<>();
+        configureFromDaemonJVMProperties(layout, daemonJvmProperties);
+        return new Result(properties, daemonJvmProperties, initialProperties);
     }
 
     private void configureFromSystemPropertiesOfThisJvm(Map<Object, Object> properties) {
@@ -88,28 +93,24 @@ public class LayoutToPropertiesConverter {
         maybeConfigureFrom(new File(layout.getRootDirectory(), Project.GRADLE_PROPERTIES), result);
     }
 
+    private void configureFromDaemonJVMProperties(BuildLayoutResult layoutResult, Map<String, String> result) {
+        BuildLayout layout = buildLayoutFactory.getLayoutFor(layoutResult.toLayoutConfiguration());
+        configureFrom(new File(layout.getRootDirectory(), DaemonJvmPropertiesDefaults.DAEMON_JVM_PROPERTIES_FILE), result);
+    }
+
+    private void configureFrom(File propertiesFile, Map<String, String> result) {
+        Properties properties = readProperties(propertiesFile);
+        for (final Object key : properties.keySet()) {
+            result.put(key.toString(), properties.get(key).toString());
+        }
+    }
+
     private void maybeConfigureFrom(File propertiesFile, Map<String, String> result) {
-        if (!propertiesFile.isFile()) {
-            return;
-        }
-
-        Properties properties = new Properties();
-        try {
-            try (FileInputStream inputStream = new FileInputStream(propertiesFile)) {
-                properties.load(inputStream);
-            }
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-
+        Properties properties = readProperties(propertiesFile);
         for (final Object key : properties.keySet()) {
             String keyAsString = key.toString();
-            BuildOption<?> validOption = CollectionUtils.findFirst(allBuildOptions, new Spec<BuildOption<?>>() {
-                @Override
-                public boolean isSatisfiedBy(BuildOption<?> option) {
-                    return keyAsString.equals(option.getGradleProperty()) || keyAsString.equals(option.getDeprecatedGradleProperty());
-                }
-            });
+            BuildOption<?> validOption = CollectionUtils.findFirst(allBuildOptions,
+                option -> keyAsString.equals(option.getProperty()) || keyAsString.equals(option.getDeprecatedProperty()));
 
             if (validOption != null) {
                 result.put(key.toString(), properties.get(key).toString());
@@ -117,12 +118,30 @@ public class LayoutToPropertiesConverter {
         }
     }
 
+    private static Properties readProperties(File propertiesFile) {
+        Properties properties = new Properties();
+
+        if (propertiesFile.isFile()) {
+
+            try {
+                try (FileInputStream inputStream = new FileInputStream(propertiesFile)) {
+                    properties.load(inputStream);
+                }
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        }
+        return properties;
+    }
+
     private static class Result implements AllProperties {
         private final Map<String, String> properties;
+        private final Map<String, String> daemonJvmProperties;
         private final InitialProperties initialProperties;
 
-        public Result(Map<String, String> properties, InitialProperties initialProperties) {
+        public Result(Map<String, String> properties, Map<String, String> daemonJvmProperties, InitialProperties initialProperties) {
             this.properties = properties;
+            this.daemonJvmProperties = daemonJvmProperties;
             this.initialProperties = initialProperties;
         }
 
@@ -137,11 +156,16 @@ public class LayoutToPropertiesConverter {
         }
 
         @Override
+        public Map<String, String> getDaemonJvmProperties() {
+            return Collections.unmodifiableMap(daemonJvmProperties);
+        }
+
+        @Override
         public Result merge(Map<String, String> systemProperties) {
             Map<String, String> properties = new HashMap<>(this.properties);
             properties.putAll(systemProperties);
             properties.putAll(initialProperties.getRequestedSystemProperties());
-            return new Result(properties, initialProperties);
+            return new Result(properties, daemonJvmProperties, initialProperties);
         }
     }
 }

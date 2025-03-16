@@ -16,7 +16,6 @@
 
 package org.gradle.language.cpp
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraryAndOptionalFeature
 import org.gradle.nativeplatform.fixtures.app.CppLib
@@ -25,7 +24,6 @@ import org.gradle.test.fixtures.maven.MavenFileRepository
 
 class CppLibraryWithStaticLinkagePublishingIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements CppTaskNames {
 
-    @ToBeFixedForConfigurationCache
     def "can publish the binaries and headers of a library to a Maven repository"() {
         def lib = new CppLib()
         assert !lib.publicHeaders.files.empty
@@ -43,7 +41,7 @@ class CppLibraryWithStaticLinkagePublishingIntegrationTest extends AbstractInsta
                 linkage = [Linkage.STATIC]
             }
             publishing {
-                repositories { maven { url 'repo' } }
+                repositories { maven { url = file('repo') } }
             }
 """
         lib.writeToProject(testDirectory)
@@ -129,7 +127,6 @@ class CppLibraryWithStaticLinkagePublishingIntegrationTest extends AbstractInsta
         releaseRuntime.files.empty
     }
 
-    @ToBeFixedForConfigurationCache
     def "correct variant of published library is selected when resolving"() {
         def app = new CppAppWithLibraryAndOptionalFeature()
 
@@ -142,14 +139,14 @@ class CppLibraryWithStaticLinkagePublishingIntegrationTest extends AbstractInsta
             group = 'some.group'
             version = '1.2'
             publishing {
-                repositories { maven { url '${repoDir.toURI()}' } }
+                repositories { maven { url = '${repoDir.toURI()}' } }
             }
 
             library {
                 linkage = [Linkage.STATIC]
                 binaries.configureEach {
                     if (optimized) {
-                        compileTask.get().macros(WITH_FEATURE: "true")
+                        compileTask.get().setMacros(WITH_FEATURE: "true")
                     }
                 }
             }
@@ -163,11 +160,11 @@ class CppLibraryWithStaticLinkagePublishingIntegrationTest extends AbstractInsta
         consumer.file("settings.gradle") << ""
         consumer.file("build.gradle") << """
             apply plugin: 'cpp-application'
-            repositories { maven { url '${repoDir.toURI()}' } }
+            repositories { maven { url = '${repoDir.toURI()}' } }
             dependencies { implementation 'some.group:greeting:1.2' }
             application {
                 binaries.get { it.optimized }.configure {
-                    compileTask.get().macros(WITH_FEATURE: "true")
+                    compileTask.get().setMacros(WITH_FEATURE: "true")
                 }
             }
         """

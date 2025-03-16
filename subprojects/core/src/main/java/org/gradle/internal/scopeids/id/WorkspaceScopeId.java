@@ -17,6 +17,8 @@
 package org.gradle.internal.scopeids.id;
 
 import org.gradle.internal.id.UniqueId;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * The persistent ID of a potential build on disk.
@@ -24,12 +26,13 @@ import org.gradle.internal.id.UniqueId;
  * It is effectively the root dir of a build.
  * That is, two builds with the same root dir share the same workspace.
  *
- * In practice, this generally maps to what users would think of as “checkout” of a project.
+ * In practice, this generally maps to what users would think of as "checkout" of a project.
  * Builds of the same checkout over time will share the same workspace ID.
  *
  * This ID is persisted in the root build's project cache dir.
  * If this cache directory is destroyed, a new ID will be issued.
  */
+@ServiceScope(Scope.BuildSession.class)
 public final class WorkspaceScopeId extends ScopeId {
 
     public WorkspaceScopeId(UniqueId id) {

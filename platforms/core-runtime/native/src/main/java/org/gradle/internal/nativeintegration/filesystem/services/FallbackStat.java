@@ -16,7 +16,7 @@
 
 package org.gradle.internal.nativeintegration.filesystem.services;
 
-import org.gradle.internal.nativeintegration.filesystem.FileModeAccessor;
+import org.gradle.internal.file.FileModeAccessor;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 
 import java.io.File;

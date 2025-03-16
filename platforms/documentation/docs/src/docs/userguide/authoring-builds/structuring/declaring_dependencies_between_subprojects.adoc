@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Gradle, Inc.
+// Copyright (C) 2024 Gradle, Inc.
 //
 // Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ What if one project needs the artifact produced by another project?
 image::structuring-builds-2.png[]
 
 This is a common use case for multi-project builds.
-Gradle offers <<declaring_dependencies.adoc#sub:project_dependencies,project dependencies>> for this.
+Gradle offers <<declaring_dependencies_basics.adoc#sec:project-dependencies,project dependencies>> for this.
 
 [[sec:project_jar_dependencies]]
 == Depending on another project
@@ -98,4 +98,4 @@ Sometimes, you might want to depend on the output of a specific task within anot
 However, explicitly declaring a task dependency from one project to another is discouraged as it introduces unnecessary coupling between tasks.
 
 The recommended way to model dependencies, where a task in one project depends on the output of another, is to produce the output and mark it as an "outgoing" artifact.
-Gradle's <<cross_project_publications#cross_project_publications,dependency management engine>> allows you to share arbitrary artifacts between projects and build them on demand.
+Gradle's <<variant_aware_resolution.adoc#sec:understanding-variant-selection,dependency management engine>> allows you to share arbitrary artifacts between projects and build them on demand.

@@ -16,13 +16,10 @@
 
 package org.gradle.plugins.ide.tooling.r214
 
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
 import org.gradle.test.fixtures.maven.MavenFileRepository
-import org.gradle.tooling.model.UnsupportedMethodException
-import org.gradle.tooling.model.eclipse.EclipseExternalDependency
-import org.gradle.tooling.model.eclipse.EclipseProject
 
 class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification implements WithOldConfigurationsSupport {
 
@@ -32,45 +29,11 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification imp
 
         settingsFile << "rootProject.name = 'root'; include 'sub'"
         buildFile << """allprojects { apply plugin: 'java' }
-repositories { maven { url '${mavenRepo.uri}' } }
+repositories { maven { url = '${mavenRepo.uri}' } }
 dependencies {
     ${implementationConfiguration} project(':sub')
     ${implementationConfiguration} 'org.example:example-lib:1.0'
 }"""
 
-    }
-
-    @TargetGradleVersion(">=2.6 <2.14")
-    def "older Gradle versions throw UnsupportedMethodException when classpath attributes are accessed"() {
-        setup:
-        EclipseProject rootProject = loadToolingModel(EclipseProject)
-        Collection<EclipseExternalDependency> projectDependencies = rootProject.getProjectDependencies()
-        Collection<EclipseExternalDependency> externalDependencies = rootProject.getClasspath()
-
-        when:
-        projectDependencies[0].getClasspathAttributes()
-
-        then:
-        thrown UnsupportedMethodException
-
-        when:
-        externalDependencies[0].getClasspathAttributes()
-
-        then:
-        thrown UnsupportedMethodException
-    }
-
-    @TargetGradleVersion(">=2.14 <3.0")
-    def "each dependency has an empty list of classpath attributes"() {
-        when:
-        EclipseProject rootProject = loadToolingModel(EclipseProject)
-        Collection<EclipseExternalDependency> projectDependencies = rootProject.getProjectDependencies()
-        Collection<EclipseExternalDependency> externalDependencies = rootProject.getClasspath()
-
-        then:
-        projectDependencies.size() == 1
-        projectDependencies[0].classpathAttributes.isEmpty()
-        externalDependencies.size() == 1
-        externalDependencies[0].classpathAttributes.isEmpty()
     }
 }

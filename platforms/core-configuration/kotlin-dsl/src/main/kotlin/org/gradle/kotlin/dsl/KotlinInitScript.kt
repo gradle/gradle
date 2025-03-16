@@ -43,6 +43,7 @@ import kotlin.script.templates.ScriptTemplateDefinition
         "-api-version", "1.8",
         "-Xjvm-default=all",
         "-Xjsr305=strict",
+        "-Xjspecify-annotations=strict",
         "-Xskip-prerelease-check",
         "-Xallow-unstable-dependencies",
         "-XXLanguage:+DisableCompatibilityModeForNewInference",
@@ -65,9 +66,9 @@ abstract class KotlinInitScript(
     /**
      * Applies zero or more plugins or scripts.
      * <p>
-     * The given action is used to configure an [ObjectConfigurationAction], which “builds” the plugin application.
+     * The given action is used to configure an [ObjectConfigurationAction], which "builds" the plugin application.
      * <p>
-     * @param action the action to configure an [ObjectConfigurationAction] with before “executing” it
+     * @param action the action to configure an [ObjectConfigurationAction] with before "executing" it
      * @see [PluginAware.apply]
      */
     override fun apply(action: Action<in ObjectConfigurationAction>) =

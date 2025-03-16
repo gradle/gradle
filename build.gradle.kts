@@ -1,5 +1,4 @@
 plugins {
-    id("gradlebuild.build-environment")
     id("gradlebuild.root-build")
 
     id("gradlebuild.teamcity-import-test-data")  // CI: Import Test tasks' JUnit XML if they're UP-TO-DATE or FROM-CACHE
@@ -12,11 +11,3 @@ plugins {
 }
 
 description = "Adaptable, fast automation for all"
-
-dependencyAnalysis {
-    issues {
-        all {
-            ignoreSourceSet("archTest", "crossVersionTest", "docsTest", "integTest", "jmh", "peformanceTest", "smokeTest", "testInterceptors", "testFixtures", "smokeIdeTest")
-        }
-    }
-}

@@ -26,7 +26,7 @@ class GradleRunnerEnvironmentVariablesIntegrationTest extends BaseGradleRunnerIn
     @NoDebug //avoid in-process execution so that we can set the env variable
     def "user can provide env vars"() {
         given:
-        buildScript "file('env.txt') << System.getenv('dummyEnvVar')"
+        buildFile "file('env.txt') << System.getenv('dummyEnvVar')"
 
         when:
         runner().withEnvironment(dummyEnvVar: "env var OK").build()

@@ -16,8 +16,12 @@
 
 package org.gradle.internal.execution.history;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 import java.io.File;
 
+@ServiceScope(Scope.Global.class)
 public interface ImmutableWorkspaceMetadataStore {
 
     ImmutableWorkspaceMetadata loadWorkspaceMetadata(File workspace);

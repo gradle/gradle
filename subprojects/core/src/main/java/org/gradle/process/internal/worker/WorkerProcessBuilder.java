@@ -18,6 +18,7 @@ package org.gradle.process.internal.worker;
 
 import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
 
 import java.io.File;
 import java.net.URL;
@@ -58,6 +59,20 @@ public interface WorkerProcessBuilder extends WorkerProcessSettings {
     void setImplementationModulePath(List<URL> implementationModulePath);
 
     void enableJvmMemoryInfoPublishing(boolean shouldPublish);
+
+    void setNativeServicesMode(NativeServicesMode mode);
+
+    NativeServicesMode getNativeServicesMode();
+
+    /**
+     * Set if Gradle should add JPMS-compatibility flags to the worker process when needed.
+     * These are needed on Java 24+ when using native services because they access native libraries.
+     * There may be other cases in the future where different flags are needed in other scenarios.
+     *
+     * @param addJpmsCompatibilityFlags whether to add the flags
+     * @return this
+     */
+    WorkerProcessBuilder setAddJpmsCompatibilityFlags(boolean addJpmsCompatibilityFlags);
 
     /**
      * Creates the worker process. The process is not started until {@link WorkerProcess#start()} is called.

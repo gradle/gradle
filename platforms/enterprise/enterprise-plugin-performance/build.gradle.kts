@@ -8,15 +8,26 @@ description = """Performance tests for the build scan plugin
     | """.trimMargin()
 
 dependencies {
-    testFixturesApi(project(":internal-performance-testing"))
+    performanceTestImplementation(projects.baseServices)
+    performanceTestImplementation(projects.internalTesting)
+
+    performanceTestCompileOnly(projects.internalIntegTesting)
+    performanceTestCompileOnly(projects.internalPerformanceTesting)
+
+    performanceTestImplementation(libs.gradleProfiler)
+
+    testFixturesApi(projects.baseServices)
+
     testFixturesApi(libs.commonsIo)
-    testFixturesApi(project(":base-services"))
-    testFixturesImplementation(project(":internal-testing"))
-    testFixturesImplementation(project(":internal-integ-testing"))
-    testFixturesImplementation(project(":logging"))
+
+    testFixturesImplementation(projects.internalIntegTesting)
+    testFixturesImplementation(projects.internalTesting)
+    testFixturesImplementation(projects.internalPerformanceTesting)
+    testFixturesImplementation(projects.logging)
+
     testFixturesImplementation(libs.groovyJson)
 
-    performanceTestDistributionRuntimeOnly(project(":distributions-full")) {
+    performanceTestDistributionRuntimeOnly(projects.distributionsFull) {
         because("so that all Gradle features are available")
     }
 }
@@ -71,10 +82,10 @@ tasks.withType<gradlebuild.performance.tasks.PerformanceTest>().configureEach {
         .map { projectRootDir.resolve(it) }
 
     // Provides a system property required by `AbstractBuildScanPluginPerformanceTest`
-    jvmArgumentProviders += GradleEnterprisePluginInfoDirPropertyProvider(pluginInfoDir)
+    jvmArgumentProviders += DevelocityPluginInfoDirPropertyProvider(pluginInfoDir)
 }
 
 internal
-class GradleEnterprisePluginInfoDirPropertyProvider(@InputFiles @PathSensitive(PathSensitivity.RELATIVE) val pluginInfoDir: Provider<File>) : CommandLineArgumentProvider {
-    override fun asArguments() = listOf("-Dorg.gradle.performance.enterprise.plugin.infoDir=${pluginInfoDir.get().path}")
+class DevelocityPluginInfoDirPropertyProvider(@InputFiles @PathSensitive(PathSensitivity.RELATIVE) val pluginInfoDir: Provider<File>) : CommandLineArgumentProvider {
+    override fun asArguments() = listOf("-Dorg.gradle.performance.develocity.plugin.infoDir=${pluginInfoDir.get().path}")
 }

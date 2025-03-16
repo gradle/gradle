@@ -21,6 +21,80 @@ import org.gradle.api.tasks.TasksWithInputsAndOutputs
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class FileCollectionLifecycleIntegrationTest extends AbstractIntegrationSpec implements TasksWithInputsAndOutputs {
+    def "UPGRADED task #annotation configurable file collection is LENIENTLY implicitly finalized when task starts execution UNTIL NEXT MAJOR"() {
+        executer.requireOwnGradleUserHomeDir("temp")
+        buildFile << """
+            import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty
+
+            abstract class SomeTask extends DefaultTask {
+                @ReplacesEagerProperty
+                ${annotation}
+                abstract ConfigurableFileCollection getProp()
+
+                @TaskAction
+                void go() {
+                    println "value: " + prop.files
+                }
+            }
+
+            task show(type: SomeTask) {
+                def layout = project.layout
+                prop.setFrom([layout.projectDir.file("in.txt")])
+                doFirst {
+                    prop.setFrom([layout.projectDir.file("other.txt")])
+                }
+            }
+        """
+
+        expect:
+        executer.expectDeprecationWarningWithPattern("Changing property value of task ':show' property 'prop' at execution time. This behavior has been deprecated.*")
+        succeeds("show")
+        outputContains("value: [${file('other.txt')}]")
+
+        where:
+        annotation     | _
+        "@InputFiles"  | _
+        "@OutputFiles" | _
+    }
+
+    def "task #annotation configurable file collection is implicitly finalized when task starts execution"() {
+        executer.requireOwnGradleUserHomeDir("temp")
+        buildFile << """
+            abstract class SomeTask extends DefaultTask {
+                $propertyInit
+
+                ${annotation}
+                $getter
+
+                @TaskAction
+                void go() {
+                    println "value: " + prop.files
+                }
+            }
+
+            task show(type: SomeTask) {
+                def layout = project.layout
+                prop.setFrom([layout.projectDir.file("in.txt")])
+                doFirst {
+                    prop.setFrom([layout.projectDir.file("other.txt")])
+                }
+            }
+        """
+
+        when:
+        fails("show")
+
+        then:
+        failure.assertHasCause("The value for task ':show' property 'prop' is final and cannot be changed any further.")
+
+        where:
+        annotation     | getter                                                      | propertyInit
+        "@InputFiles"  | "abstract ConfigurableFileCollection getProp()"             | ""
+        "@OutputFiles" | "abstract ConfigurableFileCollection getProp()"             | ""
+        "@InputFiles"  | "ConfigurableFileCollection getProp() { return this.prop }" | "private final ConfigurableFileCollection prop = project.objects.fileCollection()"
+        "@OutputFiles" | "ConfigurableFileCollection getProp() { return this.prop }" | "private final ConfigurableFileCollection prop = project.objects.fileCollection()"
+    }
+
     def "finalized file collection resolves locations and ignores later changes to source paths"() {
         buildFile """
             def files = objects.fileCollection()
@@ -233,11 +307,11 @@ class FileCollectionLifecycleIntegrationTest extends AbstractIntegrationSpec imp
         run("show")
 
         then:
-        outputContains("get files failed with: Cannot query the value of this file collection because configuration of root project 'broken' has not completed yet.")
-        outputContains("get elements failed with: Cannot query the value of this file collection because configuration of root project 'broken' has not completed yet.")
-        outputContains("get files in afterEvaluate failed with: Cannot query the value of this file collection because configuration of root project 'broken' has not completed yet.")
-        outputContains("get elements in afterEvaluate failed with: Cannot query the value of this file collection because configuration of root project 'broken' has not completed yet.")
-        outputContains("set after read failed with: The value for this file collection is final and cannot be changed any further.")
+        outputContains("get files failed with: Cannot query the value of extension 'thing' property 'prop' because configuration of root project 'broken' has not completed yet.")
+        outputContains("get elements failed with: Cannot query the value of extension 'thing' property 'prop' because configuration of root project 'broken' has not completed yet.")
+        outputContains("get files in afterEvaluate failed with: Cannot query the value of extension 'thing' property 'prop' because configuration of root project 'broken' has not completed yet.")
+        outputContains("get elements in afterEvaluate failed with: Cannot query the value of extension 'thing' property 'prop' because configuration of root project 'broken' has not completed yet.")
+        outputContains("set after read failed with: The value for extension 'thing' property 'prop' is final and cannot be changed any further.")
         output.count("value = [${file('some-file-2')}]") == 2
         output.count("elements = [${file('some-file-2')}]") == 2
     }
@@ -274,7 +348,7 @@ class FileCollectionLifecycleIntegrationTest extends AbstractIntegrationSpec imp
         run("show")
 
         then:
-        outputContains("set failed with: The value for this file collection is final and cannot be changed any further.")
+        outputContains("set failed with: The value for extension 'thing' property 'prop' is final and cannot be changed any further.")
         output.count("value = [${file('some-file')}]") == 2
     }
 
@@ -313,7 +387,7 @@ class FileCollectionLifecycleIntegrationTest extends AbstractIntegrationSpec imp
         run("show")
 
         then:
-        outputContains("finalize failed with: Cannot finalize the value of this file collection because configuration of root project 'broken' has not completed yet.")
+        outputContains("finalize failed with: Cannot finalize the value of extension 'thing' property 'prop' because configuration of root project 'broken' has not completed yet.")
         output.count("value = [${file('some-file')}]") == 2
     }
 

@@ -11,7 +11,7 @@ dependencies {
 reporting {
     reports {
         val testAggregateTestReport by creating(AggregateTestReport::class) { // <.>
-            testType = TestSuiteType.UNIT_TEST
+            testSuiteName = "test"
         }
     }
 }

@@ -28,14 +28,13 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ModuleVersionSelectorStrictSpec;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
-
-public class DefaultDependencyConstraint implements DependencyConstraintInternal {
+public class DefaultDependencyConstraint extends AbstractDependencyConstraint {
 
     private final static Logger LOG = Logging.getLogger(DefaultDependencyConstraint.class);
 
@@ -43,19 +42,13 @@ public class DefaultDependencyConstraint implements DependencyConstraintInternal
     private final MutableVersionConstraint versionConstraint;
 
     private String reason;
-    private ImmutableAttributesFactory attributesFactory;
+    private AttributesFactory attributesFactory;
     private AttributeContainerInternal attributes;
     private boolean force;
 
     public DefaultDependencyConstraint(String group, String name, String version) {
         this.moduleIdentifier = DefaultModuleIdentifier.newId(group, name);
         this.versionConstraint = new DefaultMutableVersionConstraint(version);
-    }
-
-    public static DefaultDependencyConstraint strictly(String group, String name, String strictVersion) {
-        DefaultMutableVersionConstraint versionConstraint = new DefaultMutableVersionConstraint((String) null);
-        versionConstraint.strictly(strictVersion);
-        return new DefaultDependencyConstraint(DefaultModuleIdentifier.newId(group, name), versionConstraint);
     }
 
     public DefaultDependencyConstraint(ModuleIdentifier module, VersionConstraint versionConstraint) {
@@ -94,6 +87,7 @@ public class DefaultDependencyConstraint implements DependencyConstraintInternal
             warnAboutInternalApiUse();
             return this;
         }
+        validateMutation();
         if (attributes == null) {
             attributes = attributesFactory.mutable();
         }
@@ -105,7 +99,7 @@ public class DefaultDependencyConstraint implements DependencyConstraintInternal
         LOG.warn("Cannot set attributes for constraint \"" + this.getGroup() + ":" + this.getName() + ":" + this.getVersion() + "\": it was probably created by a plugin using internal APIs");
     }
 
-    public void setAttributesFactory(ImmutableAttributesFactory attributesFactory) {
+    public void setAttributesFactory(AttributesFactory attributesFactory) {
         this.attributesFactory = attributesFactory;
     }
 
@@ -131,6 +125,7 @@ public class DefaultDependencyConstraint implements DependencyConstraintInternal
 
     @Override
     public void version(Action<? super MutableVersionConstraint> configureAction) {
+        validateMutation();
         configureAction.execute(versionConstraint);
     }
 
@@ -156,6 +151,7 @@ public class DefaultDependencyConstraint implements DependencyConstraintInternal
 
     @Override
     public void because(String reason) {
+        validateMutation();
         this.reason = reason;
     }
 
@@ -178,6 +174,7 @@ public class DefaultDependencyConstraint implements DependencyConstraintInternal
 
     @Override
     public void setForce(boolean force) {
+        validateMutation();
         this.force = force;
     }
 

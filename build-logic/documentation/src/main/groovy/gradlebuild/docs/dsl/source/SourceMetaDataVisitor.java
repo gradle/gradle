@@ -48,6 +48,7 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -157,7 +158,7 @@ public class SourceMetaDataVisitor extends VoidVisitorAdapter<ClassMetaDataRepos
         Matcher matcher = GETTER_METHOD_NAME.matcher(name);
         if (matcher.matches()) {
             int startName = matcher.start(2);
-            String propName = name.substring(startName, startName + 1).toLowerCase() + name.substring(startName + 1);
+            String propName = name.substring(startName, startName + 1).toLowerCase(Locale.ROOT) + name.substring(startName + 1);
             PropertyMetaData property = getCurrentClass().addReadableProperty(propName, returnType, rawCommentText, methodMetaData);
             methodMetaData.getAnnotationTypeNames().forEach(property::addAnnotationTypeName);
             property.setReplacement(methodMetaData.getReplacement());
@@ -170,7 +171,7 @@ public class SourceMetaDataVisitor extends VoidVisitorAdapter<ClassMetaDataRepos
         matcher = SETTER_METHOD_NAME.matcher(name);
         if (matcher.matches()) {
             int startName = matcher.start(1);
-            String propName = name.substring(startName, startName + 1).toLowerCase() + name.substring(startName + 1);
+            String propName = name.substring(startName, startName + 1).toLowerCase(Locale.ROOT) + name.substring(startName + 1);
             TypeMetaData type = methodMetaData.getParameters().get(0).getType();
             getCurrentClass().addWriteableProperty(propName, type, rawCommentText, methodMetaData);
         }

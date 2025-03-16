@@ -83,7 +83,7 @@ class GradleRunnerUnsupportedFeatureFailureIntegrationTest extends BaseGradleRun
         def minSupportedVersion = TestKitFeature.PLUGIN_CLASSPATH_INJECTION.since.version
 
         given:
-        buildScript plugin.useDeclaration
+        buildFile plugin.useDeclaration
 
         when:
         runner('helloWorld')
@@ -102,7 +102,7 @@ class GradleRunnerUnsupportedFeatureFailureIntegrationTest extends BaseGradleRun
         def maxUnsupportedVersion = getMaxUnsupportedVersion(TestKitFeature.PLUGIN_CLASSPATH_INJECTION)
         def minSupportedVersion = TestKitFeature.PLUGIN_CLASSPATH_INJECTION.since.version
 
-        buildScript plugin.useDeclaration
+        buildFile plugin.useDeclaration
 
         when:
         plugin.build().exposeMetadata {

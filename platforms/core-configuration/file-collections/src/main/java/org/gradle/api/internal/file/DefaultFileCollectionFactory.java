@@ -48,6 +48,7 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -257,6 +258,26 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
         @Override
         protected Set<File> getIntrinsicFiles() {
             return files;
+        }
+
+        @Override
+        public Optional<FileCollectionExecutionTimeValue> calculateExecutionTimeValue() {
+            return Optional.of(new FixedExecutionTimeValue(displayName, files));
+        }
+
+        private static class FixedExecutionTimeValue implements FileCollectionExecutionTimeValue {
+            private final String displayName;
+            private final ImmutableSet<File> files;
+
+            public FixedExecutionTimeValue(String displayName, ImmutableSet<File> files) {
+                this.displayName = displayName;
+                this.files = files;
+            }
+
+            @Override
+            public FileCollectionInternal toFileCollection(FileCollectionFactory fileCollectionFactory) {
+                return fileCollectionFactory.fixed(displayName, files);
+            }
         }
     }
 

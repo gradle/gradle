@@ -58,10 +58,10 @@ class PathTraversalCheckerIntegrationTest extends AbstractIntegrationSpec {
         executer.withStacktraceEnabled()
 
         given:
-        buildFile << '''
+        buildFile '''
             task copyEvilZip(type: Copy) {
                 from(zipTree('evil.zip'))
-                into('.')
+                into(layout.buildDirectory)
             }
         '''
 

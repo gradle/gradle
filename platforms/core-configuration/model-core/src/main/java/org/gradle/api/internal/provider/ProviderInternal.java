@@ -20,9 +20,11 @@ import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.evaluation.EvaluationOwner;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.function.BiFunction;
+import java.util.function.Supplier;
 
 /**
  * <p>The internal view of a {@link Provider}.</p>
@@ -37,7 +39,7 @@ import java.util.function.BiFunction;
  *
  * <p>In other words, a provider does not provide a value, it provides a value whose content is in a particular state. This is discussed in more detail below.</p>
  *
- * <h1>The provider value</h1>
+ * <h2>The provider value</h2>
  *
  * <p>The value of a provider may be:</p>
  *
@@ -70,7 +72,7 @@ import java.util.function.BiFunction;
  * fixed once the task has executed. It would become an error to query a provider whose value is still "changing".
  * </p>
  *
- * <h1>The value content</h1>
+ * <h2>The value content</h2>
  *
  * <p>Each provider guarantees that the content of the value is in some particular state when the provider is queried.
  * Currently there are only two states that the various provider implementations can guarantee:
@@ -109,7 +111,7 @@ import java.util.function.BiFunction;
  * <p>There are further optimizations that could be implemented with configuration caching. For example, when a work node has only fixed inputs, the node could be executed prior to writing the work graph to
  * the configuration cache, so that its outputs in turn become fixed. The node can then be discarded from the graph and replaced with its (now fixed) outputs.</p>
  */
-public interface ProviderInternal<T> extends Provider<T>, ValueSupplier, TaskDependencyContainer, EvaluationContext.EvaluationOwner {
+public interface ProviderInternal<T> extends Provider<T>, ValueSupplier, TaskDependencyContainer, EvaluationOwner, Supplier<T> {
     /**
      * Return the upper bound on the type of all values that this provider may produce, if known.
      *

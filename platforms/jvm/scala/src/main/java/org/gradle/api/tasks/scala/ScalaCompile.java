@@ -29,6 +29,7 @@ import org.gradle.api.tasks.scala.internal.ScalaCompileOptionsConfigurer;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.classloader.ClasspathHasher;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.language.scala.tasks.AbstractScalaCompile;
 import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.gradle.process.internal.worker.child.WorkerDirectoryProvider;
@@ -56,6 +57,7 @@ public abstract class ScalaCompile extends AbstractScalaCompile {
      * Returns the classpath to use to load the Scala compiler.
      */
     @Classpath
+    @ToBeReplacedByLazyProperty
     public FileCollection getScalaClasspath() {
         return scalaClasspath;
     }
@@ -70,6 +72,7 @@ public abstract class ScalaCompile extends AbstractScalaCompile {
      * @since 6.4
      */
     @Classpath
+    @ToBeReplacedByLazyProperty
     public FileCollection getScalaCompilerPlugins() {
         return scalaCompilerPlugins;
     }
@@ -98,6 +101,7 @@ public abstract class ScalaCompile extends AbstractScalaCompile {
      * Returns the classpath to use to load the Zinc incremental compiler. This compiler in turn loads the Scala compiler.
      */
     @Classpath
+    @ToBeReplacedByLazyProperty
     public FileCollection getZincClasspath() {
         return zincClasspath;
     }

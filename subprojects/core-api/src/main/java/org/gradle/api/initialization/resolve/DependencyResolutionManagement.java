@@ -44,10 +44,10 @@ public interface DependencyResolutionManagement {
      * Returns the shared repository handler
      */
     @Incubating
-    @Restricted
     RepositoryHandler getRepositories();
 
     @Incubating
+    @Restricted
     Property<RepositoriesMode> getRepositoriesMode();
 
     /**

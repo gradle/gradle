@@ -52,7 +52,7 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractPluginSpec {
         """
 
         when:
-        buildScript USE
+        buildFile USE
 
         then:
         succeeds("pluginTask")
@@ -79,7 +79,7 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractPluginSpec {
         pluginRepo.module(GROUP, ARTIFACT, VERSION).dependsOn(GROUP, ARTIFACT + "2", VERSION).publishPom()
 
         when:
-        buildScript """
+        buildFile """
             $USE
 
             def ops = []
@@ -127,13 +127,13 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractPluginSpec {
         publishPlugin("").dependsOn(GROUP, ARTIFACT + "2", VERSION).publishPom()
 
         when:
-        buildScript """
+        buildFile """
             buildscript {
               dependencies {
                 classpath "$GROUP:${ARTIFACT + 2}:$VERSION"
               }
               repositories {
-                maven { url "$pluginRepo.uri" }
+                maven { url = "$pluginRepo.uri" }
               }
             }
             $USE
@@ -163,18 +163,21 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractPluginSpec {
 
         when:
         def pluginModule = publishPlugin """
-            project.task('pluginTask').doLast {
-                println "pluginTask - " + this.getClass().classLoader.getResource('d/v.txt').text
+            project.tasks.register("pluginTask") {
+                def resource = this.getClass().classLoader.getResource('d/v.txt')
+                doLast {
+                    println "pluginTask - " + resource.text
+                }
             }
         """
 
         pluginModule.dependsOn("test", "test", "2").publishPom()
 
         and:
-        buildScript """
+        buildFile """
             buildscript {
                 repositories {
-                    maven { url "$pluginRepo.uri" }
+                    maven { url = "$pluginRepo.uri" }
                 }
                 dependencies {
                     classpath "test:test:1"
@@ -184,8 +187,9 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractPluginSpec {
             $USE
 
             task scriptTask {
+                def resource = this.getClass().classLoader.getResource('d/v.txt')
                 doLast {
-                    println "scriptTask - " + this.getClass().classLoader.getResource('d/v.txt').text
+                    println "scriptTask - " + resource.text
                 }
             }
 
@@ -220,7 +224,7 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractPluginSpec {
         }
 
         and:
-        buildScript """
+        buildFile """
             $USE
         """
 
@@ -245,7 +249,7 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractPluginSpec {
         }
 
         and:
-        buildScript """
+        buildFile """
             $USE
         """
 
@@ -266,7 +270,7 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractPluginSpec {
         }
 
         and:
-        buildScript """
+        buildFile """
             $USE
         """
 
@@ -285,7 +289,7 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractPluginSpec {
         publishPlugin "throw new Exception('throwing plugin')"
 
         and:
-        buildScript """
+        buildFile """
             $USE
         """
 

@@ -20,30 +20,34 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
- * Metadata for a basic variant of a component, that defines only artifacts and no dependencies.
+ * Would be better named {@code VariantArtifactMetadata}.
+ * <p>
+ * Describes the artifacts of a {@link VariantGraphResolveMetadata}. Graph variants may have multiple
+ * artifact variants, where each artifact variant may have different artifacts, but inherit the dependencies
+ * of its graph variant.
  */
-public interface VariantResolveMetadata extends VariantGraphResolveMetadata.Subvariant {
-    @Override
+public interface VariantResolveMetadata {
     String getName();
 
     /**
-     * An identifier for this variant, if available. A variant may not necessarily have an identifier associated with it, for example if it represents some ad hoc variant.
+     * An identifier for this artifact variant.
+     * <p>
+     * May be null for adhoc variants.
      */
     @Nullable
     Identifier getIdentifier();
 
     DisplayName asDescribable();
 
-    @Override
     ImmutableAttributes getAttributes();
 
     ImmutableList<? extends ComponentArtifactMetadata> getArtifacts();
 
-    @Override
+    // TODO: This type should not expose capabilities, as all artifact variants within a single graph variant
+    // should have the same capability.
     ImmutableCapabilities getCapabilities();
 
     boolean isExternalVariant();
@@ -59,6 +63,11 @@ public interface VariantResolveMetadata extends VariantGraphResolveMetadata.Subv
         return false;
     }
 
+    /**
+     * An opaque identifier for a an artifact variant.
+     * <p>
+     * Implementations must implement equals and hashCode.
+     */
     interface Identifier {
     }
 }

@@ -20,13 +20,13 @@ import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.execution.plan.DependencyResolver;
 import org.gradle.execution.plan.Node;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * Resolves dependencies to {@link TransformStepNode} objects.
  */
-@ServiceScope({Scopes.Build.class, Scopes.Project.class})
+@ServiceScope({Scope.Build.class, Scope.Project.class})
 public class TransformStepNodeDependencyResolver implements DependencyResolver {
     @Override
     public boolean resolve(Task task, Object node, Action<? super Node> resolveAction) {

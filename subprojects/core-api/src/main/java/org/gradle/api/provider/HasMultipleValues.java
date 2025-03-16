@@ -16,10 +16,8 @@
 
 package org.gradle.api.provider;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.SupportsKotlinAssignmentOverloading;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Represents a property whose value can be set using multiple elements of type {@link T}, such as a collection property.
@@ -80,12 +78,8 @@ public interface HasMultipleValues<T> extends HasConfigurableValue, SupportsConv
 
     /**
      * Adds an element to the property value.
-     * <p>
-     * Contrary to {@link #append(Object)}, if this property has no value, this operation has no effect on the value of this property.
-     * </p>
      *
      * @param element The element
-     * @see #append(Object) for a more convenient
      */
     void add(T element);
 
@@ -93,12 +87,7 @@ public interface HasMultipleValues<T> extends HasConfigurableValue, SupportsConv
      * Adds an element to the property value.
      *
      * <p>The given provider will be queried when the value of this property is queried.
-     * <p>
-     * Contrary to {@link #append(Provider)}, if this property has no value, this operation has no effect on the value of this property.
-     * </p>
-     * <p>
-     * Also contrary to {@link #append(Provider)}, this property will have no value when the given provider has no value.
-     * </p>
+     * This property will have no value when the given provider has no value.
      *
      * @param provider The provider of an element
      */
@@ -106,10 +95,6 @@ public interface HasMultipleValues<T> extends HasConfigurableValue, SupportsConv
 
     /**
      * Adds zero or more elements to the property value.
-     *
-     * <p>
-     * Contrary to {@link #appendAll(Object[])}, if this property has no value, this operation has no effect on the value of this property.
-     * </p>
      *
      * @param elements The elements to add
      * @since 4.10
@@ -122,10 +107,6 @@ public interface HasMultipleValues<T> extends HasConfigurableValue, SupportsConv
      *
      * <p>The given iterable will be queried when the value of this property is queried.
      *
-     * <p>
-     * Contrary to {@link #appendAll(Iterable)}, if this property has no value, this operation has no effect on the value of this property.
-     * </p>
-     *
      * @param elements The elements to add.
      * @since 4.10
      */
@@ -135,100 +116,11 @@ public interface HasMultipleValues<T> extends HasConfigurableValue, SupportsConv
      * Adds zero or more elements to the property value.
      *
      * <p>The given provider will be queried when the value of this property is queried.
-     * <p>
-     * Contrary to {@link #appendAll(Provider)}, if this property has no value, this operation has no effect on the value of this property.
-     * </p>
-     * <p>
-     * Also contrary to {@link #appendAll(Provider)}, this property will have no value when the given provider has no value.
-     * </p>
+     * This property will have no value when the given provider has no value.
      *
      * @param provider Provider of elements
      */
     void addAll(Provider<? extends Iterable<? extends T>> provider);
-
-    /**
-     * Adds an element to the property value.
-     *
-     * <p>
-     * When invoked on a property with no value, this method first sets the value
-     * of the property to its current convention value, if set, or an empty collection.
-     * </p>
-     *
-     * @param element The element
-     * @since 8.7
-     */
-    @Incubating
-    void append(T element);
-
-    /**
-     * Adds an element to the property value.
-     *
-     * <p>The given provider will be queried when the value of this property is queried.
-     * This property will have no value when the given provider has no value.
-     *
-     * <p>
-     * When invoked on a property with no value, this method first sets the value
-     * of the property to its current convention value, if set, or an empty collection.
-     * </p>
-     * <p>Even if the given provider has no value, after this method is invoked,
-     * the actual value of this property is guaranteed to be present.</p>
-     *
-     * @param provider The provider of an element
-     * @since 8.7
-     */
-    @Incubating
-    void append(Provider<? extends T> provider);
-
-    /**
-     * Adds zero or more elements to the property value.
-     *
-     * <p>
-     * When invoked on a property with no value, this method first sets the value
-     * of the property to its current convention value, if set, or an empty collection.
-     * </p>
-     *
-     * @param elements The elements to add
-     * @since 8.7
-     */
-    @Incubating
-    @SuppressWarnings("unchecked")
-    // TODO Use @SafeVarargs and make method final
-    void appendAll(T... elements);
-
-    /**
-     * Adds zero or more elements to the property value.
-     *
-     * <p>The given iterable will be queried when the value of this property is queried.
-     *
-     * <p>
-     * When invoked on a property with no value, this method first sets the value
-     * of the property to its current convention value, if set, or an empty collection.
-     * </p>
-     *
-     * @param elements The elements to add.
-     * @since 8.7
-     */
-    @Incubating
-    void appendAll(Iterable<? extends T> elements);
-
-    /**
-     * Adds zero or more elements to the property value.
-     *
-     * <p>The given provider will be queried when the value of this property is queried.
-     * This property will have no value when the given provider has no value.
-     *
-     * <p>
-     * When invoked on a property with no value, this method first sets the value
-     * of the property to its current convention value, if set, or an empty collection.
-     * </p>
-     * <p>Even if the given provider has no value, after this method is invoked,
-     * the actual value of this property is guaranteed to be present.</p>
-     *
-     * @param provider Provider of elements
-     * @since 8.7
-     */
-    @Incubating
-    void appendAll(Provider<? extends Iterable<? extends T>> provider);
 
     /**
      * Specifies the value to use as the convention for this property. The convention is used when no value has been set for this property.

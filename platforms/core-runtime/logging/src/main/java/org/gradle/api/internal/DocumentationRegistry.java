@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal;
 
-import org.gradle.api.problems.internal.DocLink;
+import org.gradle.api.problems.DocLink;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.GradleVersion;
@@ -26,9 +26,11 @@ import org.gradle.util.GradleVersion;
  */
 @ServiceScope(Scope.Global.class)
 public class DocumentationRegistry {
-    public static final String BASE_URL = "https://docs.gradle.org/" + GradleVersion.current().getVersion();
+    public static final String BASE_URL_WITHOUT_VERSION = "https://docs.gradle.org/";
+    public static final String BASE_URL = BASE_URL_WITHOUT_VERSION + GradleVersion.current().getVersion();
     public static final String DSL_PROPERTY_URL_FORMAT = "%s/dsl/%s.html#%s:%s";
-    public static final String LEARN_MORE_STRING = "To learn more about Gradle by exploring our Samples at ";
+    public static final String KOTLIN_DSL_URL_FORMAT = "%s/kotlin-dsl/gradle/%s";
+    public static final String LEARN_MORE_STRING = "Learn more about Gradle by exploring our Samples at ";
 
     /**
      * Returns the location of the documentation for the given feature, referenced by id. The location may be local or remote.
@@ -52,6 +54,15 @@ public class DocumentationRegistry {
 
     public String getDslRefForProperty(String className, String property) {
         return String.format(DSL_PROPERTY_URL_FORMAT, BASE_URL, className, className, property);
+    }
+
+    /**
+     * The location of the Kotlin DSL documentation for a Kotlin extension function .
+     * <p>
+     * The extension function is expected to be defined in the {@code org.gradle.kotlin.dsl} package.
+     */
+    public String getKotlinDslRefForExtension(String extensionName) {
+        return String.format(KOTLIN_DSL_URL_FORMAT, BASE_URL, "org.gradle.kotlin.dsl/" + extensionName + ".html");
     }
 
     public String getSampleIndex() {

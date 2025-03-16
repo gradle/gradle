@@ -39,12 +39,16 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.SupportsConvention;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Cast;
+import org.gradle.internal.Describables;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.state.Managed;
+import org.gradle.internal.state.ModelObject;
+import org.gradle.internal.state.OwnerAware;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.AbstractSet;
 import java.util.ArrayList;
@@ -60,10 +64,10 @@ import java.util.function.Supplier;
 /**
  * A {@link org.gradle.api.file.FileCollection} which resolves a set of paths relative to a {@link org.gradle.api.internal.file.FileResolver}.
  */
-public class DefaultConfigurableFileCollection extends CompositeFileCollection implements ConfigurableFileCollection, Managed, HasConfigurableValueInternal, LazyGroovySupport {
+public class DefaultConfigurableFileCollection extends CompositeFileCollection implements ConfigurableFileCollection, Managed, OwnerAware, HasConfigurableValueInternal, LazyGroovySupport {
     private static final EmptyCollector EMPTY_COLLECTOR = new EmptyCollector();
     private final PathSet filesWrapper;
-    private final String displayName;
+    private DisplayName displayName;
     private final PathToFileResolver resolver;
     private final TaskDependencyFactory dependencyFactory;
     private final PropertyHost host;
@@ -74,11 +78,11 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
 
     public DefaultConfigurableFileCollection(@Nullable String displayName, PathToFileResolver fileResolver, TaskDependencyFactory dependencyFactory, Factory<PatternSet> patternSetFactory, PropertyHost host) {
         super(dependencyFactory, patternSetFactory);
-        this.displayName = displayName;
+        this.displayName = displayName != null ? Describables.of(displayName) : null;
         this.resolver = fileResolver;
         this.dependencyFactory = dependencyFactory;
         this.host = host;
-        this.valueState = ValueState.newState(host);
+        this.valueState = ValueState.newState(host, ValueCollector::isolated);
         init(EMPTY_COLLECTOR, EMPTY_COLLECTOR);
         filesWrapper = new PathSet();
         buildDependency = dependencyFactory.configurableDependency();
@@ -137,10 +141,21 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
 
     @Override
     public void implicitFinalizeValue() {
-        // Property prevents reads *and* mutations,
-        // however CFCs only want automatic finalization on query,
-        // so we do not #disallowChanges().
-        valueState.finalizeOnNextGet();
+        if (valueState.isUpgradedPropertyValue()) {
+            // Upgraded properties should not be finalized to simplify migration.
+            // This behaviour should be removed with Gradle 10.
+            valueState.warnOnUpgradedPropertyValueChanges();
+        } else {
+            // Property prevents reads *and* mutations,
+            // however CFCs only want automatic finalization on query,
+            // so we do not #disallowChanges().
+            valueState.finalizeOnNextGet();
+        }
+    }
+
+    @Override
+    public void markAsUpgradedProperty() {
+        valueState.markAsUpgradedPropertyValue();
     }
 
     @Override
@@ -155,7 +170,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
 
     @Override
     public String getDisplayName() {
-        return displayName == null ? "file collection" : displayName;
+        return displayName == null ? "file collection" : displayName.getDisplayName();
     }
 
     @Override
@@ -196,7 +211,9 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
                 if (DefaultConfigurableFileCollection.this == fileCollection) {
                     throw new UnsupportedOperationException("Self-referencing ConfigurableFileCollections are not supported. Use the from() method to add to a ConfigurableFileCollection.");
                 }
-                return true;
+                // Only visit the children of a CompositeFileCollection but not other types of FileCollections,
+                // since we might accidentally resolve them, for example we don't want to resolve Configurations
+                return fileCollection instanceof CompositeFileCollection;
             }
 
             @Override
@@ -231,32 +248,14 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         setExplicitCollector(newExplicitValue(path));
     }
 
-    /**
-     * Specifies the value to use as the convention (default value) to be used when resolving this file collection,
-     * if no source paths are explicitly defined.
-     *
-     * If, at the time this method is invoked, the set of source paths for this collection is empty, the convention will be used
-     * to resolve this file collection.
-     *
-     * @param paths The paths.
-     * @return this collection
-     */
+    @Override
     public ConfigurableFileCollection convention(Iterable<?> paths) {
         assertMutable();
         setConventionCollector(newConventionValue(paths));
         return this;
     }
 
-    /**
-     * Specifies the value to use as the convention (default value) to be used when resolving this file collection,
-     * if no source paths are explicitly defined.
-     *
-     * If, at the time this method is invoked, the set of source paths for this collection is empty, the convention will be used
-     * to resolve this file collection.
-     *
-     * @param paths The paths.
-     * @return this collection
-     */
+    @Override
     public ConfigurableFileCollection convention(Object... paths) {
         assertMutable();
         setConventionCollector(newConventionValue(paths));
@@ -282,7 +281,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
      * If the property has no convention set at the time this method is invoked,
      * the effect of invoking it is similar to invoking {@link #unset()}.
      */
-    protected ConfigurableFileCollection setToConvention() {
+    protected SupportsConvention setToConvention() {
         assertMutable();
         value = valueState.setToConvention();
         return this;
@@ -296,18 +295,14 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         value = valueState.explicitValue(valueCollector);
     }
 
-    /**
-     * @see SupportsConvention#unsetConvention()
-     */
+    @Override
     public ConfigurableFileCollection unsetConvention() {
         assertMutable();
         setConventionCollector(EMPTY_COLLECTOR);
         return this;
     }
 
-    /**
-     * @see SupportsConvention#unset()
-     */
+    @Override
     public ConfigurableFileCollection unset() {
         assertMutable();
         value = valueState.implicitValue();
@@ -352,9 +347,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     }
 
     private ValueCollector copySources(ValueCollector conventionCollector) {
-        Collection<Object> source = new LinkedHashSet<>();
-        conventionCollector.collectSource(source);
-        return newValue(EMPTY_COLLECTOR, source);
+        return conventionCollector.isolated();
     }
 
     private ValueCollector newValue(ValueCollector baseValue, Object[] paths) {
@@ -367,7 +360,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
 
     @Override
     public ConfigurableFileCollection from(Object... paths) {
-        getConfigurer().from(paths);
+        withActualValue(it -> it.from(paths));
         return this;
     }
 
@@ -390,7 +383,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     }
 
     private String displayNameForThisCollection() {
-        return displayName == null ? "this file collection" : displayName;
+        return displayName == null ? "this file collection" : displayName.getDisplayName();
     }
 
     @Override
@@ -487,13 +480,22 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         return result;
     }
 
-    public void update(Transformer<? extends @org.jetbrains.annotations.Nullable FileCollection, ? super FileCollection> transform) {
-        FileCollection newValue = transform.transform(shallowCopy());
+    public void replace(Transformer<? extends @Nullable FileCollection, ? super FileCollection> transformation) {
+        FileCollection newValue = transformation.transform(shallowCopy());
         if (newValue != null) {
             setFrom(newValue);
         } else {
             setFrom();
         }
+    }
+
+    @Override
+    public void attachOwner(@Nullable ModelObject owner, DisplayName displayName) {
+        this.displayName = displayName;
+    }
+
+    public PathToFileResolver getResolver() {
+        return resolver;
     }
 
     private interface ValueCollector {
@@ -513,6 +515,11 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         List<Object> replace(FileCollectionInternal original, Supplier<FileCollectionInternal> supplier);
 
         boolean isEmpty();
+
+        /**
+         * Returns a shallow copy of this value collector, to avoid sharing mutable data.
+         */
+        ValueCollector isolated();
     }
 
     private static class EmptyCollector implements ValueCollector {
@@ -554,6 +561,11 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         public List<Object> replace(FileCollectionInternal original, Supplier<FileCollectionInternal> supplier) {
             return null;
         }
+
+        @Override
+        public ValueCollector isolated() {
+            return this;
+        }
     }
 
     private static class UnresolvedItemsCollector implements ValueCollector {
@@ -574,6 +586,21 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
             this.taskDependencyFactory = taskDependencyFactory;
             this.patternSetFactory = patternSetFactory;
             Collections.addAll(items, item);
+        }
+
+        /**
+         * A copy constructor.
+         */
+        private UnresolvedItemsCollector(UnresolvedItemsCollector another) {
+            this.resolver = another.resolver;
+            this.taskDependencyFactory = another.taskDependencyFactory;
+            this.patternSetFactory = another.patternSetFactory;
+            items.addAll(another.items);
+        }
+
+        @Override
+        public ValueCollector isolated() {
+            return new UnresolvedItemsCollector(this);
         }
 
         @Override
@@ -648,6 +675,9 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
             ImmutableList.Builder<Object> builder = ImmutableList.builderWithExpectedSize(items.size());
             boolean hasChanges = false;
             for (Object candidate : items) {
+                if (candidate == null) {
+                    continue;
+                }
                 if (candidate instanceof FileCollectionInternal) {
                     FileCollectionInternal newCollection = ((FileCollectionInternal) candidate).replace(original, supplier);
                     hasChanges |= newCollection != candidate;
@@ -712,6 +742,11 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         @Override
         public List<Object> replace(FileCollectionInternal original, Supplier<FileCollectionInternal> supplier) {
             return null;
+        }
+
+        @Override
+        public ValueCollector isolated() {
+            return this;
         }
     }
 

@@ -2,7 +2,7 @@
 // Can enable dynamic resolve mode when you define the repository
 repositories {
     ivy {
-        url "http://repo.mycompany.com/repo"
+        url = "http://repo.mycompany.com/repo"
         resolve.dynamicMode = true
     }
 }

@@ -20,7 +20,7 @@ import it.unimi.dsi.fastutil.ints.IntOpenHashSet
 import it.unimi.dsi.fastutil.ints.IntSet
 import it.unimi.dsi.fastutil.ints.IntSets
 import org.gradle.api.internal.cache.StringInterner
-import org.gradle.api.internal.tasks.compile.incremental.serialization.HierarchicalNameSerializer
+import org.gradle.internal.serialize.HierarchicalNameSerializer
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.serialize.InputStreamBackedDecoder

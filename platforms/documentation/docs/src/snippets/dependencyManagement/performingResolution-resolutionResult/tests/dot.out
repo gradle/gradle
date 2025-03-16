@@ -1,0 +1,15 @@
+digraph {
+    "root project ::runtimeClasspath" [shape=box]
+    "com.google.guava:guava:33.2.1-jre:jreRuntimeElements" [shape=box]
+    "root project ::runtimeClasspath" -> "com.google.guava:guava:33.2.1-jre:jreRuntimeElements"
+    "com.google.guava:failureaccess:1.0.2:runtime" [shape=box]
+    "com.google.guava:guava:33.2.1-jre:jreRuntimeElements" -> "com.google.guava:failureaccess:1.0.2:runtime"
+    "com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava:runtime" [shape=box]
+    "com.google.guava:guava:33.2.1-jre:jreRuntimeElements" -> "com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava:runtime"
+    "com.google.code.findbugs:jsr305:3.0.2:runtime" [shape=box]
+    "com.google.guava:guava:33.2.1-jre:jreRuntimeElements" -> "com.google.code.findbugs:jsr305:3.0.2:runtime"
+    "org.checkerframework:checker-qual:3.42.0:runtimeElements" [shape=box]
+    "com.google.guava:guava:33.2.1-jre:jreRuntimeElements" -> "org.checkerframework:checker-qual:3.42.0:runtimeElements"
+    "com.google.errorprone:error_prone_annotations:2.26.1:runtime" [shape=box]
+    "com.google.guava:guava:33.2.1-jre:jreRuntimeElements" -> "com.google.errorprone:error_prone_annotations:2.26.1:runtime"
+}

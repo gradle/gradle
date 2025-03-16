@@ -26,7 +26,7 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
 
     def "can reference input using dollar method expression - #syntax"() {
         when:
-        buildScript """
+        buildFile """
           @Managed
           interface Thing {
             String getValue(); void setValue(String str)
@@ -68,7 +68,7 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
 
     def "can reference input using dollar var expression - #syntax"() {
         when:
-        buildScript """
+        buildFile """
           @Managed
           interface Thing {
             String getValue(); void setValue(String str)
@@ -107,7 +107,7 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
 
     def "can inject input as parameter of rule closure - #syntax"() {
         when:
-        buildScript """
+        buildFile """
           @Managed
           interface Thing {
             String getValue(); void setValue(String str)
@@ -142,7 +142,7 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
 
     def "input reference can be used as expression statement - #syntax"() {
         when:
-        buildScript """
+        buildFile """
           @Managed
           interface Thing {
             String getValue(); void setValue(String str)
@@ -174,7 +174,7 @@ tasks configured
 
     def "dollar var must be followed by property expression - #code"() {
         when:
-        buildScript """
+        buildFile """
         model {
           foo {
             $code
@@ -202,7 +202,7 @@ tasks configured
 
     def "path for dollar var expression ends with first non-property reference"() {
         when:
-        buildScript '''
+        buildFile '''
         @Managed
         interface Thing {
             List<String> getValues()
@@ -229,7 +229,7 @@ tasks configured
 
     def "only literal strings can be given to dollar method - #code"() {
         when:
-        buildScript """
+        buildFile """
         model {
           foo {
             $code
@@ -258,7 +258,7 @@ tasks configured
 
     def "dollar method is only detected with no explicit receiver - #code"() {
         when:
-        buildScript """
+        buildFile """
             class MyPlugin {
               static class Rules extends RuleSource {
                 @Model
@@ -290,7 +290,7 @@ tasks configured
 
     def "dollar var is only detected with no explicit receiver - #code"() {
         when:
-        buildScript """
+        buildFile """
             class MyPlugin {
               static class Rules extends RuleSource {
                 @Model
@@ -322,7 +322,7 @@ tasks configured
 
     def "input references are found in nested code - #code"() {
         when:
-        buildScript """
+        buildFile """
             class MyPlugin {
                 static class Rules extends RuleSource {
                     @Mutate void addPrintTask(ModelMap<Task> tasks, List<String> strings) {
@@ -387,7 +387,7 @@ cl.call()
 
     def "input model path must be valid"() {
         when:
-        buildScript """
+        buildFile """
             class MyPlugin {
               static class Rules extends RuleSource {
                 @Model
@@ -416,7 +416,7 @@ cl.call()
 
     def "location and suggestions are provided for unbound rule subject specified using a name"() {
         given:
-        buildScript '''
+        buildFile '''
             class MyPlugin extends RuleSource {
                 @Model
                 String foobar() {
@@ -464,7 +464,7 @@ cl.call()
 
     def "location and suggestions are provided for unbound rule inputs specified using a name"() {
         given:
-        buildScript '''
+        buildFile '''
             class MyPlugin {
                 static class Rules extends RuleSource {
                     @Mutate
@@ -507,7 +507,7 @@ cl.call()
     // This is temporary. Will be closed once more progress on DSL has been made
     def "can access project and script from rule"() {
         when:
-        buildScript """
+        buildFile """
             def a = '12'
             model {
                 tasks {

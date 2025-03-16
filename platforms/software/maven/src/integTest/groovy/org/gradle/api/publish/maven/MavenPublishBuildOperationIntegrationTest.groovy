@@ -41,7 +41,7 @@ class MavenPublishBuildOperationIntegrationTest extends AbstractMavenPublishInte
             publishing {
                 repositories {
                     maven {
-                        url "${repo.uri}"
+                        url = "${repo.uri}"
                     }
                 }
                 publications {

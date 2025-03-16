@@ -23,23 +23,23 @@ import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.tasks.FailureCollectingTaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.internal.component.ArtifactVariantSelectionException;
+import org.gradle.internal.component.resolution.failure.exception.ArtifactSelectionException;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 public class ResolutionBackedFileCollection extends AbstractFileCollection {
-    private final ResolutionResultProvider<SelectedArtifactSet> resultProvider;
+
+    private final SelectedArtifactSet artifacts;
     private final boolean lenient;
     private final ResolutionHost resolutionHost;
-    private SelectedArtifactSet selectedArtifacts;
 
     public ResolutionBackedFileCollection(
-        ResolutionResultProvider<SelectedArtifactSet> resultProvider,
+        SelectedArtifactSet artifacts,
         boolean lenient,
         ResolutionHost resolutionHost,
         TaskDependencyFactory taskDependencyFactory
     ) {
         super(taskDependencyFactory);
-        this.resultProvider = resultProvider;
+        this.artifacts = artifacts;
         this.lenient = lenient;
         this.resolutionHost = resolutionHost;
     }
@@ -54,11 +54,13 @@ public class ResolutionBackedFileCollection extends AbstractFileCollection {
 
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
-        SelectedArtifactSet selected = resultProvider.getTaskDependencyValue();
         FailureCollectingTaskDependencyResolveContext collectingContext = new FailureCollectingTaskDependencyResolveContext(context);
-        selected.visitDependencies(collectingContext);
+        artifacts.visitDependencies(collectingContext);
         if (!lenient) {
-            resolutionHost.mapFailure("task dependencies", collectingContext.getFailures()).ifPresent(context::visitFailure);
+            resolutionHost.consolidateFailures("dependencies", collectingContext.getFailures()).ifPresent(consolidatedFailure -> {
+                resolutionHost.reportProblems(consolidatedFailure);
+                context.visitFailure(consolidatedFailure);
+            });
         }
     }
 
@@ -70,18 +72,18 @@ public class ResolutionBackedFileCollection extends AbstractFileCollection {
     @Override
     protected void visitContents(FileCollectionStructureVisitor visitor) {
         ResolvedFileCollectionVisitor collectingVisitor = new ResolvedFileCollectionVisitor(visitor);
-        getSelectedArtifacts().visitFiles(collectingVisitor, lenient);
+        artifacts.visitFiles(collectingVisitor, lenient);
         maybeThrowResolutionFailures(collectingVisitor);
     }
 
     /**
      * If the file collection is not lenient, rethrow any failures that occurred during the visit.
      *
-     * @throws ArtifactVariantSelectionException subtypes
+     * @throws ArtifactSelectionException subtypes
      */
     private void maybeThrowResolutionFailures(ResolvedFileCollectionVisitor collectingVisitor) {
         if (!lenient) {
-            resolutionHost.rethrowFailure("files", collectingVisitor.getFailures());
+            resolutionHost.rethrowFailuresAndReportProblems("files", collectingVisitor.getFailures());
         }
     }
 
@@ -90,10 +92,7 @@ public class ResolutionBackedFileCollection extends AbstractFileCollection {
         formatter.node("contains: " + getDisplayName());
     }
 
-    SelectedArtifactSet getSelectedArtifacts() {
-        if (selectedArtifacts == null) {
-            selectedArtifacts = resultProvider.getValue();
-        }
-        return selectedArtifacts;
+    SelectedArtifactSet getArtifacts() {
+        return artifacts;
     }
 }

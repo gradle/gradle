@@ -7,12 +7,12 @@ description = "Provides plugins to configure quality checks (incubating report, 
 dependencies {
     implementation("gradlebuild:basics")
 
-    implementation(project(":cleanup"))
-    implementation(project(":documentation"))
-    implementation(project(":integration-testing"))
-    implementation(project(":performance-testing"))
-    implementation(project(":profiling"))
-    implementation(project(":binary-compatibility"))
+    implementation(projects.cleanup)
+    implementation(projects.documentation)
+    implementation(projects.integrationTesting)
+    implementation(projects.performanceTesting)
+    implementation(projects.profiling)
+    implementation(projects.binaryCompatibility)
 
     implementation("org.codenarc:CodeNarc") {
         exclude(group = "org.apache.groovy")
@@ -21,12 +21,11 @@ dependencies {
     implementation("com.github.javaparser:javaparser-symbol-solver-core") {
         exclude(group = "com.google.guava")
     }
-    implementation("org.gradle.kotlin:gradle-kotlin-dsl-conventions")
     implementation(kotlin("gradle-plugin"))
     implementation(kotlin("compiler-embeddable") as String) {
         because("Required by IncubatingApiReportTask")
     }
-    implementation("com.gradle:gradle-enterprise-gradle-plugin") {
+    implementation("com.gradle:develocity-gradle-plugin") {
         because("Arch-test plugin configures the PTS extension")
     }
 

@@ -21,9 +21,11 @@ import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationS
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraries
+import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 import org.gradle.vcs.fixtures.GitFileRepository
 
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
+@DoesNotSupportNonAsciiPaths(reason = "swiftc does not support these paths")
 class SwiftDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def app = new SwiftAppWithLibraries()
 
@@ -53,7 +55,7 @@ class SwiftDependenciesIntegrationTest extends AbstractInstalledToolChainIntegra
         assertAppHasOutputFor("release")
     }
 
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = "source dependencies")
     def "can depend on swift libraries from VCS"() {
         given:
         createDirs("app")

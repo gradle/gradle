@@ -17,10 +17,8 @@
 package org.gradle.execution.plan;
 
 import org.gradle.api.Action;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.Cast;
 import org.gradle.internal.MutableReference;
@@ -36,8 +34,10 @@ import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease;
 import org.gradle.internal.work.WorkerLeaseService;
+import org.gradle.internal.work.WorkerLimits;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -58,11 +58,11 @@ import java.util.function.ToLongFunction;
 import static org.gradle.internal.resources.ResourceLockState.Disposition.FINISHED;
 import static org.gradle.internal.resources.ResourceLockState.Disposition.RETRY;
 
-@NonNullApi
+@NullMarked
 public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
     public static final InternalFlag STATS = new InternalFlag("org.gradle.internal.executor.stats");
     private static final Logger LOGGER = Logging.getLogger(DefaultPlanExecutor.class);
-    private final int executorCount;
+    private final WorkerLimits workerLimits;
     private final WorkerLeaseService workerLeaseService;
     private final BuildCancellationToken cancellationToken;
     private final ResourceLockCoordinationService coordinationService;
@@ -72,21 +72,16 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
     private final ExecutorStats stats;
 
     public DefaultPlanExecutor(
-        ParallelismConfiguration parallelismConfiguration,
+        WorkerLimits workerLimits,
         ExecutorFactory executorFactory,
         WorkerLeaseService workerLeaseService,
         BuildCancellationToken cancellationToken,
         ResourceLockCoordinationService coordinationService,
         InternalOptions internalOptions
     ) {
+        this.workerLimits = workerLimits;
         this.cancellationToken = cancellationToken;
         this.coordinationService = coordinationService;
-        int numberOfParallelExecutors = parallelismConfiguration.getMaxWorkerCount();
-        if (numberOfParallelExecutors < 1) {
-            throw new IllegalArgumentException("Not a valid number of parallel executors: " + numberOfParallelExecutors);
-        }
-
-        this.executorCount = numberOfParallelExecutors;
         this.workerLeaseService = workerLeaseService;
         this.stats = internalOptions.getOption(STATS).get() ? new CollectingExecutorStats(state) : state;
         this.queue = new MergedQueues(coordinationService, false);
@@ -179,6 +174,7 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
     }
 
     private void maybeStartWorkers(MergedQueues queue, Executor executor) {
+        int executorCount = workerLimits.getMaxWorkerCount();
         state.maybeStartWorkers(() -> {
             LOGGER.debug("Using {} parallel executor threads", executorCount);
             for (int i = 1; i < executorCount; i++) {
@@ -689,10 +685,8 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
     }
 
     private static class CollectingWorkerStats implements WorkerStats {
-        final long startTime;
         private final CollectingExecutorStats owner;
         private final WorkerState delegate;
-        long finishTime;
         long startCurrentOperation;
         long totalSelectTime;
         long totalExecuteTime;
@@ -701,12 +695,10 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
         public CollectingWorkerStats(CollectingExecutorStats owner, WorkerState delegate) {
             this.owner = owner;
             this.delegate = delegate;
-            startTime = System.nanoTime();
         }
 
         @Override
         public void finish() {
-            finishTime = System.nanoTime();
             owner.workerFinished(this);
         }
 

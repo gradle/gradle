@@ -19,8 +19,8 @@ import org.gradle.api.Named;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -35,7 +35,7 @@ import java.io.IOException;
  * before serialization. The process requires the attribute type to implement {@link Named}.
  */
 public class DesugaringAttributeContainerSerializer implements AttributeContainerSerializer {
-    private final ImmutableAttributesFactory attributesFactory;
+    private final AttributesFactory attributesFactory;
     private final NamedObjectInstantiator namedObjectInstantiator;
 
     private static final byte STRING_ATTRIBUTE = 1;
@@ -43,7 +43,7 @@ public class DesugaringAttributeContainerSerializer implements AttributeContaine
     private static final byte DESUGARED_ATTRIBUTE = 3;
     private static final byte INTEGER_ATTRIBUTE = 4;
 
-    public DesugaringAttributeContainerSerializer(ImmutableAttributesFactory attributesFactory, NamedObjectInstantiator namedObjectInstantiator) {
+    public DesugaringAttributeContainerSerializer(AttributesFactory attributesFactory, NamedObjectInstantiator namedObjectInstantiator) {
         this.attributesFactory = attributesFactory;
         this.namedObjectInstantiator = namedObjectInstantiator;
     }

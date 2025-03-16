@@ -17,8 +17,8 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.DependencyArtifactDescriptor;
@@ -78,7 +78,7 @@ public class IvyModuleDescriptorConverter {
     }
 
     public List<Exclude> extractExcludes(ModuleDescriptor ivyDescriptor) {
-        List<Exclude> result = Lists.newArrayListWithCapacity(ivyDescriptor.getAllExcludeRules().length);
+        List<Exclude> result = new ArrayList<>(ivyDescriptor.getAllExcludeRules().length);
         for (ExcludeRule excludeRule : ivyDescriptor.getAllExcludeRules()) {
             result.add(forIvyExclude(excludeRule));
         }
@@ -86,7 +86,7 @@ public class IvyModuleDescriptorConverter {
     }
 
     public List<IvyDependencyDescriptor> extractDependencies(ModuleDescriptor ivyDescriptor) {
-        List<IvyDependencyDescriptor> result = Lists.newArrayListWithCapacity(ivyDescriptor.getDependencies().length);
+        List<IvyDependencyDescriptor> result = new ArrayList<>(ivyDescriptor.getDependencies().length);
         for (DependencyDescriptor dependencyDescriptor : ivyDescriptor.getDependencies()) {
             addDependency(result, dependencyDescriptor);
         }
@@ -94,7 +94,7 @@ public class IvyModuleDescriptorConverter {
     }
 
     public List<Configuration> extractConfigurations(ModuleDescriptor ivyDescriptor) {
-        List<Configuration> result = Lists.newArrayListWithCapacity(ivyDescriptor.getConfigurations().length);
+        List<Configuration> result = new ArrayList<>(ivyDescriptor.getConfigurations().length);
         for (org.apache.ivy.core.module.descriptor.Configuration ivyConfiguration : ivyDescriptor.getConfigurations()) {
             addConfiguration(result, ivyConfiguration);
         }
@@ -105,7 +105,7 @@ public class IvyModuleDescriptorConverter {
         String name = configuration.getName();
         boolean transitive = configuration.isTransitive();
         boolean visible = configuration.getVisibility() == org.apache.ivy.core.module.descriptor.Configuration.Visibility.PUBLIC;
-        List<String> extendsFrom = Lists.newArrayList(configuration.getExtends());
+        List<String> extendsFrom = ImmutableList.copyOf(configuration.getExtends());
         result.add(new Configuration(name, transitive, visible, extendsFrom));
     }
 

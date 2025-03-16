@@ -23,8 +23,8 @@ import org.gradle.api.artifacts.result.ArtifactResolutionResult
 import org.gradle.api.artifacts.result.UnresolvedComponentResult
 import org.gradle.api.component.Artifact
 import org.gradle.api.component.Component
+import org.gradle.api.internal.artifacts.ComponentMetadataProcessorFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
-import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyFactory
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ExternalModuleComponentResolverFactory
@@ -45,7 +45,7 @@ import spock.lang.Specification
 class DefaultArtifactResolutionQueryTest extends Specification {
     def resolutionStrategyFactory = Stub(ResolutionStrategyFactory)
     def externalResolverFactory = Mock(ExternalModuleComponentResolverFactory)
-    def globalDependencyResolutionRules = Mock(GlobalDependencyResolutionRules)
+    def componentMetadataProcessorFactory = Mock(ComponentMetadataProcessorFactory)
     def componentTypeRegistry = Mock(ComponentTypeRegistry)
     def artifactResolver = Mock(ArtifactResolver)
     def repositoryChain = Mock(ComponentResolvers)
@@ -142,7 +142,7 @@ class DefaultArtifactResolutionQueryTest extends Specification {
     }
 
     private DefaultArtifactResolutionQuery createArtifactResolutionQuery(ComponentTypeRegistry componentTypeRegistry) {
-        new DefaultArtifactResolutionQuery(resolutionStrategyFactory, { [] }, externalResolverFactory, globalDependencyResolutionRules, componentTypeRegistry)
+        new DefaultArtifactResolutionQuery(resolutionStrategyFactory, { [] }, externalResolverFactory, componentMetadataProcessorFactory, componentTypeRegistry)
     }
 
     private ComponentTypeRegistry createTestComponentTypeRegistry() {

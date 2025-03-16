@@ -18,8 +18,7 @@ package org.gradle.api.publish.internal.component;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A {@link ConfigurationSoftwareComponentVariant} which is aware of both Maven and Ivy publishing, and can optionally
@@ -36,7 +35,7 @@ public class FeatureConfigurationVariant extends ConfigurationSoftwareComponentV
         ConfigurationVariant variant,
         String mavenScope,
         boolean optional,
-        @Nullable ConfigurationVariantMapping.DefaultDependencyMappingDetails dependencyMapping
+        ConfigurationVariantMapping.@Nullable DefaultDependencyMappingDetails dependencyMapping
     ) {
         super(name, ((AttributeContainerInternal)variant.getAttributes()).asImmutable(), variant.getArtifacts(), configuration);
         this.scopeMapping = ScopeMapping.of(mavenScope, optional);

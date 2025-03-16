@@ -21,8 +21,8 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Arrays;
 
 /**
@@ -53,13 +53,13 @@ public class GradleSerializedValueSnapshot implements ValueSnapshot {
     @Override
     public ValueSnapshot snapshot(Object value, ValueSnapshotter snapshotter) {
         ValueSnapshot snapshot = snapshotter.snapshot(value);
-        if (hasSameSerializedValue(value, snapshot)) {
+        if (hasSameSerializedValue(snapshot)) {
             return this;
         }
         return snapshot;
     }
 
-    private boolean hasSameSerializedValue(Object value, ValueSnapshot snapshot) {
+    private boolean hasSameSerializedValue(ValueSnapshot snapshot) {
         if (snapshot instanceof GradleSerializedValueSnapshot) {
             GradleSerializedValueSnapshot newSnapshot = (GradleSerializedValueSnapshot) snapshot;
             if (!Objects.equal(implementationHash, newSnapshot.implementationHash)) {

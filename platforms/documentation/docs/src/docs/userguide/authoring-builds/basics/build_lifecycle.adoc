@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Gradle, Inc.
+// Copyright (C) 2024 Gradle, Inc.
 //
 // Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
@@ -15,12 +15,12 @@
 [[build_lifecycle]]
 = Build Lifecycle
 
-As a build author, you define tasks and dependencies between tasks.
-Gradle guarantees that these tasks will execute in order of their dependencies.
+As a build author, you define tasks and specify dependencies between them.
+Gradle guarantees that tasks will execute in the order dictated by these dependencies.
 
-Your build scripts and plugins configure this dependency graph.
+Your build scripts and plugins configure this task dependency graph.
 
-For example, if your project tasks include `build`, `assemble`, `createDocs`, your build script(s) can ensure that they are executed in the order `build` -> `assemble` -> `createDoc`.
+For example, if your project includes tasks such as `build`, `assemble`, and `createDocs`, you can configure the build script so that they are executed in the order: `build` -> `assemble` -> `createDocs`.
 
 == Task Graphs
 

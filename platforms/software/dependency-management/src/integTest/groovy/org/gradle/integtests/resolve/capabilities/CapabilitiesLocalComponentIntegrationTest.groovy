@@ -75,7 +75,7 @@ class CapabilitiesLocalComponentIntegrationTest extends AbstractIntegrationSpec 
         succeeds 'dependencyInsight', '--configuration', 'compileClasspath', '--dependency', ':'
 
         then:
-        outputContains("Could not resolve project :.")
+        outputContains("Could not resolve root project :.")
     }
 
     def "can lazily define and request capability"() {
@@ -120,6 +120,44 @@ class CapabilitiesLocalComponentIntegrationTest extends AbstractIntegrationSpec 
 
         expect:
         succeeds("resolve")
+    }
+
+    def "error when multiple capability selectors do not match includes both selectors"() {
+        settingsFile << """
+            include("other")
+        """
+        file("other/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+        """
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            dependencies {
+                implementation(project(":other")) {
+                    capabilities {
+                        requireCapability("org:capability:1.0")
+                        requireFeature("foo")
+                    }
+                }
+            }
+
+            task resolve {
+                def files = configurations.runtimeClasspath.incoming.files
+                doLast {
+                    println(files*.name)
+                }
+            }
+        """
+
+        when:
+        fails("resolve")
+
+        then:
+        failure.assertHasCause("Unable to find a variant with the requested capabilities: [coordinates 'org:capability', feature 'foo']")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/26377")
@@ -184,5 +222,46 @@ class CapabilitiesLocalComponentIntegrationTest extends AbstractIntegrationSpec 
         expect:
         succeeds("resolve")
     }
-}
 
+    def "can request capability without version"() {
+        settingsFile << """
+            include("other")
+        """
+        file("other/build.gradle") << """
+            configurations {
+                consumable("apiElements") {
+                    outgoing {
+                        artifact(file("foo.txt"))
+                        capability("org:capability:1.0")
+                    }
+                    attributes {
+                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.LIBRARY))
+                    }
+                }
+            }
+        """
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            dependencies {
+                implementation(project(":other")) {
+                    capabilities {
+                        requireCapability("org:capability")
+                    }
+                }
+            }
+
+            task resolve {
+                def files = configurations.runtimeClasspath.incoming.files
+                doLast {
+                    assert files*.name == ["foo.txt"]
+                }
+            }
+        """
+
+        expect:
+        succeeds("resolve")
+    }
+}

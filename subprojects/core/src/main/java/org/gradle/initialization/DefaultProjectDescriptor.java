@@ -28,8 +28,8 @@ import org.gradle.internal.scripts.DefaultScriptFileResolver;
 import org.gradle.internal.scripts.ScriptFileResolver;
 import org.gradle.util.Path;
 import org.gradle.util.internal.NameValidator;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.LinkedHashSet;
 import java.util.Set;

@@ -80,7 +80,7 @@ class JarUtils {
      */
     static class JarBuilder {
         /**
-         * @see org.gradle.api.internal.file.archive.ZipCopyAction#CONSTANT_TIME_FOR_ZIP_ENTRIES
+         * @see org.gradle.api.internal.file.archive.ZipEntryConstants#CONSTANT_TIME_FOR_ZIP_ENTRIES
          */
         private static final long CONSTANT_TIME_FOR_ZIP_ENTRIES = LocalDateTime.parse("1980-02-01T00:00:00.00").atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
 

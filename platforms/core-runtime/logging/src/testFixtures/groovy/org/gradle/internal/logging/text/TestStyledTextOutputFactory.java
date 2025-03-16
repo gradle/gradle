@@ -17,37 +17,73 @@
 package org.gradle.internal.logging.text;
 
 import org.gradle.api.logging.LogLevel;
+import org.gradle.util.internal.TextUtil;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
+/**
+ * Test fixture for {@link StyledTextOutputFactory} that tracks the styled text produced.
+ *
+ * This is intended to be used in tests and only in cases where a single category/log level is used at a time.
+ *
+ * This fixture allows tests to assert that the correct log category, log level and styled output has been produced.
+ */
 public class TestStyledTextOutputFactory extends AbstractStyledTextOutputFactory implements StyledTextOutputFactory {
     private final List<StyledTextOutput> textOutputs = new ArrayList<StyledTextOutput>();
+    private boolean created;
+    private String category;
+    private LogLevel logLevel;
 
+    /**
+     * {@inheritDoc}
+     *
+     * @implNote This implementation tracks the output of the first created category and log level. If the category or log level
+     * changes, the factory will fail to create a new styled text output.
+     */
     @Override
     public StyledTextOutput create(String logCategory, LogLevel logLevel) {
+        if (created && (!Objects.equals(this.category, logCategory) || !Objects.equals(this.logLevel, logLevel))) {
+            throw new UnsupportedOperationException("This fixture can only be used with a single category and log level.");
+        }
+
+        this.created = true;
+        this.category = logCategory;
+        this.logLevel = logLevel;
+
         StyledTextOutput textOutput = new TestStyledTextOutput();
-
-        if (logCategory != null) {
-            textOutput.append("{").append(logCategory).append("}");
-        }
-        if (logLevel != null) {
-            textOutput.append("{").append(logLevel.toString()).append("}");
-        }
-
         textOutputs.add(textOutput);
         return textOutput;
     }
 
+    @Override
     public String toString() {
+        return getOutput();
+    }
+
+    /**
+     * @return the output that has been seen so far.
+     */
+    public String getOutput() {
         StringBuilder builder = new StringBuilder();
         for (StyledTextOutput textOutput: textOutputs) {
             builder.append(textOutput);
         }
-        return builder.toString();
+        return TextUtil.normaliseLineSeparators(builder.toString());
     }
 
-    public void clear() {
-        textOutputs.clear();
+    /**
+     * @return category last seen by the factory.
+     */
+    public String getCategory() {
+        return category;
+    }
+
+    /**
+     * @return log level last seen by the factory.
+     */
+    public LogLevel getLogLevel() {
+        return logLevel;
     }
 }

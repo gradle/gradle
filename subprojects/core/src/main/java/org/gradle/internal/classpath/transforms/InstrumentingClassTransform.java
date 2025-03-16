@@ -16,7 +16,8 @@
 
 package org.gradle.internal.classpath.transforms;
 
-import org.codehaus.groovy.runtime.ProcessGroovyMethods;
+import com.google.common.collect.ImmutableList;
+import org.apache.commons.lang3.ArrayUtils;
 import org.codehaus.groovy.runtime.callsite.CallSiteArray;
 import org.codehaus.groovy.vmplugin.v8.IndyInterface;
 import org.gradle.api.file.RelativePath;
@@ -27,42 +28,48 @@ import org.gradle.internal.classpath.ClasspathEntryVisitor;
 import org.gradle.internal.classpath.Instrumented;
 import org.gradle.internal.classpath.intercept.CallInterceptorRegistry;
 import org.gradle.internal.classpath.intercept.JvmBytecodeInterceptorSet;
+import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
 import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.instrumentation.api.jvmbytecode.BridgeMethodBuilder;
 import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor;
+import org.gradle.internal.instrumentation.api.metadata.InstrumentationMetadata;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
+import org.gradle.internal.instrumentation.reporting.listener.MethodInterceptionListener;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.model.internal.asm.MethodVisitorScope;
+import org.jspecify.annotations.Nullable;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Handle;
+import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.MethodNode;
 
-import java.io.File;
 import java.lang.invoke.CallSite;
+import java.lang.invoke.LambdaMetafactory;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Properties;
 
-import static org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL;
 import static org.gradle.internal.classpath.transforms.CommonTypes.NO_EXCEPTIONS;
 import static org.gradle.internal.classpath.transforms.CommonTypes.STRING_TYPE;
 import static org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter.INSTRUMENTATION_ONLY;
+import static org.gradle.model.internal.asm.AsmConstants.ASM_LEVEL;
 import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
 import static org.objectweb.asm.Opcodes.ACC_STATIC;
 import static org.objectweb.asm.Opcodes.ACC_SYNTHETIC;
+import static org.objectweb.asm.Opcodes.H_INVOKEINTERFACE;
 import static org.objectweb.asm.Opcodes.H_INVOKESTATIC;
-import static org.objectweb.asm.Opcodes.INVOKESPECIAL;
+import static org.objectweb.asm.Opcodes.H_INVOKEVIRTUAL;
 import static org.objectweb.asm.Opcodes.INVOKESTATIC;
-import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
 import static org.objectweb.asm.Type.INT_TYPE;
 import static org.objectweb.asm.Type.getMethodDescriptor;
-import static org.objectweb.asm.Type.getObjectType;
 import static org.objectweb.asm.Type.getType;
 
 public class InstrumentingClassTransform implements ClassTransform {
@@ -70,109 +77,31 @@ public class InstrumentingClassTransform implements ClassTransform {
     /**
      * Decoration format. Increment this when making changes.
      */
-    private static final int DECORATION_FORMAT = 35;
+    private static final int DECORATION_FORMAT = 38;
 
-    private static final Type SYSTEM_TYPE = getType(System.class);
-    private static final Type INTEGER_TYPE = getType(Integer.class);
     private static final Type INSTRUMENTED_TYPE = getType(Instrumented.class);
-    private static final Type LONG_TYPE = getType(Long.class);
-    private static final Type BOOLEAN_TYPE = getType(Boolean.class);
-    public static final Type PROPERTIES_TYPE = getType(Properties.class);
     private static final Type BYTECODE_INTERCEPTOR_FILTER_TYPE = Type.getType(BytecodeInterceptorFilter.class);
 
-    private static final String RETURN_STRING_FROM_STRING = getMethodDescriptor(STRING_TYPE, STRING_TYPE);
-    private static final String RETURN_STRING_FROM_STRING_STRING = getMethodDescriptor(STRING_TYPE, STRING_TYPE, STRING_TYPE);
-    private static final String RETURN_STRING_FROM_STRING_STRING_STRING = getMethodDescriptor(STRING_TYPE, STRING_TYPE, STRING_TYPE, STRING_TYPE);
-    private static final String RETURN_INTEGER_FROM_STRING = getMethodDescriptor(INTEGER_TYPE, STRING_TYPE);
-    private static final String RETURN_INTEGER_FROM_STRING_INT = getMethodDescriptor(INTEGER_TYPE, STRING_TYPE, Type.INT_TYPE);
-    private static final String RETURN_INTEGER_FROM_STRING_INTEGER = getMethodDescriptor(INTEGER_TYPE, STRING_TYPE, INTEGER_TYPE);
-    private static final String RETURN_INTEGER_FROM_STRING_STRING = getMethodDescriptor(INTEGER_TYPE, STRING_TYPE, STRING_TYPE);
-    private static final String RETURN_INTEGER_FROM_STRING_INT_STRING = getMethodDescriptor(INTEGER_TYPE, STRING_TYPE, Type.INT_TYPE, STRING_TYPE);
-    private static final String RETURN_INTEGER_FROM_STRING_INTEGER_STRING = getMethodDescriptor(INTEGER_TYPE, STRING_TYPE, INTEGER_TYPE, STRING_TYPE);
-    private static final String RETURN_LONG_FROM_STRING = getMethodDescriptor(LONG_TYPE, STRING_TYPE);
-    private static final String RETURN_LONG_FROM_STRING_PRIMITIVE_LONG = getMethodDescriptor(LONG_TYPE, STRING_TYPE, Type.LONG_TYPE);
-    private static final String RETURN_LONG_FROM_STRING_LONG = getMethodDescriptor(LONG_TYPE, STRING_TYPE, LONG_TYPE);
-    private static final String RETURN_LONG_FROM_STRING_STRING = getMethodDescriptor(LONG_TYPE, STRING_TYPE, STRING_TYPE);
-    private static final String RETURN_LONG_FROM_STRING_PRIMITIVE_LONG_STRING = getMethodDescriptor(LONG_TYPE, STRING_TYPE, Type.LONG_TYPE, STRING_TYPE);
-    private static final String RETURN_LONG_FROM_STRING_LONG_STRING = getMethodDescriptor(LONG_TYPE, STRING_TYPE, LONG_TYPE, STRING_TYPE);
-    private static final String RETURN_PRIMITIVE_BOOLEAN_FROM_STRING = getMethodDescriptor(Type.BOOLEAN_TYPE, STRING_TYPE);
-    private static final String RETURN_PRIMITIVE_BOOLEAN_FROM_STRING_STRING = getMethodDescriptor(Type.BOOLEAN_TYPE, STRING_TYPE, STRING_TYPE);
-    private static final String RETURN_PROPERTIES = getMethodDescriptor(PROPERTIES_TYPE);
-    private static final String RETURN_PROPERTIES_FROM_STRING = getMethodDescriptor(PROPERTIES_TYPE, STRING_TYPE);
-    private static final String RETURN_VOID_FROM_PROPERTIES = getMethodDescriptor(Type.VOID_TYPE, PROPERTIES_TYPE);
-    private static final String RETURN_VOID_FROM_PROPERTIES_STRING = getMethodDescriptor(Type.VOID_TYPE, PROPERTIES_TYPE, STRING_TYPE);
     private static final String RETURN_CALL_SITE_ARRAY = getMethodDescriptor(getType(CallSiteArray.class));
     private static final String RETURN_VOID_FROM_CALL_SITE_ARRAY_BYTECODE_INTERCEPTOR = getMethodDescriptor(Type.VOID_TYPE, getType(CallSiteArray.class), BYTECODE_INTERCEPTOR_FILTER_TYPE);
-    private static final String RETURN_MAP = getMethodDescriptor(getType(Map.class));
-    private static final String RETURN_MAP_FROM_STRING = getMethodDescriptor(getType(Map.class), STRING_TYPE);
-
-    private static final Type PROCESS_TYPE = getType(Process.class);
-    private static final Type PROCESS_BUILDER_TYPE = getType(ProcessBuilder.class);
-    private static final Type RUNTIME_TYPE = getType(Runtime.class);
-    private static final Type PROCESS_GROOVY_METHODS_TYPE = getType(ProcessGroovyMethods.class);
-    private static final Type STRING_ARRAY_TYPE = getType(String[].class);
-    private static final Type FILE_TYPE = getType(File.class);
-    private static final Type LIST_TYPE = getType(List.class);
-
-    // ProcessBuilder().start() -> start(ProcessBuilder, String)
-    private static final String RETURN_PROCESS = getMethodDescriptor(PROCESS_TYPE);
-    private static final String RETURN_PROCESS_FROM_PROCESS_BUILDER_STRING = getMethodDescriptor(PROCESS_TYPE, PROCESS_BUILDER_TYPE, STRING_TYPE);
-    // ProcessBuilder.startPipeline(List) -> startPipeline(List, String)
-    private static final String RETURN_LIST_FROM_LIST = getMethodDescriptor(LIST_TYPE, LIST_TYPE);
-    private static final String RETURN_LIST_FROM_LIST_STRING = getMethodDescriptor(LIST_TYPE, LIST_TYPE, STRING_TYPE);
-
-    // Runtime().exec(String) -> exec(Runtime, String, String)
-    // ProcessGroovyMethods.execute(String) -> execute(String, String)
-    private static final String RETURN_PROCESS_FROM_STRING = getMethodDescriptor(PROCESS_TYPE, STRING_TYPE);
-    private static final String RETURN_PROCESS_FROM_RUNTIME_STRING_STRING = getMethodDescriptor(PROCESS_TYPE, RUNTIME_TYPE, STRING_TYPE, STRING_TYPE);
-    private static final String RETURN_PROCESS_FROM_STRING_STRING = getMethodDescriptor(PROCESS_TYPE, STRING_TYPE, STRING_TYPE);
-    // Runtime().exec(String[]) -> exec(Runtime, String[], String)
-    // ProcessGroovyMethods.execute(String[]) -> execute(String[], String)
-    private static final String RETURN_PROCESS_FROM_STRING_ARRAY = getMethodDescriptor(PROCESS_TYPE, STRING_ARRAY_TYPE);
-    private static final String RETURN_PROCESS_FROM_RUNTIME_STRING_ARRAY_STRING = getMethodDescriptor(PROCESS_TYPE, RUNTIME_TYPE, STRING_ARRAY_TYPE, STRING_TYPE);
-    private static final String RETURN_PROCESS_FROM_STRING_ARRAY_STRING = getMethodDescriptor(PROCESS_TYPE, STRING_ARRAY_TYPE, STRING_TYPE);
-    // ProcessGroovyMethods.execute(List) -> execute(List, String)
-    private static final String RETURN_PROCESS_FROM_LIST = getMethodDescriptor(PROCESS_TYPE, LIST_TYPE);
-    private static final String RETURN_PROCESS_FROM_LIST_STRING = getMethodDescriptor(PROCESS_TYPE, LIST_TYPE, STRING_TYPE);
-    // Runtime().exec(String, String[]) -> exec(Runtume, String, String[], String)
-    private static final String RETURN_PROCESS_FROM_STRING_STRING_ARRAY = getMethodDescriptor(PROCESS_TYPE, STRING_TYPE, STRING_ARRAY_TYPE);
-    private static final String RETURN_PROCESS_FROM_RUNTIME_STRING_STRING_ARRAY_STRING = getMethodDescriptor(PROCESS_TYPE, RUNTIME_TYPE, STRING_TYPE, STRING_ARRAY_TYPE, STRING_TYPE);
-    // Runtime().exec(String[], String[]) -> exec(Runtume, String[], String[], String)
-    private static final String RETURN_PROCESS_FROM_STRING_ARRAY_STRING_ARRAY = getMethodDescriptor(PROCESS_TYPE, STRING_ARRAY_TYPE, STRING_ARRAY_TYPE);
-    private static final String RETURN_PROCESS_FROM_RUNTIME_STRING_ARRAY_STRING_ARRAY_STRING = getMethodDescriptor(PROCESS_TYPE, RUNTIME_TYPE, STRING_ARRAY_TYPE, STRING_ARRAY_TYPE, STRING_TYPE);
-    // Runtime().exec(String, String[], File) -> exec(Runtime, String, String[], File, String)
-    // ProcessGroovyMethods.execute(String, String[], File) -> execute(String, String[], File, String)
-    private static final String RETURN_PROCESS_FROM_STRING_STRING_ARRAY_FILE = getMethodDescriptor(PROCESS_TYPE, STRING_TYPE, STRING_ARRAY_TYPE, FILE_TYPE);
-    private static final String RETURN_PROCESS_FROM_RUNTIME_STRING_STRING_ARRAY_FILE_STRING = getMethodDescriptor(PROCESS_TYPE, RUNTIME_TYPE, STRING_TYPE, STRING_ARRAY_TYPE, FILE_TYPE, STRING_TYPE);
-    private static final String RETURN_PROCESS_FROM_STRING_STRING_ARRAY_FILE_STRING = getMethodDescriptor(PROCESS_TYPE, STRING_TYPE, STRING_ARRAY_TYPE, FILE_TYPE, STRING_TYPE);
-    // Runtime().exec(String[], String[], File) -> exec(Runtime, String[], String[], File, String)
-    // ProcessGroovyMethods.execute(String[], String[], File) -> execute(String[], String[], File, String)
-    private static final String RETURN_PROCESS_FROM_STRING_ARRAY_STRING_ARRAY_FILE = getMethodDescriptor(PROCESS_TYPE, STRING_ARRAY_TYPE, STRING_ARRAY_TYPE, FILE_TYPE);
-    private static final String RETURN_PROCESS_FROM_RUNTIME_STRING_ARRAY_STRING_ARRAY_FILE_STRING = getMethodDescriptor(PROCESS_TYPE, RUNTIME_TYPE, STRING_ARRAY_TYPE, STRING_ARRAY_TYPE, FILE_TYPE, STRING_TYPE);
-    private static final String RETURN_PROCESS_FROM_STRING_ARRAY_STRING_ARRAY_FILE_STRING = getMethodDescriptor(PROCESS_TYPE, STRING_ARRAY_TYPE, STRING_ARRAY_TYPE, FILE_TYPE, STRING_TYPE);
-    // ProcessGroovyMethods.execute(List, String[], File) -> execute(List, String[], File, String)
-    private static final String RETURN_PROCESS_FROM_LIST_STRING_ARRAY_FILE = getMethodDescriptor(PROCESS_TYPE, LIST_TYPE, STRING_ARRAY_TYPE, FILE_TYPE);
-    private static final String RETURN_PROCESS_FROM_LIST_STRING_ARRAY_FILE_STRING = getMethodDescriptor(PROCESS_TYPE, LIST_TYPE, STRING_ARRAY_TYPE, FILE_TYPE, STRING_TYPE);
-    // ProcessGroovyMethods.execute(String, List, File) -> execute(String, List, File, String)
-    private static final String RETURN_PROCESS_FROM_STRING_LIST_FILE = getMethodDescriptor(PROCESS_TYPE, STRING_TYPE, LIST_TYPE, FILE_TYPE);
-    private static final String RETURN_PROCESS_FROM_STRING_LIST_FILE_STRING = getMethodDescriptor(PROCESS_TYPE, STRING_TYPE, LIST_TYPE, FILE_TYPE, STRING_TYPE);
-    // ProcessGroovyMethods.execute(String[], List, File) -> execute(String[], List, File, String)
-    private static final String RETURN_PROCESS_FROM_STRING_ARRAY_LIST_FILE = getMethodDescriptor(PROCESS_TYPE, STRING_ARRAY_TYPE, LIST_TYPE, FILE_TYPE);
-    private static final String RETURN_PROCESS_FROM_STRING_ARRAY_LIST_FILE_STRING = getMethodDescriptor(PROCESS_TYPE, STRING_ARRAY_TYPE, LIST_TYPE, FILE_TYPE, STRING_TYPE);
-    // ProcessGroovyMethods.execute(List, List, File) -> execute(List, List, File, String)
-    private static final String RETURN_PROCESS_FROM_LIST_LIST_FILE = getMethodDescriptor(PROCESS_TYPE, LIST_TYPE, LIST_TYPE, FILE_TYPE);
-    private static final String RETURN_PROCESS_FROM_LIST_LIST_FILE_STRING = getMethodDescriptor(PROCESS_TYPE, LIST_TYPE, LIST_TYPE, FILE_TYPE, STRING_TYPE);
 
     private static final String GROOVY_INDY_INTERFACE_TYPE = getType(IndyInterface.class).getInternalName();
 
     @SuppressWarnings("deprecation")
     private static final String GROOVY_INDY_INTERFACE_V7_TYPE = getType(org.codehaus.groovy.vmplugin.v7.IndyInterface.class).getInternalName();
     private static final String GROOVY_INDY_INTERFACE_BOOTSTRAP_METHOD_DESCRIPTOR = getMethodDescriptor(getType(CallSite.class), getType(MethodHandles.Lookup.class), STRING_TYPE, getType(MethodType.class), STRING_TYPE, INT_TYPE);
+    private static final String INSTRUMENTED_GROOVY_INDY_INTERFACE_BOOTSTRAP_METHOD_DESCRIPTOR = getMethodDescriptor(getType(CallSite.class), getType(MethodHandles.Lookup.class), STRING_TYPE, getType(MethodType.class), STRING_TYPE, INT_TYPE, STRING_TYPE);
 
     private static final String INSTRUMENTED_CALL_SITE_METHOD = "$instrumentedCallSiteArray";
     private static final String CREATE_CALL_SITE_ARRAY_METHOD = "$createCallSiteArray";
 
+    private static final String LAMBDA_METAFACTORY_TYPE = getType(LambdaMetafactory.class).getInternalName();
+
+    private static final AdhocInterceptors ADHOC_INTERCEPTORS = new AdhocInterceptors();
+
     private final JvmBytecodeInterceptorSet externalInterceptors;
+    private final MethodInterceptionListener methodInterceptionListener;
+    private final InstrumentationMetadata instrumentationMetadata;
 
     @Override
     public void applyConfigurationTo(Hasher hasher) {
@@ -181,42 +110,97 @@ public class InstrumentingClassTransform implements ClassTransform {
     }
 
     public InstrumentingClassTransform() {
-        this(INSTRUMENTATION_ONLY);
+        this(INSTRUMENTATION_ONLY, InstrumentationTypeRegistry.EMPTY);
     }
 
-    public InstrumentingClassTransform(BytecodeInterceptorFilter interceptorFilter) {
+    public InstrumentingClassTransform(BytecodeInterceptorFilter interceptorFilter, InstrumentationTypeRegistry typeRegistry) {
+        this(interceptorFilter, typeRegistry, MethodInterceptionListener.NO_OP);
+    }
+
+    public InstrumentingClassTransform(BytecodeInterceptorFilter interceptorFilter, InstrumentationTypeRegistry typeRegistry, MethodInterceptionListener methodInterceptionListener) {
         this.externalInterceptors = CallInterceptorRegistry.getJvmBytecodeInterceptors(interceptorFilter);
+        this.methodInterceptionListener = methodInterceptionListener;
+        this.instrumentationMetadata = (type, superType) -> typeRegistry.getSuperTypes(type).contains(superType);
+    }
+
+    private BytecodeInterceptorFilter interceptorFilter() {
+        return externalInterceptors.getOriginalFilter();
+    }
+
+    private List<JvmBytecodeCallInterceptor> buildInterceptors(InstrumentationMetadata metadata) {
+        return externalInterceptors.getInterceptors(metadata);
     }
 
     @Override
     public Pair<RelativePath, ClassVisitor> apply(ClasspathEntryVisitor.Entry entry, ClassVisitor visitor, ClassData classData) {
+        // TODO(mlopatkin) can we reuse interceptors in a bigger scope, not per class, but per artifact?
+        List<JvmBytecodeCallInterceptor> interceptors = buildInterceptors(instrumentationMetadata);
+        if (interceptorFilter().matches(ADHOC_INTERCEPTORS)) {
+            interceptors = ImmutableList.<JvmBytecodeCallInterceptor>builderWithExpectedSize(interceptors.size() + 1).add(ADHOC_INTERCEPTORS).addAll(interceptors).build();
+        }
         return Pair.of(entry.getPath(),
             new InstrumentingVisitor(
                 new CallInterceptionClosureInstrumentingClassVisitor(
                     new LambdaSerializationTransformer(new InstrumentingBackwardsCompatibilityVisitor(visitor)),
-                    externalInterceptors.getOriginalFilter()
+                    interceptorFilter()
                 ),
-                classData, externalInterceptors
+                classData,
+                interceptors,
+                interceptorFilter(),
+                methodInterceptionListener
             )
         );
     }
 
-    private static class InstrumentingVisitor extends ClassVisitor {
-        String className;
-        private final ClassData classData;
-        private boolean hasGroovyCallSites;
-        private final JvmBytecodeInterceptorSet externalInterceptors;
+    private static class BridgeMethod {
+        final Handle bridgeMethodHandle;
+        final BridgeMethodBuilder bridgeMethodBuilder;
 
-        public InstrumentingVisitor(ClassVisitor visitor, ClassData classData, JvmBytecodeInterceptorSet externalInterceptors) {
+        private BridgeMethod(Handle bridgeMethodHandle, BridgeMethodBuilder bridgeMethodBuilder) {
+            this.bridgeMethodHandle = bridgeMethodHandle;
+            this.bridgeMethodBuilder = bridgeMethodBuilder;
+        }
+    }
+
+    private static class InstrumentingVisitor extends ClassVisitor {
+        private final ClassData classData;
+        private final List<JvmBytecodeCallInterceptor> interceptors;
+        private final BytecodeInterceptorFilter interceptorFilter;
+
+        private final Map<Handle, BridgeMethod> bridgeMethods = new LinkedHashMap<>();
+        private final MethodInterceptionListener methodInterceptionListener;
+        private int nextBridgeMethodIndex;
+
+        private boolean isInterface;
+        private String className;
+        private String sourceFileName;
+        private boolean hasGroovyCallSites;
+
+        public InstrumentingVisitor(
+            ClassVisitor visitor,
+            ClassData classData,
+            List<JvmBytecodeCallInterceptor> interceptors,
+            BytecodeInterceptorFilter interceptorFilter,
+            MethodInterceptionListener methodInterceptionListener
+        ) {
             super(ASM_LEVEL, visitor);
             this.classData = classData;
-            this.externalInterceptors = externalInterceptors;
+            this.interceptors = interceptors;
+            this.interceptorFilter = interceptorFilter;
+            this.methodInterceptionListener = methodInterceptionListener;
         }
 
         @Override
         public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
             super.visit(version, access, name, signature, superName, interfaces);
+            this.isInterface = (access & Opcodes.ACC_INTERFACE) != 0;
             this.className = name;
+        }
+
+        @Override
+        public void visitSource(String source, String debug) {
+            this.sourceFileName = source;
+            super.visitSource(source, debug);
         }
 
         @Override
@@ -227,11 +211,11 @@ public class InstrumentingClassTransform implements ClassTransform {
             MethodVisitor methodVisitor = super.visitMethod(access, name, descriptor, signature, exceptions);
             Lazy<MethodNode> asMethodNode = Lazy.unsafe().of(() -> {
                 Optional<MethodNode> methodNode = classData.readClassAsNode().methods.stream().filter(method ->
-                        Objects.equals(method.name, name) && Objects.equals(method.desc, descriptor) && Objects.equals(method.signature, signature)
+                    Objects.equals(method.name, name) && Objects.equals(method.desc, descriptor) && Objects.equals(method.signature, signature)
                 ).findFirst();
                 return methodNode.orElseThrow(() -> new IllegalStateException("could not find method " + name + " with descriptor " + descriptor));
             });
-            return new InstrumentingMethodVisitor(this, methodVisitor, asMethodNode, classData, externalInterceptors);
+            return new InstrumentingMethodVisitor(this, methodVisitor, asMethodNode);
         }
 
         @Override
@@ -239,6 +223,7 @@ public class InstrumentingClassTransform implements ClassTransform {
             if (hasGroovyCallSites) {
                 generateCallSiteFactoryMethod();
             }
+            bridgeMethods.values().forEach(this::generateBridgeMethod);
             super.visitEnd();
         }
 
@@ -246,7 +231,7 @@ public class InstrumentingClassTransform implements ClassTransform {
             new MethodVisitorScope(visitStaticPrivateMethod(INSTRUMENTED_CALL_SITE_METHOD, RETURN_CALL_SITE_ARRAY)) {{
                 _INVOKESTATIC(className, CREATE_CALL_SITE_ARRAY_METHOD, RETURN_CALL_SITE_ARRAY);
                 _DUP();
-                _GETSTATIC(BYTECODE_INTERCEPTOR_FILTER_TYPE, externalInterceptors.getOriginalFilter().name(), BYTECODE_INTERCEPTOR_FILTER_TYPE.getDescriptor());
+                _GETSTATIC(BYTECODE_INTERCEPTOR_FILTER_TYPE, interceptorFilter.name(), BYTECODE_INTERCEPTOR_FILTER_TYPE.getDescriptor());
                 _INVOKESTATIC(INSTRUMENTED_TYPE, "groovyCallSites", RETURN_VOID_FROM_CALL_SITE_ARRAY_BYTECODE_INTERCEPTOR);
                 _ARETURN();
                 visitMaxs(2, 0);
@@ -254,8 +239,108 @@ public class InstrumentingClassTransform implements ClassTransform {
             }};
         }
 
+        private void generateBridgeMethod(BridgeMethod bridgeMethod) {
+            bridgeMethod.bridgeMethodBuilder.buildBridgeMethod(visitStaticPrivateMethod(bridgeMethod.bridgeMethodHandle.getName(), bridgeMethod.bridgeMethodHandle.getDesc()));
+        }
+
         private MethodVisitor visitStaticPrivateMethod(String name, String descriptor) {
             return super.visitMethod(ACC_STATIC | ACC_SYNTHETIC | ACC_PRIVATE, name, descriptor, null, NO_EXCEPTIONS);
+        }
+
+        /**
+         * Finds the {@link BridgeMethod} for the method handle. May return null if nothing intercepts the method.
+         * For each method at most one bridge method is produced, regardless the number of handles encountered
+         * (i.e. all method references to e.g. {@code ProcessBuilder::start} in the class are re-routed to a single bridge method).
+         *
+         * @param originalHandle the original method handle
+         * @return the bridge method that intercepts the original method or null if there is no interceptor
+         */
+        @Nullable
+        public BridgeMethod findBridgeMethodFor(Type factoryMethodType, Handle originalHandle) {
+            Handle targetHandle = originalHandle;
+            if ((originalHandle.getTag() == H_INVOKEVIRTUAL || originalHandle.getTag() == H_INVOKEINTERFACE) && factoryMethodType.getArgumentCount() > 0) {
+                // This is a bound instance method, like myFile::exists. The receiver is the first (only?) captured argument,
+                // which is passed to the `factoryMethodType`. An unbound reference, like File::exists, has no captured arguments at all.
+
+                // As elsewhere, if the implementation is rewritten, the original method reference is going to be replaced by a reference to a static method.
+                // However, there is a caveat: static method argument type checking is stricter.
+                // It is possible for the captured receiver argument (of the factory method type) to be a subtype of the method's receiver.
+                // For example, you can have `class MyFile extends File {}`, and capture new MyFile()::exists. The method reference is to the File::exists,
+                // but the factoryMethodType accepts MyFile. This is happily accepted by the LambdaMetafactory.
+
+                // If we simply rewrite the `File::exists` to a reference to `static boolean exists_bridge(File)`, then the LambdaMetafactory will complain,
+                // because the static method argument is no longer a receiver.
+                // To work around that we get the exact receiver type and use it as an interceptor argument, so in our example we will generate
+                // `static boolean exists_bridge(MyFile)`.
+                Type exactReceiverType = factoryMethodType.getArgumentTypes()[0];
+                if (!exactReceiverType.equals(Type.getObjectType(originalHandle.getOwner()))) {
+                    targetHandle = new Handle(
+                        originalHandle.getTag(),
+                        exactReceiverType.getInternalName(),
+                        originalHandle.getName(),
+                        originalHandle.getDesc(),
+                        originalHandle.isInterface()
+                    );
+                }
+            }
+            // We use the target handle to look up bridge methods, but original handle to find the base builders for them.
+            // The found bridge builder is refined based on the target owner.
+            // That way we only generate a single bridge method for each target owner + originalHandle.
+            String targetOwner = targetHandle.getOwner();
+            return bridgeMethods.computeIfAbsent(targetHandle, unused -> maybeBuildBridgeMethod(targetOwner, originalHandle));
+        }
+
+        /**
+         * Prepares the bridge method for the {@code interceptedHandle} with proper argument types.
+         * @param targetOwner the owner type to be used by the bridge method
+         * @param interceptedHandle the method reference to potentially intercept
+         * @return the bridge method data or null if the method shouldn't be intercepted
+         */
+        @Nullable
+        private BridgeMethod maybeBuildBridgeMethod(String targetOwner, Handle interceptedHandle) {
+            for (JvmBytecodeCallInterceptor interceptor : interceptors) {
+                BridgeMethodBuilder methodBuilder = interceptor.findBridgeMethodBuilder(
+                    className,
+                    interceptedHandle.getTag(),
+                    interceptedHandle.getOwner(),
+                    interceptedHandle.getName(),
+                    interceptedHandle.getDesc()
+                );
+                if (methodBuilder != null) {
+                    if (!targetOwner.equals(interceptedHandle.getOwner())) {
+                        methodBuilder = methodBuilder.withReceiverType(targetOwner);
+                    }
+                    return new BridgeMethod(makeBridgeMethodHandle(makeBridgeMethodName(interceptedHandle), methodBuilder.getBridgeMethodDescriptor()), methodBuilder);
+                }
+            }
+            return null;
+        }
+
+        /**
+         * Builds a unique bridge method name for the given method handle based on the owner and the name of the original method.
+         * For example, a bridge method for {@code com.foo.Bar.baz(...)} will be named {@code gradle$intercept$$com$foo$Bar$$baz$<N>},
+         * where {@code <N>} is a number to make the resulting name unique. The number starts from 0 and increases each time this method is called.
+         * <p>
+         * Note that calling this method multiple times returns different names for the same bridge method.
+         * <p>
+         * Most of the name decorations are added only to make stack traces easier to understand.
+         *
+         * @param originalHandle the original method handle to build bridge method for
+         * @return the unique bridge method name.
+         */
+        private String makeBridgeMethodName(Handle originalHandle) {
+            // Index ensures that the generated name is unique for this class.
+            int index = nextBridgeMethodIndex++;
+            // com/foo/Bar -> com$foo$Bar
+            String mangledOwner = originalHandle.getOwner().replace("/", "$");
+            // Only <init> and <clinit> are allowed to have <> in the name.
+            // As we're intercepting these too, we strip prohibited symbols from the bridge method's name.
+            String safeName = originalHandle.getName().replace("<", "_").replace(">", "_");
+            return "gradle$intercept$$" + mangledOwner + "$$" + safeName + "$" + index;
+        }
+
+        private Handle makeBridgeMethodHandle(String name, String desc) {
+            return new Handle(H_INVOKESTATIC, className, name, desc, isInterface);
         }
     }
 
@@ -263,16 +348,31 @@ public class InstrumentingClassTransform implements ClassTransform {
         private final InstrumentingVisitor owner;
         private final String className;
         private final Lazy<MethodNode> asNode;
-        private final Collection<JvmBytecodeCallInterceptor> externalInterceptors;
+        private final Collection<JvmBytecodeCallInterceptor> interceptors;
         private final BytecodeInterceptorFilter interceptorFilter;
+        private final MethodInterceptionListener methodInterceptionListener;
+        private final String sourceFileName;
+        private int methodInsLineNumber;
 
-        public InstrumentingMethodVisitor(InstrumentingVisitor owner, MethodVisitor methodVisitor, Lazy<MethodNode> asNode, ClassData classData, JvmBytecodeInterceptorSet externalInterceptors) {
+        public InstrumentingMethodVisitor(
+            InstrumentingVisitor owner,
+            MethodVisitor methodVisitor,
+            Lazy<MethodNode> asNode
+        ) {
             super(methodVisitor);
             this.owner = owner;
             this.className = owner.className;
+            this.sourceFileName = owner.sourceFileName;
             this.asNode = asNode;
-            this.interceptorFilter = externalInterceptors.getOriginalFilter();
-            this.externalInterceptors = externalInterceptors.getInterceptors(methodVisitor, classData);
+            this.interceptors = owner.interceptors;
+            this.interceptorFilter = owner.interceptorFilter;
+            this.methodInterceptionListener = owner.methodInterceptionListener;
+        }
+
+        @Override
+        public void visitLineNumber(int line, Label start) {
+            methodInsLineNumber = line;
+            super.visitLineNumber(line, start);
         }
 
         @Override
@@ -280,15 +380,18 @@ public class InstrumentingClassTransform implements ClassTransform {
             if (opcode == INVOKESTATIC && visitINVOKESTATIC(owner, name, descriptor)) {
                 return;
             }
-            if (opcode == INVOKEVIRTUAL && visitINVOKEVIRTUAL(owner, name, descriptor)) {
-                return;
-            }
-            if (opcode == INVOKESPECIAL && visitINVOKESPECIAL(owner, name, descriptor)) {
-                return;
-            }
 
-            for (JvmBytecodeCallInterceptor generatedInterceptor : externalInterceptors) {
-                if (generatedInterceptor.visitMethodInsn(className, opcode, owner, name, descriptor, isInterface, asNode)) {
+            for (JvmBytecodeCallInterceptor interceptor : interceptors) {
+                if (interceptor.visitMethodInsn(this, className, opcode, owner, name, descriptor, isInterface, asNode)) {
+                    methodInterceptionListener.onInterceptedMethodInstruction(
+                        interceptor.getType(),
+                        sourceFileName,
+                        className,
+                        owner,
+                        name,
+                        descriptor,
+                        methodInsLineNumber
+                    );
                     return;
                 }
             }
@@ -296,209 +399,42 @@ public class InstrumentingClassTransform implements ClassTransform {
         }
 
         private boolean visitINVOKESTATIC(String owner, String name, String descriptor) {
-            // TODO - load the class literal instead of class name to pass to the methods on Instrumented
-            if (owner.equals(SYSTEM_TYPE.getInternalName())) {
-                if (name.equals("getProperty")) {
-                    if (descriptor.equals(RETURN_STRING_FROM_STRING)) {
-                        _LDC(binaryClassNameOf(className));
-                        _INVOKESTATIC(INSTRUMENTED_TYPE, "systemProperty", RETURN_STRING_FROM_STRING_STRING);
-                        return true;
-                    }
-                    if (descriptor.equals(RETURN_STRING_FROM_STRING_STRING)) {
-                        _LDC(binaryClassNameOf(className));
-                        _INVOKESTATIC(INSTRUMENTED_TYPE, "systemProperty", RETURN_STRING_FROM_STRING_STRING_STRING);
-                        return true;
-                    }
-                } else if (name.equals("getProperties") && descriptor.equals(RETURN_PROPERTIES)) {
-                    _LDC(binaryClassNameOf(className));
-                    _INVOKESTATIC(INSTRUMENTED_TYPE, "systemProperties", RETURN_PROPERTIES_FROM_STRING);
-                    return true;
-                } else if (name.equals("setProperties") && descriptor.equals(RETURN_VOID_FROM_PROPERTIES)) {
-                    _LDC(binaryClassNameOf(className));
-                    _INVOKESTATIC(INSTRUMENTED_TYPE, "setSystemProperties", RETURN_VOID_FROM_PROPERTIES_STRING);
-                    return true;
-                } else if (name.equals("setProperty") && descriptor.equals(RETURN_STRING_FROM_STRING_STRING)) {
-                    _LDC(binaryClassNameOf(className));
-                    _INVOKESTATIC(INSTRUMENTED_TYPE, "setSystemProperty", RETURN_STRING_FROM_STRING_STRING_STRING);
-                    return true;
-                } else if (name.equals("clearProperty") && descriptor.equals(RETURN_STRING_FROM_STRING)) {
-                    _LDC(binaryClassNameOf(className));
-                    _INVOKESTATIC(INSTRUMENTED_TYPE, "clearSystemProperty", RETURN_STRING_FROM_STRING_STRING);
-                    return true;
-                } else if (name.equals("getenv")) {
-                    if (descriptor.equals(RETURN_STRING_FROM_STRING)) {
-                        // System.getenv(String) -> String
-                        _LDC(binaryClassNameOf(className));
-                        _INVOKESTATIC(INSTRUMENTED_TYPE, "getenv", RETURN_STRING_FROM_STRING_STRING);
-                        return true;
-                    } else if (descriptor.equals(RETURN_MAP)) {
-                        // System.getenv() -> Map<String, String>
-                        _LDC(binaryClassNameOf(className));
-                        _INVOKESTATIC(INSTRUMENTED_TYPE, "getenv", RETURN_MAP_FROM_STRING);
-                        return true;
-                    }
-                }
-            } else if (owner.equals(INTEGER_TYPE.getInternalName()) && name.equals("getInteger")) {
-                if (descriptor.equals(RETURN_INTEGER_FROM_STRING)) {
-                    _LDC(binaryClassNameOf(className));
-                    _INVOKESTATIC(INSTRUMENTED_TYPE, "getInteger", RETURN_INTEGER_FROM_STRING_STRING);
-                    return true;
-                }
-                if (descriptor.equals(RETURN_INTEGER_FROM_STRING_INT)) {
-                    _LDC(binaryClassNameOf(className));
-                    _INVOKESTATIC(INSTRUMENTED_TYPE, "getInteger", RETURN_INTEGER_FROM_STRING_INT_STRING);
-                    return true;
-                }
-                if (descriptor.equals(RETURN_INTEGER_FROM_STRING_INTEGER)) {
-                    _LDC(binaryClassNameOf(className));
-                    _INVOKESTATIC(INSTRUMENTED_TYPE, "getInteger", RETURN_INTEGER_FROM_STRING_INTEGER_STRING);
-                    return true;
-                }
-            } else if (owner.equals(LONG_TYPE.getInternalName()) && name.equals("getLong")) {
-                if (descriptor.equals(RETURN_LONG_FROM_STRING)) {
-                    _LDC(binaryClassNameOf(className));
-                    _INVOKESTATIC(INSTRUMENTED_TYPE, "getLong", RETURN_LONG_FROM_STRING_STRING);
-                    return true;
-                }
-                if (descriptor.equals(RETURN_LONG_FROM_STRING_PRIMITIVE_LONG)) {
-                    _LDC(binaryClassNameOf(className));
-                    _INVOKESTATIC(INSTRUMENTED_TYPE, "getLong", RETURN_LONG_FROM_STRING_PRIMITIVE_LONG_STRING);
-                    return true;
-                }
-                if (descriptor.equals(RETURN_LONG_FROM_STRING_LONG)) {
-                    _LDC(binaryClassNameOf(className));
-                    _INVOKESTATIC(INSTRUMENTED_TYPE, "getLong", RETURN_LONG_FROM_STRING_LONG_STRING);
-                    return true;
-                }
-            } else if (owner.equals(BOOLEAN_TYPE.getInternalName()) && name.equals("getBoolean") && descriptor.equals(RETURN_PRIMITIVE_BOOLEAN_FROM_STRING)) {
-                _LDC(binaryClassNameOf(className));
-                _INVOKESTATIC(INSTRUMENTED_TYPE, "getBoolean", RETURN_PRIMITIVE_BOOLEAN_FROM_STRING_STRING);
-                return true;
-            } else if (owner.equals(PROCESS_GROOVY_METHODS_TYPE.getInternalName()) && name.equals("execute")) {
-                Optional<String> instrumentedDescriptor = getInstrumentedDescriptorForProcessGroovyMethodsExecuteDescriptor(descriptor);
-                if (!instrumentedDescriptor.isPresent()) {
-                    return false;
-                }
-                _LDC(binaryClassNameOf(className));
-                _INVOKESTATIC(INSTRUMENTED_TYPE, "execute", instrumentedDescriptor.get());
-                return true;
-            }
-            if (owner.equals(PROCESS_BUILDER_TYPE.getInternalName()) && name.equals("startPipeline") && descriptor.equals(RETURN_LIST_FROM_LIST)) {
-                _LDC(binaryClassNameOf(className));
-                _INVOKESTATIC(INSTRUMENTED_TYPE, "startPipeline", RETURN_LIST_FROM_LIST_STRING);
-                return true;
-            } else if (owner.equals(className) && name.equals(CREATE_CALL_SITE_ARRAY_METHOD) && descriptor.equals(RETURN_CALL_SITE_ARRAY)) {
+            if (owner.equals(className) && name.equals(CREATE_CALL_SITE_ARRAY_METHOD) && descriptor.equals(RETURN_CALL_SITE_ARRAY)) {
                 _INVOKESTATIC(className, INSTRUMENTED_CALL_SITE_METHOD, RETURN_CALL_SITE_ARRAY);
                 return true;
             }
             return false;
         }
 
-        private boolean visitINVOKEVIRTUAL(String owner, String name, String descriptor) {
-            // Runtime.exec(...)
-            if (owner.equals(RUNTIME_TYPE.getInternalName()) && name.equals("exec")) {
-                Optional<String> instrumentedDescriptor = getInstrumentedDescriptorForRuntimeExecDescriptor(descriptor);
-                if (!instrumentedDescriptor.isPresent()) {
-                    return false;
-                }
-                _LDC(binaryClassNameOf(className));
-                _INVOKESTATIC(INSTRUMENTED_TYPE, "exec", instrumentedDescriptor.get());
-                return true;
-            }
-            if (owner.equals(PROCESS_BUILDER_TYPE.getInternalName())) {
-                if (name.equals("start") && descriptor.equals(RETURN_PROCESS)) {
-                    _LDC(binaryClassNameOf(className));
-                    _INVOKESTATIC(INSTRUMENTED_TYPE, "start", RETURN_PROCESS_FROM_PROCESS_BUILDER_STRING);
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        private Optional<String> getInstrumentedDescriptorForProcessGroovyMethodsExecuteDescriptor(String descriptor) {
-            if (descriptor.equals(RETURN_PROCESS_FROM_STRING)) {
-                // execute(String)
-                return Optional.of(RETURN_PROCESS_FROM_STRING_STRING);
-            } else if (descriptor.equals(RETURN_PROCESS_FROM_STRING_ARRAY)) {
-                // execute(String[])
-                return Optional.of(RETURN_PROCESS_FROM_STRING_ARRAY_STRING);
-            } else if (descriptor.equals(RETURN_PROCESS_FROM_LIST)) {
-                // execute(List)
-                return Optional.of(RETURN_PROCESS_FROM_LIST_STRING);
-            } else if (descriptor.equals(RETURN_PROCESS_FROM_STRING_STRING_ARRAY_FILE)) {
-                // execute(String, String[], File)
-                return Optional.of(RETURN_PROCESS_FROM_STRING_STRING_ARRAY_FILE_STRING);
-            } else if (descriptor.equals(RETURN_PROCESS_FROM_STRING_ARRAY_STRING_ARRAY_FILE)) {
-                // execute(String[], String[], File)
-                return Optional.of(RETURN_PROCESS_FROM_STRING_ARRAY_STRING_ARRAY_FILE_STRING);
-            } else if (descriptor.equals(RETURN_PROCESS_FROM_LIST_STRING_ARRAY_FILE)) {
-                // execute(List, String[], File)
-                return Optional.of(RETURN_PROCESS_FROM_LIST_STRING_ARRAY_FILE_STRING);
-            } else if (descriptor.equals(RETURN_PROCESS_FROM_STRING_LIST_FILE)) {
-                // execute(String, List, File)
-                return Optional.of(RETURN_PROCESS_FROM_STRING_LIST_FILE_STRING);
-            } else if (descriptor.equals(RETURN_PROCESS_FROM_STRING_ARRAY_LIST_FILE)) {
-                // execute(String[], List, File)
-                return Optional.of(RETURN_PROCESS_FROM_STRING_ARRAY_LIST_FILE_STRING);
-            } else if (descriptor.equals(RETURN_PROCESS_FROM_LIST_LIST_FILE)) {
-                // execute(List, List, File)
-                return Optional.of(RETURN_PROCESS_FROM_LIST_LIST_FILE_STRING);
-            }
-            // It is some signature of ProcessGroovyMethods.execute that we don't know about.
-            return Optional.empty();
-        }
-
-        private Optional<String> getInstrumentedDescriptorForRuntimeExecDescriptor(String descriptor) {
-            if (descriptor.equals(RETURN_PROCESS_FROM_STRING)) {
-                return Optional.of(RETURN_PROCESS_FROM_RUNTIME_STRING_STRING);
-            } else if (descriptor.equals(RETURN_PROCESS_FROM_STRING_ARRAY)) {
-                return Optional.of(RETURN_PROCESS_FROM_RUNTIME_STRING_ARRAY_STRING);
-            } else if (descriptor.equals(RETURN_PROCESS_FROM_STRING_STRING_ARRAY)) {
-                return Optional.of(RETURN_PROCESS_FROM_RUNTIME_STRING_STRING_ARRAY_STRING);
-            } else if (descriptor.equals(RETURN_PROCESS_FROM_STRING_ARRAY_STRING_ARRAY)) {
-                return Optional.of(RETURN_PROCESS_FROM_RUNTIME_STRING_ARRAY_STRING_ARRAY_STRING);
-            } else if (descriptor.equals(RETURN_PROCESS_FROM_STRING_STRING_ARRAY_FILE)) {
-                return Optional.of(RETURN_PROCESS_FROM_RUNTIME_STRING_STRING_ARRAY_FILE_STRING);
-            } else if (descriptor.equals(RETURN_PROCESS_FROM_STRING_ARRAY_STRING_ARRAY_FILE)) {
-                return Optional.of(RETURN_PROCESS_FROM_RUNTIME_STRING_ARRAY_STRING_ARRAY_FILE_STRING);
-            }
-            // It is some signature of Runtime.exec that we don't know about.
-            return Optional.empty();
-        }
-
-        private boolean visitINVOKESPECIAL(String owner, String name, String descriptor) {
-            return false;
-        }
-
         @Override
         public void visitInvokeDynamicInsn(String name, String descriptor, Handle bootstrapMethodHandle, Object... bootstrapMethodArguments) {
             if (isGroovyIndyCallsite(bootstrapMethodHandle)) {
+                // Handle for org.gradle.internal.classpath.Instrumented.bootstrap() method
                 Handle interceptor = new Handle(
                     H_INVOKESTATIC,
                     INSTRUMENTED_TYPE.getInternalName(),
-                    getBoostrapMethodName(interceptorFilter),
-                    GROOVY_INDY_INTERFACE_BOOTSTRAP_METHOD_DESCRIPTOR,
+                    "bootstrap",
+                    INSTRUMENTED_GROOVY_INDY_INTERFACE_BOOTSTRAP_METHOD_DESCRIPTOR,
                     false
                 );
+                bootstrapMethodArguments = ArrayUtils.add(bootstrapMethodArguments, interceptorFilter.name());
                 super.visitInvokeDynamicInsn(name, descriptor, interceptor, bootstrapMethodArguments);
+            } else if (isLambdaMetafactoryCallsite(bootstrapMethodHandle, bootstrapMethodArguments)) {
+                // The bootstrap method prototypes of LambdaMetafactory.metafactory and altMetafactory goes as follows:
+                // (MethodHandles.Lookup caller, <-- JVM-provided at runtime
+                // String interfaceMethodName, <-- name
+                // MethodType factoryType, <-- descriptor
+                // MethodType interfaceMethodType, <-- bootstrapMethodArguments[0]
+                // MethodHandle implementation, <-- bootstrapMethodArguments[1]
+                // MethodType dynamicMethodType, <-- bootstrapMethodArguments[2]
+                // ... )
+                // `implementation` is the handle to the lambda implementation, which we want to potentially intercept.
+                // factoryType is the descriptor for (captured args) -> SAM interface.
+                bootstrapMethodArguments[1] = maybeInstrumentMethodReference(Type.getMethodType(descriptor), (Handle) bootstrapMethodArguments[1]);
+                super.visitInvokeDynamicInsn(name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments);
             } else {
                 super.visitInvokeDynamicInsn(name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments);
             }
-        }
-
-        private static String getBoostrapMethodName(BytecodeInterceptorFilter interceptorFilter) {
-            switch (interceptorFilter) {
-                case INSTRUMENTATION_ONLY:
-                    return "bootstrapInstrumentationOnly";
-                case ALL:
-                    return "bootstrapAll";
-                default:
-                    throw new UnsupportedOperationException("Unknown interceptor request: " + interceptorFilter);
-            }
-        }
-
-        private String binaryClassNameOf(String className) {
-            return getObjectType(className).getClassName();
         }
 
         private boolean isGroovyIndyCallsite(Handle bootstrapMethodHandle) {
@@ -506,6 +442,21 @@ public class InstrumentingClassTransform implements ClassTransform {
                 bootstrapMethodHandle.getOwner().equals(GROOVY_INDY_INTERFACE_V7_TYPE)) &&
                 bootstrapMethodHandle.getName().equals("bootstrap") &&
                 bootstrapMethodHandle.getDesc().equals(GROOVY_INDY_INTERFACE_BOOTSTRAP_METHOD_DESCRIPTOR);
+        }
+
+        private boolean isLambdaMetafactoryCallsite(Handle bootstrapMethodHandle, Object[] bootstrapMethodArguments) {
+            return bootstrapMethodHandle.getOwner().equals(LAMBDA_METAFACTORY_TYPE) &&
+                (bootstrapMethodHandle.getName().equals("metafactory") || bootstrapMethodHandle.getName().equals("altMetafactory")) &&
+                bootstrapMethodArguments.length >= 3 &&
+                bootstrapMethodArguments[1] instanceof Handle;
+        }
+
+        private Handle maybeInstrumentMethodReference(Type factoryMethodType, Handle handle) {
+            BridgeMethod bridgeMethod = owner.findBridgeMethodFor(factoryMethodType, handle);
+            if (bridgeMethod != null) {
+                return bridgeMethod.bridgeMethodHandle;
+            }
+            return handle; // No instrumentation requested.
         }
     }
 }

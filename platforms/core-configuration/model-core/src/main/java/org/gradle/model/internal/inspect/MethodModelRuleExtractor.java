@@ -16,8 +16,11 @@
 
 package org.gradle.model.internal.inspect;
 
-import javax.annotation.Nullable;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 
+@ServiceScope(Scope.Global.class)
 public interface MethodModelRuleExtractor {
     boolean isSatisfiedBy(MethodRuleDefinition<?, ?> definition);
 

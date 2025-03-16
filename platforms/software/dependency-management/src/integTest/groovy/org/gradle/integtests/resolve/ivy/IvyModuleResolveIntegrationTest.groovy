@@ -28,7 +28,7 @@ configurations {
 }
 dependencies {
     repositories {
-        ivy { url "${ivyRepo.uri}" }
+        ivy { url = "${ivyRepo.uri}" }
     }
     compile 'ivy.configuration:projectA:1.2'
 }
@@ -93,7 +93,7 @@ configurations {
     compile
 }
 repositories {
-    ivy { url "${ivyRepo.uri}" }
+    ivy { url = "${ivyRepo.uri}" }
 }
 dependencies {
     compile group: 'test', name: 'target', version: '1.0', configuration: 'x86_windows'
@@ -106,8 +106,8 @@ task retrieve(type: Sync) {
 
         expect:
         fails 'retrieve'
-        failure.assertHasCause("Could not resolve test:target:1.0.\nRequired by:\n    project :")
-        failure.assertHasCause("A dependency was declared on configuration 'x86_windows' which is not declared in the descriptor for test:target:1.0.")
+        failure.assertHasCause("Could not resolve test:target:1.0.\nRequired by:\n    root project :")
+        failure.assertHasCause("A dependency was declared on configuration 'x86_windows' of 'test:target:1.0' but no variant with that configuration name exists.")
     }
 
     def "fails when ivy module references a configuration that does not exist"() {
@@ -123,7 +123,7 @@ configurations {
     compile
 }
 repositories {
-    ivy { url "${ivyRepo.uri}" }
+    ivy { url = "${ivyRepo.uri}" }
 }
 dependencies {
     compile group: 'test', name: 'target', version: '1.0', configuration: 'something'
@@ -136,7 +136,7 @@ task retrieve(type: Sync) {
 
         expect:
         fails 'retrieve'
-        failure.assertHasCause("Test:target:1.0 declares a dependency from configuration 'something' to configuration 'unknown' which is not declared in the descriptor for test:b:1.0.")
+        failure.assertHasCause("A dependency was declared on configuration 'unknown' of 'test:b:1.0' but no variant with that configuration name exists.")
     }
 
     def "correctly handles configuration mapping rule '#rule'"() {
@@ -147,7 +147,7 @@ configurations {
 }
 dependencies {
     repositories {
-        ivy { url "${ivyHttpRepo.uri}" }
+        ivy { url = "${ivyHttpRepo.uri}" }
     }
     compile group: 'ivy.configuration', name: 'projectA', version: '1.2', configuration: 'a'
 }
@@ -233,7 +233,7 @@ configurations {
 dependencies {
     repositories {
         ivy {
-            url "${ivyRepo.uri}"
+            url = "${ivyRepo.uri}"
             resolve.dynamicMode = project.hasProperty('useDynamicResolve')
         }
     }
@@ -284,14 +284,14 @@ task retrieve(type: Sync) {
         buildFile << """
 repositories {
     ivy {
-        url "${repo1.uri}"
+        url = "${repo1.uri}"
         metadataSources {
             ivyDescriptor()
             artifact()
         }
     }
     ivy {
-        url "${repo2.uri}"
+        url = "${repo2.uri}"
         metadataSources {
             ivyDescriptor()
             artifact()
@@ -335,13 +335,13 @@ task retrieve(type: Sync) {
 
         def resolve = new ResolveTestFixture(buildFile, "compile")
         buildFile << """
-    group 'org.test'
-    version '1.0'
+    group = 'org.test'
+    version = '1.0'
     configurations {
         compile
     }
     repositories {
-        ivy { url "${ivyRepo.uri}" }
+        ivy { url = "${ivyRepo.uri}" }
     }
     dependencies {
         compile group: 'ivy.configuration', name: 'projectA', version: '1.2', configuration: 'a'

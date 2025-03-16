@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+@file:Suppress("FunctionNaming")
+
 package org.gradle.kotlin.dsl.accessors
 
 import kotlinx.metadata.jvm.JvmMethodSignature
@@ -29,9 +31,9 @@ import org.gradle.kotlin.dsl.concurrent.IO
 import org.gradle.kotlin.dsl.concurrent.withAsynchronousIO
 import org.gradle.kotlin.dsl.concurrent.withSynchronousIO
 import org.gradle.kotlin.dsl.concurrent.writeFile
+import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.KOTLIN_DSL_PACKAGE_PATH
 import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.fileHeader
 import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.fileHeaderFor
-import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.kotlinDslPackagePath
 import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.pluginEntriesFrom
 import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.sourceNameOfBinaryName
 import org.gradle.kotlin.dsl.internal.sharedruntime.support.appendReproducibleNewLine
@@ -154,11 +156,11 @@ fun IO.buildPluginDependencySpecAccessorsFor(
     srcDir: File,
     binDir: File
 ) {
-    makeAccessorOutputDirs(srcDir, binDir, kotlinDslPackagePath)
+    makeAccessorOutputDirs(srcDir, binDir, KOTLIN_DSL_PACKAGE_PATH)
 
     val pluginTrees = pluginTreesFrom(pluginDescriptorsClassPath)
 
-    val baseFileName = "$kotlinDslPackagePath/PluginDependencySpecAccessors"
+    val baseFileName = "$KOTLIN_DSL_PACKAGE_PATH/PluginDependencySpecAccessors"
     val sourceFile = srcDir.resolve("$baseFileName.kt")
 
     val accessorList = pluginDependencySpecAccessorsFor(pluginTrees).toList()
@@ -320,7 +322,7 @@ fun pluginImplementationClassesExposedBy(pluginDependencySpecAccessors: List<Plu
 private
 fun pluginDependenciesSpecOf(extendedType: String): String = when (extendedType) {
     "PluginDependenciesSpec" -> "this"
-    else -> pluginsFieldName
+    else -> PLUGINS_FIELD_NAME
 }
 
 
@@ -358,7 +360,7 @@ fun pluginDependencySpecAccessorsFor(pluginTrees: Map<String, PluginTree>, exten
 
 internal
 fun typeSpecForPluginGroupType(groupType: String) =
-    TypeSpec(groupType, InternalName("$kotlinDslPackagePath/$groupType"))
+    TypeSpec(groupType, InternalName("$KOTLIN_DSL_PACKAGE_PATH/$groupType"))
 
 
 internal
@@ -385,7 +387,7 @@ private
 fun MethodVisitor.GETPLUGINS(receiverType: TypeSpec) {
     ALOAD(0)
     if (receiverType !== pluginDependenciesSpecTypeSpec) {
-        GETFIELD(receiverType.internalName, pluginsFieldName, pluginDependenciesSpecTypeDesc)
+        GETFIELD(receiverType.internalName, PLUGINS_FIELD_NAME, pluginDependenciesSpecTypeDesc)
     }
 }
 
@@ -395,13 +397,13 @@ fun emitClassForGroup(group: PluginDependencySpecAccessor.ForGroup): Pair<Intern
 
     val className = extension.returnType.internalName
     val classBytes = publicClass(className) {
-        packagePrivateField(pluginsFieldName, pluginDependenciesSpecTypeDesc)
+        packagePrivateField(PLUGINS_FIELD_NAME, pluginDependenciesSpecTypeDesc)
         publicMethod("<init>", groupTypeConstructorSignature) {
             ALOAD(0)
             INVOKESPECIAL(InternalNameOf.javaLangObject, "<init>", "()V")
             ALOAD(0)
             ALOAD(1)
-            PUTFIELD(className, pluginsFieldName, pluginDependenciesSpecTypeDesc)
+            PUTFIELD(className, PLUGINS_FIELD_NAME, pluginDependenciesSpecTypeDesc)
             RETURN()
         }
     }
@@ -419,7 +421,7 @@ fun ClassWriter.packagePrivateField(name: String, desc: String) {
 
 
 private
-const val pluginsFieldName = "plugins"
+const val PLUGINS_FIELD_NAME = "plugins"
 
 
 private

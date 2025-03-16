@@ -23,7 +23,7 @@ import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.problems.Severity;
-import org.gradle.api.problems.internal.DefaultProblemCategory;
+import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
@@ -35,6 +35,7 @@ import java.util.Collection;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
@@ -51,7 +52,7 @@ public class MissingTaskDependencyDetector {
     }
 
     public void detectMissingDependencies(LocalTaskNode node, TypeValidationContext validationContext) {
-        for (String outputPath : node.getMutationInfo().outputPaths) {
+        for (String outputPath : node.getMutationInfo().getOutputPaths()) {
             inputHierarchy.getNodesAccessing(outputPath).stream()
                 .filter(consumerNode -> hasNoSpecifiedOrder(node, consumerNode))
                 .filter(MissingTaskDependencyDetector::isEnabled)
@@ -171,10 +172,9 @@ public class MissingTaskDependencyDetector {
 
     private void collectValidationProblem(Node producer, Node consumer, TypeValidationContext validationContext, String consumerProducerPath) {
         validationContext.visitPropertyProblem(problem ->
-            problem.typeIsIrrelevantInErrorMessage()
-                .label("Gradle detected a problem with the following location: '" + consumerProducerPath + "'")
-                .documentedAt(userManual("validation_problems", IMPLICIT_DEPENDENCY.toLowerCase()))
-                .category(DefaultProblemCategory.VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(IMPLICIT_DEPENDENCY))
+            problem.id(TextUtil.screamingSnakeToKebabCase(IMPLICIT_DEPENDENCY), "Property has implicit dependency", GradleCoreProblemGroup.validation().property()) // TODO (donat) missing test coverage
+                .contextualLabel("Gradle detected a problem with the following location: '" + consumerProducerPath + "'")
+                .documentedAt(userManual("validation_problems", IMPLICIT_DEPENDENCY.toLowerCase(Locale.ROOT)))
                 .severity(Severity.ERROR)
                 .details(String.format("Task '%s' uses this output of task '%s' without declaring an explicit or implicit dependency. "
                         + "This can lead to incorrect results being produced, depending on what order the tasks are executed",

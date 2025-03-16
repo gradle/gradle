@@ -11,9 +11,11 @@ configurations.all {
     isTransitive = false
 }
 
+// tag::dependency-config[]
 dependencies {
     implementation("com.google.guava:guava:23.0")
 }
+// end::dependency-config[]
 // end::transitive-per-configuration[]
 
 tasks.register<Copy>("copyLibs") {

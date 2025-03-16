@@ -19,7 +19,6 @@ package org.gradle.api.plugins.antlr;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultSourceSet;
@@ -29,6 +28,7 @@ import org.gradle.api.plugins.JavaLibraryPlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.antlr.internal.DefaultAntlrSourceDirectorySet;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.TaskProvider;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -82,28 +82,23 @@ public abstract class AntlrPlugin implements Plugin<Project> {
                     //    naming conventions via call to sourceSet.getTaskName()
                     final String taskName = sourceSet.getTaskName("generate", "GrammarSource");
 
-                    // 3) Set up the Antlr output directory (adding to javac inputs!)
+                    // 3) Set up the Antlr output directory
                     final String outputDirectoryName = project.getBuildDir() + "/generated-src/antlr/" + sourceSet.getName();
                     final File outputDirectory = new File(outputDirectoryName);
-                    sourceSet.getJava().srcDir(outputDirectory);
 
-                    project.getTasks().register(taskName, AntlrTask.class, new Action<AntlrTask>() {
+                    // 4) Register a source-generating task, and
+                    TaskProvider<AntlrTask> antlrTask = project.getTasks().register(taskName, AntlrTask.class, new Action<AntlrTask>() {
                         @Override
                         public void execute(AntlrTask antlrTask) {
                             antlrTask.setDescription("Processes the " + sourceSet.getName() + " Antlr grammars.");
-                            // 4) set up convention mapping for default sources (allows user to not have to specify)
+                            // 4.1) set up convention mapping for default sources (allows user to not have to specify)
                             antlrTask.setSource(antlrSourceSet);
                             antlrTask.setOutputDirectory(outputDirectory);
                         }
                     });
 
-                    // 5) register fact that antlr should be run before compiling
-                    project.getTasks().named(sourceSet.getCompileJavaTaskName(), new Action<Task>() {
-                        @Override
-                        public void execute(Task task) {
-                            task.dependsOn(taskName);
-                        }
-                    });
+                    // 5) Add that task's outputs to the Java source set
+                    sourceSet.getJava().srcDir(antlrTask);
                 }
             });
     }

@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 class BuildFeaturesIntegrationTest extends AbstractIntegrationSpec {
 
     def "can inject service into settings plugin"() {
-        settingsFile << """
+        settingsFile """
             abstract class SomePlugin implements Plugin<Settings> {
                 @Inject
                 abstract BuildFeatures getBuildFeatures()
@@ -42,7 +42,7 @@ class BuildFeaturesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can inject service into project plugin"() {
-        buildFile << """
+        buildFile """
             abstract class SomePlugin implements Plugin<Project> {
                 @Inject
                 abstract BuildFeatures getBuildFeatures()

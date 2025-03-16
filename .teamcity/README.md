@@ -32,8 +32,8 @@ test these changes without affecting `master`/`release` pipeline. Here are the i
   - Suppose the VCS root you just create is `MyNewVcsRoot`. Set "default branch" to `myTestBranch` where your code exists.
 - Click `Create subproject` button at the bottom of the "Subprojects" region of [this page](https://builds.gradle.org/admin/editProject.html?projectId=Gradle&tab=projectGeneralTab)
   - Select `Manually`.
-  - Give it a name. The name will be displayed on TeamCity web UI, we highly recommend it to be capitalized from branch name, i.e. `MyTestBranch`.
-  - The project ID will be auto generated as `Gradle_MyTestBranch`. If not, you probably selected wrong parent, the "Parent project" should be `Gradle`.
+  - Give it a name. The name will be displayed on TeamCity web UI. We highly recommend it be capitalized from the branch name, i.e. `MyTestBranch`.
+  - The project ID will be auto-generated as `Gradle_MyTestBranch`. If not, you probably selected wrong parent, the "Parent project" should be `Gradle`.
 - Now click on the new project you just created. The URL should be `https://builds.gradle.org/admin/editProject.html?projectId=Gradle_<MyTestBranch>`.
 - Click `Versioned Settings` on the left sidebar.
   - Select `Synchronization enabled` - `use settings from VCS` - `MyNewVcsRoot`(the one you just created) - `Settings format: Kotlin`, then `Apply`.

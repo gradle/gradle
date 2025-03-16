@@ -16,7 +16,7 @@
 
 package org.gradle.cache.internal;
 
-import org.gradle.internal.Factory;
+import java.util.function.Supplier;
 
 class NoLockingCacheAccess extends AbstractCrossProcessCacheAccess {
 
@@ -37,8 +37,8 @@ class NoLockingCacheAccess extends AbstractCrossProcessCacheAccess {
     }
 
     @Override
-    public <T> T withFileLock(Factory<T> factory) {
-        return factory.create();
+    public <T> T withFileLock(Supplier<T> factory) {
+        return factory.get();
     }
 
     @Override

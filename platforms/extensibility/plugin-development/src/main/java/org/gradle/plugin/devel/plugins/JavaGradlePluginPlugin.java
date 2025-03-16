@@ -18,7 +18,6 @@ package org.gradle.plugin.devel.plugins;
 
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -32,6 +31,7 @@ import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
 import org.gradle.api.internal.plugins.PluginDescriptor;
+import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.JvmConstants;
 import org.gradle.api.logging.Logger;
@@ -50,6 +50,8 @@ import org.gradle.api.tasks.testing.Test;
 import org.gradle.initialization.buildsrc.GradlePluginApiVersionAttributeConfigurationAction;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.buildoption.InternalFlag;
+import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
@@ -62,6 +64,7 @@ import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
 import org.gradle.plugin.use.resolve.internal.local.PluginPublication;
 import org.gradle.process.CommandLineArgumentProvider;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.File;
 import java.net.MalformedURLException;
@@ -86,9 +89,11 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
  *
  * @see <a href="https://docs.gradle.org/current/userguide/java_gradle_plugin.html">Gradle plugin development reference</a>
  */
-@NonNullApi
+@NullMarked
 public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
+
     private static final Logger LOGGER = Logging.getLogger(JavaGradlePluginPlugin.class);
+
     static final String API_CONFIGURATION = JvmConstants.API_CONFIGURATION_NAME;
     static final String JAR_TASK = "jar";
     static final String PROCESS_RESOURCES_TASK = "processResources";
@@ -105,6 +110,13 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
     static final String PLUGIN_UNDER_TEST_METADATA_TASK_NAME = "pluginUnderTestMetadata";
     static final String GENERATE_PLUGIN_DESCRIPTORS_TASK_NAME = "pluginDescriptors";
     static final String VALIDATE_PLUGINS_TASK_NAME = "validatePlugins";
+
+    /**
+     * Suppress adding the {@code DependencyHandler#gradleApi()} dependency.
+     *
+     * Experimental property used to test using an external Gradle API dependency.
+     */
+    static final InternalFlag EXPERIMENTAL_SUPPRESS_GRADLE_API_PROPERTY = new InternalFlag("org.gradle.unsafe.suppress-gradle-api");
 
     /**
      * The task group used for tasks created by the Java Gradle plugin development plugin.
@@ -137,8 +149,8 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
         project.getPluginManager().apply(JavaLibraryPlugin.class);
-        applyDependencies(project);
         GradlePluginDevelopmentExtension extension = createExtension(project);
+        applyDependencies(project);
         configureJarTask(project, extension);
         configureTestKit(project, extension);
         configurePublishing(project);
@@ -152,10 +164,16 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
     private void registerPlugins(Project project, GradlePluginDevelopmentExtension extension) {
         ProjectInternal projectInternal = (ProjectInternal) project;
         ProjectPublicationRegistry registry = projectInternal.getServices().get(ProjectPublicationRegistry.class);
-        extension.getPlugins().all(pluginDeclaration -> registry.registerPublication(projectInternal, new LocalPluginPublication(pluginDeclaration)));
+        ProjectIdentity projectIdentity = projectInternal.getProjectIdentity();
+        extension.getPlugins().all(pluginDeclaration -> registry.registerPublication(projectIdentity, new LocalPluginPublication(pluginDeclaration)));
     }
 
-    private void applyDependencies(Project project) {
+    private static void applyDependencies(Project project) {
+        // TODO This should be provided via GradlePluginDevelopmentExtension.gradleApiVersion once it's not an experimental feature
+        InternalOptions internalOptions = ((ProjectInternal) project).getServices().get(InternalOptions.class);
+        if (internalOptions.getOption(EXPERIMENTAL_SUPPRESS_GRADLE_API_PROPERTY).get()) {
+            return;
+        }
         DependencyHandler dependencies = project.getDependencies();
         dependencies.add(API_CONFIGURATION, dependencies.gradleApi());
     }

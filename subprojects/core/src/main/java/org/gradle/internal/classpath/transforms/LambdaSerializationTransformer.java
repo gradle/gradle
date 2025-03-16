@@ -19,9 +19,10 @@ package org.gradle.internal.classpath.transforms;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.PeekingIterator;
 import org.gradle.api.InvalidUserCodeException;
-import org.gradle.api.NonNullApi;
-import org.gradle.internal.classanalysis.AsmConstants;
+import org.gradle.model.internal.asm.AsmConstants;
 import org.gradle.model.internal.asm.MethodVisitorScope;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
@@ -29,7 +30,6 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.CodeSizeEvaluator;
 
-import javax.annotation.Nullable;
 import java.lang.invoke.CallSite;
 import java.lang.invoke.LambdaMetafactory;
 import java.lang.invoke.MethodHandles;
@@ -55,7 +55,7 @@ import static org.objectweb.asm.Type.getType;
  * It adds {@link LambdaMetafactory#FLAG_SERIALIZABLE} to all bootstrap methods that create lambdas and generate synthetic deserialization method in the processed class.
  * If deserialization method is already present, it is renamed and the new implementation falls back to it.
  */
-@NonNullApi
+@NullMarked
 class LambdaSerializationTransformer extends ClassVisitor {
     // The method's bytecode must be less than MAX_CODE_SIZE bytes in length.
     private static final int MAX_CODE_SIZE = 65536;
@@ -275,7 +275,7 @@ class LambdaSerializationTransformer extends ClassVisitor {
         lambdaFactories.add(lambdaFactoryDetails);
     }
 
-    @NonNullApi
+    @NullMarked
     private class LambdaFactoryCallRewriter extends MethodVisitorScope {
 
         public LambdaFactoryCallRewriter(@Nullable MethodVisitor methodVisitor) {
@@ -303,7 +303,7 @@ class LambdaSerializationTransformer extends ClassVisitor {
         }
     }
 
-    @NonNullApi
+    @NullMarked
     private static class LambdaFactoryDetails {
         final String name;
         final String descriptor;

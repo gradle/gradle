@@ -39,14 +39,14 @@ class ManualUpToDateOutputOriginIntegrationTest extends AbstractIntegrationSpec 
 
     def "considers invocation that manually declared up-to-date to be an origin"() {
         given:
-        buildScript """
+        buildFile """
             class CustomTask extends DefaultTask {
                 @Input
                 String value = "a"
-                
+
                 @OutputFile
                 File file = project.file("out.txt")
-                
+
                 @TaskAction
                 void action() {
                     if (file.file) {
@@ -56,7 +56,7 @@ class ManualUpToDateOutputOriginIntegrationTest extends AbstractIntegrationSpec 
                     }
                 }
             }
-            
+
             def write = tasks.create("write", CustomTask)
         """
 

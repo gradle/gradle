@@ -112,6 +112,50 @@ class DefaultResourceLockCoordinationServiceTest extends ConcurrentSpec {
         lock2.lockedState
     }
 
+    def "interrupting a withState call waiting for a resource makes it retry acquiring the lock"() {
+        def lock1 = resourceLock("lock1", true)
+        def count = 0
+        Thread blockingThread = null
+
+        when:
+        async {
+            start {
+                coordinationService.withStateLock(new InternalTransformer<ResourceLockState.Disposition, ResourceLockState>() {
+                    @Override
+                    ResourceLockState.Disposition transform(ResourceLockState workerLeaseState) {
+                        try {
+                            blockingThread = Thread.currentThread()
+                            if (lock1.tryLock()) {
+                                return FINISHED
+                            } else {
+                                println "failed to acquire locks - blocking until state change"
+                                return RETRY
+                            }
+                        } finally {
+                            count++
+                            instant."executed${count}"
+                        }
+                    }
+                })
+                assert lock1.doIsLockedByCurrentThread()
+            }
+
+            thread.blockUntil.executed1
+
+            ConcurrentTestUtil.poll {
+                assert lock1.lockedState
+            }
+
+            lock1.lockedState = false
+            blockingThread.interrupt()
+
+            thread.blockUntil.executed2
+        }
+
+        then:
+        lock1.lockedState
+    }
+
     def "can nest multiple calls to withStateLock"() {
         def lock = [
             resourceLock("lock1"),

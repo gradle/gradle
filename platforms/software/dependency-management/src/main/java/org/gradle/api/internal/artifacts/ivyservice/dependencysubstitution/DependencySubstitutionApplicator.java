@@ -17,8 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution;
 
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
 import org.gradle.internal.component.model.DependencyMetadata;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A dependency substitution applicator is responsible for applying substitution rules to dependency metadata.

@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.artifacts.ArtifactPublicationServices;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
+import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.PublicationContainer;
@@ -74,10 +75,11 @@ public abstract class PublishingPlugin implements Plugin<Project> {
             task.setDescription("Publishes all publications produced by this project.");
             task.setGroup(PUBLISH_TASK_GROUP);
         });
+
+        ProjectIdentity projectIdentity = ((ProjectInternal) project).getProjectIdentity();
         extension.getPublications().all(publication -> {
             PublicationInternal<?> internalPublication = Cast.uncheckedNonnullCast(publication);
-            ProjectInternal projectInternal = (ProjectInternal) project;
-            projectPublicationRegistry.registerPublication(projectInternal, internalPublication);
+            projectPublicationRegistry.registerPublication(projectIdentity, internalPublication);
         });
         bridgeToSoftwareModelIfNeeded((ProjectInternal) project);
         validatePublishingModelWhenComplete(project, extension);

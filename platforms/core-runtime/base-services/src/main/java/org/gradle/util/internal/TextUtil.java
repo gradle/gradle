@@ -19,10 +19,11 @@ package org.gradle.util.internal;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.SystemProperties;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
@@ -39,7 +40,7 @@ public class TextUtil {
     private static final Function<String, String> TO_LOWERCASE = new Function<String, String>() {
         @Override
         public String apply(String input) {
-            return input.toLowerCase();
+            return input.toLowerCase(Locale.ROOT);
         }
     };
     private static final Pattern NON_UNIX_LINE_SEPARATORS = Pattern.compile("\r\n|\r");
@@ -339,20 +340,6 @@ public class TextUtil {
     }
 
     /**
-     * This method should be used when making strings lowercase that
-     * could be affected by locale differences. This method always uses an
-     * English locale.
-     *
-     * @param s string to be made lowercase
-     * @return a lowercase string that ignores locale
-     * @see <a href="https://issues.gradle.org/browse/GRADLE-3470">GRADLE-3470</a>
-     * @see <a href="https://haacked.com/archive/2012/07/05/turkish-i-problem-and-why-you-should-care.aspx/">Turkish i problem</a>
-     */
-    public static String toLowerCaseLocaleSafe(String s) {
-        return s.toLowerCase(Locale.ENGLISH);
-    }
-
-    /**
      * This method returns the plural ending for an english word for trivial cases depending on the number of elements a list has.
      *
      * @param collection which size is used to determine the plural ending
@@ -370,6 +357,13 @@ public class TextUtil {
     }
 
     public static String screamingSnakeToKebabCase(String text) {
-        return toLowerCaseLocaleSafe(text).replaceAll("_", "-");
+        return StringUtils.replace(text.toLowerCase(Locale.ENGLISH), "_", "-");
+    }
+
+    public static String removeTrailing(String originalString, String suffix) {
+        if (originalString.endsWith(suffix)) {
+            return originalString.substring(0, originalString.length() - suffix.length());
+        }
+        return originalString;
     }
 }

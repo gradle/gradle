@@ -6,6 +6,10 @@ import java.util.zip.ZipFile
 
 import org.gradle.api.artifacts.transform.TransformParameters
 
+plugins {
+    id("java-library")
+}
+
 // tag::artifact-transform-unzip[]
 abstract class Unzip : TransformAction<TransformParameters.None> {          // <1>
     @get:InputArtifact                                                      // <2>
@@ -14,7 +18,7 @@ abstract class Unzip : TransformAction<TransformParameters.None> {          // <
     override
     fun transform(outputs: TransformOutputs) {
         val input = inputArtifact.get().asFile
-        val unzipDir = outputs.dir(input.name)                              // <3>
+        val unzipDir = outputs.dir(input.name + "-unzipped")                // <3>
         unzipTo(input, unzipDir)                                            // <4>
     }
 
@@ -45,23 +49,47 @@ abstract class Unzip : TransformAction<TransformParameters.None> {          // <
 }
 // end::artifact-transform-unzip[]
 
-val usage = Attribute.of("usage", String::class.java)
 // tag::artifact-transform-registration[]
-val artifactType = Attribute.of("artifactType", String::class.java)
-
 dependencies {
-    registerTransform(Unzip::class) {
-        from.attribute(artifactType, "jar")
-        to.attribute(artifactType, "java-classes-directory")
+    registerTransform(Unzip::class.java) {
+        from.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named<LibraryElements>(LibraryElements.JAR))
+        from.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.JAR_TYPE)
+        to.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named<LibraryElements>(LibraryElements.CLASSES_AND_RESOURCES))
+        to.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.DIRECTORY_TYPE)
     }
 }
 // end::artifact-transform-registration[]
 
-dependencies {
-    attributesSchema {
-        attribute(usage)
+abstract class ResolveFiles : DefaultTask() {
+
+    @get:InputFiles
+    abstract val files: ConfigurableFileCollection
+
+    @TaskAction
+    fun print() {
+        files.forEach {
+            println(it.name)
+        }
     }
 }
-configurations.create("compile") {
-    attributes.attribute(usage, "api")
+
+repositories {
+    mavenCentral()
 }
+
+dependencies {
+    implementation("org.junit.jupiter:junit-jupiter-api:5.11.0")
+}
+
+// tag::resolve-transformed-files[]
+tasks.register<ResolveFiles>("resolveTransformedFiles") {
+    files.from(configurations.runtimeClasspath.map {
+        it.incoming.artifactView {
+            attributes {
+                attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.CLASSES_AND_RESOURCES))
+                attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.DIRECTORY_TYPE)
+            }
+        }.files
+    })
+}
+// end::resolve-transformed-files[]

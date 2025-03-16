@@ -17,17 +17,13 @@
 package org.gradle.kotlin.dsl.provider
 
 import groovy.json.JsonOutput.toJson
-
 import org.gradle.api.internal.initialization.AbstractClassLoaderScope
 import org.gradle.api.internal.initialization.ClassLoaderScope
-
 import org.gradle.internal.classloader.ClassLoaderVisitor
-
 import org.gradle.kotlin.dsl.support.foldHierarchy
-
 import java.net.URL
-
-import java.util.*
+import java.util.ArrayDeque
+import java.util.IdentityHashMap
 
 
 /**
@@ -130,8 +126,8 @@ fun hierarchyOf(classLoader: ClassLoader): ArrayList<ClassLoaderNode> {
             super.visitParent(classLoader)
         }
 
-        override fun visitClassPath(classPath: Array<out URL?>) {
-            current.classPath.addAll(classPath.filterNotNull())
+        override fun visitClassPath(classPath: Array<out URL>) {
+            current.classPath.addAll(classPath)
         }
 
         private

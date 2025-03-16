@@ -24,8 +24,7 @@ import org.gradle.internal.Describables;
 import org.gradle.internal.build.BuildModelController;
 import org.gradle.internal.model.StateTransitionController;
 import org.gradle.internal.model.StateTransitionControllerFactory;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class VintageBuildModelController implements BuildModelController {
     private enum Stage implements StateTransitionController.State {

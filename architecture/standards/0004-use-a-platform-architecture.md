@@ -1,4 +1,4 @@
-# ADR-0004 - Use a platform oriented architecture for Gradle
+# ADR-0004 - Use a platform-oriented architecture for Gradle
 
 ## Date
 
@@ -16,7 +16,7 @@ This has a number of negative effects on productivity, including:
 ## Decision
 
 Organize the Gradle code base into a set of coarse-grained "architecture modules".
-An architecture module is responsible for providing some coherent set of features and:
+An architecture module is responsible for providing a coherent set of features and:
 
 - Provides a set of APIs and services for use from outside the module.
 - Has a private implementation.
@@ -24,7 +24,7 @@ An architecture module is responsible for providing some coherent set of feature
 
 The modules are arranged into several different "Gradle platforms".
 A Gradle platform is a logical distribution that provides support for a specific kind of automation.
-A typical platform builds on other platforms in order to add more capabilities, for example to add support for a particular language.
+A typical platform builds on other platforms in order to add more capabilities, for example, to add support for a particular language.
 
 See the [discovery document](https://docs.google.com/document/d/1-oKG23gLdx2D2uJvzir31AhDFyqSf81LDESfKKCU28c/edit#heading=h.pps74pn68uvk) (internal document) for more context.
 
@@ -34,7 +34,7 @@ The platforms and their architecture modules are:
 
 #### Core automation platform
 
-This is a general purpose automation platform, which takes care of the efficient definition and execution of work, such as tasks.
+This is a general-purpose automation platform which takes care of the efficient definition and execution of work, such as tasks.
 This platform is agnostic to what exactly the purpose of the work is.
 It might be creating an application, setting up development environments, orchestrating deployments, running simulations, etc.
 

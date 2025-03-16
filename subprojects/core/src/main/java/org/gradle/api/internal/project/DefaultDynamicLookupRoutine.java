@@ -21,8 +21,8 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.DynamicObject;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 
 public class DefaultDynamicLookupRoutine implements DynamicLookupRoutine {
@@ -56,5 +56,10 @@ public class DefaultDynamicLookupRoutine implements DynamicLookupRoutine {
     @Override
     public Object invokeMethod(DynamicObject receiver, String name, Object... args) {
         return receiver.invokeMethod(name, args);
+    }
+
+    @Override
+    public DynamicInvokeResult tryGetProperty(DynamicObject receiver, String name) {
+        return receiver.tryGetProperty(name);
     }
 }

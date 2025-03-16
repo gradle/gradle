@@ -16,37 +16,43 @@
 
 package org.gradle.internal.jacoco;
 
-import org.gradle.api.Task;
-import org.gradle.api.internal.CollectionCallbackActionDecorator;
+import com.google.common.collect.ImmutableList;
+import org.gradle.api.Describable;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.reporting.ConfigurableReport;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.SingleFileReport;
-import org.gradle.api.reporting.internal.TaskGeneratedSingleDirectoryReport;
-import org.gradle.api.reporting.internal.TaskGeneratedSingleFileReport;
-import org.gradle.api.reporting.internal.TaskReportContainer;
+import org.gradle.api.reporting.internal.DefaultReportContainer;
+import org.gradle.api.reporting.internal.DefaultSingleFileReport;
+import org.gradle.api.reporting.internal.DelegatingReportContainer;
+import org.gradle.api.reporting.internal.SingleDirectoryReport;
 import org.gradle.testing.jacoco.tasks.JacocoReportsContainer;
 
-public class JacocoReportsContainerImpl extends TaskReportContainer<ConfigurableReport> implements JacocoReportsContainer {
+import javax.inject.Inject;
 
-    public JacocoReportsContainerImpl(Task task, CollectionCallbackActionDecorator callbackActionDecorator) {
-        super(ConfigurableReport.class, task, callbackActionDecorator);
-        add(TaskGeneratedSingleDirectoryReport.class, "html", task, "index.html");
-        add(TaskGeneratedSingleFileReport.class, "xml", task);
-        add(TaskGeneratedSingleFileReport.class, "csv", task);
+public class JacocoReportsContainerImpl extends DelegatingReportContainer<ConfigurableReport> implements JacocoReportsContainer {
+
+    @Inject
+    public JacocoReportsContainerImpl(Describable owner, ObjectFactory objectFactory) {
+        super(DefaultReportContainer.create(objectFactory, ConfigurableReport.class, factory -> ImmutableList.of(
+            factory.instantiateReport(SingleDirectoryReport.class, "html", owner, "index.html"),
+            factory.instantiateReport(DefaultSingleFileReport.class, "xml", owner),
+            factory.instantiateReport(DefaultSingleFileReport.class, "csv", owner)
+        )));
     }
 
     @Override
     public DirectoryReport getHtml() {
-        return (DirectoryReport)getByName("html");
+        return (DirectoryReport) getByName("html");
     }
 
     @Override
     public SingleFileReport getXml() {
-        return (SingleFileReport)getByName("xml");
+        return (SingleFileReport) getByName("xml");
     }
 
     @Override
     public SingleFileReport getCsv() {
-        return (SingleFileReport)getByName("csv");
+        return (SingleFileReport) getByName("csv");
     }
 }

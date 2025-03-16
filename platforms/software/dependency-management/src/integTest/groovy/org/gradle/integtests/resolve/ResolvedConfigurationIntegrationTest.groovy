@@ -23,26 +23,30 @@ import spock.lang.Issue
 @FluidDependenciesResolveTest
 class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def setup() {
-        buildFile << """
-            allprojects {
-                apply plugin: "java"
-            }
-            repositories {
-                maven { url '${mavenHttpRepo.uri}' }
+        settingsFile << """
+            dependencyResolutionManagement {
+                repositories {
+                    maven {
+                        url = "${mavenHttpRepo.uri}"
+                    }
+                }
             }
         """
     }
 
     @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "resolves strictly for dependency resolve failures when #expression is used"() {
-        createDirs("child")
-        settingsFile << "include 'child'"
         def m1 = mavenHttpRepo.module('org.foo', 'hiphop').publish()
         def m2 = mavenHttpRepo.module('org.foo', 'unknown')
         def m3 = mavenHttpRepo.module('org.foo', 'broken')
         def m4 = mavenHttpRepo.module('org.foo', 'rock').dependsOn(m3).publish()
 
+        settingsFile << "include 'child'"
+
         buildFile << """
+            plugins {
+                id("java-library")
+            }
             dependencies {
                 implementation 'org.foo:hiphop:1.0'
                 implementation 'org.foo:unknown:1.0' //does not exist
@@ -61,6 +65,12 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
             }
         """
 
+        file("child/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+        """
+
         m1.allowAll()
         m2.allowAll()
         m3.pom.expectGetBroken()
@@ -69,6 +79,14 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         expect:
         //TODO: fix dependency resolution results usage in this test and remove this flag
         executer.withBuildJvmOpts("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
+
+        if (expression == "getFirstLevelModuleDependencies { true }") {
+            executer.expectDocumentedDeprecationWarning("The ResolvedConfiguration.getFirstLevelModuleDependencies(Spec) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use getFirstLevelModuleDependencies() instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
+        } else if (expression == "getFiles { true }") {
+            executer.expectDocumentedDeprecationWarning("The ResolvedConfiguration.getFiles(Spec) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use an ArtifactView with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
+        } else if (expression == "files") {
+            executer.expectDocumentedDeprecationWarning("The ResolvedConfiguration.getFiles() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration#getFiles instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_legacy_configuration_get_files")
+        }
 
         fails "validate"
         outputContains("evaluating:") // ensure the failure happens when querying the resolved configuration
@@ -79,21 +97,24 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         expression                                 | _
         "firstLevelModuleDependencies"             | _
         "getFirstLevelModuleDependencies { true }" | _
-        "files { true }"                           | _
+        "getFiles { true }"                        | _
         "files"                                    | _
         "resolvedArtifacts"                        | _
     }
 
     @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "resolves strictly for artifact resolve failures when #expression is used"() {
-        createDirs("child")
-        settingsFile << "include 'child'"
         def m1 = mavenHttpRepo.module('org.foo', 'hiphop').publish()
         def m2 = mavenHttpRepo.module('org.foo', 'unknown').publish()
         def m3 = mavenHttpRepo.module('org.foo', 'broken').publish()
         def m4 = mavenHttpRepo.module('org.foo', 'rock').dependsOn(m3).publish()
 
+        settingsFile << "include 'child'"
+
         buildFile << """
+            plugins {
+                id("java-library")
+            }
             dependencies {
                 implementation 'org.foo:hiphop:1.0'
                 implementation 'org.foo:unknown:1.0' //does not exist
@@ -116,6 +137,12 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
             }
         """
 
+        file("child/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+        """
+
         m1.allowAll()
         m2.pom.expectGet()
         m2.artifact.expectGetMissing()
@@ -124,6 +151,7 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         m4.allowAll()
 
         expect:
+        executer.expectDocumentedDeprecationWarning("The ResolvedConfiguration.getFiles() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration#getFiles instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_legacy_configuration_get_files")
         //TODO: fix dependency resolution results usage in this test and remove this flag
         executer.withBuildJvmOpts("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
 
@@ -140,14 +168,17 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
 
     @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "resolves leniently for dependency resolve failures"() {
-        createDirs("child")
-        settingsFile << "include 'child'"
         def m1 = mavenHttpRepo.module('org.foo', 'hiphop').publish()
         def m2 = mavenHttpRepo.module('org.foo', 'unknown')
         def m3 = mavenHttpRepo.module('org.foo', 'broken')
         def m4 = mavenHttpRepo.module('org.foo', 'rock').dependsOn(m3).publish()
 
+        settingsFile << "include 'child'"
+
         buildFile << """
+            plugins {
+                id("java-library")
+            }
             dependencies {
                 implementation 'org.foo:hiphop:1.0'
                 implementation 'org.foo:unknown:1.0' //does not exist
@@ -171,26 +202,32 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
                     def files = compile.files
 
                     assert files.size() == 3
-                    assert files.collect { it.name } == ['hiphop-1.0.jar', 'child.jar', 'rock-1.0.jar']
+                    assert files.collect { it.name } == ['hiphop-1.0.jar', 'main', 'rock-1.0.jar']
 
                     files = compile.getFiles { true }
 
-                    assert files.collect { it.name } == ['hiphop-1.0.jar', 'child.jar', 'rock-1.0.jar']
+                    assert files.collect { it.name } == ['hiphop-1.0.jar', 'main', 'rock-1.0.jar']
 
                     def artifacts = compile.artifacts
 
                     assert artifacts.size() == 3
-                    assert artifacts.collect { it.file.name } == ['hiphop-1.0.jar', 'child.jar', 'rock-1.0.jar']
+                    assert artifacts.collect { it.file.name } == ['hiphop-1.0.jar', 'main', 'rock-1.0.jar']
 
                     artifacts = compile.getArtifacts { true }
 
-                    assert artifacts.collect { it.file.name } == ['hiphop-1.0.jar', 'child.jar', 'rock-1.0.jar']
+                    assert artifacts.collect { it.file.name } == ['hiphop-1.0.jar', 'main', 'rock-1.0.jar']
 
                     def unresolved = compile.unresolvedModuleDependencies
                     assert unresolved.size() == 2
                     assert unresolved.find { it.selector.group == 'org.foo' && it.selector.name == 'unknown' && it.selector.version == '1.0' }
                     assert unresolved.find { it.selector.name == 'broken' }
                 }
+            }
+        """
+
+        file("child/build.gradle") << """
+            plugins {
+                id("java-library")
             }
         """
 
@@ -202,6 +239,10 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         expect:
         //TODO: fix dependency resolution results usage in this test and remove this flag
         executer.withBuildJvmOpts("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
+        executer.expectDocumentedDeprecationWarning("The LenientConfiguration.getFirstLevelModuleDependencies(Spec) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use getFirstLevelModuleDependencies() instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
+        executer.expectDocumentedDeprecationWarning("The LenientConfiguration.getFiles() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use a lenient ArtifactView instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_legacy_configuration_get_files")
+        executer.expectDocumentedDeprecationWarning("The LenientConfiguration.getFiles(Spec) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use a lenient ArtifactView with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
+        executer.expectDocumentedDeprecationWarning("The LenientConfiguration.getArtifacts(Spec) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use a lenient ArtifactView with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
         succeeds "validate"
     }
 
@@ -225,6 +266,10 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         b2.publish()
 
         buildFile << """
+            plugins {
+                id("java-library")
+            }
+
             dependencies {
                 implementation 'org.foo:a:1.0'
                 implementation 'org.foo:b:1.0'
@@ -270,6 +315,12 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
             }
         """
 
+        file("child/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+        """
+
         a1.allowAll()
         b1.allowAll()
         b2.allowAll()
@@ -281,19 +332,27 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         expect:
         //TODO: fix dependency resolution results usage in this test and remove this flag
         executer.withBuildJvmOpts("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
+        executer.expectDocumentedDeprecationWarning("The LenientConfiguration.getFirstLevelModuleDependencies(Spec) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use getFirstLevelModuleDependencies() instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
+        executer.expectDocumentedDeprecationWarning("The LenientConfiguration.getFiles() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use a lenient ArtifactView instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_legacy_configuration_get_files")
+        executer.expectDocumentedDeprecationWarning("The LenientConfiguration.getFiles(Spec) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use a lenient ArtifactView with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
+        executer.expectDocumentedDeprecationWarning("The LenientConfiguration.getArtifacts(Spec) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use a lenient ArtifactView with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
         succeeds "validate"
     }
 
     @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "lenient for both dependency and artifact resolve and download failures"() {
-        createDirs("child")
-        settingsFile << "include 'child'"
         def m1 = mavenHttpRepo.module('org.foo', 'hiphop').publish()
         def m2 = mavenHttpRepo.module('org.foo', 'unknown')
         def m3 = mavenHttpRepo.module('org.foo', 'broken')
         def m4 = mavenHttpRepo.module('org.foo', 'rock').dependsOn(m3).publish()
 
+        settingsFile << "include 'child'"
+
         buildFile << """
+            plugins {
+                id("java-library")
+            }
+
             dependencies {
                 implementation 'org.foo:hiphop:1.0'
                 implementation 'org.foo:unknown:1.0' //does not exist
@@ -317,26 +376,32 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
                     def files = compile.files
 
                     assert files.size() == 2
-                    assert files.collect { it.name } == ['hiphop-1.0.jar', 'child.jar']
+                    assert files.collect { it.name } == ['hiphop-1.0.jar', 'main']
 
                     files = compile.getFiles { true }
 
-                    assert files.collect { it.name } == ['hiphop-1.0.jar', 'child.jar']
+                    assert files.collect { it.name } == ['hiphop-1.0.jar', 'main']
 
                     def artifacts = compile.artifacts
 
                     assert artifacts.size() == 2
-                    assert artifacts.collect { it.file.name } == ['hiphop-1.0.jar', 'child.jar']
+                    assert artifacts.collect { it.file.name } == ['hiphop-1.0.jar', 'main']
 
                     artifacts = compile.getArtifacts { true }
 
-                    assert artifacts.collect { it.file.name } == ['hiphop-1.0.jar', 'child.jar']
+                    assert artifacts.collect { it.file.name } == ['hiphop-1.0.jar', 'main']
 
                     def unresolved = compile.unresolvedModuleDependencies
                     assert unresolved.size() == 2
                     assert unresolved.find { it.selector.group == 'org.foo' && it.selector.name == 'unknown' && it.selector.version == '1.0' }
                     assert unresolved.find { it.selector.name == 'broken' }
                 }
+            }
+        """
+
+        file("child/build.gradle") << """
+            plugins {
+                id("java-library")
             }
         """
 
@@ -349,6 +414,10 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         expect:
         //TODO: fix dependency resolution results usage in this test and remove this flag
         executer.withBuildJvmOpts("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
+        executer.expectDocumentedDeprecationWarning("The LenientConfiguration.getFirstLevelModuleDependencies(Spec) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use getFirstLevelModuleDependencies() instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
+        executer.expectDocumentedDeprecationWarning("The LenientConfiguration.getFiles() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use a lenient ArtifactView instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_legacy_configuration_get_files")
+        executer.expectDocumentedDeprecationWarning("The LenientConfiguration.getFiles(Spec) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use a lenient ArtifactView with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
+        executer.expectDocumentedDeprecationWarning("The LenientConfiguration.getArtifacts(Spec) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use a lenient ArtifactView with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
         succeeds "validate"
     }
 
@@ -358,6 +427,10 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         def m2 = mavenHttpRepo.module('org.foo', 'unknown')
 
         buildFile << """
+            plugins {
+                id("java-library")
+            }
+
             configurations {
                 someConf
             }
@@ -396,6 +469,7 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         expect:
         //TODO: fix dependency resolution results usage in this test and remove this flag
         executer.withBuildJvmOpts("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
+        2.times { executer.expectDocumentedDeprecationWarning("The LenientConfiguration.getFirstLevelModuleDependencies(Spec) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use getFirstLevelModuleDependencies() instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods") }
         succeeds "validate"
     }
 
@@ -409,6 +483,10 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
             .dependsOn(foo2).publish()
 
         buildFile << """
+            plugins {
+                id("java-library")
+            }
+
             dependencies {
                 implementation 'org:foo:[1,3]'
                 implementation 'org:bar:1'
@@ -456,13 +534,17 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         expect:
         //TODO: fix dependency resolution results usage in this test and remove this flag
         executer.withBuildJvmOpts("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
+        executer.expectDocumentedDeprecationWarning("The LenientConfiguration.getFirstLevelModuleDependencies(Spec) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use getFirstLevelModuleDependencies() instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
+        executer.expectDocumentedDeprecationWarning("The LenientConfiguration.getFiles() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use a lenient ArtifactView instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_legacy_configuration_get_files")
+        executer.expectDocumentedDeprecationWarning("The LenientConfiguration.getFiles(Spec) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use a lenient ArtifactView with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
+        executer.expectDocumentedDeprecationWarning("The LenientConfiguration.getArtifacts(Spec) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use a lenient ArtifactView with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
         succeeds "validate"
     }
 
     @ToBeFixedForConfigurationCache(because = "ResolvedConfiguration is CC incompatible")
     def "classifier and extension do not need to match file name"() {
         given:
-        buildFile.text = """
+        buildFile << """
             configurations {
                 consumable("con") {
                     outgoing.artifact(file("foo.txt")) {

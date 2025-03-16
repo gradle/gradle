@@ -43,14 +43,15 @@ import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalOperationFinishedProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalOperationStartedProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalPluginIdentifier;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonList;
 
 class TaskOperationMapper implements BuildOperationMapper<ExecuteTaskBuildOperationDetails, DefaultTaskDescriptor>, OperationDependencyLookup {
@@ -98,7 +99,8 @@ class TaskOperationMapper implements BuildOperationMapper<ExecuteTaskBuildOperat
         Set<InternalOperationDescriptor> dependencies = operationDependenciesResolver.resolveDependencies(details.getTaskNode());
         InternalPluginIdentifier originPlugin = taskOriginTracker.getOriginPlugin(details.getTask().getTaskIdentity());
         DefaultTaskDescriptor descriptor = new DefaultTaskDescriptor(id, taskIdentityPath, taskPath, displayName, parent, dependencies, originPlugin);
-        descriptors.put(details.getTask().getTaskIdentity(), descriptor);
+        DefaultTaskDescriptor descriptorWithoutDependencies = new DefaultTaskDescriptor(id, taskIdentityPath, taskPath, displayName, parent, emptySet(), originPlugin);
+        descriptors.put(details.getTask().getTaskIdentity(), descriptorWithoutDependencies);
         return descriptor;
     }
 

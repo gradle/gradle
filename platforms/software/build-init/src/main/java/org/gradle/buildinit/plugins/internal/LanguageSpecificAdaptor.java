@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -170,7 +171,7 @@ public class LanguageSpecificAdaptor implements ProjectGenerator {
 
     private BuildScriptBuilder conventionPluginScriptBuilder(String conventionPluginName, InitSettings settings, BuildContentGenerationContext buildContentGenerationContext) {
         BuildScriptBuilder buildScriptBuilder = scriptBuilderFactory.scriptForNewProjectsWithoutVersionCatalog(settings.getDsl(), buildContentGenerationContext,
-            pluginsBuildLocation(settings) + "/src/main/" + settings.getDsl().name().toLowerCase() + "/"
+            pluginsBuildLocation(settings) + "/src/main/" + settings.getDsl().name().toLowerCase(Locale.ROOT) + "/"
                 + InitSettings.CONVENTION_PLUGIN_NAME_PREFIX + "." + getLanguage().getName() + "-" + conventionPluginName + "-conventions",
             settings.isUseIncubatingAPIs());
         buildScriptBuilder.withComments(settings.isWithComments() ? BuildInitComments.ON : BuildInitComments.OFF);

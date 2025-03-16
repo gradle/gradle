@@ -21,14 +21,14 @@ import com.google.common.collect.ImmutableMap;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorBuilder;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.AttributesFactory;
+import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.model.AbstractMutableModuleComponentResolveMetadata;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.Collection;
 
 import static org.gradle.internal.component.external.model.maven.DefaultMavenModuleResolveMetadata.JAR_PACKAGINGS;
@@ -47,9 +47,9 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
     public DefaultMutableMavenModuleResolveMetadata(ModuleVersionIdentifier id,
                                                     ModuleComponentIdentifier componentIdentifier,
                                                     Collection<MavenDependencyDescriptor> dependencies,
-                                                    ImmutableAttributesFactory attributesFactory,
+                                                    AttributesFactory attributesFactory,
                                                     NamedObjectInstantiator objectInstantiator,
-                                                    AttributesSchemaInternal schema) {
+                                                    ImmutableAttributesSchema schema) {
         super(attributesFactory, id, componentIdentifier, schema);
         this.dependencies = ImmutableList.copyOf(dependencies);
         this.objectInstantiator = objectInstantiator;
@@ -59,9 +59,9 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
     public DefaultMutableMavenModuleResolveMetadata(ModuleVersionIdentifier id,
                                                     ModuleComponentIdentifier componentIdentifier,
                                                     Collection<MavenDependencyDescriptor> dependencies,
-                                                    ImmutableAttributesFactory attributesFactory,
+                                                    AttributesFactory attributesFactory,
                                                     NamedObjectInstantiator objectInstantiator,
-                                                    AttributesSchemaInternal schema,
+                                                    ImmutableAttributesSchema schema,
                                                     ImmutableMap<String, Configuration> configurationDefinitions) {
         super(attributesFactory, id, componentIdentifier, schema);
         this.dependencies = ImmutableList.copyOf(dependencies);
@@ -112,12 +112,12 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
     }
 
     @Override
-    public @Nonnull String getPackaging() {
+    public @NonNull String getPackaging() {
         return packaging;
     }
 
     @Override
-    public void setPackaging(@Nonnull String packaging) {
+    public void setPackaging(@NonNull String packaging) {
         this.packaging = packaging;
     }
 

@@ -23,16 +23,20 @@ import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.properties.annotations.AbstractPropertyAnnotationHandler;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.lang.annotation.Annotation;
 
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.OPTIONAL;
+import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.REPLACES_EAGER_PROPERTY;
 
+@ServiceScope(Scope.Global.class)
 public abstract class AbstractOutputPropertyAnnotationHandler extends AbstractPropertyAnnotationHandler {
     private final OutputFilePropertyType filePropertyType;
 
     public AbstractOutputPropertyAnnotationHandler(Class<? extends Annotation> annotationType, OutputFilePropertyType filePropertyType) {
-        super(annotationType, Kind.OUTPUT, ModifierAnnotationCategory.annotationsOf(OPTIONAL));
+        super(annotationType, Kind.OUTPUT, ModifierAnnotationCategory.annotationsOf(OPTIONAL, REPLACES_EAGER_PROPERTY));
         this.filePropertyType = filePropertyType;
     }
 

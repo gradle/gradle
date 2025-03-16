@@ -28,16 +28,17 @@ import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.plugins.signing.signatory.Signatory;
 import org.gradle.plugins.signing.type.SignatureType;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Date;
 import java.util.concurrent.Callable;
 
 import static com.google.common.util.concurrent.Callables.returning;
-import static org.gradle.util.internal.GUtil.uncheckedCall;
+import static org.gradle.internal.UncheckedException.uncheckedCall;
 
 /**
  * A digital signature file artifact.
@@ -149,7 +150,7 @@ public class Signature extends AbstractPublishArtifact {
     /**
      * Creates a signature artifact for the file returned by the {@code toSign} closure.
      *
-     * <p>The closures will be “evaluated” on demand whenever the value is needed (e.g. at generation time)</p>
+     * <p>The closures will be "evaluated" on demand whenever the value is needed (e.g. at generation time)</p>
      *
      * @param toSign A closure that produces a File for the object to sign (non File return values will be used as the path to the file)
      * @param classifier A closure that produces the classifier to assign to the signature artifact on demand
@@ -167,7 +168,7 @@ public class Signature extends AbstractPublishArtifact {
     /**
      * Creates a signature artifact for the file returned by the {@code toSign} closure.
      *
-     * <p>The closures will be “evaluated” on demand whenever the value is needed (e.g. at generation time)</p>
+     * <p>The closures will be "evaluated" on demand whenever the value is needed (e.g. at generation time)</p>
      *
      * @param toSign A closure that produces a File for the object to sign (non File return values will be used as the path to the file)
      * @param classifier A closure that produces the classifier to assign to the signature artifact on demand
@@ -194,6 +195,7 @@ public class Signature extends AbstractPublishArtifact {
      */
     @PathSensitive(PathSensitivity.NONE)
     @InputFile
+    @ToBeReplacedByLazyProperty
     public File getToSign() {
         return uncheckedCall(toSignGenerator);
     }
@@ -213,6 +215,7 @@ public class Signature extends AbstractPublishArtifact {
      */
     @Override
     @Internal
+    @ToBeReplacedByLazyProperty
     public String getName() {
         return name != null ? name : defaultName();
     }
@@ -243,6 +246,7 @@ public class Signature extends AbstractPublishArtifact {
      */
     @Override
     @Internal
+    @ToBeReplacedByLazyProperty
     public String getExtension() {
         return extension != null ? extension : signatureTypeExtension();
     }
@@ -269,6 +273,7 @@ public class Signature extends AbstractPublishArtifact {
      */
     @Override
     @Internal
+    @ToBeReplacedByLazyProperty
     public String getType() {
         return type != null ? type : defaultType();
     }
@@ -295,6 +300,7 @@ public class Signature extends AbstractPublishArtifact {
      */
     @Override
     @Internal
+    @ToBeReplacedByLazyProperty
     public String getClassifier() {
         return classifier != null ? classifier : defaultClassifier();
     }
@@ -316,6 +322,7 @@ public class Signature extends AbstractPublishArtifact {
      */
     @Override
     @Internal
+    @ToBeReplacedByLazyProperty
     public Date getDate() {
         return date != null ? date : defaultDate();
     }
@@ -347,6 +354,7 @@ public class Signature extends AbstractPublishArtifact {
      */
     @Override
     @OutputFile
+    @ToBeReplacedByLazyProperty
     public File getFile() {
         final File toSign = getToSign();
         final SignatureType signatureType = getSignatureType();
@@ -361,6 +369,7 @@ public class Signature extends AbstractPublishArtifact {
      * @return The signatory. May be {@code null} if unknown at this time.
      */
     @Internal("already tracked as part of the Sign task")
+    @ToBeReplacedByLazyProperty
     public Signatory getSignatory() {
         return signatureSpec.getSignatory();
     }
@@ -371,6 +380,7 @@ public class Signature extends AbstractPublishArtifact {
      * @return The signature type. May be {@code null} if unknown at this time.
      */
     @Internal("already tracked as part of the Sign task")
+    @ToBeReplacedByLazyProperty
     public SignatureType getSignatureType() {
         return signatureSpec.getSignatureType();
     }
@@ -382,6 +392,7 @@ public class Signature extends AbstractPublishArtifact {
 
     @Internal
     @SuppressWarnings("unused")
+    @ToBeReplacedByLazyProperty
     public SignatureSpec getSignatureSpec() {
         return signatureSpec;
     }

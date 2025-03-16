@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
+import org.gradle.api.internal.artifacts.capability.CapabilitySelectorSerializer;
 import org.gradle.internal.component.external.model.AbstractLazyModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.AbstractRealisedModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.DefaultVirtualModuleComponentIdentifier;
@@ -40,6 +41,8 @@ import org.gradle.internal.resolve.caching.DesugaringAttributeContainerSerialize
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -52,6 +55,7 @@ import java.util.Map;
  * This serializer will first transform any {@link  AbstractLazyModuleComponentResolveMetadata lazy} metadata
  * in the {@link AbstractRealisedModuleComponentResolveMetadata realised} version so that the complete state can be serialized.
  */
+@ServiceScope(Scope.Build.class)
 public class ModuleComponentResolveMetadataSerializer extends AbstractSerializer<ModuleComponentResolveMetadata> {
 
     private final RealisedIvyModuleResolveMetadataSerializationHelper ivySerializationHelper;
@@ -59,11 +63,11 @@ public class ModuleComponentResolveMetadataSerializer extends AbstractSerializer
     private final ModuleMetadataSerializer delegate;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
 
-    public ModuleComponentResolveMetadataSerializer(ModuleMetadataSerializer delegate, DesugaringAttributeContainerSerializer attributeContainerSerializer, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+    public ModuleComponentResolveMetadataSerializer(ModuleMetadataSerializer delegate, DesugaringAttributeContainerSerializer attributeContainerSerializer, CapabilitySelectorSerializer capabilitySelectorSerializer, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         this.delegate = delegate;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
-        ivySerializationHelper = new RealisedIvyModuleResolveMetadataSerializationHelper(attributeContainerSerializer, moduleIdentifierFactory);
-        mavenSerializationHelper = new RealisedMavenModuleResolveMetadataSerializationHelper(attributeContainerSerializer, moduleIdentifierFactory);
+        ivySerializationHelper = new RealisedIvyModuleResolveMetadataSerializationHelper(attributeContainerSerializer, capabilitySelectorSerializer, moduleIdentifierFactory);
+        mavenSerializationHelper = new RealisedMavenModuleResolveMetadataSerializationHelper(attributeContainerSerializer, capabilitySelectorSerializer, moduleIdentifierFactory);
     }
 
     @Override

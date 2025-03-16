@@ -17,13 +17,10 @@
 package org.gradle.internal.enterprise.impl.legacy;
 
 import org.gradle.internal.scan.time.BuildScanClock;
-import org.gradle.internal.service.scopes.Scopes;
-import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.time.Clock;
 
 import javax.inject.Inject;
 
-@ServiceScope(Scopes.BuildTree.class)
 public class DefaultBuildScanClock implements BuildScanClock {
 
     private final Clock clock;

@@ -12,34 +12,38 @@ import jetbrains.buildServer.configs.kotlin.triggers.vcs
 import model.CIBuildModel
 import model.StageName
 
-class GitHubMergeQueueCheckPass(model: CIBuildModel) : BaseGradleBuildType(init = {
-    id("${model.projectId}_GitHubMergeQueueCheckPass")
-    uuid = "${DslContext.uuidPrefix}_${model.projectId}_GitHubMergeQueueCheckPass"
-    name = "GitHub Merge Queue Check Pass"
-    type = Type.COMPOSITE
+class GitHubMergeQueueCheckPass(
+    model: CIBuildModel,
+) : BaseGradleBuildType(init = {
+        id("${model.projectId}_GitHubMergeQueueCheckPass")
+        uuid = "${DslContext.uuidPrefix}_${model.projectId}_GitHubMergeQueueCheckPass"
+        name = "GitHub Merge Queue Check Pass"
+        type = Type.COMPOSITE
 
-    vcs {
-        root(AbsoluteId(VersionedSettingsBranch.fromDslContext().vcsRootId()))
-        checkoutMode = CheckoutMode.ON_AGENT
-    }
+        vcs {
+            root(AbsoluteId(VersionedSettingsBranch.fromDslContext().vcsRootId()))
+            checkoutMode = CheckoutMode.ON_AGENT
+        }
 
-    features {
-        enablePullRequestFeature()
-        publishBuildStatusToGithub(model)
-    }
+        features {
+            enablePullRequestFeature()
+            publishBuildStatusToGithub(model)
+        }
 
-    triggers.vcs {
-        quietPeriodMode = VcsTrigger.QuietPeriodMode.DO_NOT_USE
-        branchFilter = """
+        if (!VersionedSettingsBranch.fromDslContext().isExperimental) {
+            triggers.vcs {
+                quietPeriodMode = VcsTrigger.QuietPeriodMode.DO_NOT_USE
+                branchFilter = """
 +:gh-readonly-queue/${model.branch.branchName}/*
 +:${model.branch.branchName}
 """
-    }
-
-    dependencies {
-        snapshot(RelativeId(stageTriggerId(model, StageName.READY_FOR_NIGHTLY))) {
-            onDependencyFailure = FailureAction.FAIL_TO_START
-            onDependencyCancel = FailureAction.FAIL_TO_START
+            }
         }
-    }
-})
+
+        dependencies {
+            snapshot(RelativeId(stageTriggerId(model, StageName.READY_FOR_NIGHTLY))) {
+                onDependencyFailure = FailureAction.FAIL_TO_START
+                onDependencyCancel = FailureAction.FAIL_TO_START
+            }
+        }
+    })

@@ -4,67 +4,64 @@ plugins {
 
 description = "Execution engine that takes a unit of work and makes it happen"
 
-errorprone {
-    disabledChecks.addAll(
-        "AnnotateFormatMethod", // 1 occurrences
-        "BadImport", // 2 occurrences
-        "Finally", // 2 occurrences
-        "ReferenceEquality", // 1 occurrences
-        "SameNameButDifferent", // 5 occurrences
-        "StringCaseLocaleUsage", // 8 occurrences
-        "SuperCallToObjectMethod", // 2 occurrences
-        "UndefinedEquals", // 1 occurrences
-        "UnusedVariable", // 1 occurrences
-    )
-}
-
 dependencies {
     api(libs.guava)
-    api(libs.jsr305)
+    api(libs.jspecify)
     api(libs.slf4jApi)
 
-    api(project(":base-annotations"))
-    api(project(":base-services"))
-    api(project(":build-cache"))
-    api(project(":build-cache-base"))
-    api(project(":build-cache-spi"))
-    api(project(":build-operations"))
-    api(project(":core-api"))
-    api(project(":files"))
-    api(project(":functional"))
-    api(project(":hashing"))
-    api(project(":messaging"))
-    api(project(":model-core"))
-    api(project(":persistent-cache"))
-    api(project(":problems-api"))
-    api(project(":snapshots"))
+    api(projects.concurrent)
+    api(projects.stdlibJavaExtensions)
+    api(projects.serialization)
+    compileOnly(libs.errorProneAnnotations)
+    api(projects.baseServices)
+    api(projects.buildCache)
+    api(projects.buildCacheBase)
+    api(projects.buildCacheSpi)
+    api(projects.buildOperations)
+    api(projects.coreApi)
+    api(projects.files)
+    api(projects.functional)
+    api(projects.hashing)
+    api(projects.modelCore)
+    api(projects.modelReflect)
+    api(projects.persistentCache)
+    api(projects.problemsApi)
+    api(projects.snapshots)
+    api(projects.snapshotsWorker)
 
-    implementation(project(":logging"))
+    implementation(projects.time)
+    implementation(projects.logging)
     implementation(projects.enterpriseOperations) {
         because("Adds generic build operations for the execution engine")
     }
 
     implementation(libs.commonsLang)
     implementation(libs.commonsIo)
+    implementation(libs.jsr305)
 
-    testImplementation(project(":native"))
-    testImplementation(project(":logging"))
-    testImplementation(project(":process-services"))
-    testImplementation(project(":base-services-groovy"))
-    testImplementation(project(":resources"))
+    testImplementation(projects.native)
+    testImplementation(projects.logging)
+    testImplementation(projects.processServices)
+    testImplementation(projects.baseServicesGroovy)
+    testImplementation(projects.resources)
     testImplementation(libs.commonsIo)
-    testImplementation(testFixtures(project(":base-services")))
-    testImplementation(testFixtures(project(":file-collections")))
-    testImplementation(testFixtures(project(":messaging")))
-    testImplementation(testFixtures(project(":snapshots")))
-    testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":model-core")))
+    testImplementation(testFixtures(projects.serialization))
+    testImplementation(testFixtures(projects.baseServices))
+    testImplementation(testFixtures(projects.buildOperations))
+    testImplementation(testFixtures(projects.fileCollections))
+    testImplementation(testFixtures(projects.messaging))
+    testImplementation(testFixtures(projects.snapshots))
+    testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.modelReflect))
 
     testFixturesImplementation(libs.guava)
-    testFixturesImplementation(project(":base-services"))
-    testFixturesImplementation(project(":build-cache"))
-    testFixturesImplementation(project(":problems"))
-    testFixturesImplementation(project(":snapshots"))
+    testFixturesImplementation(projects.baseServices)
+    testFixturesImplementation(projects.buildCache)
+    testFixturesImplementation(projects.problems)
+    testFixturesImplementation(projects.snapshots)
 
-    integTestDistributionRuntimeOnly(project(":distributions-core"))
+    integTestDistributionRuntimeOnly(projects.distributionsCore)
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

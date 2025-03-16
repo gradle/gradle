@@ -27,6 +27,7 @@ import org.slf4j.helpers.MessageFormatter;
 
 import static org.gradle.internal.logging.slf4j.BuildOperationAwareLogger.toLogLevel;
 
+@SuppressWarnings("OverridingMethodInconsistentArgumentNamesChecker")
 public class DefaultContextAwareTaskLogger implements ContextAwareTaskLogger {
 
     private BuildOperationAwareLogger delegate;

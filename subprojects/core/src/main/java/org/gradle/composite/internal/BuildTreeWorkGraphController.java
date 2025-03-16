@@ -17,17 +17,15 @@
 package org.gradle.composite.internal;
 
 import org.gradle.internal.buildtree.BuildTreeWorkGraph;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-import javax.annotation.Nonnull;
-import javax.annotation.meta.When;
 import java.util.function.Function;
 
 /**
  * A service that allows work graphs to be created, populated and executed.
  */
-@ServiceScope(Scopes.BuildTree.class)
+@ServiceScope(Scope.BuildTree.class)
 public interface BuildTreeWorkGraphController {
     /**
      * Locates a task node in another build's work graph. Does not schedule the task for execution, use {@link IncludedBuildTaskResource#queueForExecution()} to queue the task for execution.
@@ -38,6 +36,5 @@ public interface BuildTreeWorkGraphController {
      * Runs the given action against a new, empty work graph. This allows tasks to be run while calculating the task graph of the build tree, for example to run `buildSrc` tasks or
      * to build local plugins in an included build.
      */
-    @Nonnull(when = When.UNKNOWN)
     <T> T withNewWorkGraph(Function<? super BuildTreeWorkGraph, T> action);
 }

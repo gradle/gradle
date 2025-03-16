@@ -34,8 +34,8 @@ import org.gradle.model.internal.core.NodePredicate;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.inspect.ExtractedRuleSource;
 import org.gradle.model.internal.type.ModelType;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -272,15 +272,5 @@ abstract class ModelNodeInternal implements MutableModelNode {
         ExtractedRuleSource<?> rules = modelRegistry.newRuleSource(rulesClass);
         rules.assertNoPlugins();
         rules.apply(modelRegistry, this);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        return this == obj;
-    }
-
-    @Override
-    public int hashCode() {
-        return super.hashCode();
     }
 }

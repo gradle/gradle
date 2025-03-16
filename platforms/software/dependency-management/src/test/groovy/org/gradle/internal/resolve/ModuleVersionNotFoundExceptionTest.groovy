@@ -20,7 +20,7 @@ import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-import org.gradle.internal.component.model.AttributeMatcher
+import org.gradle.api.internal.attributes.matching.AttributeMatcher
 import org.gradle.util.AttributeTestUtil
 import spock.lang.Specification
 

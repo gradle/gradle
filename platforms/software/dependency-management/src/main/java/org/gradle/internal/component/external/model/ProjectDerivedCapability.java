@@ -21,12 +21,13 @@ import org.gradle.api.Project;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.capabilities.CapabilityInternal;
 import org.gradle.util.internal.TextUtil;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class ProjectDerivedCapability implements CapabilityInternal {
     private final Project project;
     private final String featureName;
+
+    private volatile String capabilityName;
 
     public ProjectDerivedCapability(Project project) {
         this(project, null);
@@ -44,8 +45,17 @@ public class ProjectDerivedCapability implements CapabilityInternal {
 
     @Override
     public String getName() {
-        String name = notNull("name", project.getName());
-        return featureName == null ? name : name + "-" + TextUtil.camelToKebabCase(featureName);
+        if (capabilityName == null) {
+            capabilityName = computeCapabilityName(project, featureName);
+        }
+        return capabilityName;
+    }
+
+    private static String computeCapabilityName(Project project, @Nullable String featureName) {
+        if (featureName == null) {
+            return project.getName();
+        }
+        return project.getName() + "-" + TextUtil.camelToKebabCase(featureName);
     }
 
     @Override
@@ -55,7 +65,11 @@ public class ProjectDerivedCapability implements CapabilityInternal {
 
     @Override
     public int hashCode() {
-        return 31 * project.hashCode() + featureName.hashCode();
+        // See DefaultImmutableCapability#computeHashcode
+        int hash = getVersion().hashCode();
+        hash = 31 * hash + getName().hashCode();
+        hash = 31 * hash + getGroup().hashCode();
+        return  hash;
     }
 
     @Override

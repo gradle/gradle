@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.compile;
 
 import org.codehaus.groovy.transform.GroovyASTTransformationClass;
-import org.gradle.internal.classanalysis.AsmConstants;
+import org.gradle.model.internal.asm.AsmConstants;
 import org.gradle.internal.classloader.TransformingClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 import org.objectweb.asm.AnnotationVisitor;

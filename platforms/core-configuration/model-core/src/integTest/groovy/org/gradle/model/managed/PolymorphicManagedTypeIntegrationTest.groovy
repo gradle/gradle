@@ -24,7 +24,7 @@ class PolymorphicManagedTypeIntegrationTest extends AbstractIntegrationSpec {
 
     def "rule can provide a managed model element backed by an abstract class that implements interfaces"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Named {
                 String getName()
@@ -63,7 +63,7 @@ class PolymorphicManagedTypeIntegrationTest extends AbstractIntegrationSpec {
 
     def "rule can provide a managed model element backed by an abstract class that extends other classes"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             abstract class Named {
                 abstract String getName()
@@ -102,7 +102,7 @@ class PolymorphicManagedTypeIntegrationTest extends AbstractIntegrationSpec {
 
     def "managed model interface can extend other interface"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Named {
                 String getName()
@@ -144,7 +144,7 @@ class PolymorphicManagedTypeIntegrationTest extends AbstractIntegrationSpec {
 
     def "can depend on managed super type as input and subject"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Named {
                 String getName()
@@ -187,7 +187,7 @@ class PolymorphicManagedTypeIntegrationTest extends AbstractIntegrationSpec {
 
     def "two managed types can extend the same parent"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Named {
                 String getName()

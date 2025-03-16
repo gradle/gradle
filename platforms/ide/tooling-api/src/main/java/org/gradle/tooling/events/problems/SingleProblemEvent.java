@@ -18,9 +18,6 @@ package org.gradle.tooling.events.problems;
 
 import org.gradle.api.Incubating;
 
-import javax.annotation.Nullable;
-import java.util.List;
-
 /**
  * ProblemEvent with all the details relevant.
  *
@@ -28,70 +25,12 @@ import java.util.List;
  */
 @Incubating
 public interface SingleProblemEvent extends ProblemEvent {
-    /**
-     * Returns the problem category.
-     *
-     * @return the problem category
-     * @since 8.8
-     */
-    ProblemCategory getCategory();
 
     /**
-     * Returns the problem label.
+     * Returns the structural details describing the problem.
      *
-     * @return the problem label
-     * @since 8.8
+     * @return the report
+     * @since 8.12
      */
-    Label getLabel();
-
-    /**
-     * Returns the details string.
-     *
-     * @return the problem details
-     * @since 8.8
-     */
-    Details getDetails();
-
-    /**
-     * Returns the problem severity.
-     *
-     * @return the problem severity
-     * @since 8.8
-     */
-    Severity getSeverity();
-
-    /**
-     * Returns the locations associated with this problem.
-     *
-     * @return the locations
-     * @since 8.8
-     */
-    List<Location> getLocations();
-
-    /**
-     * Returns the link to the documentation
-     *
-     * @return the locations
-     * @since 8.8
-     */
-    DocumentationLink getDocumentationLink();
-
-    /**
-     * Returns the list of solutions.
-     *
-     * @return the solutions
-     * @since 8.8
-     */
-    List<Solution> getSolutions();
-
-    /**
-     * Returns the failure associated with this problem.
-     * <br>
-     * <code>null</code> if run against a Gradle version prior to 8.8
-     *
-     * @return the failure
-     * @since 8.8
-     */
-    @Nullable
-    FailureContainer getFailure();
+    Problem getProblem();
 }

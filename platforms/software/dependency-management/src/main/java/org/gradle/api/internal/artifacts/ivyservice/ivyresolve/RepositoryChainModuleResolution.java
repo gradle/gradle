@@ -15,13 +15,13 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState;
+import org.gradle.internal.component.external.model.ExternalModuleComponentGraphResolveState;
 
 class RepositoryChainModuleResolution implements StringVersioned {
     public final ModuleComponentRepository<?> repository;
-    public final ModuleComponentGraphResolveState component;
+    public final ExternalModuleComponentGraphResolveState component;
 
-    public RepositoryChainModuleResolution(ModuleComponentRepository<?> repository, ModuleComponentGraphResolveState component) {
+    public RepositoryChainModuleResolution(ModuleComponentRepository<?> repository, ExternalModuleComponentGraphResolveState component) {
         this.repository = repository;
         this.component = component;
     }

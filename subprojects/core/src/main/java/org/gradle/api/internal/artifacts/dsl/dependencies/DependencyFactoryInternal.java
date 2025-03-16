@@ -19,19 +19,23 @@ import groovy.lang.Closure;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.dsl.DependencyFactory;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.Map;
 
 /**
  * Internal API for dependency creation.
  */
+@ServiceScope({Scope.Build.class, Scope.Project.class})
 public interface DependencyFactoryInternal extends DependencyFactory {
     //for gradle distribution specific dependencies
     enum ClassPathNotation {
         GRADLE_API("Gradle API"),
         GRADLE_KOTLIN_DSL("Gradle Kotlin DSL"),
         GRADLE_TEST_KIT("Gradle TestKit"),
-        LOCAL_GROOVY("Local Groovy");
+        LOCAL_GROOVY("Local Groovy"),
+        LOCAL_PROJECT_AS_OPAQUE_DEPENDENCY("Local project as an opaque dependency");
 
         public final String displayName;
 

@@ -19,60 +19,60 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.Module;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider;
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalConfigurationMetadataBuilder;
+import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
+import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchemaFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
-import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
+import org.gradle.internal.component.local.model.LocalComponentGraphResolveMetadata;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory;
-import org.gradle.internal.component.local.model.LocalComponentMetadata;
-import org.gradle.internal.model.CalculatedValueContainerFactory;
+
+import javax.inject.Inject;
 
 /**
  * Provides the metadata for a component consumed from the same build that produces it.
- *
- * <p>Currently, the metadata for a component is different based on whether it is consumed from the producing build or from another build. This difference should go away.
  */
 public class DefaultProjectLocalComponentProvider implements LocalComponentProvider {
-    private final LocalConfigurationMetadataBuilder metadataBuilder;
     private final LocalComponentGraphResolveStateFactory resolveStateFactory;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
-    private final CalculatedValueContainerFactory calculatedValueContainerFactory;
+    private final ImmutableAttributesSchemaFactory attributesSchemaFactory;
 
+    @Inject
     public DefaultProjectLocalComponentProvider(
-        LocalConfigurationMetadataBuilder metadataBuilder,
         LocalComponentGraphResolveStateFactory resolveStateFactory,
         ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-        CalculatedValueContainerFactory calculatedValueContainerFactory
+        ImmutableAttributesSchemaFactory attributesSchemaFactory
     ) {
-        this.metadataBuilder = metadataBuilder;
         this.resolveStateFactory = resolveStateFactory;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
-        this.calculatedValueContainerFactory = calculatedValueContainerFactory;
+        this.attributesSchemaFactory = attributesSchemaFactory;
     }
 
     @Override
     public LocalComponentGraphResolveState getComponent(ProjectState projectState) {
         projectState.ensureConfigured();
-        LocalComponentMetadata metadata = projectState.fromMutableState(p -> getLocalComponentMetadata(projectState, p));
-        return resolveStateFactory.stateFor(metadata);
+        return projectState.fromMutableState(p -> getLocalComponentState(projectState, p));
     }
 
-    private LocalComponentMetadata getLocalComponentMetadata(ProjectState projectState, ProjectInternal project) {
-        Module module = project.getDependencyMetaDataProvider().getModule();
+    private LocalComponentGraphResolveState getLocalComponentState(ProjectState projectState, ProjectInternal project) {
+        Module module = project.getServices().get(DependencyMetaDataProvider.class).getModule();
         ModuleVersionIdentifier moduleVersionIdentifier = moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getName(), module.getVersion());
         ProjectComponentIdentifier componentIdentifier = projectState.getComponentIdentifier();
-        AttributesSchemaInternal schema = (AttributesSchemaInternal) project.getDependencies().getAttributesSchema();
+        AttributesSchemaInternal mutableSchema = (AttributesSchemaInternal) project.getDependencies().getAttributesSchema();
+        ImmutableAttributesSchema schema = attributesSchemaFactory.create(mutableSchema);
 
-        DefaultLocalComponentMetadata.ConfigurationsProviderMetadataFactory configurationMetadataFactory =
-            new DefaultLocalComponentMetadata.ConfigurationsProviderMetadataFactory(
-                (DefaultConfigurationContainer) project.getConfigurations(), metadataBuilder, projectState, calculatedValueContainerFactory);
+        LocalComponentGraphResolveMetadata metadata = new LocalComponentGraphResolveMetadata(
+            moduleVersionIdentifier,
+            componentIdentifier,
+            module.getStatus(),
+            schema
+        );
 
-        project.getConfigurations().forEach(conf -> ((ConfigurationInternal) conf).preventFromFurtherMutation());
-
-        return new DefaultLocalComponentMetadata(moduleVersionIdentifier, componentIdentifier, module.getStatus(), schema, configurationMetadataFactory, null);
+        ConfigurationsProvider configurations = (DefaultConfigurationContainer) project.getConfigurations();
+        return resolveStateFactory.stateFor(projectState, metadata, configurations);
     }
 }

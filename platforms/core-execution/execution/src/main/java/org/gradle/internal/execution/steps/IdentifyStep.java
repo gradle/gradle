@@ -26,20 +26,19 @@ import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.UnitOfWork.Identity;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.snapshot.ValueSnapshot;
-
-import javax.annotation.Nonnull;
+import org.jspecify.annotations.NonNull;
 
 public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> extends BuildOperationStep<C, R> implements DeferredExecutionAwareStep<C, R> {
     private final DeferredExecutionAwareStep<? super IdentityContext, R> delegate;
 
     public IdentifyStep(
-        BuildOperationExecutor buildOperationExecutor,
+        BuildOperationRunner buildOperationRunner,
         DeferredExecutionAwareStep<? super IdentityContext, R> delegate
     ) {
-        super(buildOperationExecutor);
+        super(buildOperationRunner);
         this.delegate = delegate;
     }
 
@@ -53,7 +52,7 @@ public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> e
         return delegate.executeDeferred(work, createIdentityContext(work, context), cache);
     }
 
-    @Nonnull
+    @NonNull
     private IdentityContext createIdentityContext(UnitOfWork work, C context) {
         Class<? extends UnitOfWork> workType = work.getClass();
         return operation(operationContext -> {
@@ -78,7 +77,7 @@ public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> e
         );
     }
 
-    @Nonnull
+    @NonNull
     private IdentityContext createIdentityContextInternal(UnitOfWork work, C context) {
         InputFingerprinter.Result inputs = work.getInputFingerprinter().fingerprintInputProperties(
             ImmutableSortedMap.of(),

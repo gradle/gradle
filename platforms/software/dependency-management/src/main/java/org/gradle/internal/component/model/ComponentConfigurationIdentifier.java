@@ -19,15 +19,18 @@ package org.gradle.internal.component.model;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 
 /**
- * An general identifier for a variant that represents a configuration in a component.
+ * Identifies the "implicit" artifact variant for a graph variant.
  */
 public class ComponentConfigurationIdentifier implements VariantResolveMetadata.Identifier {
     private final ComponentIdentifier component;
     private final String configurationName;
+    private final int hashCode;
 
     public ComponentConfigurationIdentifier(ComponentIdentifier component, String configurationName) {
         this.component = component;
         this.configurationName = configurationName;
+
+        this.hashCode = computeHashCode(component, configurationName);
     }
 
     @Override
@@ -42,8 +45,12 @@ public class ComponentConfigurationIdentifier implements VariantResolveMetadata.
         return component.equals(other.component) && configurationName.equals(other.configurationName);
     }
 
+    private static int computeHashCode(ComponentIdentifier component, String configurationName) {
+        return 31 * component.hashCode() + configurationName.hashCode();
+    }
+
     @Override
     public int hashCode() {
-        return component.hashCode() ^ configurationName.hashCode();
+        return hashCode;
     }
 }

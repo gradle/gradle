@@ -23,6 +23,7 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.SourceDirectorySet
+import org.gradle.api.internal.file.collections.DirectoryFileTree
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.internal.tasks.TaskDependencyFactory
@@ -44,7 +45,6 @@ import static org.hamcrest.CoreMatchers.equalTo
 class DefaultSourceDirectorySetTest extends Specification {
     @Rule public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     private final TestFile testDir = tmpDir.testDirectory
-    private FileResolver resolver = TestFiles.resolver(testDir)
     private FileCollectionFactory fileCollectionFactory = TestFiles.fileCollectionFactory(testDir)
     private TaskDependencyFactory taskDependencyFactory = TestFiles.taskDependencyFactory()
     private DirectoryFileTreeFactory directoryFileTreeFactory = TestFiles.directoryFileTreeFactory()
@@ -244,6 +244,65 @@ class DefaultSourceDirectorySetTest extends Specification {
         assertSetContainsForAllTypes(set, 'subdir/file1.txt', 'subdir2/file1.txt')
     }
 
+    void "can use patterns to filter files but not directories with getSrcDirTrees method"() {
+        File srcDir1 = new File(testDir, 'dir1')
+        touch(new File(srcDir1, 'subdir/file1.txt'))
+        touch(new File(srcDir1, 'subdir/file2.txt'))
+        File srcDir2 = new File(testDir, 'dir2')
+        touch(new File(srcDir2, 'subdir2/file1.txt'))
+        touch(new File(srcDir2, 'subdir2/file2.txt'))
+
+        when:
+        set.srcDir 'dir1'
+        set.srcDir 'dir2'
+        set.exclude 'dir1' // Dirs aren't filtered
+        set.exclude '**/file1.txt' // Files are filtered
+
+        then:
+        def trees = set.getSrcDirTrees()
+        trees.size() == 2
+        trees.collect { it.getDir() } == [srcDir1, srcDir2] // Dirs aren't filtered
+        set.getSrcDirs() == [srcDir1, srcDir2] as Set
+
+        DirectoryFileTree tree1 = set.getSrcDirTrees().first() as DirectoryFileTree
+        tree1.getDir() == srcDir1
+        assertSetContainsForAllTypes(tree1, 'subdir/file2.txt')
+
+        DirectoryFileTree tree2 = set.getSrcDirTrees().last() as DirectoryFileTree
+        tree2.getDir() == srcDir2
+        assertSetContainsForAllTypes(tree2, 'subdir2/file2.txt')
+    }
+
+    void "can use patterns to include only certain files but not directories with getSrcDirTrees method"() {
+        File srcDir1 = new File(testDir, 'dir1')
+        touch(new File(srcDir1, 'subdir/file1.txt'))
+        touch(new File(srcDir1, 'subdir2/file2.txt'))
+        touch(new File(srcDir1, 'subdir3/file3.txt'))
+        File srcDir2 = new File(testDir, 'dir2')
+        touch(new File(srcDir2, 'subdir/file1.txt'))
+        touch(new File(srcDir2, 'subdir2/file2.txt'))
+        touch(new File(srcDir1, 'subdir3/file3.txt'))
+
+        when:
+        set.srcDir 'dir1'
+        set.srcDir 'dir2'
+        set.include'**/subdir2/**' // Only include subdir2
+
+        then:
+        def trees = set.getSrcDirTrees()
+        trees.size() == 2
+        trees.collect { it.getDir() } == [srcDir1, srcDir2] // Dirs aren't filtered
+        set.getSrcDirs() == [srcDir1, srcDir2] as Set
+
+        DirectoryFileTree tree1 = set.getSrcDirTrees().first() as DirectoryFileTree
+        tree1.getDir() == srcDir1
+        assertSetContainsForAllTypes(tree1, 'subdir2/file2.txt')
+
+        DirectoryFileTree tree2 = set.getSrcDirTrees().last() as DirectoryFileTree
+        tree2.getDir() == srcDir2
+        assertSetContainsForAllTypes(tree2, 'subdir2/file2.txt')
+    }
+
     void canUseFilterPatternsToFilterCertainFiles() {
         File srcDir1 = new File(testDir, 'dir1')
         touch(new File(srcDir1, 'subdir/file1.txt'))
@@ -429,4 +488,3 @@ class DefaultSourceDirectorySetTest extends Specification {
         return collection
     }
 }
-

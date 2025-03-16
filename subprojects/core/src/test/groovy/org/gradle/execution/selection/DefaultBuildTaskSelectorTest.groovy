@@ -31,6 +31,7 @@ import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.build.IncludedBuildState
 import org.gradle.internal.build.RootBuildState
 import org.gradle.util.Path
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 import java.util.function.Consumer
@@ -38,7 +39,12 @@ import java.util.function.Consumer
 class DefaultBuildTaskSelectorTest extends Specification {
     def buildRegistry = Mock(BuildStateRegistry)
     def taskSelector = Mock(TaskSelector)
-    def selector = new DefaultBuildTaskSelector(buildRegistry, taskSelector, [new HelpBuiltInCommand()])
+    def selector = new DefaultBuildTaskSelector(
+        buildRegistry,
+        taskSelector,
+        [new HelpBuiltInCommand()],
+        TestUtil.problemsService()
+    )
     def root = rootBuild()
     def target = root.state
 

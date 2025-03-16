@@ -18,10 +18,8 @@ package org.gradle.plugins.ide.tooling.r54
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.eclipse.EclipseProject
 
-@ToolingApiVersion('>=5.4')
 @TargetGradleVersion('>=5.4')
 class ToolingApiEclipseModelAutoBuildTasksCrossVersionSpec extends ToolingApiSpecification {
 

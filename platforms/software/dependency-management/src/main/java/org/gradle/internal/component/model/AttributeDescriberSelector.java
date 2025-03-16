@@ -20,7 +20,6 @@ import com.google.common.collect.Sets;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeDescriber;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 
 import java.util.Comparator;
 import java.util.List;
@@ -28,16 +27,15 @@ import java.util.Map;
 import java.util.Set;
 
 public class AttributeDescriberSelector {
-    public static AttributeDescriber selectDescriber(AttributeContainerInternal consumerAttributes, AttributesSchemaInternal consumerSchema) {
-        List<AttributeDescriber> consumerDescribers = consumerSchema.getConsumerDescribers();
+    public static AttributeDescriber selectDescriber(AttributeContainerInternal consumerAttributes, List<AttributeDescriber> attributeDescribers) {
         Set<Attribute<?>> consumerAttributeSet = consumerAttributes.keySet();
         AttributeDescriber current = null;
         int maxSize = 0;
-        for (AttributeDescriber consumerDescriber : consumerDescribers) {
-            int size = Sets.intersection(consumerDescriber.getDescribableAttributes(), consumerAttributeSet).size();
+        for (AttributeDescriber describer : attributeDescribers) {
+            int size = Sets.intersection(describer.getDescribableAttributes(), consumerAttributeSet).size();
             if (size > maxSize) {
                 // Select the describer which handles the maximum number of attributes
-                current = consumerDescriber;
+                current = describer;
                 maxSize = size;
             }
         }

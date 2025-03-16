@@ -20,7 +20,7 @@ import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.CompilerApiData;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingData;
-import org.gradle.api.internal.tasks.compile.incremental.serialization.HierarchicalNameSerializer;
+import org.gradle.internal.serialize.HierarchicalNameSerializer;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;

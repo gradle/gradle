@@ -16,8 +16,11 @@
 
 package org.gradle.kotlin.dsl.accessors
 
+import org.gradle.api.Incubating
 import org.gradle.api.NamedDomainObjectContainer
+import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.initialization.Settings
 import org.gradle.kotlin.dsl.concurrent.IO
 import org.gradle.kotlin.dsl.concurrent.writeFile
 import org.gradle.kotlin.dsl.support.bytecode.InternalName
@@ -41,6 +44,9 @@ fun IO.emitAccessorsFor(
 
     makeAccessorOutputDirs(srcDir, binDir, outputPackage.path)
 
+    // When building accessors for Settings, preserve semantics for existing custom accessors by
+    // giving the generated accessors lower priority in Kotlin overload resolution.
+    val useLowPriorityOverloadResolution = projectSchema.scriptTarget is Settings
     val moduleName = binDir?.name ?: "kotlin-dsl-accessors"
     val emittedClassNames =
         accessorsFor(projectSchema).map { accessor ->
@@ -50,7 +56,8 @@ fun IO.emitAccessorsFor(
                 binDir,
                 outputPackage,
                 format,
-                moduleName
+                moduleName,
+                useLowPriorityOverloadResolution
             )
         }.toList()
 
@@ -91,7 +98,8 @@ fun IO.emitClassFor(
     binDir: File?,
     outputPackage: OutputPackage,
     format: AccessorFormat,
-    moduleName: String
+    moduleName: String,
+    useLowPriorityOverloadResolution: Boolean
 ): InternalName {
 
     val (simpleClassName, fragments) = fragmentsFor(accessor)
@@ -108,7 +116,8 @@ fun IO.emitClassFor(
             className,
             fragments,
             ::collectSourceFragment,
-            moduleName
+            moduleName,
+            useLowPriorityOverloadResolution
         )
     } else {
         for ((source, _, _, _) in fragments) {
@@ -138,7 +147,8 @@ fun IO.writeAccessorsBytecodeTo(
     className: InternalName,
     fragments: Sequence<AccessorFragment>,
     collectSourceFragment: (String) -> Unit,
-    moduleName: String
+    moduleName: String,
+    useLowPriorityOverloadResolution: Boolean
 ) {
 
     val metadataWriter = beginFileFacadeClassHeader()
@@ -146,8 +156,8 @@ fun IO.writeAccessorsBytecodeTo(
 
     for ((source, bytecode, metadata, signature) in fragments) {
         collectSourceFragment(source)
-        MetadataFragmentScope(signature, metadataWriter).run(metadata)
-        BytecodeFragmentScope(signature, classWriter).run(bytecode)
+        MetadataFragmentScope(signature, metadataWriter, useLowPriorityOverloadResolution).run(metadata)
+        BytecodeFragmentScope(signature, classWriter, useLowPriorityOverloadResolution).run(bytecode)
     }
 
     val metadata = metadataWriter.closeHeader(moduleName)
@@ -164,6 +174,9 @@ fun importsRequiredBy(accessor: Accessor): List<String> = accessor.run {
         is Accessor.ForConvention -> importsRequiredBy(spec.receiver, spec.type)
         is Accessor.ForTask -> importsRequiredBy(spec.type)
         is Accessor.ForContainerElement -> importsRequiredBy(spec.receiver, spec.type)
+        is Accessor.ForModelDefault -> importsRequiredBy(spec.receiver, spec.type)
+        is Accessor.ForSoftwareType -> importsRequiredBy(spec.modelType) + listOf(Incubating::class.java.name, Project::class.java.name)
+        is Accessor.ForContainerElementFactory -> importsRequiredBy(spec.receiverType, spec.elementType) + listOf(Incubating::class.java.name)
         else -> emptyList()
     }
 }
@@ -186,6 +199,12 @@ sealed class Accessor {
     data class ForContainerElement(val spec: TypedAccessorSpec) : Accessor()
 
     data class ForTask(val spec: TypedAccessorSpec) : Accessor()
+
+    data class ForModelDefault(val spec: TypedAccessorSpec) : Accessor()
+
+    data class ForSoftwareType(val spec: TypedSoftwareTypeEntry) : Accessor()
+
+    data class ForContainerElementFactory(val spec: TypedContainerElementFactoryEntry) : Accessor()
 }
 
 
@@ -198,13 +217,19 @@ fun accessorsFor(schema: ProjectSchema<TypeAccessibility>): Sequence<Accessor> =
             yieldAll(uniqueAccessorsFor(tasks).map(Accessor::ForTask))
             yieldAll(uniqueAccessorsFor(containerElements).map(Accessor::ForContainerElement))
 
-            val configurationNames = configurations.map { it.map(::AccessorNameSpec) }.asSequence()
+            val configurationNames = configurations.asSequence().mapNotNull { entry ->
+                AccessorNameSpec.createOrNull(entry.target)?.let { accessorNameSpec -> entry.map { accessorNameSpec } }
+            }
             yieldAll(
                 uniqueAccessorsFrom(
                     configurationNames.map { it.target }.map(::configurationAccessorSpec)
                 ).map(Accessor::ForContainerElement)
             )
             yieldAll(configurationNames.map(Accessor::ForConfiguration))
+
+            yieldAll(uniqueAccessorsFor(modelDefaults).map(Accessor::ForModelDefault))
+            yieldAll(uniqueSoftwareTypeEntries(softwareTypeEntries.mapNotNull(::typedSoftwareType)).map(Accessor::ForSoftwareType))
+            yieldAll(uniqueContainerElementFactories(containerElementFactories.mapNotNull(::typedContainerElementFactory)).map(Accessor::ForContainerElementFactory))
         }
     }
 }
@@ -218,6 +243,19 @@ fun configurationAccessorSpec(nameSpec: AccessorNameSpec) =
         accessibleType<Configuration>()
     )
 
+private fun typedSoftwareType(softwareTypeEntry: SoftwareTypeEntry<TypeAccessibility>) : TypedSoftwareTypeEntry? {
+    val name = AccessorNameSpec.createOrNull(softwareTypeEntry.softwareTypeName)
+    return name?.let {
+        TypedSoftwareTypeEntry(name, softwareTypeEntry.modelType)
+    }
+}
+
+private fun typedContainerElementFactory(containerElementFactoryEntry: ContainerElementFactoryEntry<TypeAccessibility>) : TypedContainerElementFactoryEntry? {
+    val name = AccessorNameSpec.createOrNull(containerElementFactoryEntry.factoryName)
+    return name?.let {
+        TypedContainerElementFactoryEntry(name, containerElementFactoryEntry.containerReceiverType, containerElementFactoryEntry.publicType)
+    }
+}
 
 private
 inline fun <reified T> accessibleType() =

@@ -25,7 +25,7 @@ class Swift5Test extends XCTestSourceFileElement {
     List<XCTestCaseElement> getTestCases() {
         return [
             testCase("testRawStrings",
-            '''XCTAssertEqual(getRawString(), "Raw string are ones with \\"quotes\\", backslash (\\\\), but can do special string interpolation (42)"))'''),
+            '''XCTAssertEqual(getRawString(), "Raw string are ones with \\"quotes\\", backslash (\\\\), but can do special string interpolation (42)")'''),
             testCase("testCodeWasCompiledWithSwift5Compiler",
                 """#if swift(>=6.0)
                         XCTFail("Compilation unit compiled with Swift 6+ instead of Swift 5.x");

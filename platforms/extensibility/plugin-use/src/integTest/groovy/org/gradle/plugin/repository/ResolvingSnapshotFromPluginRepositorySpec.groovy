@@ -17,25 +17,19 @@
 package org.gradle.plugin.repository
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.test.fixtures.Repository
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.plugin.PluginBuilder
 
 @LeaksFileHandles
 class ResolvingSnapshotFromPluginRepositorySpec extends AbstractDependencyResolutionTest {
 
-    private publishTestPlugin() {
-        publishTestPlugin(mavenRepo)
-    }
+    private publishTestPlugin(String version = "1.0-SNAPSHOT", String message = "from plugin") {
+        def pluginBuilder = new PluginBuilder(testDirectory.file("plugin-" + version))
 
-    private publishTestPlugin(Repository repository) {
-        def pluginBuilder = new PluginBuilder(testDirectory.file("plugin"))
-
-        def message = "from plugin"
         def taskName = "pluginTask"
 
         pluginBuilder.addPluginWithPrintlnTask(taskName, message, "org.example.plugin")
-        pluginBuilder.publishAs("org.example.plugin:plugin:1.0-SNAPSHOT", repository, executer)
+        pluginBuilder.publishAs("org.example.plugin:plugin:${version}", mavenRepo, executer)
     }
 
     private void useCustomRepository(String resolutionStrategy = "") {
@@ -44,7 +38,7 @@ class ResolvingSnapshotFromPluginRepositorySpec extends AbstractDependencyResolu
             $resolutionStrategy
             repositories {
                 maven {
-                    url "${mavenRepo.uri}"
+                    url = "${mavenRepo.uri}"
                 }
             }
           }
@@ -54,7 +48,7 @@ class ResolvingSnapshotFromPluginRepositorySpec extends AbstractDependencyResolu
     def 'Can specify snapshot version'() {
         given:
         publishTestPlugin()
-        buildScript """
+        buildFile """
           plugins {
               id "org.example.plugin" version '1.0-SNAPSHOT'
           }
@@ -76,7 +70,7 @@ class ResolvingSnapshotFromPluginRepositorySpec extends AbstractDependencyResolu
     def 'setting different snapshot version in resolutionStrategy will affect plugin choice'() {
         given:
         publishTestPlugin()
-        buildScript """
+        buildFile """
           plugins {
               id "org.example.plugin" version '1000'
           }
@@ -104,7 +98,7 @@ class ResolvingSnapshotFromPluginRepositorySpec extends AbstractDependencyResolu
     def 'can specify a snapshot artifact to use'() {
         given:
         publishTestPlugin()
-        buildScript """
+        buildFile """
           plugins {
               id "org.example.plugin"
           }
@@ -126,6 +120,41 @@ class ResolvingSnapshotFromPluginRepositorySpec extends AbstractDependencyResolu
         succeeds "pluginTask"
 
         then:
+        output.contains("I'm here")
+    }
+    def "can use dynamic versions and status to depend on snapshot version"() {
+        given:
+        publishTestPlugin("1.1-SNAPSHOT", "from 1.1")
+        publishTestPlugin("1.2", "from 1.2")
+        useCustomRepository()
+
+        buildFile << """
+            buildscript {
+                configurations.classpath {
+                    withDependencies { dependencies ->
+                       dependencies.configureEach { dep ->
+                            dep.attributes {
+                                attribute(Attribute.of("org.gradle.status", String.class), "integration")
+                            }
+                        }
+                    }
+                }
+            }
+
+            plugins {
+                id 'org.example.plugin' version '1.+'
+            }
+
+            plugins.withType(org.gradle.test.TestPlugin) {
+              println "I'm here"
+            }
+        """
+
+        when:
+        succeeds "pluginTask"
+
+        then:
+        output.contains("from 1.1")
         output.contains("I'm here")
     }
 

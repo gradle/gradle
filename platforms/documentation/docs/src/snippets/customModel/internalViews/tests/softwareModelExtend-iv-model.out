@@ -21,6 +21,12 @@ Root project 'internal-view'
 + tasks
       | Type:   	org.gradle.model.ModelMap<org.gradle.api.Task>
       | Creator: 	Project.<init>.tasks()
+    + artifactTransforms
+          | Type:   	org.gradle.api.tasks.diagnostics.ArtifactTransformsReportTask
+          | Value:  	task ':artifactTransforms'
+          | Creator: 	Project.<init>.tasks.artifactTransforms()
+          | Rules:
+             ⤷ copyToTaskContainer
     + assemble
           | Type:   	org.gradle.api.DefaultTask
           | Value:  	task ':assemble'
@@ -133,6 +139,12 @@ Root project 'internal-view'
           | Type:   	org.gradle.api.tasks.diagnostics.TaskReportTask
           | Value:  	task ':tasks'
           | Creator: 	Project.<init>.tasks.tasks()
+          | Rules:
+             ⤷ copyToTaskContainer
+    + updateDaemonJvm
+          | Type:   	org.gradle.buildconfiguration.tasks.UpdateDaemonJvm
+          | Value:  	task ':updateDaemonJvm'
+          | Creator: 	Project.<init>.tasks.updateDaemonJvm()
           | Rules:
              ⤷ copyToTaskContainer
     + wrapper

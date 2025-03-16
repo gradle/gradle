@@ -30,7 +30,7 @@ public class ConfigurationCacheStoreBuildOperationType implements BuildOperation
 
     public interface Result {
         /**
-         * The number of bytes of the loaded configuration cache entry.
+         * The number of bytes of the stored configuration cache entry.
          *
          * @since 8.6
          */

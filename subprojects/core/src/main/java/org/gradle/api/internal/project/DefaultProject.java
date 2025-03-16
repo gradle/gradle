@@ -46,24 +46,21 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.SyncSpec;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
-import org.gradle.api.internal.DomainObjectContext;
+import org.gradle.api.internal.DeprecatedProcessOperations;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.MutationGuards;
 import org.gradle.api.internal.ProcessOperations;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
-import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
-import org.gradle.api.internal.artifacts.dsl.dependencies.UnknownProjectFinder;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
-import org.gradle.api.internal.file.DefaultProjectLayout;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
+import org.gradle.api.internal.initialization.StandaloneDomainObjectContext;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.plugins.ExtensionContainerInternal;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
@@ -74,6 +71,9 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.ExtensionContainer;
+import org.gradle.api.plugins.ObjectConfigurationAction;
+import org.gradle.api.plugins.PluginContainer;
+import org.gradle.api.project.IsolatedProject;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
@@ -102,10 +102,10 @@ import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.model.RuleBasedPluginListener;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.TextUriResourceLoader;
-import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.internal.typeconversion.TypeConverter;
+import org.gradle.invocation.GradleLifecycleActionExecutor;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.model.Model;
 import org.gradle.model.RuleSource;
@@ -124,6 +124,7 @@ import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.normalization.InputNormalizationHandler;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
+import org.gradle.plugin.software.internal.SoftwareFeaturesDynamicObject;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
 import org.gradle.process.JavaExecSpec;
@@ -131,9 +132,9 @@ import org.gradle.util.Configurable;
 import org.gradle.util.Path;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.util.internal.ConfigureUtil;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.net.URI;
@@ -145,7 +146,6 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.Callable;
-import java.util.stream.Collectors;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.Collections.singletonMap;
@@ -190,10 +190,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     private final ProjectStateInternal state;
 
-    private FileResolver fileResolver;
-
-    private TaskDependencyFactory taskDependencyFactory;
-
     private Factory<AntBuilder> antBuilderFactory;
 
     private AntBuilder ant;
@@ -201,12 +197,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     private final int depth;
 
     private final TaskContainerInternal taskContainer;
-
-    private DependencyHandler dependencyHandler;
-
-    private RoleBasedConfigurationContainerInternal configurationContainer;
-
-    private ArtifactHandler artifactHandler;
 
     private ListenerBroadcast<ProjectEvaluationListener> evaluationListener = newProjectEvaluationListenerBroadcast();
 
@@ -219,6 +209,11 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     private String description;
 
     private boolean preparedForRuleBasedPlugins;
+
+    private final GradleLifecycleActionExecutor gradleLifecycleActionExecutor;
+
+    @Nullable
+    private Object beforeProjectActionState;
 
     public DefaultProject(
         String name,
@@ -252,14 +247,24 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
         services = serviceRegistryFactory.createFor(this);
         taskContainer = services.get(TaskContainerInternal.class);
-
-        extensibleDynamicObject = new ExtensibleDynamicObject(this, Project.class, services.get(InstantiatorFactory.class).decorateLenient(services));
+        gradleLifecycleActionExecutor = services.get(GradleLifecycleActionExecutor.class);
+        extensibleDynamicObject = new ExtensibleDynamicObject(
+            this,
+            new MutableStateAccessAwareDynamicObject(
+                new BeanDynamicObject(this, Project.class),
+                () -> gradleLifecycleActionExecutor.executeBeforeProjectFor(DefaultProject.this)
+            ),
+            services.get(InstantiatorFactory.class).decorateLenient(services)
+        );
 
         @Nullable DynamicObject parentInherited = services.get(CrossProjectModelAccess.class).parentProjectDynamicInheritedScope(this);
         if (parentInherited != null) {
             extensibleDynamicObject.setParent(parentInherited);
         }
         extensibleDynamicObject.addObject(taskContainer.getTasksAsDynamicObject(), ExtensibleDynamicObject.Location.AfterConvention);
+
+        DynamicObject softwareFeaturesDynamicObject = getObjects().newInstance(SoftwareFeaturesDynamicObject.class, this);
+        extensibleDynamicObject.addObject(softwareFeaturesDynamicObject, ExtensibleDynamicObject.Location.BeforeConvention);
 
         evaluationListener.add(gradle.getProjectEvaluationBroadcaster());
 
@@ -337,6 +342,10 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         }
     }
 
+    private void onMutableStateAccess() {
+        gradleLifecycleActionExecutor.executeBeforeProjectFor(this);
+    }
+
     private ListenerBroadcast<ProjectEvaluationListener> newProjectEvaluationListenerBroadcast() {
         return new ListenerBroadcast<>(ProjectEvaluationListener.class);
     }
@@ -393,6 +402,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Inject
     @Override
+    // onMutableStateAccess() triggered by #getServices()
     public abstract ScriptHandlerInternal getBuildscript();
 
     @Override
@@ -402,6 +412,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public void setScript(groovy.lang.Script buildScript) {
+        onMutableStateAccess();
         extensibleDynamicObject.addObject(new BeanDynamicObject(buildScript).withNoProperties().withNotImplementsMissing(),
             ExtensibleDynamicObject.Location.BeforeConvention);
     }
@@ -455,16 +466,19 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Override
     @Nullable
     public String getDescription() {
+        onMutableStateAccess();
         return description;
     }
 
     @Override
     public void setDescription(@Nullable String description) {
+        onMutableStateAccess();
         this.description = description;
     }
 
     @Override
     public Object getGroup() {
+        onMutableStateAccess();
         if (group != null) {
             return group;
         } else if (this == rootProject) {
@@ -476,31 +490,37 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public void setGroup(Object group) {
+        onMutableStateAccess();
         this.group = group;
     }
 
     @Override
     public Object getVersion() {
+        onMutableStateAccess();
         return version == null ? DEFAULT_VERSION : version;
     }
 
     @Override
     public void setVersion(Object version) {
+        onMutableStateAccess();
         this.version = version;
     }
 
     @Override
     public Object getStatus() {
+        // onMutableStateAccess() triggered by #getInternalStatus()
         return getInternalStatus().get();
     }
 
     @Override
     public void setStatus(Object s) {
+        // onMutableStateAccess() triggered by #getInternalStatus()
         getInternalStatus().set(s);
     }
 
     @Override
     public Property<Object> getInternalStatus() {
+        onMutableStateAccess();
         if (status == null) {
             status = getObjects().property(Object.class).convention(DEFAULT_STATUS);
         }
@@ -518,76 +538,74 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public Map<String, Project> getChildProjects() {
-        return getChildProjectsUnchecked().entrySet().stream().collect(
-            Collectors.toMap(
-                Map.Entry::getKey,
-                entry -> getCrossProjectModelAccess().access(this, (ProjectInternal) entry.getValue())
-            )
-        );
+        return getChildProjects(this);
+    }
+
+    @Override
+    public Map<String, Project> getChildProjects(ProjectInternal referrer) {
+        return getCrossProjectModelAccess().getChildProjects(referrer, this);
     }
 
     @Override
     public List<String> getDefaultTasks() {
+        onMutableStateAccess();
         return defaultTasks;
     }
 
     @Override
     public void setDefaultTasks(List<String> defaultTasks) {
+        onMutableStateAccess();
         this.defaultTasks = defaultTasks;
     }
 
     @Override
     public ProjectStateInternal getState() {
+        onMutableStateAccess();
         return state;
     }
 
+    @Inject
     @Override
-    public FileResolver getFileResolver() {
-        if (fileResolver == null) {
-            fileResolver = services.get(FileResolver.class);
-        }
-        return fileResolver;
-    }
+    public abstract FileResolver getFileResolver();
 
+    @Inject
     @Override
-    public TaskDependencyFactory getTaskDependencyFactory() {
-        if (taskDependencyFactory == null) {
-            taskDependencyFactory = services.get(TaskDependencyFactory.class);
-        }
-        return taskDependencyFactory;
-    }
-
-    public void setFileResolver(FileResolver fileResolver) {
-        this.fileResolver = fileResolver;
-    }
+    public abstract TaskDependencyFactory getTaskDependencyFactory();
 
     public void setAnt(AntBuilder ant) {
         this.ant = ant;
     }
 
+    @Inject
     @Override
-    public ArtifactHandler getArtifacts() {
-        if (artifactHandler == null) {
-            artifactHandler = services.get(ArtifactHandler.class);
-        }
-        return artifactHandler;
-    }
+    // onMutableStateAccess() triggered by #getServices()
+    public abstract ArtifactHandler getArtifacts();
 
     @Inject
     @Override
+    // onMutableStateAccess() triggered by #getServices()
     public abstract RepositoryHandler getRepositories();
 
+    @Inject
     @Override
-    public RoleBasedConfigurationContainerInternal getConfigurations() {
-        if (configurationContainer == null) {
-            configurationContainer = services.get(RoleBasedConfigurationContainerInternal.class);
-        }
-        return configurationContainer;
+    // onMutableStateAccess() triggered by #getServices()
+    public abstract RoleBasedConfigurationContainerInternal getConfigurations();
+
+    @Override
+    public void setLifecycleActionsState(@Nullable Object state) {
+        beforeProjectActionState = state;
+    }
+
+    @Override
+    @Nullable
+    public Object getLifecycleActionsState() {
+        return beforeProjectActionState;
     }
 
     @Deprecated
     @Override
     public org.gradle.api.plugins.Convention getConvention() {
+        onMutableStateAccess();
         return extensibleDynamicObject.getConvention();
     }
 
@@ -595,7 +613,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     public String getPath() {
         return owner.getProjectPath().toString();
     }
-
 
     @Override
     public String getBuildTreePath() {
@@ -636,14 +653,26 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
-    @Nonnull
     public Path getProjectPath() {
         return owner.getProjectPath();
     }
 
+    @NonNull
+    @Override
+    public ProjectIdentity getProjectIdentity() {
+        return owner.getIdentity();
+    }
+
     @Override
     public ModelContainer<ProjectInternal> getModel() {
+        onMutableStateAccess();
         return getOwner();
+    }
+
+    @Override
+    public PluginContainer getPlugins() {
+        onMutableStateAccess();
+        return super.getPlugins();
     }
 
     @Override
@@ -723,7 +752,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public void allprojects(ProjectInternal referrer, Action<? super Project> action) {
-        getProjectConfigurator().allprojects(getCrossProjectModelAccess().getAllprojects(referrer, this), action);
+        getProjectConfigurator().allprojects(getAllprojects(referrer), action);
     }
 
     @Override
@@ -748,7 +777,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public void subprojects(ProjectInternal referrer, Action<? super Project> configureAction) {
-        getProjectConfigurator().subprojects(getCrossProjectModelAccess().getSubprojects(referrer, this), configureAction);
+        getProjectConfigurator().subprojects(getSubprojects(referrer), configureAction);
     }
 
     @Override
@@ -769,11 +798,12 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public AntBuilder createAntBuilder() {
+        onMutableStateAccess();
         return getAntBuilderFactory().create();
     }
 
     /**
-     * This method is used when scripts access the project via project.x
+     * This method is used when scripts access the project via project.
      */
     @Override
     public ProjectInternal getProject() {
@@ -781,13 +811,26 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
+    public IsolatedProject getIsolated() {
+        return new DefaultIsolatedProject(this, rootProject);
+    }
+
+    @Override
     public DefaultProject evaluate() {
+        // onMutableStateAccess() triggered by #getProjectEvaluator()
         getProjectEvaluator().evaluate(this, state);
         return this;
     }
 
     @Override
+    public ProjectInternal evaluateUnchecked() {
+        services.get(ProjectEvaluator.class).evaluate(this, state); // avoid getServices() call
+        return this;
+    }
+
+    @Override
     public ProjectInternal bindAllModelRules() {
+        // onMutableStateAccess() triggered by #getModelRegistry
         try {
             getModelRegistry().bindAllReferences();
         } catch (Exception e) {
@@ -798,6 +841,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public TaskContainerInternal getTasks() {
+        onMutableStateAccess();
         return taskContainer;
     }
 
@@ -806,6 +850,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         if (defaultTasks == null) {
             throw new InvalidUserDataException("Default tasks must not be null!");
         }
+        onMutableStateAccess();
         this.defaultTasks = new ArrayList<String>();
         for (String defaultTask : defaultTasks) {
             if (defaultTask == null) {
@@ -823,23 +868,26 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Override
     @Deprecated
     public File getBuildDir() {
+        // onMutableStateAccess(); triggered by #getLayout()
         return getLayout().getBuildDirectory().getAsFile().get();
     }
 
     @Override
     @Deprecated
     public void setBuildDir(File path) {
+        // onMutableStateAccess(); triggered by #getLayout() in #setBuildDir(Object) below
         setBuildDir((Object) path);
     }
 
     @Override
     @Deprecated
     public void setBuildDir(Object path) {
-        getLayout().setBuildDirectory(path);
+        getLayout().getBuildDirectory().set(getFileResolver().resolve(path));
     }
 
     @Override
     public void evaluationDependsOnChildren() {
+        onMutableStateAccess();
         for (ProjectState project : owner.getChildProjects()) {
             ProjectInternal defaultProjectToEvaluate = project.getMutableModel();
             evaluationDependsOn(defaultProjectToEvaluate);
@@ -851,6 +899,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         if (isNullOrEmpty(path)) {
             throw new InvalidUserDataException("You must specify a project!");
         }
+        // onMutableStateAccess(); triggered by `evaluationDependsOn(ProjectInternal)`
         ProjectInternal projectToEvaluate = project(path);
         return evaluationDependsOn(projectToEvaluate);
     }
@@ -860,6 +909,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
             throw new CircularReferenceException(String.format("Circular referencing during evaluation for %s.",
                 projectToEvaluate));
         }
+        onMutableStateAccess();
         projectToEvaluate.getOwner().ensureConfigured();
         return projectToEvaluate;
     }
@@ -886,6 +936,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public Map<Project, Set<Task>> getAllTasks(boolean recursive) {
+        onMutableStateAccess();
         final Map<Project, Set<Task>> foundTargets = new TreeMap<Project, Set<Task>>();
         Action<Project> action = new Action<Project>() {
             @Override
@@ -909,6 +960,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         if (isNullOrEmpty(name)) {
             throw new InvalidUserDataException("Name is not specified!");
         }
+        onMutableStateAccess();
         final Set<Task> foundTasks = new HashSet<Task>();
         Action<Project> action = new Action<Project>() {
             @Override
@@ -930,21 +982,22 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         return foundTasks;
     }
 
-    @Override
     @Inject
+    @Override
     public abstract FileOperations getFileOperations();
 
-    @Override
     @Inject
+    @Override
     public abstract ProviderFactory getProviders();
 
-    @Override
     @Inject
+    @Override
     public abstract ObjectFactory getObjects();
 
-    @Override
     @Inject
-    public abstract DefaultProjectLayout getLayout();
+    @Override
+    // onMutableStateAccess() triggered by #getServices()
+    public abstract ProjectLayout getLayout();
 
     @Override
     public File file(Object path) {
@@ -1047,16 +1100,13 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         return antBuilderFactory;
     }
 
-    @Override
-    public DependencyHandler getDependencies() {
-        if (dependencyHandler == null) {
-            dependencyHandler = services.get(DependencyHandler.class);
-        }
-        return dependencyHandler;
-    }
-
-    @Override
     @Inject
+    @Override
+    // onMutableStateAccess() triggered by #getServices()
+    public abstract DependencyHandler getDependencies();
+
+    @Inject
+    @Override
     public abstract DependencyFactory getDependencyFactory();
 
     @Override
@@ -1066,26 +1116,30 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public void beforeEvaluate(Action<? super Project> action) {
-        assertMutatingMethodAllowed("beforeEvaluate(Action)");
+        onMutableStateAccess();
+        assertEagerContext("beforeEvaluate(Action)");
         evaluationListener.add("beforeEvaluate", getListenerBuildOperationDecorator().decorate("Project.beforeEvaluate", action));
     }
 
     @Override
     public void afterEvaluate(Action<? super Project> action) {
-        assertMutatingMethodAllowed("afterEvaluate(Action)");
+        onMutableStateAccess();
+        assertEagerContext("afterEvaluate(Action)");
         failAfterProjectIsEvaluated("afterEvaluate(Action)");
         evaluationListener.add("afterEvaluate", getListenerBuildOperationDecorator().decorate("Project.afterEvaluate", action));
     }
 
     @Override
     public void beforeEvaluate(Closure closure) {
-        assertMutatingMethodAllowed("beforeEvaluate(Closure)");
+        onMutableStateAccess();
+        assertEagerContext("beforeEvaluate(Closure)");
         evaluationListener.add(new ClosureBackedMethodInvocationDispatch("beforeEvaluate", getListenerBuildOperationDecorator().decorate("Project.beforeEvaluate", Cast.<Closure<?>>uncheckedNonnullCast(closure))));
     }
 
     @Override
     public void afterEvaluate(Closure closure) {
-        assertMutatingMethodAllowed("afterEvaluate(Closure)");
+        onMutableStateAccess();
+        assertEagerContext("afterEvaluate(Closure)");
         failAfterProjectIsEvaluated("afterEvaluate(Closure)");
         evaluationListener.add(new ClosureBackedMethodInvocationDispatch("afterEvaluate", getListenerBuildOperationDecorator().decorate("Project.afterEvaluate", Cast.<Closure<?>>uncheckedNonnullCast(closure))));
     }
@@ -1112,6 +1166,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Inject
     @Override
+    // onMutableStateAccess() triggered by #getServices()
     public abstract SoftwareComponentContainer getComponents();
 
     @Override
@@ -1205,51 +1260,59 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         return getFileOperations().copySpec();
     }
 
-    @Override
     @Inject
+    @Override
     public abstract ProcessOperations getProcessOperations();
 
+    private DeprecatedProcessOperations getDeprecatedProcessOperations() {
+        return new DeprecatedProcessOperations(Project.class, getProcessOperations());
+    }
+
     @Override
+    @Deprecated
     public ExecResult javaexec(Closure closure) {
-        return javaexec(configureUsing(closure));
+        return getDeprecatedProcessOperations().javaexec(closure);
     }
 
     @Override
+    @Deprecated
     public ExecResult javaexec(Action<? super JavaExecSpec> action) {
-        return getProcessOperations().javaexec(action);
+        return getDeprecatedProcessOperations().javaexec(action);
     }
 
     @Override
+    @Deprecated
     public ExecResult exec(Closure closure) {
-        return exec(configureUsing(closure));
+        return getDeprecatedProcessOperations().exec(closure);
     }
 
     @Override
+    @Deprecated
     public ExecResult exec(Action<? super ExecSpec> action) {
-        return getProcessOperations().exec(action);
+        return getDeprecatedProcessOperations().exec(action);
     }
 
     @Override
     public ServiceRegistry getServices() {
+        onMutableStateAccess();
         return services;
     }
 
     @Override
     public ServiceRegistryFactory getServiceRegistryFactory() {
+        onMutableStateAccess();
         return services.get(ServiceRegistryFactory.class);
     }
 
     @Override
-    @Inject
-    public abstract DependencyMetaDataProvider getDependencyMetaDataProvider();
-
-    @Override
     public AntBuilder ant(Closure configureClosure) {
+        // onMutableStateAccess() triggered by #getAnt
         return ConfigureUtil.configure(configureClosure, getAnt());
     }
 
     @Override
     public AntBuilder ant(Action<? super AntBuilder> configureAction) {
+        // onMutableStateAccess() triggered by #getAnt
         AntBuilder ant = getAnt();
         configureAction.execute(ant);
         return ant;
@@ -1287,81 +1350,104 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public void configurations(Closure configureClosure) {
+        // onMutableStateAccess() triggered by #getConfigurations()
         ((Configurable<?>) getConfigurations()).configure(configureClosure);
     }
 
     @Override
     public void repositories(Closure configureClosure) {
+        // onMutableStateAccess() triggered by #getRepositories()
         ConfigureUtil.configure(configureClosure, getRepositories());
     }
 
     @Override
     public void dependencies(Closure configureClosure) {
+        // onMutableStateAccess() triggered by #getDependencies()
         ConfigureUtil.configure(configureClosure, getDependencies());
     }
 
     @Override
     public void artifacts(Closure configureClosure) {
+        // onMutableStateAccess() triggered by #getArtifacts()
         ConfigureUtil.configure(configureClosure, getArtifacts());
     }
 
     @Override
     public void artifacts(Action<? super ArtifactHandler> configureAction) {
+        // onMutableStateAccess() triggered by #getArtifacts()
         configureAction.execute(getArtifacts());
     }
 
     @Override
     public void buildscript(Closure configureClosure) {
+        // onMutableStateAccess() triggered by #getBuildscript()
         ConfigureUtil.configure(configureClosure, getBuildscript());
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public Task task(String task) {
+        onMutableStateAccess();
         return taskContainer.create(task);
     }
 
+    @SuppressWarnings("deprecation")
     public Task task(Object task) {
+        onMutableStateAccess();
         return taskContainer.create(task.toString());
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public Task task(String task, Action<? super Task> configureAction) {
+        onMutableStateAccess();
         return taskContainer.create(task, configureAction);
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public Task task(String task, Closure configureClosure) {
+        onMutableStateAccess();
         return taskContainer.create(task).configure(configureClosure);
     }
 
     public Task task(Object task, Closure configureClosure) {
+        // onMutableStateAccess() triggered by #task(String, Closure)
         return task(task.toString(), configureClosure);
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public Task task(Map options, String task) {
+        onMutableStateAccess();
         return taskContainer.create(addMaps(Cast.uncheckedNonnullCast(options), singletonMap(Task.TASK_NAME, task)));
     }
 
     public Task task(Map options, Object task) {
+        // onMutableStateAccess() triggered by #task(Map, String)
         return task(options, task.toString());
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public Task task(Map options, String task, Closure configureClosure) {
+        onMutableStateAccess();
         return taskContainer.create(addMaps(Cast.uncheckedNonnullCast(options), singletonMap(Task.TASK_NAME, task))).configure(configureClosure);
     }
 
     public Task task(Map options, Object task, Closure configureClosure) {
+        // onMutableStateAccess() triggered by #task(Map, String, Closure)
         return task(options, task.toString(), configureClosure);
     }
 
     @Inject
     @Override
+    // onMutableStateAccess() triggered by #getServices()
     public abstract ProjectConfigurationActionContainer getConfigurationActions();
 
     @Inject
     @Override
+    // onMutableStateAccess() triggered by #getServices()
     public abstract ModelRegistry getModelRegistry();
 
     @Override
@@ -1372,6 +1458,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Inject
     @Override
+    // onMutableStateAccess() triggered by #getServices()
     public abstract PluginManagerInternal getPluginManager();
 
     @Inject
@@ -1414,6 +1501,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public ExtensionContainerInternal getExtensions() {
+        onMutableStateAccess();
         return (ExtensionContainerInternal) DeprecationLogger.whileDisabled(this::getConvention);
     }
 
@@ -1439,14 +1527,33 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public void addDeferredConfiguration(Runnable configuration) {
+        // onMutableStateAccess() triggered by #getDeferredProjectConfiguration()
         getDeferredProjectConfiguration().add(configuration);
     }
 
     @Override
     public void fireDeferredConfiguration() {
+        // onMutableStateAccess() triggered by #getDeferredProjectConfiguration()
         getDeferredProjectConfiguration().fire();
     }
 
+    @Override
+    public void apply(Closure closure) {
+        onMutableStateAccess();
+        super.apply(closure);
+    }
+
+    @Override
+    public void apply(Action<? super ObjectConfigurationAction> action) {
+        onMutableStateAccess();
+        super.apply(action);
+    }
+
+    @Override
+    public void apply(Map<String, ?> options) {
+        onMutableStateAccess();
+        super.apply(options);
+    }
 
     @Override
     public void addRuleBasedPluginListener(RuleBasedPluginListener listener) {
@@ -1467,19 +1574,23 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Inject
     @Override
+    // onMutableStateAccess() triggered by #getServices()
     public abstract InputNormalizationHandlerInternal getNormalization();
 
     @Override
     public void normalization(Action<? super InputNormalizationHandler> configuration) {
+        //onMutableStateAccess(); triggered by #getNormalization()
         configuration.execute(getNormalization());
     }
 
     @Inject
     @Override
+    // onMutableStateAccess() triggered by #getServices()
     public abstract DependencyLockingHandler getDependencyLocking();
 
     @Override
     public void dependencyLocking(Action<? super DependencyLockingHandler> configuration) {
+        // onMutableStateAccess() triggered by #getDependencyLocking()
         configuration.execute(getDependencyLocking());
     }
 
@@ -1498,8 +1609,12 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
             : nextBatch.getSource();
     }
 
-    private void assertMutatingMethodAllowed(String methodName) {
-        MutationGuards.of(getProjectConfigurator()).assertMutationAllowed(methodName, this, Project.class);
+    /**
+     * Assert that the current thread is not running a lazy action on a domain object within this project.
+     * This method should be called by methods that must not be called in lazy actions.
+     */
+    private void assertEagerContext(String methodName) {
+        getProjectConfigurator().getLazyBehaviorGuard().assertEagerContext(methodName, this, Project.class);
     }
 
     @Override
@@ -1509,23 +1624,14 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public DetachedResolver newDetachedResolver() {
-        DependencyManagementServices dms = getServices().get(DependencyManagementServices.class);
-        InstantiatorFactory instantiatorFactory = services.get(InstantiatorFactory.class);
-        DefaultServiceRegistry lookup = new DefaultServiceRegistry(services);
-        lookup.addProvider(new Object() {
-            public DependencyResolutionServices createServices() {
-                return dms.create(
-                    services.get(FileResolver.class),
-                    services.get(FileCollectionFactory.class),
-                    services.get(DependencyMetaDataProvider.class),
-                    new UnknownProjectFinder("Detached resolvers do not support resolving projects"),
-                    new DetachedDependencyResolutionDomainObjectContext(services.get(DomainObjectContext.class))
-                );
-            }
-        });
-        return instantiatorFactory.decorate(lookup).newInstance(
-            LocalDetachedResolver.class
+        DependencyManagementServices dms = getGradle().getServices().get(DependencyManagementServices.class);
+        DependencyResolutionServices resolver = dms.newDetachedResolver(
+            services.get(FileResolver.class),
+            services.get(FileCollectionFactory.class),
+            StandaloneDomainObjectContext.detachedFrom(this)
         );
+
+        return new LocalDetachedResolver(resolver);
     }
 
     public static class LocalDetachedResolver implements DetachedResolver {
@@ -1549,66 +1655,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         @Override
         public ConfigurationContainer getConfigurations() {
             return resolutionServices.getConfigurationContainer();
-        }
-    }
-
-    private static class DetachedDependencyResolutionDomainObjectContext implements DomainObjectContext {
-        private final DomainObjectContext delegate;
-
-        private DetachedDependencyResolutionDomainObjectContext(DomainObjectContext delegate) {
-            this.delegate = delegate;
-        }
-
-        @Override
-        public Path identityPath(String name) {
-            return delegate.identityPath(name);
-        }
-
-        @Override
-        public Path projectPath(String name) {
-            return delegate.projectPath(name);
-        }
-
-        @Override
-        @Nullable
-        public Path getProjectPath() {
-            return delegate.getProjectPath();
-        }
-
-        @Override
-        @Nullable
-        public ProjectInternal getProject() {
-            return delegate.getProject();
-        }
-
-        @Override
-        public ModelContainer<?> getModel() {
-            return delegate.getModel();
-        }
-
-        @Override
-        public Path getBuildPath() {
-            return delegate.getBuildPath();
-        }
-
-        @Override
-        public boolean isRootScript() {
-            return delegate.isRootScript();
-        }
-
-        @Override
-        public boolean isPluginContext() {
-            return delegate.isPluginContext();
-        }
-
-        @Override
-        public boolean isScript() {
-            return delegate.isScript();
-        }
-
-        @Override
-        public boolean isDetachedState() {
-            return true;
         }
     }
 }

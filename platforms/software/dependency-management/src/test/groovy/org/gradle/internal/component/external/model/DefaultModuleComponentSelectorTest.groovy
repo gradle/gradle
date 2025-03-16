@@ -16,16 +16,19 @@
 
 package org.gradle.internal.component.external.model
 
+import com.google.common.collect.ImmutableSet
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint
+import org.gradle.api.internal.artifacts.capability.DefaultSpecificCapabilitySelector
+import org.gradle.api.internal.artifacts.capability.DefaultFeatureCapabilitySelector
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import spock.lang.Specification
 
 import static org.gradle.internal.component.local.model.TestComponentIdentifiers.newProjectId
-import static org.gradle.util.Matchers.strictlyEquals
 import static org.gradle.util.AttributeTestUtil.attributes
+import static org.gradle.util.Matchers.strictlyEquals
 
 class DefaultModuleComponentSelectorTest extends Specification {
     private static ImmutableVersionConstraint v(String version) {
@@ -42,7 +45,7 @@ class DefaultModuleComponentSelectorTest extends Specification {
 
     def "is instantiated with non-null constructor parameter values"() {
         when:
-        def selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('some-group', 'some-name'), v('1.0'), ImmutableAttributes.EMPTY, [])
+        def selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('some-group', 'some-name'), v('1.0'), ImmutableAttributes.EMPTY, [] as Set)
 
         then:
         selector.group == 'some-group'
@@ -74,23 +77,6 @@ class DefaultModuleComponentSelectorTest extends Specification {
         def noSelector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('some-group', 'some-name'), v(''))
         noSelector.displayName == "some-group:some-name"
         noSelector.toString() == "some-group:some-name"
-    }
-
-    def "is instantiated with null constructor parameter values (#group, #name, #version, #attrs, #caps)"() {
-        when:
-        DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(group, name), version, attrs, caps)
-
-        then:
-        Throwable t = thrown(AssertionError)
-        assert t.message == assertionMessage
-
-        where:
-        group        | name        | version  | attrs                     | caps | assertionMessage
-        null         | 'some-name' | v('1.0') | attributes(custom: 'foo') | []   | 'group cannot be null'
-        'some-group' | null        | v('1.0') | attributes(custom: 'foo') | []   | 'name cannot be null'
-        'some-group' | 'some-name' | null     | attributes(custom: 'foo') | []   | 'version cannot be null'
-        'some-group' | 'some-name' | v('1.0') | null                      | []   | 'attributes cannot be null'
-        'some-group' | 'some-name' | v('1.0') | attributes(custom: 'foo') | null | 'capabilities cannot be null'
     }
 
     def "can compare with other instance (#group, #name, #version)"() {
@@ -130,7 +116,7 @@ class DefaultModuleComponentSelectorTest extends Specification {
         def otherAttr = Attribute.of('other', String)
 
         when:
-        def selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('some-group', 'some-name'), v('1.0'), attributes(custom: 'foo', other: 'bar'), [])
+        def selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('some-group', 'some-name'), v('1.0'), attributes(custom: 'foo', other: 'bar'), [] as Set)
 
         then:
         selector.group == 'some-group'
@@ -148,11 +134,12 @@ class DefaultModuleComponentSelectorTest extends Specification {
     }
 
     def "can create new selector with capabilities"() {
-        def customAttr = Attribute.of('custom', String)
-        def otherAttr = Attribute.of('other', String)
-
+        def capabilitySelectors = ImmutableSet.of(
+            new DefaultSpecificCapabilitySelector(new DefaultImmutableCapability("org", "blah", "1")),
+            new DefaultFeatureCapabilitySelector("foo")
+        )
         when:
-        def selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('some-group', 'some-name'), v('1.0'), ImmutableAttributes.EMPTY, [new DefaultImmutableCapability("org", "blah", "1.5")])
+        def selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('some-group', 'some-name'), v('1.0'), ImmutableAttributes.EMPTY, capabilitySelectors)
 
         then:
         selector.group == 'some-group'
@@ -163,19 +150,11 @@ class DefaultModuleComponentSelectorTest extends Specification {
         selector.versionConstraint.strictVersion == ''
         selector.versionConstraint.rejectedVersions == []
         selector.attributes.isEmpty()
-        selector.requestedCapabilities == [new DefaultImmutableCapability("org", "blah", "1.5")]
+        selector.capabilitySelectors == capabilitySelectors
+        selector.requestedCapabilities[0] == ((DefaultSpecificCapabilitySelector) capabilitySelectors[0]).backingCapability
+        selector.requestedCapabilities[1] == new DefaultImmutableCapability("some-group", "some-name-foo", "1.0")
         selector.displayName == 'some-group:some-name:1.0'
         selector.toString() == 'some-group:some-name:1.0'
-    }
-
-    def "prevents matching of null id"() {
-        when:
-        def selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('some-group', 'some-name'), v('1.0'))
-        selector.matchesStrictly(null)
-
-        then:
-        Throwable t = thrown(AssertionError)
-        assert t.message == 'identifier cannot be null'
     }
 
     def "does not match id for unexpected component selector type"() {

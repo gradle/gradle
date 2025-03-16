@@ -16,27 +16,29 @@
 
 package org.gradle.kotlin.dsl.accessors.tasks
 
+import org.gradle.api.DefaultTask
 import org.gradle.api.Project
+import org.gradle.api.initialization.SharedModelDefaults
 import org.gradle.api.plugins.ExtraPropertiesExtension
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.kotlin.dsl.accessors.ConfigurationEntry
-
 import org.gradle.kotlin.dsl.accessors.TypedProjectSchema
 import org.gradle.kotlin.dsl.accessors.entry
 import org.gradle.kotlin.dsl.fixtures.standardOutputOf
-
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
-
+import org.hamcrest.text.IsBlankString.blankString
 import org.junit.Test
 
 
 class PrintAccessorsTest {
 
     abstract class CustomConvention
+
+    abstract class TestSoftwareType
 
     @Test
     fun `prints accessors for all schema entries`() {
@@ -60,7 +62,12 @@ class PrintAccessorsTest {
                         ),
                         containerElements = listOf(
                             entry<SourceSetContainer, SourceSet>("main")
-                        )
+                        ),
+                        modelDefaults = listOf(
+                            entry<SharedModelDefaults, TestSoftwareType>("softwareType")
+                        ),
+                        softwareTypeEntries = emptyList(),
+                        containerElementFactories = listOf()
                     )
                 )
             }.withoutTrailingWhitespace(),
@@ -68,6 +75,31 @@ class PrintAccessorsTest {
                 textFromResource("PrintAccessors-expected-output.txt")
             )
         )
+    }
+
+    @Test
+    fun `does not print accessors with invalid Kotlin identifiers`() {
+
+        val actualAccessors = standardOutputOf {
+            printAccessorsFor(
+                TypedProjectSchema(
+                    extensions = listOf(),
+                    conventions = listOf(),
+                    tasks = listOf(
+                        entry<TaskContainer, DefaultTask>("dots.not.allowed")
+                    ),
+                    configurations = listOf(
+                        ConfigurationEntry("dots.not.allowed"),
+                    ),
+                    containerElements = listOf(),
+                    modelDefaults = listOf(),
+                    softwareTypeEntries = emptyList(),
+                    containerElementFactories = listOf()
+                )
+            )
+        }.withoutTrailingWhitespace()
+
+        assertThat(actualAccessors, blankString())
     }
 
     private

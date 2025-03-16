@@ -20,8 +20,8 @@ import org.apache.http.impl.client.HttpClientBuilder
 import org.apache.http.ssl.SSLContexts
 import org.gradle.api.credentials.PasswordCredentials
 import org.gradle.internal.authentication.AllSchemesAuthentication
-import org.gradle.internal.credentials.DefaultHttpHeaderCredentials
 import org.gradle.internal.resource.UriTextResource
+import org.gradle.util.TestCredentialUtil
 import spock.lang.Specification
 
 class HttpClientConfigurerTest extends Specification {
@@ -112,9 +112,7 @@ class HttpClientConfigurerTest extends Specification {
     }
 
     def "configures http client with http header auth credentials"() {
-        def httpHeaderCredentials = new DefaultHttpHeaderCredentials()
-        httpHeaderCredentials.setName("TestHttpHeaderName")
-        httpHeaderCredentials.setValue("TestHttpHeaderValue")
+        def httpHeaderCredentials = TestCredentialUtil.defaultHttpHeaderCredentials("TestHttpHeaderName", "TestHttpHeaderValue")
         AllSchemesAuthentication httpHeaderAuthentication = new AllSchemesAuthentication(httpHeaderCredentials)
         httpHeaderAuthentication.addHost(REMOTE_HOST, SOME_PORT)
 

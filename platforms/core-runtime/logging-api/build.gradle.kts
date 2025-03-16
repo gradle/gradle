@@ -22,14 +22,9 @@ description = "Logging API"
 
 gradlebuildJava.usedInWorkers()
 
-errorprone {
-    disabledChecks.addAll(
-        "ImmutableEnumChecker", // 1 occurrences
-    )
-}
-
 dependencies {
     api(libs.slf4jApi)
 
-    implementation(project(":base-annotations"))
+    implementation(projects.stdlibJavaExtensions)
+    implementation(projects.internalInstrumentationApi)
 }

@@ -17,13 +17,15 @@
 package org.gradle.internal.enterprise;
 
 import org.gradle.StartParameter;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.launcher.daemon.server.scaninfo.DaemonScanInfo;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Information about the current build invocation or build invocation environment required by the plugin.
  */
+@ServiceScope(Scope.BuildTree.class)
 public interface GradleEnterprisePluginBuildState {
 
     long getBuildStartedTime();

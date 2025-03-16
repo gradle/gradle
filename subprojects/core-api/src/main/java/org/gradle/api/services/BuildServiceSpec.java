@@ -18,6 +18,7 @@ package org.gradle.api.services;
 
 import org.gradle.api.Action;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 
 /**
  * A set of parameters that defines a service registration.
@@ -41,10 +42,10 @@ public interface BuildServiceSpec<P extends BuildServiceParameters> {
      * When this property has no value defined, then any number of tasks may use this service in parallel. This is the default.
      *
      * <p>
-     * IMPORTANT: the build service must be explicitly registered with every using task via {@link org.gradle.api.Task#usesService(Provider) Task#usesService}
-     * for this constraint to be honored.
-     * </p>
+     * IMPORTANT: the build service must be consumed via a {@link ServiceReference} property, or explicitly registered with every using task
+     * via {@link org.gradle.api.Task#usesService(Provider) Task#usesService} for this constraint to be honored.
      *
+     * @see ServiceReference
      * @see org.gradle.api.Task#usesService(Provider)
      */
     Property<Integer> getMaxParallelUsages();

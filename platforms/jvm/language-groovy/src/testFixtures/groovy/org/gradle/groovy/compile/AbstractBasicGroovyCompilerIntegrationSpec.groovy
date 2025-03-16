@@ -455,7 +455,7 @@ abstract class AbstractBasicGroovyCompilerIntegrationSpec extends MultiVersionIn
 
     def "cant compile against gradle base services"() {
         def gradleBaseServicesClass = Action
-        buildScript """
+        buildFile """
             apply plugin: 'groovy'
             ${mavenCentralRepository()}
         """
@@ -476,7 +476,7 @@ abstract class AbstractBasicGroovyCompilerIntegrationSpec extends MultiVersionIn
     @Requires(UnitTestPreconditions.Online)
     def "can compile with Groovy library resolved by classifier"() {
         def gradleBaseServicesClass = Action
-        buildScript """
+        buildFile """
             apply plugin: 'groovy'
             ${mavenCentralRepository()}
             dependencies {

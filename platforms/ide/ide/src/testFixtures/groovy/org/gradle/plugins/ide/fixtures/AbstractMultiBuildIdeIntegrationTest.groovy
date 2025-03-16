@@ -31,7 +31,10 @@ abstract class AbstractMultiBuildIdeIntegrationTest extends AbstractIntegrationS
     abstract IdeWorkspaceFixture workspace(TestFile workspaceDir, String ideWorkspaceName)
     abstract IdeProjectFixture project(TestFile projectDir, String ideProjectName)
 
-    @ToBeFixedForConfigurationCache(because = "ide plugins")
+    @ToBeFixedForConfigurationCache(because = "ide plugins", bottomSpecs = [
+        "EclipseMultiBuildIntegrationTest",
+        "IdeaMultiBuildIntegrationTest"
+    ])
     @Issue("https://github.com/gradle/gradle/issues/5110")
     def "buildSrc project can apply IDE plugin"() {
         file("buildSrc/build.gradle") << """
@@ -47,7 +50,10 @@ abstract class AbstractMultiBuildIdeIntegrationTest extends AbstractIntegrationS
         } // else, unspecified
     }
 
-    @ToBeFixedForConfigurationCache(because = "ide plugins")
+    @ToBeFixedForConfigurationCache(because = "ide plugins", bottomSpecs = [
+        "EclipseMultiBuildIntegrationTest",
+        "IdeaMultiBuildIntegrationTest"
+    ])
     def "workspace includes projects from included builds"() {
         buildTestFixture.withBuildInSubDir()
         def buildA = singleProjectBuild("buildA") {
@@ -84,7 +90,10 @@ abstract class AbstractMultiBuildIdeIntegrationTest extends AbstractIntegrationS
         workspace.assertContains(project(buildB.file("p2"), "p2"))
     }
 
-    @ToBeFixedForConfigurationCache(because = "ide plugins")
+    @ToBeFixedForConfigurationCache(because = "ide plugins", bottomSpecs = [
+        "EclipseMultiBuildIntegrationTest",
+        "IdeaMultiBuildIntegrationTest"
+    ])
     def "workspace includes projects from nested included builds"() {
         buildTestFixture.withBuildInSubDir()
         def buildA = singleProjectBuild("buildA") {

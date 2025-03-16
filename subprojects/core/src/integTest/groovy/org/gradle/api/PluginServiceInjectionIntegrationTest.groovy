@@ -132,10 +132,9 @@ class PluginServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
                 void apply(Project p) {
                     println(executor != null ? "got it" : "NOT IT")
 
-                    // is generated but not extensible
+                    // is generated
                     assert getClass() != CustomPlugin
                     assert (this instanceof org.gradle.api.internal.GeneratedSubclass)
-                    assert !(this instanceof ExtensionAware)
                 }
             }
 

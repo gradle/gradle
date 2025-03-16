@@ -16,19 +16,20 @@
 
 package org.gradle.internal.component.model;
 
-import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 
-import javax.annotation.Nullable;
+import java.util.List;
 
 /**
- * State for a component variant that is used to perform dependency graph resolution.
- *
- * <p>This does not include any information about the artifacts of the variant, which are generally not required during graph resolution.</p>
+ * State for a variant of a component, intended for use during graph resolution.
+ * <p>
+ * This state type manages expensive operations required to resolve a variant. These include
+ * managing dependencies and artifacts, which may not be easily available from the metadata.
  */
 public interface VariantGraphResolveState extends HasAttributes {
+
     /**
      * A unique id for this variant within the current build tree. Note that this id is not stable across Gradle invocations.
      */
@@ -44,27 +45,22 @@ public interface VariantGraphResolveState extends HasAttributes {
     VariantGraphResolveMetadata getMetadata();
 
     /**
-     * Does this instance represent some temporary or mutated view of the variant?
-     *
-     * See {@link ComponentGraphResolveState#isAdHoc()} for a definition of "ad hoc".
+     * Get the dependencies of this variant.
      */
-    boolean isAdHoc();
+    List<? extends DependencyMetadata> getDependencies();
 
     /**
-     * Returns the public view for this variant.
+     * Get the exclusions to apply to the dependencies and artifacts of this variant.
      */
-    ResolvedVariantResult getVariantResult(@Nullable ResolvedVariantResult externalVariant);
+    List<? extends ExcludeMetadata> getExcludes();
 
     /**
-     * Determines the set of artifacts for this variant, if required during graph resolution. Does not necessarily download the artifacts.
-     *
-     * <p>Note that this may be expensive, for example it may block waiting for access to the source project or for network or IO requests to the source repository, and should be used only when
-     * required.
-     */
-    VariantArtifactGraphResolveMetadata resolveArtifacts();
-
-    /**
-     * Returns the state required to select and resolve artifacts for this variant.
+     * Returns the state required to select and resolve artifacts for this variant. Does not
+     * necessarily download the artifacts.
+     * <p>
+     * Note that this may be expensive, for example it may block waiting for access to the source
+     * project or for network or IO requests to the source repository, and should be used only
+     * when required.
      */
     VariantArtifactResolveState prepareForArtifactResolution();
 }

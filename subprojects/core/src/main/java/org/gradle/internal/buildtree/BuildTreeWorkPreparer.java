@@ -17,8 +17,7 @@
 package org.gradle.internal.buildtree;
 
 import org.gradle.execution.EntryTaskSelector;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Responsible for preparing the work graph for the build tree.

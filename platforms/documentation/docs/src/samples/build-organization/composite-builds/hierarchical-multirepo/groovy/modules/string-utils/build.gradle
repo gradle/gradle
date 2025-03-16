@@ -3,8 +3,8 @@ plugins {
     id 'maven-publish'
 }
 
-group "org.sample"
-version "1.0"
+group = "org.sample"
+version = "1.0"
 
 dependencies {
     implementation "org.apache.commons:commons-lang3:3.12.0"
@@ -17,7 +17,7 @@ repositories {
 publishing {
     repositories {
         maven {
-            url file("../../local-repo")
+            url = file("../../local-repo")
         }
     }
     publications {

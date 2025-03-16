@@ -1,47 +1,55 @@
-plugins {
-    `java-library`
+// tag::java-configuration-example[]
+// declare a "configuration" named "implementation"
+val implementation by configurations.creating {
+    isCanBeConsumed = false
+    isCanBeResolved = false
 }
 
 // tag::declare-configuration[]
-// declare a "configuration" named "someConfiguration"
-val someConfiguration by configurations.creating
-
 dependencies {
-    // add a project dependency to the "someConfiguration" configuration
-    someConfiguration(project(":lib"))
+    // add a project dependency to the implementation configuration
+    implementation(project(":lib"))
 }
 // end::declare-configuration[]
 
 // tag::concrete-classpath[]
 configurations {
-    // declare a configuration that is going to resolve the compile classpath of the application
-    compileClasspath {
-        extendsFrom(someConfiguration)
+    // declare a resolvable configuration that is going to resolve the compile classpath of the application
+    resolvable("compileClasspath") {
+        //isCanBeConsumed = false
+        //isCanBeDeclared = false
+        extendsFrom(implementation)
     }
-
-    // declare a configuration that is going to resolve the runtime classpath of the application
-    runtimeClasspath {
-        extendsFrom(someConfiguration)
+// end::concrete-classpath[]
+    // declare a resolvable configuration that is going to resolve the runtime classpath of the application
+    resolvable("runtimeClasspath") {
+        //isCanBeConsumed = false
+        //isCanBeDeclared = false
+        extendsFrom(implementation)
     }
+// tag::concrete-classpath[]
 }
 // end::concrete-classpath[]
 
 // tag::setup-configurations[]
 configurations {
-    // A configuration meant for consumers that need the API of this component
-    create("exposedApi") {
-        // This configuration is an "outgoing" configuration, it's not meant to be resolved
-        isCanBeResolved = false
-        // As an outgoing configuration, explain that consumers may want to consume it
-        assert(isCanBeConsumed)
+    // a consumable configuration meant for consumers that need the API of this component
+    consumable("exposedApi") {
+        //isCanBeResolved = false
+        //isCanBeDeclared = false
+        extendsFrom(implementation)
     }
-    // A configuration meant for consumers that need the implementation of this component
-    create("exposedRuntime") {
-        isCanBeResolved = false
-        assert(isCanBeConsumed)
+// end::setup-configurations[]
+    // a consumable configuration meant for consumers that need the implementation of this component
+    consumable("exposedRuntime") {
+        //isCanBeResolved = false
+        //isCanBeDeclared = false
+        extendsFrom(implementation)
     }
+// tag::setup-configurations[]
 }
 // end::setup-configurations[]
+// end::java-configuration-example[]
 
 // tag::define_attribute[]
 // An attribute of type `String`

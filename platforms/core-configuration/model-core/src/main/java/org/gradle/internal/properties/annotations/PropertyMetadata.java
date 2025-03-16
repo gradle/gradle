@@ -18,8 +18,8 @@ package org.gradle.internal.properties.annotations;
 
 import com.google.common.reflect.TypeToken;
 import org.gradle.internal.reflect.annotations.AnnotationCategory;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.util.Optional;
 

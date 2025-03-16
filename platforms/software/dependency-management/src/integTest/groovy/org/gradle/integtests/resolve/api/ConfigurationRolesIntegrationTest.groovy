@@ -137,10 +137,9 @@ This method is only meant to be called on configurations which allow the (non-de
 
     def "cannot add a dependency on a configuration role #role"() {
         given:
-        createDirs("a", "b")
         file('settings.gradle') << 'include "a", "b"'
-        buildFile << """
-        project(':a') {
+
+        file("a/build.gradle") << """
             configurations {
                 compile
             }
@@ -152,22 +151,21 @@ This method is only meant to be called on configurations which allow the (non-de
                 def files = configurations.compile
                 doLast { files.files }
             }
-        }
-        project(':b') {
+        """
+
+        file("b/build.gradle") << """
             configurations {
                 internal {
                     $code
                 }
             }
-        }
-
         """
 
         when:
         fails 'a:check'
 
         then:
-        failure.assertHasCause "Selected configuration 'internal' on 'project :b' but it can't be used as a project dependency because it isn't intended for consumption by other components."
+        failure.assertHasCause "A dependency was declared on configuration 'internal' of 'project :b' but no variant with that configuration name exists."
 
         where:
         role                    | code
@@ -177,10 +175,9 @@ This method is only meant to be called on configurations which allow the (non-de
 
     def "cannot depend on default configuration if it's not consumable (#role)"() {
         given:
-        createDirs("a", "b")
         file('settings.gradle') << 'include "a", "b"'
-        buildFile << """
-        project(':a') {
+
+        file("a/build.gradle") << """
             configurations {
                 compile
             }
@@ -192,22 +189,22 @@ This method is only meant to be called on configurations which allow the (non-de
                 def files = configurations.compile
                 doLast { files.files }
             }
-        }
-        project(':b') {
+        """
+
+        file("b/build.gradle") << """
             configurations {
                 'default' {
                     $code
                 }
             }
-        }
-
         """
 
         when:
         fails 'a:check'
 
         then:
-        failure.assertHasCause "Selected configuration 'default' on 'project :b' but it can't be used as a project dependency because it isn't intended for consumption by other components."
+        failure.assertHasCause """Unable to find a matching variant of project :b:
+  - No variants exist."""
 
         where:
         role                    | code

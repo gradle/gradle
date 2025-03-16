@@ -64,7 +64,7 @@ abstract class AbstractConsoleCompositeBuildGroupedTaskFunctionalTest extends Ab
 
     def "can group task output in composite build"() {
         when:
-        def result = executer.inDirectory(file(PROJECT_B_NAME)).withTasks('compileJava').run()
+        def result = executer.inDirectory(file(PROJECT_B_NAME)).withArgument("--no-problems-report").withTasks('compileJava').run()
 
         then:
         result.groupedOutput.task(":$PROJECT_A_NAME:helloWorld").output == HELLO_WORLD_MESSAGE

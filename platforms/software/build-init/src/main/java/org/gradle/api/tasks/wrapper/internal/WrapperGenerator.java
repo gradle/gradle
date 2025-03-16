@@ -19,7 +19,6 @@ package org.gradle.api.tasks.wrapper.internal;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.ByteStreams;
 import org.gradle.api.GradleException;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.plugins.StartScriptGenerator;
 import org.gradle.api.tasks.wrapper.Wrapper;
@@ -30,8 +29,9 @@ import org.gradle.util.internal.DistributionLocator;
 import org.gradle.util.internal.GFileUtils;
 import org.gradle.wrapper.GradleWrapperMain;
 import org.gradle.wrapper.WrapperExecutor;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,7 +43,7 @@ import java.util.Properties;
 
 import static java.util.Collections.singletonList;
 
-@NonNullApi
+@NullMarked
 public class WrapperGenerator {
 
     public static File getPropertiesFile(File jarFileDestination) {

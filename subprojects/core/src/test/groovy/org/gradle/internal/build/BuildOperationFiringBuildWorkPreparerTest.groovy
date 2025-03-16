@@ -26,7 +26,7 @@ import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.execution.plan.QueryableExecutionPlan
 import org.gradle.execution.plan.ToPlannedNodeConverterRegistry
 import org.gradle.execution.plan.ToPlannedTaskConverter
-import org.gradle.internal.operations.TestBuildOperationExecutor
+import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.internal.taskgraph.NodeIdentity
 import org.gradle.util.Path
@@ -59,7 +59,7 @@ class BuildOperationFiringBuildWorkPreparerTest extends Specification {
             }
         }
 
-        def buildOperatorsExecutor = new TestBuildOperationExecutor()
+        def buildOperatorsExecutor = new TestBuildOperationRunner()
         def converterRegistry = new ToPlannedNodeConverterRegistry([new ToPlannedTaskConverter()])
         def preparer = new BuildOperationFiringBuildWorkPreparer(buildOperatorsExecutor, Stub(BuildWorkPreparer), converterRegistry)
 

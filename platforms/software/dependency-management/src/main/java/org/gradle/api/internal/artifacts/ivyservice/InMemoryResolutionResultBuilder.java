@@ -17,29 +17,42 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.artifacts.result.ResolutionResult;
-import org.gradle.api.artifacts.result.ResolvedComponentResult;
-import org.gradle.api.internal.artifacts.ResolveContext;
+import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DefaultResolutionResultBuilder;
-import org.gradle.api.internal.artifacts.result.DefaultMinimalResolutionResult;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultGraphBuilder;
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
+import org.gradle.api.internal.artifacts.result.ResolvedComponentResultInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+
+import java.util.Collections;
 
 /**
  * Dependency graph visitor that will build a {@link ResolutionResult} eagerly.
  * It is designed to be used during resolution for build dependencies.
- *
- * @see DefaultConfigurationResolver#resolveBuildDependencies(ResolveContext)
  */
 public class InMemoryResolutionResultBuilder implements DependencyGraphVisitor {
 
-    private final DefaultResolutionResultBuilder resolutionResultBuilder = new DefaultResolutionResultBuilder();
-    private ResolvedComponentResult root;
+    private final ResolutionResultGraphBuilder resolutionResultBuilder = new ResolutionResultGraphBuilder();
+    private final boolean includeAllSelectableVariantResults;
+
+    private long rootVariantId;
+    private long rootComponentId;
     private ImmutableAttributes requestAttributes;
+
+    public InMemoryResolutionResultBuilder(boolean includeAllSelectableVariantResults) {
+        this.includeAllSelectableVariantResults = includeAllSelectableVariantResults;
+    }
+
+    @Override
+    public void start(RootGraphNode root) {
+        this.rootVariantId = root.getNodeId();
+        this.rootComponentId = root.getOwner().getResultId();
+        this.requestAttributes = root.getResolveState().getAttributes();
+    }
 
     @Override
     public void visitNode(DependencyGraphNode node) {
@@ -47,9 +60,16 @@ public class InMemoryResolutionResultBuilder implements DependencyGraphVisitor {
         resolutionResultBuilder.startVisitComponent(component.getResultId(), component.getSelectionReason(), component.getRepositoryName());
         resolutionResultBuilder.visitComponentDetails(component.getComponentId(), component.getModuleVersion());
         for (ResolvedGraphVariant variant : component.getSelectedVariants()) {
-            resolutionResultBuilder.visitSelectedVariant(variant.getNodeId(), variant.getResolveState().getVariantResult(null));
+            ResolvedVariantResult publicView = component.getResolveState().getPublicViewFor(variant.getResolveState(), null);
+            resolutionResultBuilder.visitSelectedVariant(variant.getNodeId(), publicView);
         }
-        resolutionResultBuilder.visitComponentVariants(component.getResolveState().getAllSelectableVariantResults());
+
+        if (includeAllSelectableVariantResults) {
+            resolutionResultBuilder.visitComponentVariants(component.getResolveState().getAllSelectableVariantResults());
+        } else {
+            resolutionResultBuilder.visitComponentVariants(Collections.emptyList());
+        }
+
         resolutionResultBuilder.endVisitComponent();
     }
 
@@ -58,17 +78,11 @@ public class InMemoryResolutionResultBuilder implements DependencyGraphVisitor {
         resolutionResultBuilder.visitOutgoingEdges(node.getOwner().getResultId(), node.getOutgoingEdges());
     }
 
-    @Override
-    public void finish(RootGraphNode root) {
-        Long resultId = root.getOwner().getResultId();
-        this.root = resolutionResultBuilder.getRoot(resultId);
-        this.requestAttributes = root.getResolveState().getAttributes();
-    }
-
     public MinimalResolutionResult getResolutionResult() {
         if (requestAttributes == null) {
             throw new IllegalStateException("Resolution result not computed yet");
         }
-        return new DefaultMinimalResolutionResult(() -> root, requestAttributes);
+        ResolvedComponentResultInternal root = resolutionResultBuilder.getRoot(rootComponentId);
+        return new MinimalResolutionResult(rootVariantId, () -> root, requestAttributes);
     }
 }

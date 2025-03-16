@@ -44,6 +44,13 @@ dependencies {
         )
         withLibraryDependencies<DependencyRemovalByNameRule>("cglib:cglib", setOf("ant"))
 
+        // SLF4J Simple is an implementation of the SLF4J API, which is not needed in Gradle
+        withLibraryDependencies<DependencyRemovalByNameRule>(libs.sshdCore, setOf("slf4j-simple"))
+        withLibraryDependencies<DependencyRemovalByNameRule>(libs.sshdScp, setOf("slf4j-simple"))
+        withLibraryDependencies<DependencyRemovalByNameRule>(libs.sshdSftp, setOf("slf4j-simple"))
+        withLibraryDependencies<DependencyRemovalByNameRule>(libs.gradleProfiler, setOf("slf4j-simple"))
+        withLibraryDependencies<DependencyRemovalByNameRule>(libs.samplesCheck, setOf("slf4j-simple"))
+
         // asciidoctorj depends on a lot of stuff, which causes `Can't create process, argument list too long` on Windows
         withLibraryDependencies<DependencyRemovalByNameRule>("org.gradle:sample-discovery", setOf("asciidoctorj", "asciidoctorj-api"))
 

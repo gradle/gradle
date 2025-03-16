@@ -16,17 +16,25 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
+import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.VariantGraphResolveState;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public interface ResolvedGraphVariant {
     /**
      * Returns a simple id for this node, unique across all nodes in the same graph.
      * This id cannot be used across graphs.
      */
-    Long getNodeId();
+    long getNodeId();
 
+    /**
+     * Get the resolve state of the owning component.
+     */
+    ComponentGraphResolveState getComponentResolveState();
+
+    /**
+     * Get the resolve state of this variant.
+     */
     VariantGraphResolveState getResolveState();
 
     @Nullable

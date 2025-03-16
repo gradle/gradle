@@ -20,26 +20,17 @@ import gradlebuild.basics.BuildParams.CI_ENVIRONMENT_VARIABLE
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.file.Directory
-import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.kotlin.dsl.*
 
 
-abstract class BuildEnvironmentExtension {
-    abstract val gitCommitId: Property<String>
-    abstract val gitBranch: Property<String>
-    abstract val repoRoot: DirectoryProperty
-}
-
-
 // `generatePrecompiledScriptPluginAccessors` task invokes this method without `gradle.build-environment` applied
-fun Project.getBuildEnvironmentExtension(): BuildEnvironmentExtension? = rootProject.extensions.findByType(BuildEnvironmentExtension::class.java)
+fun Project.getBuildEnvironmentExtension(): BuildEnvironmentExtension = extensions.getByType(BuildEnvironmentExtension::class.java)
 
+fun Project.getBuildEnvironmentExtensionOrNull(): BuildEnvironmentExtension? = extensions.findByType(BuildEnvironmentExtension::class.java)
 
-fun Project.repoRoot(): Directory = getBuildEnvironmentExtension()?.repoRoot?.get() ?: layout.projectDirectory.parentOrRoot()
-
+fun Project.repoRoot(): Directory = getBuildEnvironmentExtensionOrNull()?.repoRoot?.get() ?: layout.projectDirectory.parentOrRoot()
 
 fun Directory.parentOrRoot(): Directory = if (this.file("version.txt").asFile.exists()) {
     this
@@ -47,7 +38,7 @@ fun Directory.parentOrRoot(): Directory = if (this.file("version.txt").asFile.ex
     val parent = dir("..")
     when {
         parent.file("version.txt").asFile.exists() -> parent
-        this == parent -> throw IllegalStateException("Cannot find 'version.txt' file in root of repository")
+        this == parent -> error("Cannot find 'version.txt' file in root of repository")
         else -> parent.parentOrRoot()
     }
 }
@@ -59,35 +50,15 @@ fun Project.releasedVersionsFile() = repoRoot().file("released-versions.json")
 /**
  * We use command line Git instead of JGit, because JGit's `Repository.resolve` does not work with worktrees.
  */
-fun Project.currentGitBranchViaFileSystemQuery(): Provider<String> = getBuildEnvironmentExtension()?.gitBranch ?: objects.property(String::class.java)
+fun Project.currentGitBranchViaFileSystemQuery(): Provider<String> = getBuildEnvironmentExtensionOrNull()?.gitBranch ?: objects.property(String::class.java)
 
 
-fun Project.currentGitCommitViaFileSystemQuery(): Provider<String> = getBuildEnvironmentExtension()?.gitCommitId ?: objects.property(String::class.java)
+fun Project.currentGitCommitViaFileSystemQuery(): Provider<String> = getBuildEnvironmentExtensionOrNull()?.gitCommitId ?: objects.property(String::class.java)
 
 
-@Suppress("UnstableApiUsage")
-fun Project.git(vararg args: String): Provider<String> {
-    val projectDir = layout.projectDirectory.asFile
-    val execOutput = providers.exec {
-        workingDir = projectDir
-        isIgnoreExitValue = true
-        commandLine = listOf("git", *args)
-        if (OperatingSystem.current().isWindows) {
-            commandLine = listOf("cmd", "/c") + commandLine
-        }
-    }
-    return execOutput.result.zip(execOutput.standardOutput.asText) { result, outputText ->
-        if (result.exitValue == 0) outputText.trim()
-        else "<unknown>" // It's a source distribution, we don't know.
-    }
-}
-
-
-// pre-test/master/queue/alice/feature -> master
-// pre-test/release/current/bob/bugfix -> release
 // gh-readonly-queue/master/pr-1234-5678abcdef -> master
 fun toMergeQueueBaseBranch(actualBranch: String): String = when {
-    actualBranch.startsWith("pre-test/") || actualBranch.startsWith("gh-readonly-queue/") -> actualBranch.substringAfter("/").substringBefore("/")
+    actualBranch.startsWith("gh-readonly-queue/") -> actualBranch.substringAfter("/").substringBefore("/")
     else -> actualBranch
 }
 
@@ -115,10 +86,9 @@ object BuildEnvironment {
     )
 
     private
-    val architecture = System.getProperty("os.arch").toLowerCase()
+    val architecture = System.getProperty("os.arch").lowercase()
 
     val isCiServer = CI_ENVIRONMENT_VARIABLE in System.getenv()
-    val isTravis = "TRAVIS" in System.getenv()
     val isGhActions = "GITHUB_ACTIONS" in System.getenv()
     val isTeamCity = "TEAMCITY_VERSION" in System.getenv()
     val isTeamCityParallelTestsEnabled

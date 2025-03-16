@@ -23,8 +23,8 @@ import org.gradle.internal.declarativedsl.demo.reflection.reflect
 import org.gradle.internal.declarativedsl.schemaBuilder.plus
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 import org.gradle.internal.declarativedsl.schemaBuilder.treatInterfaceAsConfigureLambda
-import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.Test
 
 
 class CustomLambdasTest {
@@ -63,8 +63,8 @@ class CustomLambdasTest {
 
         val outer = Outer()
         val converter = DeclarativeReflectionToObjectConverter(
-            emptyMap(), outer, MemberFunctionResolver(functionalLambdaHandler), ReflectionRuntimePropertyResolver, RuntimeCustomAccessors.none
-        )
+            emptyMap(), outer, DefaultRuntimeFunctionResolver(functionalLambdaHandler), ReflectionRuntimePropertyResolver, RuntimeCustomAccessors.none,
+        ) { object {}.javaClass.classLoader }
         converter.apply(reflection)
 
         return outer
@@ -122,6 +122,6 @@ val schema = schemaFromTypes(
         Inner::class,
         Functional::class,
         GenericFunctional::class
-    ), emptyList(), emptyMap(), emptyList(),
+    ),
     configureLambdas = functionalLambdaHandler
 )

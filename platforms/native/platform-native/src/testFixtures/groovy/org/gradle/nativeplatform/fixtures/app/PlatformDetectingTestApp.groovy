@@ -66,6 +66,8 @@ void DLL_FUNC outputLibraryPlatform() {
     cout << "amd64";
     #elif defined(__i386) || defined(_M_IX86)
     cout << "i386";
+    #elif defined(__arm64__)
+    cout << "arm64";
     #elif defined(_M_IA64)
     cout << "itanium";
     #else

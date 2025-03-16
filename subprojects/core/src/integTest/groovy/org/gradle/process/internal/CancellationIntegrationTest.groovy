@@ -22,9 +22,9 @@ import org.gradle.integtests.fixtures.daemon.DaemonClientFixture
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.ConcurrentTestUtil
-import spock.lang.Ignore
+import org.gradle.test.fixtures.Flaky
 
-@Ignore("https://github.com/gradle/gradle/issues/18280")
+@Flaky(because = "https://github.com/gradle/gradle/issues/18280")
 class CancellationIntegrationTest extends DaemonIntegrationSpec implements DirectoryBuildCacheFixture {
     private static final String START_UP_MESSAGE = "Cancellable task started!"
     private DaemonClientFixture client
@@ -45,7 +45,9 @@ class CancellationIntegrationTest extends DaemonIntegrationSpec implements Direc
             task projectExecTask {
                 dependsOn 'compileJava'
                 doLast {
-                    def result = exec { commandLine '${fileToPath(Jvm.current().javaExecutable)}', '-cp', '${fileToPath(file('build/classes/java/main'))}', 'Block' }
+                    def result = services.get(ExecOperations).exec {
+                        commandLine '${fileToPath(Jvm.current().javaExecutable)}', '-cp', '${fileToPath(file('build/classes/java/main'))}', 'Block'
+                    }
                     assert result.exitValue == 0
                 }
             }

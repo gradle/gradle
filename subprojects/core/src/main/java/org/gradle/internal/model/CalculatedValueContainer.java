@@ -17,15 +17,16 @@
 package org.gradle.internal.model;
 
 import org.gradle.api.Project;
-import org.gradle.api.internal.initialization.RootScriptDomainObjectContext;
+import org.gradle.api.internal.initialization.StandaloneDomainObjectContext;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.WorkNodeAction;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.Try;
 import org.gradle.internal.resources.ProjectLeaseRegistry;
+import org.gradle.internal.service.ServiceLookupException;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -41,9 +42,15 @@ import java.util.concurrent.locks.ReentrantLock;
  * </p>
  *
  * <p>You should use {@link CalculatedValueContainerFactory} to create instances of this type.</p>
+ *
+ * <p>This type can hold null as the computed value.</p>
  */
 @ThreadSafe
 public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>> implements CalculatedValue<T>, WorkNodeAction {
+    // TODO(https://github.com/gradle/gradle/issues/24767): with JSpecify, the nullable nature of the type argument <T> should be expressed as <T extends @Nullable Object>.
+    //  We cannot use this syntax until adopting JSpecify with e.g. Jetbrains Annotations, because IDEA wrongly treats all usages as having a nullable type, even when
+    //  it is explicitly spelled.
+
     private final DisplayName displayName;
     // Null when the value has been calculated and assigned to the result field. When not null the result has not been calculated
     // or is currently being calculated or has just been calculated. It is possible for both this field and the result field to be
@@ -61,7 +68,7 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
      */
     CalculatedValueContainer(DisplayName displayName, S supplier, ProjectLeaseRegistry projectLeaseRegistry, NodeExecutionContext defaultContext) {
         this.displayName = displayName;
-        this.calculationState = new CalculationState<>(displayName, supplier, projectLeaseRegistry, defaultContext);
+        this.calculationState = new CalculationState<>(supplier, projectLeaseRegistry, defaultContext);
     }
 
     /**
@@ -82,16 +89,6 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
     @Override
     public T get() throws IllegalStateException {
         return getValue().get();
-    }
-
-    @Override
-    public T getOrNull() {
-        Try<T> result = this.result;
-        if (result != null) {
-            return result.get();
-        } else {
-            return null;
-        }
     }
 
     @Override
@@ -149,7 +146,8 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
         if (calculationState != null && calculationState.supplier.usesMutableProjectState()) {
             return calculationState.supplier.getOwningProject().getOwner();
         } else {
-            return RootScriptDomainObjectContext.INSTANCE.getModel();
+            // TODO: The supplier should be able to give us a better answer than this.
+            return StandaloneDomainObjectContext.ANONYMOUS.getModel();
         }
     }
 
@@ -199,14 +197,12 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
 
     private static class CalculationState<T, S extends ValueCalculator<? extends T>> {
         final ReentrantLock lock = new ReentrantLock();
-        final DisplayName displayName;
         final S supplier;
         final ProjectLeaseRegistry projectLeaseRegistry;
         final NodeExecutionContext defaultContext;
         boolean done;
 
-        public CalculationState(DisplayName displayName, S supplier, ProjectLeaseRegistry projectLeaseRegistry, NodeExecutionContext defaultContext) {
-            this.displayName = displayName;
+        public CalculationState(S supplier, ProjectLeaseRegistry projectLeaseRegistry, NodeExecutionContext defaultContext) {
             this.supplier = supplier;
             this.projectLeaseRegistry = projectLeaseRegistry;
             this.defaultContext = defaultContext;
@@ -221,20 +217,15 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
                     return;
                 }
                 done = true;
-                Try<T> result = Try.ofFailable(() -> {
-                    NodeExecutionContext effectiveContext = context;
-                    if (effectiveContext == null) {
-                        effectiveContext = defaultContext;
-                    }
-                    T value = supplier.calculateValue(effectiveContext);
-                    if (value == null) {
-                        throw new IllegalStateException(String.format("Calculated value for %s cannot be null.", displayName));
-                    }
-                    return value;
-                });
 
                 // Attach result and discard calculation state
-                owner.result = result;
+                owner.result = Try.ofFailable(() -> {
+                    NodeExecutionContext effectiveContext = context;
+                    if (effectiveContext == null) {
+                        effectiveContext = new GlobalContext(defaultContext);
+                    }
+                    return supplier.calculateValue(effectiveContext);
+                });
                 owner.calculationState = null;
             } finally {
                 releaseLock();
@@ -252,6 +243,30 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
 
         private void releaseLock() {
             lock.unlock();
+        }
+    }
+
+    /**
+     * Used when calculating the value outside of an execution graph.
+     * <p>
+     * In that case we need to use the global context and not the context that would be created as
+     * part of executing the execution graph.
+     */
+    private static class GlobalContext implements NodeExecutionContext {
+        private final NodeExecutionContext delegate;
+
+        public GlobalContext(NodeExecutionContext delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public <T> T getService(Class<T> type) throws ServiceLookupException {
+            return delegate.getService(type);
+        }
+
+        @Override
+        public boolean isPartOfExecutionGraph() {
+            return false;
         }
     }
 }

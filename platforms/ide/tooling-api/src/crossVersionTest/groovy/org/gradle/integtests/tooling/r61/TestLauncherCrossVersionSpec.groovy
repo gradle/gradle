@@ -18,13 +18,11 @@ package org.gradle.integtests.tooling.r61
 
 import org.gradle.integtests.tooling.TestLauncherSpec
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.TestExecutionException
 import org.gradle.tooling.TestLauncher
 import spock.lang.Timeout
 
 @Timeout(120)
-@ToolingApiVersion('>=6.1')
 @TargetGradleVersion(">=6.1")
 class TestLauncherCrossVersionSpec extends TestLauncherSpec {
 
@@ -60,7 +58,7 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
     }
 
 
-    @TargetGradleVersion(">2.6 <6.1")
+    @TargetGradleVersion(">3.0 <6.1")
     def "no tests executed when withTaskAndTestClasses() invoked for old clients"() {
         when:
         launchTests { TestLauncher launcher ->

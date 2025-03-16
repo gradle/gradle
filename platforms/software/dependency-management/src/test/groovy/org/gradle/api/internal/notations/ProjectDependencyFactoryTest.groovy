@@ -21,7 +21,10 @@ import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.ProjectState
+import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.util.AttributeTestUtil
+import org.gradle.util.Path
 import org.gradle.util.TestUtil
 import org.gradle.util.internal.GUtil
 import spock.lang.Specification
@@ -31,9 +34,14 @@ class ProjectDependencyFactoryTest extends Specification {
     def projectDummy = Mock(ProjectInternal)
     def projectFinder = Mock(ProjectFinder)
     def capabilityNotationParser = new CapabilityNotationParserFactory(false).create()
+    def projectStateRegistry = Mock(ProjectStateRegistry) {
+        stateFor(Path.path(":foo")) >> Mock(ProjectState) {
+            getMutableModel() >> projectDummy
+        }
+    }
     def depFactory = new DefaultProjectDependencyFactory(
         TestUtil.instantiatorFactory().decorateLenient(), true, capabilityNotationParser, TestUtil.objectFactory(),
-        AttributeTestUtil.attributesFactory(), TestFiles.taskDependencyFactory()
+        AttributeTestUtil.attributesFactory(), TestFiles.taskDependencyFactory(), projectStateRegistry
     )
     def factory = new ProjectDependencyFactory(depFactory)
 
@@ -64,5 +72,10 @@ class ProjectDependencyFactoryTest extends Specification {
         then:
         def ex = thrown(InvalidUserDataException)
         ex.message.contains("Required keys [path] are missing from map")
+    }
+
+    def "can create project dependency from path"() {
+        expect:
+        depFactory.create(Path.path(":foo")).dependencyProject == projectDummy
     }
 }

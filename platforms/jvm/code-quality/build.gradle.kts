@@ -20,55 +20,54 @@ plugins {
 
 description = "Plugins and integration with code quality (Checkstyle, PMD, CodeNarc)"
 
-sourceSets {
-    main {
-        // Incremental Groovy joint-compilation doesn't work with the Error Prone annotation processor
-        errorprone.enabled = false
-    }
-}
-
 dependencies {
-    api(project(":base-annotations"))
-    api(project(":base-services"))
-    api(project(":core"))
-    api(project(":core-api"))
-    api(project(":model-core"))
-    api(project(":platform-jvm"))
-    api(project(":plugins-java-base"))
-    api(project(":reporting"))
-    api(project(":toolchains-jvm"))
-    api(project(":workers"))
+    api(projects.baseServices)
+    api(projects.core)
+    api(projects.coreApi)
+    api(projects.modelCore)
+    api(projects.platformJvm)
+    api(projects.pluginsJavaBase)
+    api(projects.reporting)
+    api(projects.stdlibJavaExtensions)
+    api(projects.toolchainsJvm)
+    api(projects.toolchainsJvmShared)
+    api(projects.workers)
 
     api(libs.groovy)
     api(libs.inject)
-    api(libs.jsr305)
+    api(libs.jspecify)
 
-    implementation(project(":logging"))
-    implementation(project(":native"))
-    implementation(project(":plugins-groovy"))
-    compileOnly(project(":internal-instrumentation-api"))
+    implementation(projects.daemonServerWorker)
+    implementation(projects.logging)
+    implementation(projects.native)
+    implementation(projects.pluginsGroovy)
+    implementation(projects.serviceLookup)
+
+    compileOnly(projects.internalInstrumentationApi)
 
     implementation(libs.groovyXml)
     implementation(libs.guava)
     implementation(libs.slf4jApi)
+    implementation(libs.commonsIo)
 
-    runtimeOnly(project(":language-jvm"))
+    runtimeOnly(projects.languageJvm)
 
-    testImplementation(project(":file-collections"))
-    testImplementation(project(":plugins-java"))
-    testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":model-core")))
+    testImplementation(projects.fileCollections)
+    testImplementation(projects.pluginsJava)
+    testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.modelCore))
 
-    testFixturesImplementation(project(":core"))
-    testFixturesImplementation(project(":core-api"))
-    testFixturesImplementation(project(":base-services"))
+    testFixturesImplementation(projects.core)
+    testFixturesImplementation(testFixtures(projects.core))
+    testFixturesImplementation(projects.coreApi)
+    testFixturesImplementation(projects.baseServices)
 
-    testRuntimeOnly(project(":distributions-core")) {
+    testRuntimeOnly(projects.distributionsCore) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-full"))
+    integTestDistributionRuntimeOnly(projects.distributionsFull)
 
-    integTestImplementation(testFixtures(project(":language-groovy")))
+    integTestImplementation(testFixtures(projects.languageGroovy))
     integTestImplementation(libs.jsoup) {
         because("We need to validate generated HTML reports")
     }
@@ -76,4 +75,7 @@ dependencies {
 
 packageCycles {
     excludePatterns.add("org/gradle/api/plugins/quality/internal/*")
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

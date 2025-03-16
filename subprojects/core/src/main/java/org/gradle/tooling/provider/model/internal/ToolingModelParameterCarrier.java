@@ -16,12 +16,12 @@
 
 package org.gradle.tooling.provider.model.internal;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.NullMarked;
 
-@NonNullApi
+@NullMarked
 public interface ToolingModelParameterCarrier {
 
     /**
@@ -35,8 +35,8 @@ public interface ToolingModelParameterCarrier {
      */
     HashCode getHash();
 
-    @NonNullApi
-    @ServiceScope(Scopes.BuildTree.class)
+    @NullMarked
+    @ServiceScope(Scope.BuildTree.class)
     interface Factory {
 
         ToolingModelParameterCarrier createCarrier(Object parameter);

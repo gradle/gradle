@@ -99,7 +99,7 @@ class AnnotationProcessingCompileTask implements JavaCompiler.CompilationTask {
 
     private void setupProcessors() {
         processorClassloader = createProcessorClassLoader();
-        List<Processor> processors = new ArrayList<Processor>(processorDeclarations.size());
+        List<Processor> processors = new ArrayList<>(processorDeclarations.size());
         if (!processorDeclarations.isEmpty()) {
             SupportedOptionsCollectingProcessor supportedOptionsCollectingProcessor = new SupportedOptionsCollectingProcessor();
             for (AnnotationProcessorDeclaration declaredProcessor : processorDeclarations) {

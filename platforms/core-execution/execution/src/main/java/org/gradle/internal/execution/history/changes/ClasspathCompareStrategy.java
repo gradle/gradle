@@ -18,8 +18,8 @@ package org.gradle.internal.execution.history.changes;
 
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Iterator;
 import java.util.Map;
 

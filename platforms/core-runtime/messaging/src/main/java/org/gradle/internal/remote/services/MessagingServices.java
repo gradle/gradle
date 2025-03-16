@@ -28,6 +28,8 @@ import org.gradle.internal.remote.internal.hub.MessageHubBackedServer;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 import org.gradle.internal.remote.internal.inet.TcpIncomingConnector;
 import org.gradle.internal.remote.internal.inet.TcpOutgoingConnector;
+import org.gradle.internal.service.Provides;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 
 import java.util.UUID;
 
@@ -42,17 +44,20 @@ import java.util.UUID;
  *
  * </ul>
  */
-public class MessagingServices {
+public class MessagingServices implements ServiceRegistrationProvider {
     private final IdGenerator<UUID> idGenerator = new UUIDGenerator();
 
+    @Provides
     protected InetAddressFactory createInetAddressFactory() {
         return new InetAddressFactory();
     }
 
+    @Provides
     protected OutgoingConnector createOutgoingConnector() {
         return new TcpOutgoingConnector();
     }
 
+    @Provides
     protected IncomingConnector createIncomingConnector(ExecutorFactory executorFactory, InetAddressFactory inetAddressFactory) {
         return new TcpIncomingConnector(
                 executorFactory,
@@ -61,12 +66,14 @@ public class MessagingServices {
         );
     }
 
+    @Provides
     protected MessagingClient createMessagingClient(OutgoingConnector outgoingConnector, ExecutorFactory executorFactory) {
         return new MessageHubBackedClient(
                 outgoingConnector,
                 executorFactory);
     }
 
+    @Provides
     protected MessagingServer createMessagingServer(IncomingConnector incomingConnector, ExecutorFactory executorFactory) {
         return new MessageHubBackedServer(
                 incomingConnector,

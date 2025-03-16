@@ -20,7 +20,8 @@ import org.gradle.api.Project
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderConvertible
 import org.gradle.internal.deprecation.DeprecationLogger
-import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.ScriptHandlerScope
+import org.gradle.kotlin.dsl.buildscript
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependency
 import org.gradle.plugin.use.PluginDependencySpec
@@ -48,8 +49,8 @@ open class PrecompiledProjectScript(
      * @see [Project.buildscript]
      */
     @Suppress("unused")
-    open fun buildscript(@Suppress("unused_parameter") block: ScriptHandlerScope.() -> Unit) {
-        throw IllegalStateException("The `buildscript` block is not supported on Kotlin script plugins, please use the `plugins` block or project level dependencies.")
+    open fun buildscript(@Suppress("detekt:UnusedParameter") block: ScriptHandlerScope.() -> Unit) {
+        error("The `buildscript` block is not supported on Kotlin script plugins, please use the `plugins` block or project level dependencies.")
     }
 
     /**
@@ -58,7 +59,7 @@ open class PrecompiledProjectScript(
      * @see [PluginDependenciesSpec]
      */
     @Suppress("unused")
-    fun plugins(@Suppress("unused_parameter") block: PluginDependenciesSpec.() -> Unit) {
+    fun plugins(block: PluginDependenciesSpec.() -> Unit) {
         block(
             object : PluginDependenciesSpec {
                 override fun id(id: String): PluginDependencySpec {

@@ -18,13 +18,14 @@ package org.gradle.api.tasks.compile;
 
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
-
-import javax.annotation.Nullable;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Debug options for Java compilation. Only take effect if {@link CompileOptions#debug}
  * is set to {@code true}.
  */
+@SuppressWarnings("deprecation")
 public class DebugOptions extends AbstractOptions {
     private static final long serialVersionUID = 0;
 
@@ -50,6 +51,7 @@ public class DebugOptions extends AbstractOptions {
     @Nullable
     @Optional
     @Input
+    @ToBeReplacedByLazyProperty
     public String getDebugLevel() {
         return debugLevel;
     }

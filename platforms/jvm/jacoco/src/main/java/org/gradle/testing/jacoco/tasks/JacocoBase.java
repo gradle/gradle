@@ -18,6 +18,7 @@ package org.gradle.testing.jacoco.tasks;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.Classpath;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.work.DisableCachingByDefault;
 
 /**
@@ -32,6 +33,7 @@ public abstract class JacocoBase extends DefaultTask {
      * Classpath containing Jacoco classes for use by the task.
      */
     @Classpath
+    @ToBeReplacedByLazyProperty
     public FileCollection getJacocoClasspath() {
         return jacocoClasspath;
     }

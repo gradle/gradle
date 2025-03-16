@@ -405,7 +405,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
 
     def "failure to determine inputs has a reasonable message"() {
         when:
-        buildScript """
+        buildFile """
             task a {
                 inputs.files files({ throw new Exception("boom") })
                 outputs.files "build/marker"
@@ -420,7 +420,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
 
     def "failure to determine inputs has a reasonable message when an earlier task succeeds"() {
         when:
-        buildScript """
+        buildFile """
             task a {
                 inputs.files file("inputA")
                 outputs.files "build/outputA"
@@ -443,7 +443,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         when:
         def bFlag = file("bFlag")
         file("inputA").createFile()
-        buildScript """
+        buildFile """
             task a {
                 inputs.files file("inputA")
                 outputs.files "build/outputA"
@@ -478,7 +478,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
     def "ignores non source when source is empty"() {
         when:
         file("source").createDir()
-        buildScript """
+        buildFile """
             task myTask {
               inputs.files(fileTree("source"))
                 .skipWhenEmpty()
@@ -567,7 +567,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
     def "exit hint does not mention enter when not on windows"() {
         when:
         file("a").touch()
-        buildScript "task a { inputs.file 'a'; outputs.file 'b'; doLast {} }"
+        buildFile "task a { inputs.file 'a'; outputs.file 'b'; doLast {} }"
 
         then:
         succeeds "a"
@@ -578,7 +578,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
     def "exit hint mentions enter when on windows"() {
         when:
         file("a").touch()
-        buildScript """
+        buildFile """
             task a {
                 inputs.file 'a'
                 outputs.file 'build/b'

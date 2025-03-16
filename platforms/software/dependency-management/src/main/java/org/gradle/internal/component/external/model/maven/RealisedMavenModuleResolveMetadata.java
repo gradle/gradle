@@ -31,8 +31,8 @@ import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.model.AbstractRealisedModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.AdditionalVariant;
 import org.gradle.internal.component.external.model.ComponentVariant;
-import org.gradle.internal.component.external.model.ConfigurationBoundExternalDependencyMetadata;
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata;
+import org.gradle.internal.component.external.model.ExternalModuleVariantGraphResolveMetadata;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.external.model.LazyToRealisedModuleComponentResolveMetadataHelper;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
@@ -46,9 +46,8 @@ import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ModuleConfigurationMetadata;
 import org.gradle.internal.component.model.ModuleSources;
-import org.gradle.internal.component.model.VariantGraphResolveMetadata;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -75,7 +74,7 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
         VariantMetadataRules variantMetadataRules = metadata.getVariantMetadataRules();
         ImmutableList<? extends ComponentVariant> variants = LazyToRealisedModuleComponentResolveMetadataHelper.realiseVariants(metadata, variantMetadataRules, metadata.getVariants());
         Map<String, ModuleConfigurationMetadata> configurations = Maps.newHashMapWithExpectedSize(metadata.getConfigurationNames().size());
-        List<ModuleConfigurationMetadata> derivedVariants = ImmutableList.of();
+        ImmutableList<ModuleConfigurationMetadata> derivedVariants = ImmutableList.of();
         if (variants.isEmpty()) {
             Optional<List<? extends ModuleConfigurationMetadata>> sourceVariants = metadata.deriveVariants();
             if (sourceVariants.isPresent()) {
@@ -101,8 +100,9 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
                     );
                     builder.add(derivedVariantMetadata);
                 }
-                derivedVariants = addVariantsFromRules(metadata, builder.build(), variantMetadataRules);
+                derivedVariants = builder.build();
             }
+            derivedVariants = addVariantsFromRules(metadata, derivedVariants, variantMetadataRules);
         }
         for (String configurationName : metadata.getConfigurationNames()) {
             configurations.put(configurationName, createConfiguration(metadata, configurationName));
@@ -110,7 +110,7 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
         return new RealisedMavenModuleResolveMetadata(metadata, variants, derivedVariants, configurations);
     }
 
-    private static List<ModuleConfigurationMetadata> addVariantsFromRules(
+    private static ImmutableList<ModuleConfigurationMetadata> addVariantsFromRules(
         ModuleComponentResolveMetadata componentMetadata,
         ImmutableList<ModuleConfigurationMetadata> derivedVariants,
         VariantMetadataRules variantMetadataRules
@@ -223,12 +223,6 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
         }
     }
 
-    static ModuleDependencyMetadata contextualize(ConfigurationMetadata config, ModuleComponentIdentifier componentId, MavenDependencyDescriptor incoming) {
-        ConfigurationBoundExternalDependencyMetadata dependency = new ConfigurationBoundExternalDependencyMetadata(config, componentId, incoming);
-        dependency.alwaysUseAttributeMatching();
-        return dependency;
-    }
-
     private final NamedObjectInstantiator objectInstantiator;
 
     private final ImmutableList<MavenDependencyDescriptor> dependencies;
@@ -262,7 +256,7 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
     }
 
     @Override
-    protected Optional<List<? extends VariantGraphResolveMetadata>> maybeDeriveVariants() {
+    protected Optional<List<? extends ExternalModuleVariantGraphResolveMetadata>> maybeDeriveVariants() {
         return Optional.of(getDerivedVariants());
     }
 

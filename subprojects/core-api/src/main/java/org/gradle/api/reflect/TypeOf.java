@@ -17,16 +17,16 @@
 package org.gradle.api.reflect;
 
 import com.google.common.base.Function;
+import com.google.common.collect.ImmutableList;
 import org.gradle.internal.Cast;
 import org.gradle.model.internal.type.ModelType;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.List;
 
-import static com.google.common.collect.ImmutableList.copyOf;
 import static com.google.common.collect.Iterables.transform;
 import static java.util.Arrays.asList;
 
@@ -350,6 +350,6 @@ public abstract class TypeOf<T> {
     }
 
     private static <T, U> List<U> map(Iterable<T> iterable, Function<T, U> function) {
-        return copyOf(transform(iterable, function));
+        return ImmutableList.copyOf(transform(iterable, function));
     }
 }

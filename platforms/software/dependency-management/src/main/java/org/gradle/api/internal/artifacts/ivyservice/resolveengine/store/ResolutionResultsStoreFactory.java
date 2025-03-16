@@ -16,13 +16,15 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.store;
 
-import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResults;
+import org.gradle.api.internal.artifacts.result.ResolvedComponentResultInternal;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.internal.Store;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 
@@ -32,6 +34,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
+@ServiceScope(Scope.BuildTree.class)
 public class ResolutionResultsStoreFactory implements Closeable {
     private final static Logger LOG = Logging.getLogger(ResolutionResultsStoreFactory.class);
     private static final int DEFAULT_MAX_SIZE = 2000000000; //2 gigs
@@ -40,7 +43,7 @@ public class ResolutionResultsStoreFactory implements Closeable {
     private final int maxSize;
 
     private CachedStoreFactory<TransientConfigurationResults> oldModelCache;
-    private CachedStoreFactory<ResolvedComponentResult> newModelCache;
+    private CachedStoreFactory<ResolvedComponentResultInternal> newModelCache;
 
     private final AtomicInteger storeSetBaseId = new AtomicInteger();
 
@@ -80,7 +83,7 @@ public class ResolutionResultsStoreFactory implements Closeable {
         return oldModelCache;
     }
 
-    private synchronized CachedStoreFactory<ResolvedComponentResult> getNewModelCache() {
+    private synchronized CachedStoreFactory<ResolvedComponentResultInternal> getNewModelCache() {
         if (newModelCache == null) {
             newModelCache = new CachedStoreFactory<>("Resolution result");
             cleanUpLater.add(newModelCache);
@@ -100,7 +103,7 @@ public class ResolutionResultsStoreFactory implements Closeable {
             }
 
             @Override
-            public Store<ResolvedComponentResult> newModelCache() {
+            public Store<ResolvedComponentResultInternal> newModelCache() {
                 return getNewModelCache().createCachedStore(storeSetId);
             }
 

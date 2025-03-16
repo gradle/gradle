@@ -16,17 +16,20 @@
 package org.gradle.internal.os;
 
 import org.gradle.internal.scan.UsedByScanPlugin;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.Pattern;
 
 import static org.gradle.internal.FileUtils.withExtension;
 
+
+@SuppressWarnings("ClassInitializationDeadlock")
 public abstract class OperatingSystem {
     public static final Windows WINDOWS = new Windows();
     public static final MacOs MAC_OS = new MacOs();
@@ -58,7 +61,7 @@ public abstract class OperatingSystem {
     }
 
     public static OperatingSystem forName(String os) {
-        String osName = os.toLowerCase();
+        String osName = os.toLowerCase(Locale.ROOT);
         if (osName.contains("windows")) {
             return WINDOWS;
         } else if (osName.contains("mac os x") || osName.contains("darwin") || osName.contains("osx")) {
@@ -164,6 +167,7 @@ public abstract class OperatingSystem {
         return all;
     }
 
+    @SuppressWarnings("MixedMutabilityReturnType")
     public List<File> getPath() {
         String path = System.getenv(getPathVar());
         if (path == null) {
@@ -362,7 +366,7 @@ public abstract class OperatingSystem {
         }
 
         protected String getOsPrefix() {
-            String osPrefix = getName().toLowerCase();
+            String osPrefix = getName().toLowerCase(Locale.ROOT);
             int space = osPrefix.indexOf(" ");
             if (space != -1) {
                 osPrefix = osPrefix.substring(0, space);

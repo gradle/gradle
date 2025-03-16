@@ -25,25 +25,26 @@ import org.gradle.api.artifacts.ExternalDependency
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.PublishArtifact
+import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.attributes.Category
 import org.gradle.api.component.ComponentWithVariants
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
-import org.gradle.api.internal.artifacts.DefaultModule
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
+import org.gradle.api.internal.artifacts.Module
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
 import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver
 import org.gradle.api.internal.attributes.AttributeDesugaring
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
-import org.gradle.api.internal.attributes.EmptySchema
 import org.gradle.api.internal.attributes.ImmutableAttributes
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory
+import org.gradle.api.internal.attributes.AttributesFactory
 import org.gradle.api.internal.component.DefaultSoftwareComponentVariant
 import org.gradle.api.internal.component.SoftwareComponentInternal
+import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.publish.internal.PublicationArtifactInternal
 import org.gradle.api.publish.internal.PublicationInternal
@@ -78,7 +79,11 @@ class DefaultMavenPublicationTest extends Specification {
 
     def "setup"() {
         module = Mock(DependencyMetaDataProvider) {
-            getModule() >> new DefaultModule("group", "name", "version")
+            getModule() >> Mock(Module) {
+                getGroup() >> "group"
+                getName() >> "name"
+                getVersion() >> "version"
+            }
         }
         pomDir = testDirectoryProvider.testDirectory
         pomFile = pomDir.createFile("pom-file")
@@ -262,7 +267,7 @@ class DefaultMavenPublicationTest extends Specification {
         moduleDependency.excludeRules >> [excludeRule]
         moduleDependency.transitive >> true
         moduleDependency.attributes >> ImmutableAttributes.EMPTY
-        moduleDependency.requestedCapabilities >> []
+        moduleDependency.capabilitySelectors >> ([] as Set)
 
         and:
         publication.from(componentWithDependency(moduleDependency))
@@ -294,7 +299,7 @@ class DefaultMavenPublicationTest extends Specification {
         moduleDependency.excludeRules >> [excludeRule]
         moduleDependency.transitive >> true
         moduleDependency.attributes >> ImmutableAttributes.EMPTY
-        moduleDependency.requestedCapabilities >> []
+        moduleDependency.capabilitySelectors >> ([] as Set)
 
         and:
         publication.from(componentWithDependency(moduleDependency))
@@ -323,7 +328,7 @@ class DefaultMavenPublicationTest extends Specification {
         moduleDependency.excludeRules >> [excludeRule]
         moduleDependency.transitive >> true
         moduleDependency.attributes >> ImmutableAttributes.EMPTY
-        moduleDependency.requestedCapabilities >> []
+        moduleDependency.capabilitySelectors >> ([] as Set)
 
         and:
         publication.from(componentWithDependency(moduleDependency))
@@ -360,7 +365,7 @@ class DefaultMavenPublicationTest extends Specification {
         moduleDependency.excludeRules >> [excludeRule]
         moduleDependency.transitive >> false
         moduleDependency.attributes >> ImmutableAttributes.EMPTY
-        moduleDependency.requestedCapabilities >> []
+        moduleDependency.capabilitySelectors >> ([] as Set)
 
         and:
         publication.from(componentWithDependency(moduleDependency))
@@ -394,7 +399,7 @@ class DefaultMavenPublicationTest extends Specification {
         moduleDependency.excludeRules >> []
         moduleDependency.transitive >> true
         moduleDependency.attributes >> platformAttribute()
-        moduleDependency.requestedCapabilities >> []
+        moduleDependency.capabilitySelectors >> ([] as Set)
 
         and:
         publication.from(createComponent([], [moduleDependency], scope))
@@ -418,19 +423,20 @@ class DefaultMavenPublicationTest extends Specification {
     def "maps project dependency to maven dependency"() {
         given:
         def publication = createPublication()
+        def buildTreePath = Mock(Path)
+        def projectIdentity = new ProjectIdentity(Mock(BuildIdentifier), buildTreePath, buildTreePath, "foo")
         def projectDependency = Mock(ProjectDependencyInternal) {
-            getDependencyProject() >> Mock(Project)
-            getIdentityPath() >> Mock(Path)
+            getTargetProjectIdentity() >> projectIdentity
         }
 
         and:
         projectDependency.excludeRules >> []
         projectDependency.getAttributes() >> ImmutableAttributes.EMPTY
-        projectDependency.requestedCapabilities >> []
+        projectDependency.capabilitySelectors >> ([] as Set)
         projectDependency.getArtifacts() >> []
         projectDependency.getGroup() >> "pub-group"
         projectDependency.getName() >> "pub-name"
-        projectDependencyResolver.resolveComponent(ModuleVersionIdentifier, projectDependency.identityPath) >> DefaultModuleVersionIdentifier.newId("pub-group", "pub-name", "pub-version")
+        projectDependencyResolver.resolveComponent(ModuleVersionIdentifier, buildTreePath) >> DefaultModuleVersionIdentifier.newId("pub-group", "pub-name", "pub-version")
 
         when:
         publication.from(componentWithDependency(projectDependency))
@@ -450,18 +456,18 @@ class DefaultMavenPublicationTest extends Specification {
     def "ignores self project dependency"() {
         given:
         def publication = createPublication()
+        def buildTreePath = Mock(Path)
+        def projectIdentity = new ProjectIdentity(Mock(BuildIdentifier), buildTreePath, buildTreePath, "foo")
         def projectDependency = Mock(ProjectDependencyInternal) {
-            getIdentityPath() >> Mock(Path)
+            getTargetProjectIdentity() >> projectIdentity
         }
 
         and:
         projectDependency.excludeRules >> []
         projectDependency.getAttributes() >> ImmutableAttributes.EMPTY
-        projectDependency.requestedCapabilities >> []
+        projectDependency.capabilitySelectors >> ([] as Set)
         projectDependency.getArtifacts() >> []
-        projectDependency.getGroup() >> "group"
-        projectDependency.getName() >> "name"
-        projectDependencyResolver.resolveComponent(ModuleVersionIdentifier, projectDependency.identityPath) >> DefaultModuleVersionIdentifier.newId("group", "name", "version")
+        projectDependencyResolver.resolveComponent(ModuleVersionIdentifier, buildTreePath) >> DefaultModuleVersionIdentifier.newId("group", "name", "version")
 
         when:
         publication.from(componentWithDependency(projectDependency))
@@ -601,8 +607,8 @@ class DefaultMavenPublicationTest extends Specification {
             it.add(VersionRangeMapper, versionRangeMapper)
             it.add(ProjectDependencyPublicationResolver, projectDependencyResolver)
             it.add(ImmutableModuleIdentifierFactory, new DefaultImmutableModuleIdentifierFactory())
-            it.add(AttributesSchemaInternal, EmptySchema.INSTANCE)
-            it.add(ImmutableAttributesFactory, AttributeTestUtil.attributesFactory())
+            it.add(AttributesSchemaInternal, AttributeTestUtil.mutableSchema())
+            it.add(AttributesFactory, AttributeTestUtil.attributesFactory())
             it.add(AttributeDesugaring, new AttributeDesugaring(AttributeTestUtil.attributesFactory()))
             it.add(DefaultDependencyCoordinateResolverFactory)
             it.add(Project, TestUtil.createRootProject(testDirectoryProvider.testDirectory))

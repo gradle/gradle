@@ -28,9 +28,11 @@ import org.gradle.internal.instrumentation.processor.extensibility.Instrumentati
 import org.gradle.internal.instrumentation.processor.extensibility.RequestPostProcessorExtension;
 import org.gradle.internal.instrumentation.processor.extensibility.ResourceGeneratorContributor;
 import org.gradle.internal.instrumentation.processor.modelreader.api.CallInterceptionRequestReader;
+import org.gradle.internal.instrumentation.processor.modelreader.api.CallInterceptionRequestReader.ReadRequestContext;
 import org.gradle.internal.instrumentation.processor.modelreader.impl.AnnotationUtils;
+import org.gradle.internal.instrumentation.processor.modelreader.impl.TypeUtils;
+import org.jspecify.annotations.NonNull;
 
-import javax.annotation.Nonnull;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.RoundEnvironment;
@@ -39,10 +41,12 @@ import javax.lang.model.SourceVersion;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.ElementScanner8;
+import javax.lang.model.util.Elements;
 import javax.tools.Diagnostic;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
@@ -52,12 +56,15 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static org.gradle.internal.instrumentation.processor.modelreader.impl.TypeUtils.getExecutableElementsFromElements;
 
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
 public abstract class AbstractInstrumentationProcessor extends AbstractProcessor {
@@ -84,12 +91,13 @@ public abstract class AbstractInstrumentationProcessor extends AbstractProcessor
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-        Stream<? extends Element> annotatedTypes = getSupportedAnnotations().stream()
-            .flatMap(annotation -> roundEnv.getElementsAnnotatedWith(annotation).stream())
+        // GetAnnotatedElementsSkippingPackageRoots() is the same as roundEnv.getElementsAnnotatedWith() but skips package roots.
+        // See issue: https://github.com/gradle/gradle/issues/29926
+        Stream<? extends Element> annotatedTypes = getAnnotatedElementsSkippingPackageRoots(roundEnv, getSupportedAnnotations())
             .flatMap(element -> findActualTypesToVisit(element).stream())
-            .sorted(Comparator.comparing(AbstractInstrumentationProcessor::elementQualifiedName));
+            .sorted(Comparator.comparing(TypeUtils::elementQualifiedName));
         collectAndProcessRequests(annotatedTypes);
-        return true;
+        return false;
     }
 
     private Set<Element> findActualTypesToVisit(Element typeElement) {
@@ -114,7 +122,7 @@ public abstract class AbstractInstrumentationProcessor extends AbstractProcessor
     private void collectAndProcessRequests(Stream<? extends Element> annotatedElements) {
         Collection<AnnotatedMethodReaderExtension> readers = getExtensionsByType(AnnotatedMethodReaderExtension.class);
 
-        List<ExecutableElement> allMethodElementsInAnnotatedClasses = getExecutableElementsFromAnnotatedElements(annotatedElements);
+        List<ExecutableElement> allMethodElementsInAnnotatedClasses = getExecutableElementsFromElements(annotatedElements);
 
         Map<ExecutableElement, List<CallInterceptionRequestReader.Result.InvalidRequest>> errors = new LinkedHashMap<>();
         List<CallInterceptionRequestReader.Result.Success> successResults = new ArrayList<>();
@@ -131,24 +139,11 @@ public abstract class AbstractInstrumentationProcessor extends AbstractProcessor
         runCodeGeneration(requests);
     }
 
-    @Nonnull
-    private static List<ExecutableElement> getExecutableElementsFromAnnotatedElements(Stream<? extends Element> annotatedClassElements) {
-        return annotatedClassElements
-            .flatMap(element -> element.getKind() == ElementKind.METHOD ? Stream.of(element) : element.getEnclosedElements().stream())
-            .filter(it -> it.getKind() == ElementKind.METHOD)
-            .map(it -> (ExecutableElement) it)
-            // Ensure that the elements have a stable order, as the annotation processing engine does not guarantee that for type elements.
-            // The order in which the executable elements are listed should be the order in which they appear in the code but
-            // we take an extra measure of care here and ensure the ordering between all elements.
-            .sorted(Comparator.comparing(AbstractInstrumentationProcessor::elementQualifiedName))
-            .distinct()
-            .collect(Collectors.toList());
-    }
-
     private static void readRequests(Collection<AnnotatedMethodReaderExtension> readers, List<ExecutableElement> allMethodElementsInAnnotatedClasses, Map<ExecutableElement, List<CallInterceptionRequestReader.Result.InvalidRequest>> errors, List<CallInterceptionRequestReader.Result.Success> successResults) {
+        ReadRequestContext context = new ReadRequestContext();
         for (ExecutableElement methodElement : allMethodElementsInAnnotatedClasses) {
             for (AnnotatedMethodReaderExtension reader : readers) {
-                Collection<CallInterceptionRequestReader.Result> readerResults = reader.readRequest(methodElement);
+                Collection<CallInterceptionRequestReader.Result> readerResults = reader.readRequest(methodElement, context);
                 for (CallInterceptionRequestReader.Result readerResult : readerResults) {
                     if (readerResult instanceof CallInterceptionRequestReader.Result.InvalidRequest) {
                         errors.computeIfAbsent(methodElement, key -> new ArrayList<>()).add((CallInterceptionRequestReader.Result.InvalidRequest) readerResult);
@@ -160,7 +155,7 @@ public abstract class AbstractInstrumentationProcessor extends AbstractProcessor
         }
     }
 
-    @Nonnull
+    @NonNull
     private List<CallInterceptionRequest> postProcessRequests(List<CallInterceptionRequestReader.Result.Success> successResults) {
         List<CallInterceptionRequest> requests = successResults.stream().map(CallInterceptionRequestReader.Result.Success::getRequest).collect(Collectors.toList());
         for (RequestPostProcessorExtension postProcessor : getExtensionsByType(RequestPostProcessorExtension.class)) {
@@ -181,14 +176,65 @@ public abstract class AbstractInstrumentationProcessor extends AbstractProcessor
         generatorHost.generateCodeForRequestedInterceptors(requests);
     }
 
-    private static String elementQualifiedName(Element element) {
-        if (element instanceof ExecutableElement) {
-            String enclosingTypeName = ((TypeElement) element.getEnclosingElement()).getQualifiedName().toString();
-            return enclosingTypeName + "." + element.getSimpleName();
-        } else if (element instanceof TypeElement) {
-            return ((TypeElement) element).getQualifiedName().toString();
-        } else {
-            throw new IllegalArgumentException("Unsupported element type to read qualified name from: " + element.getClass());
+    /**
+     * Discover all elements annotated with the given annotations, skipping package roots.
+     * This is similar to {@link RoundEnvironment#getElementsAnnotatedWith(Class)}, but skips package roots.
+     * Since if package-info.java exist, we could discover types from other projects in the same package.
+     *
+     * See issue: https://github.com/gradle/gradle/issues/29926
+     */
+    private Stream<? extends Element> getAnnotatedElementsSkippingPackageRoots(
+        RoundEnvironment roundEnvironment,
+        Set<Class<? extends Annotation>> annotations
+    ) {
+        Set<TypeElement> annotationsAsElements = annotations.stream()
+            .filter(annotation -> annotation.getCanonicalName() != null)
+            .map(annotation -> processingEnv.getElementUtils().getTypeElement(annotation.getCanonicalName()))
+            .collect(Collectors.toCollection(() -> new LinkedHashSet<>(annotations.size())));
+
+        Set<Element> result = Collections.emptySet();
+        AnnotationScanner scanner = new AnnotationScanner(processingEnv.getElementUtils());
+        for (Element element : roundEnvironment.getRootElements()) {
+            if (!(element instanceof PackageElement)) {
+                result = scanner.scan(element, annotationsAsElements);
+            }
+        }
+        return result.stream();
+    }
+
+    private static class AnnotationScanner extends ElementScanner8<Set<Element>, Set<TypeElement>> {
+        private final Set<Element> annotatedElements = new LinkedHashSet<>();
+        private final Elements elements;
+
+        private AnnotationScanner(Elements elements) {
+            super(Collections.emptySet());
+            this.elements = elements;
+        }
+
+        @Override
+        public Set<Element> scan(Element e, Set<TypeElement> annotations) {
+            for (AnnotationMirror annotationMirror : elements.getAllAnnotationMirrors(e)) {
+                if (annotations.contains((TypeElement) annotationMirror.getAnnotationType().asElement())) {
+                    annotatedElements.add(e);
+                    break;
+                }
+            }
+            e.accept(this, annotations);
+            return annotatedElements;
+        }
+
+        @Override
+        public Set<Element> visitType(TypeElement e, Set<TypeElement> p) {
+            // Type parameters are not considered to be enclosed by a type
+            scan(e.getTypeParameters(), p);
+            return super.visitType(e, p);
+        }
+
+        @Override
+        public Set<Element> visitExecutable(ExecutableElement e, Set<TypeElement> p) {
+            // Type parameters are not considered to be enclosed by an executable
+            scan(e.getTypeParameters(), p);
+            return super.visitExecutable(e, p);
         }
     }
 }

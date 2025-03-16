@@ -20,13 +20,13 @@ import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.buildtree.BuildTreeLifecycleListener;
 import org.gradle.internal.configurationcache.options.ConfigurationCacheSettingsFinalizedProgressDetails;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.operations.configuration.IsolatedProjectsSettingsFinalizedProgressDetails;
 
 import javax.inject.Inject;
 
-@ServiceScope(Scopes.BuildTree.class)
+@ServiceScope(Scope.BuildTree.class)
 public class BuildOptionBuildOperationProgressEventsEmitter implements BuildTreeLifecycleListener {
 
     private final BuildOperationProgressEventEmitter eventEmitter;

@@ -19,6 +19,7 @@ package org.gradle.java.compile
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.CompiledLanguage
 import org.gradle.integtests.fixtures.FeaturePreviewsFixture
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.internal.jvm.Jvm
 
 abstract class AbstractIncrementalCompileIntegrationTest extends AbstractIntegrationSpec implements IncrementalCompileMultiProjectTestFixture {
@@ -89,6 +90,7 @@ abstract class AbstractIncrementalCompileIntegrationTest extends AbstractIntegra
         failure.assertHasDescription "Execution failed for task ':${language.compileTaskName}'."
     }
 
+    @ToBeFixedForIsolatedProjects(because = "subprojects, configure projects from root")
     def "recompiles dependent classes across project boundaries"() {
         given:
         file("lib/src/main/${language.name}/IPerson.${language.name}") << basicInterface
@@ -118,6 +120,7 @@ abstract class AbstractIncrementalCompileIntegrationTest extends AbstractIntegra
         failure.assertHasDescription "Execution failed for task ':app:${language.compileTaskName}'."
     }
 
+    @ToBeFixedForIsolatedProjects(because = "subprojects, configure projects from root")
     def "task outcome is UP-TO-DATE when no recompilation necessary"() {
         given:
         libraryAppProjectWithIncrementalCompilation(language)
@@ -141,6 +144,7 @@ abstract class AbstractIncrementalCompileIntegrationTest extends AbstractIntegra
         executedAndNotSkipped(getLibraryCompileTask(language))
     }
 
+    @ToBeFixedForIsolatedProjects(because = "subprojects, configure projects from root")
     def "does not recompile when only compileOptions.incremental property changes from #from to #to"() {
         given:
         libraryAppProjectWithIncrementalCompilation(language)

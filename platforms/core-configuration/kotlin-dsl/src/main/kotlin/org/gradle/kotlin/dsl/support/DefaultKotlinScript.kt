@@ -17,7 +17,6 @@
 package org.gradle.kotlin.dsl.support
 
 import org.gradle.api.Action
-import org.gradle.internal.scripts.GradleScript
 import org.gradle.api.PathValidation
 import org.gradle.api.Project
 import org.gradle.api.file.ConfigurableFileCollection
@@ -26,6 +25,7 @@ import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DeleteSpec
 import org.gradle.api.file.FileTree
 import org.gradle.api.initialization.Settings
+import org.gradle.api.internal.DeprecatedProcessOperations
 import org.gradle.api.internal.ProcessOperations
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.project.ProjectInternal
@@ -35,11 +35,12 @@ import org.gradle.api.logging.Logging
 import org.gradle.api.logging.LoggingManager
 import org.gradle.api.resources.ResourceHandler
 import org.gradle.api.tasks.WorkResult
+import org.gradle.internal.scripts.GradleScript
 import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.support.DefaultKotlinScript.Host
 import org.gradle.process.ExecResult
 import org.gradle.process.ExecSpec
 import org.gradle.process.JavaExecSpec
-
 import java.io.File
 import java.net.URI
 
@@ -121,9 +122,11 @@ open class DefaultKotlinScript internal constructor(
     override fun delete(configuration: Action<DeleteSpec>): WorkResult =
         fileOperations.delete(configuration)
 
+    @Deprecated("This method will be removed in Gradle 9.0. Use ExecOperations.exec(Action) or ProviderFactory.exec(Action) instead.")
     override fun exec(configuration: Action<ExecSpec>): ExecResult =
         processOperations.exec(configuration)
 
+    @Deprecated("This method will be removed in Gradle 9.0. Use ExecOperations.javaexec(Action) or ProviderFactory.javaexec(Action) instead.")
     override fun javaexec(configuration: Action<JavaExecSpec>): ExecResult =
         processOperations.javaexec(configuration)
 
@@ -131,7 +134,7 @@ open class DefaultKotlinScript internal constructor(
     val fileOperations by unsafeLazy(host::getFileOperations)
 
     private
-    val processOperations by unsafeLazy(host::getProcessOperations)
+    val processOperations by unsafeLazy { DeprecatedProcessOperations(host.getProcessOperations()) }
 }
 
 

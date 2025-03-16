@@ -29,10 +29,7 @@ import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GCC_COMPAT
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.SUPPORTS_32_AND_64
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VISUALCPP
 
-@Requires([
-    UnitTestPreconditions.CanInstallExecutable,
-    UnitTestPreconditions.NotMacOs
-])
+@Requires(UnitTestPreconditions.CanInstallExecutable)
 class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     @Rule final TestNameTestDirectoryProvider testDirProvider = new TestNameTestDirectoryProvider(getClass())
     @Rule public final Sample assembler = sample(testDirProvider, 'assembler')
@@ -51,7 +48,6 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
     }
 
     @RequiresInstalledToolChain(SUPPORTS_32_AND_64)
-    @ToBeFixedForConfigurationCache
     def "assembler"() {
         given:
         sample assembler
@@ -66,7 +62,6 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
         installation(assembler.dir.file("build/install/main")).exec().out == "5 + 7 = 12\n"
     }
 
-    @ToBeFixedForConfigurationCache
     def "c"() {
         given:
         sample c
@@ -82,7 +77,6 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
         installation(c.dir.file("build/install/main")).exec().out == "Hello world!"
     }
 
-    @ToBeFixedForConfigurationCache
     def "cpp"() {
         given:
         sample cpp
@@ -100,7 +94,6 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
 
     @RequiresInstalledToolChain(GCC_COMPATIBLE)
     @Requires(UnitTestPreconditions.NotWindows)
-    @ToBeFixedForConfigurationCache
     def "objectiveC"() {
         given:
         sample objectiveC
@@ -117,7 +110,6 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
 
     @RequiresInstalledToolChain(GCC_COMPATIBLE)
     @Requires(UnitTestPreconditions.NotWindows)
-    @ToBeFixedForConfigurationCache
     def "objectiveCpp"() {
         given:
         sample objectiveCpp
@@ -160,7 +152,6 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
         file(windowsResources.dir.file("build/libs/helloRes/shared/helloRes.dll")).assertExists()
     }
 
-    @ToBeFixedForConfigurationCache
     def "custom layout"() {
         given:
         sample customLayout
@@ -176,7 +167,6 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
         installation(customLayout.dir.file("build/install/main")).exec().out == "Hello world!"
     }
 
-    @ToBeFixedForConfigurationCache
     def "idl"() {
         given:
         sample idl

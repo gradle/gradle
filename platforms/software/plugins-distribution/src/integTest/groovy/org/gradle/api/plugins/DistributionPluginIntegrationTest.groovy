@@ -16,51 +16,38 @@
 
 package org.gradle.api.plugins
 
-
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.test.fixtures.archive.TarTestFixture
 import org.gradle.test.fixtures.maven.MavenPom
 
+/**
+ * Tests {@link org.gradle.api.distribution.plugins.DistributionPlugin}.
+ */
 @TestReproducibleArchives
 class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
+
     @Override
     String getMainTask() {
         return "distZip"
     }
 
     def setup() {
-        file("settings.gradle").text = "rootProject.name='TestProject'"
+        settingsFile << """
+            rootProject.name = 'TestProject'
+        """
+
         file("someFile").createFile()
-        using m2
-    }
-
-    def createTaskForCustomDistribution() {
-        when:
-        buildFile << """
-            apply plugin:'distribution'
-
-            distributions {
-                custom{
-                    contents {
-                        from { "someFile" }
-                    }
-                }
-            }
-
-            """
-        then:
-        succeeds('customDistZip')
-        and:
-        file('build/distributions/TestProject-custom.zip').usingNativeTools().unzipTo(file("unzip"))
-        file("unzip/TestProject-custom/someFile").assertIsFile()
     }
 
     def "can publish distribution"() {
         when:
         buildFile << """
-            apply plugin:'distribution'
-            apply plugin:'maven-publish'
+            plugins {
+                id("distribution")
+                id("maven-publish")
+            }
+
             group = "org.acme"
             version = "1.0"
 
@@ -85,14 +72,14 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
                 @Inject
                 SoftwareComponentFactory getSoftwareComponentFactory()
             }
+
             def factory = objects.newInstance(MyServices).softwareComponentFactory
             def distributionComponent = factory.adhoc("distribution")
             distributionComponent.addVariantsFromConfiguration(configurations.distribution) {}
 
-
             publishing {
                 repositories {
-                    maven { url "${file("repo").toURI()}" }
+                    maven { url = uri("${file("repo").toURI()}") }
                 }
                 publications {
                     maven(MavenPublication) {
@@ -100,8 +87,8 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
                     }
                 }
             }
+        """
 
-            """
         then:
         succeeds("publishMavenPublicationToMavenRepository")
         file("repo/org/acme/TestProject/1.0/TestProject-1.0.zip").assertIsFile()
@@ -114,47 +101,6 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
         pom.packaging == "zip"
     }
 
-    def createTaskForCustomDistributionWithCustomName() {
-        when:
-        buildFile << """
-            apply plugin:'distribution'
-
-            distributions {
-                custom{
-                    distributionBaseName = 'customName'
-                    contents {
-                        from { "someFile" }
-                    }
-                }
-            }
-            """
-        then:
-        succeeds('customDistZip')
-        and:
-        file('build/distributions/customName.zip').usingNativeTools().unzipTo(file("unzip"))
-        file("unzip/customName/someFile").assertIsFile()
-    }
-
-    def createTaskForCustomDistributionWithEmptyCustomName() {
-        when:
-        buildFile << """
-            apply plugin:'distribution'
-            distributions {
-                custom{
-                    distributionBaseName = ''
-                    contents {
-                        from { "someFile" }
-                    }
-                }
-            }
-
-
-            """
-        then:
-        runAndFail('customDistZip')
-        failure.assertHasCause "Distribution 'custom' must not have an empty distributionBaseName."
-    }
-
     def createDistributionWithoutVersion() {
         given:
         createDir('src/main/dist') {
@@ -163,19 +109,23 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
                 file 'file2.txt'
             }
         }
+
         and:
         buildFile << """
-            apply plugin: 'distribution'
-
+            plugins {
+                id("distribution")
+            }
 
             distributions {
-                main{
+                main {
                     distributionBaseName = 'myDistribution'
                 }
             }
-            """
+        """
+
         when:
         run('distZip')
+
         then:
         file('build/distributions/myDistribution.zip').exists()
     }
@@ -188,19 +138,23 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
                 file 'file2.txt'
             }
         }
+
         and:
         buildFile << """
-            apply plugin:'distribution'
-
+            plugins {
+                id("distribution")
+            }
 
             distributions {
-                main{
+                main {
                     distributionBaseName = 'myDistribution'
                 }
             }
-            """
+        """
+
         when:
         run('assemble')
+
         then:
         file('build/distributions/myDistribution.zip').exists()
         file('build/distributions/myDistribution.tar').exists()
@@ -214,22 +168,27 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
                 file 'file2.txt'
             }
         }
+
         and:
         buildFile << """
-            apply plugin:'distribution'
+            plugins {
+                id("distribution")
+            }
 
             version = '1.2'
             distributions {
-                main{
+                main {
                     distributionBaseName = 'myDistribution'
                 }
             }
             distZip{
 
             }
-            """
+        """
+
         when:
         run('distZip')
+
         then:
         file('build/distributions/myDistribution-1.2.zip').exists()
     }
@@ -242,13 +201,17 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
                 file 'file2.txt'
             }
         }
+
         and:
         buildFile << """
-            apply plugin:'distribution'
+            plugins {
+                id("distribution")
+            }
+        """
 
-            """
         when:
         run('distZip')
+
         then:
         file('build/distributions/TestProject.zip').exists()
     }
@@ -261,211 +224,40 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
                 file 'file2.txt'
             }
         }
+
         and:
         buildFile << """
-            apply plugin:'distribution'
+            plugins {
+                id("distribution")
+            }
 
             version = 1.2
-            """
+        """
+
         when:
         run('distZip')
+
         then:
         file('build/distributions/TestProject-1.2.zip').exists()
-    }
-
-    def createCreateArchiveForCustomDistribution(){
-        given:
-        createDir('src/custom/dist') {
-            file 'file1.txt'
-            dir2 {
-                file 'file2.txt'
-            }
-        }
-        and:
-        buildFile << """
-            apply plugin:'distribution'
-
-            distributions{
-                custom
-            }
-            """
-        when:
-        run('customDistZip')
-        then:
-        file('build/distributions/TestProject-custom.zip').exists()
-    }
-
-
-    def includeFileFromSrcMainCustom() {
-        given:
-        createDir('src/custom/dist'){
-            file 'file1.txt'
-            dir {
-                file 'file2.txt'
-            }
-        }
-        and:
-        buildFile << """
-            apply plugin:'distribution'
-
-            version = 1.2
-
-            distributions{
-                custom
-            }
-            """
-        when:
-        run('customDistZip')
-        then:
-        file('build/distributions/TestProject-custom-1.2.zip').usingNativeTools().unzipTo(file("unzip"))
-        file("unzip").assertHasDescendants(
-                'TestProject-custom-1.2/file1.txt',
-                'TestProject-custom-1.2/dir/file2.txt')
-    }
-
-    def includeFileFromDistContent() {
-        given:
-        createDir('src/custom/dist'){
-            file 'file1.txt'
-            dir {
-                file 'file2.txt'
-            }
-        }
-        createDir("docs"){
-            file 'file3.txt'
-            dir2 {
-                file 'file4.txt'
-            }
-        }
-        and:
-        buildFile << """
-            apply plugin:'distribution'
-
-            version = 1.2
-
-            distributions{
-                custom {
-                    contents {
-                        from ( 'docs' ){
-                            into 'docs'
-                        }
-
-
-                    }
-                }
-            }
-            """
-        when:
-        run('customDistZip')
-        then:
-        file('build/distributions/TestProject-custom-1.2.zip').usingNativeTools().unzipTo(file("unzip"))
-        file("unzip").assertHasDescendants(
-                'TestProject-custom-1.2/file1.txt',
-                'TestProject-custom-1.2/dir/file2.txt',
-                'TestProject-custom-1.2/docs/file3.txt',
-                'TestProject-custom-1.2/docs/dir2/file4.txt')
-    }
-
-    def installFromDistContent() {
-        given:
-        createDir('src/custom/dist'){
-            file 'file1.txt'
-            dir {
-                file 'file2.txt'
-            }
-        }
-        createDir("docs"){
-            file 'file3.txt'
-            dir2 {
-                file 'file4.txt'
-            }
-        }
-        and:
-        buildFile << """
-            apply plugin:'distribution'
-
-            version = 1.2
-
-            distributions{
-                custom {
-                    contents {
-                        from ( 'docs' ){
-                            into 'docs'
-                        }
-                    }
-                }
-            }
-            """
-        when:
-        run('installCustomDist')
-
-        then:
-        file('build/install/TestProject-custom').exists()
-        file('build/install/TestProject-custom').assertHasDescendants(
-                'file1.txt',
-                'dir/file2.txt',
-                'docs/file3.txt',
-                'docs/dir2/file4.txt')
-    }
-
-    def installDistCanBeRerun() {
-        when:
-        buildFile << """
-            apply plugin:'distribution'
-
-            distributions {
-                custom{
-                    contents {
-                        from { "someFile" }
-                    }
-                }
-            }
-
-            """
-        succeeds('installCustomDist')
-        // update the file so that when it re-runs it is not UP-TO-DATE
-        file("someFile") << "updated"
-        then:
-        succeeds('installCustomDist')
-        and:
-        file('build/install/TestProject-custom/someFile').assertIsCopyOf(file("someFile"))
-    }
-
-    def createTarTaskForCustomDistribution() {
-        when:
-        buildFile << """
-            apply plugin:'distribution'
-
-            distributions {
-                custom{
-                    contents {
-                        from { "someFile" }
-                    }
-                }
-            }
-
-            """
-        then:
-        succeeds('customDistTar')
-        and:
-        file('build/distributions/TestProject-custom.tar').usingNativeTools().untarTo(file("untar"))
-        file("untar/TestProject-custom/someFile").assertIsFile()
     }
 
     def "can create distribution with .tar in project name"() {
         when:
         buildFile << """
-            apply plugin: 'application'
-            apply plugin: 'java'
+            plugins {
+                id("application")
+            }
 
             application {
                 mainClass = "Main"
             }
         """
+
         file("src/main/java/Main.java") << "public class Main {}"
         settingsFile << """
             rootProject.name = 'projectWithtarInName'
         """
+
         then:
         succeeds("distTar")
         new TarTestFixture(file("build/distributions/projectWithtarInName.tar")).assertContainsFile("projectWithtarInName/lib/projectWithtarInName.jar")
@@ -495,6 +287,7 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
                 }
             }
         """
+
         file("someFile") << "some text"
 
         then:

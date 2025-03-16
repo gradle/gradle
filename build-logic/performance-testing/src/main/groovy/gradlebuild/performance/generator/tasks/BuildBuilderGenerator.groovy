@@ -16,7 +16,7 @@
 
 package gradlebuild.performance.generator.tasks
 
-import org.gradle.api.Action
+
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ListProperty
@@ -27,18 +27,19 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
-import org.gradle.process.ExecSpec
+import org.gradle.process.ExecOperations
 import org.gradle.work.DisableCachingByDefault
 
 import javax.inject.Inject
 import java.util.concurrent.Callable
+
 /**
  * Uses the build-builder to generate Gradle projects of different kinds.
  *
- * @see <a href="https://github.com/adammurdoch/build-builder">build builder</a>
+ * @see <a href="https://github.com/gradle/build-builder">build builder</a>
  */
 @DisableCachingByDefault(because = "Not made cacheable, yet")
-class BuildBuilderGenerator extends ProjectGeneratorTask {
+abstract class BuildBuilderGenerator extends ProjectGeneratorTask {
     /**
      * Installation directory of the build-builder tool.
      */
@@ -79,6 +80,9 @@ class BuildBuilderGenerator extends ProjectGeneratorTask {
     int sourceFiles
 
     @Inject
+    protected abstract ExecOperations getExecOperations()
+
+    @Inject
     BuildBuilderGenerator(ObjectFactory objectFactory, ProviderFactory providerFactory) {
         buildBuilderInstall = objectFactory.directoryProperty()
         generatedDir = objectFactory.directoryProperty()
@@ -102,13 +106,10 @@ class BuildBuilderGenerator extends ProjectGeneratorTask {
     void generate() {
         // TODO: Use the worker API
         def resolvedArgs = args.get()
-        project.exec(new Action<ExecSpec>() {
-            @Override
-            void execute(ExecSpec execSpec) {
-                execSpec.executable = buildBuilderInstall.file("bin/build-builder").get().asFile
-                execSpec.workingDir = generatedDir.get().asFile
-                execSpec.args = resolvedArgs
-            }
-        })
+        execOperations.exec {
+            it.executable = buildBuilderInstall.file("bin/build-builder").get().asFile
+            it.workingDir = generatedDir.get().asFile
+            it.args = resolvedArgs
+        }
     }
 }

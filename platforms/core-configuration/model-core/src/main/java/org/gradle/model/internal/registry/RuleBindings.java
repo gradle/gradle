@@ -148,7 +148,7 @@ class RuleBindings {
             }
         }
 
-        public void remove(ModelNodeInternal node) {
+        public void remove() {
             match = null;
         }
     }
@@ -175,7 +175,7 @@ class RuleBindings {
         }
 
         public void removeNode(ModelNodeInternal node) {
-            predicatesForPath(node.getPath()).remove(node);
+            predicatesForPath(node.getPath()).remove();
         }
     }
 
@@ -196,7 +196,7 @@ class RuleBindings {
             nodes.remove(node);
             for (PredicateMatches matches : types.values()) {
                 if (matches.match == node) {
-                    matches.remove(node);
+                    matches.remove();
                 }
             }
         }
@@ -300,14 +300,6 @@ class RuleBindings {
          */
         public Collection<RuleBinder> get(NodeAtState nodeAtState) {
             return getByPath(getByState(nodeAtState.state), nodeAtState.path.toString());
-        }
-
-        public void remove(ModelNodeInternal node, RuleBinder ruleBinder) {
-            unbind(ruleBinder, node);
-            for (ModelNode.State state : ModelNode.State.values()) {
-                Map<String, List<RuleBinder>> byState = getByState(state);
-                getByPath(byState, node.getPath().toString()).clear();
-            }
         }
 
         @Override

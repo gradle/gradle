@@ -26,22 +26,22 @@ import org.gradle.api.artifacts.DependencyScopeConfiguration
 import org.gradle.api.artifacts.ResolvableConfiguration
 import org.gradle.api.artifacts.UnknownConfigurationException
 import org.gradle.api.internal.CollectionCallbackActionDecorator
-import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.ConfigurationResolver
-import org.gradle.api.internal.artifacts.ResolveExceptionContextualizer
-import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
+import org.gradle.api.internal.artifacts.ResolveExceptionMapper
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentMetadataBuilder
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory
+import org.gradle.api.internal.attributes.AttributeDesugaring
+import org.gradle.api.internal.attributes.AttributesFactory
+import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
+import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.api.internal.project.ProjectStateRegistry
+import org.gradle.api.provider.Provider
 import org.gradle.internal.artifacts.configurations.NoContextRoleBasedConfigurationCreationRequest
 import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.model.CalculatedValueContainerFactory
-import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.work.WorkerThreadRegistry
 import org.gradle.util.AttributeTestUtil
@@ -53,9 +53,7 @@ class DefaultConfigurationContainerTest extends Specification {
     private ConfigurationResolver resolver = Mock(ConfigurationResolver)
     private ListenerManager listenerManager = Stub(ListenerManager.class)
     private DependencyMetaDataProvider metaDataProvider = Mock(DependencyMetaDataProvider.class)
-    private ComponentIdentifierFactory componentIdentifierFactory = Mock(ComponentIdentifierFactory)
-    private BuildOperationExecutor buildOperationExecutor = Mock(BuildOperationExecutor)
-    private DependencyLockingProvider lockingProvider = Mock(DependencyLockingProvider)
+    private BuildOperationRunner buildOperationRunner = Mock(BuildOperationRunner)
     private ProjectStateRegistry projectStateRegistry = Mock(ProjectStateRegistry)
     private CollectionCallbackActionDecorator callbackActionDecorator = Mock(CollectionCallbackActionDecorator) {
         decorate(_ as Action) >> { it[0] }
@@ -63,42 +61,44 @@ class DefaultConfigurationContainerTest extends Specification {
     private UserCodeApplicationContext userCodeApplicationContext = Mock()
     private CalculatedValueContainerFactory calculatedValueContainerFactory = Mock()
     private Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
-    private ImmutableAttributesFactory immutableAttributesFactory = AttributeTestUtil.attributesFactory()
-    private DomainObjectContext domainObjectContext = new RootScriptDomainObjectContext()
+    private AttributesFactory attributesFactory = AttributeTestUtil.attributesFactory()
     private DefaultRootComponentMetadataBuilder metadataBuilder = Mock(DefaultRootComponentMetadataBuilder) {
         getValidator() >> Mock(MutationValidator)
     }
     private DefaultRootComponentMetadataBuilder.Factory rootComponentMetadataBuilderFactory = Mock(DefaultRootComponentMetadataBuilder.Factory) {
-        create(_) >> metadataBuilder
+        create(_, _, _, _) >> metadataBuilder
     }
     private DefaultConfigurationFactory configurationFactory = new DefaultConfigurationFactory(
         instantiator,
         resolver,
         listenerManager,
-        metaDataProvider,
-        componentIdentifierFactory,
-        lockingProvider,
-        domainObjectContext,
+        StandaloneDomainObjectContext.ANONYMOUS,
         TestFiles.fileCollectionFactory(),
-        buildOperationExecutor,
+        buildOperationRunner,
         new PublishArtifactNotationParserFactory(
                 instantiator,
                 metaDataProvider,
                 TestFiles.resolver(),
                 TestFiles.taskDependencyFactory(),
         ),
-        immutableAttributesFactory,
-        Stub(ResolveExceptionContextualizer),
+        attributesFactory,
+        Stub(ResolveExceptionMapper),
+        new AttributeDesugaring(AttributeTestUtil.attributesFactory()),
         userCodeApplicationContext,
+        CollectionCallbackActionDecorator.NOOP,
         projectStateRegistry,
         Mock(WorkerThreadRegistry),
         TestUtil.domainObjectCollectionFactory(),
         calculatedValueContainerFactory,
-        TestFiles.taskDependencyFactory()
+        TestFiles.taskDependencyFactory(),
+        TestUtil.problemsService()
     )
     private DefaultConfigurationContainer configurationContainer = instantiator.newInstance(DefaultConfigurationContainer.class,
         instantiator,
         callbackActionDecorator,
+        metaDataProvider,
+        StandaloneDomainObjectContext.ANONYMOUS,
+        Mock(AttributesSchemaInternal),
         rootComponentMetadataBuilderFactory,
         configurationFactory,
         Mock(ResolutionStrategyFactory)
@@ -317,7 +317,7 @@ class DefaultConfigurationContainerTest extends Specification {
 
         where:
         role << [
-            ConfigurationRoles.LEGACY,
+            ConfigurationRoles.ALL,
             ConfigurationRoles.RESOLVABLE,
             ConfigurationRoles.CONSUMABLE,
             ConfigurationRoles.CONSUMABLE_DEPENDENCY_SCOPE,
@@ -387,7 +387,7 @@ class DefaultConfigurationContainerTest extends Specification {
         e.message == "Cannot maybe create invalid role: ${role.getName()}"
 
         where:
-        role << [ConfigurationRoles.LEGACY, ConfigurationRoles.CONSUMABLE_DEPENDENCY_SCOPE, ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE]
+        role << [ConfigurationRoles.ALL, ConfigurationRoles.CONSUMABLE_DEPENDENCY_SCOPE, ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE]
     }
 
     // withType when used with a class that is not a super-class of the container does not work with registered elements
@@ -440,7 +440,7 @@ class DefaultConfigurationContainerTest extends Specification {
 
     def verifyLazyConfiguration(String name, @DelegatesTo(ConfigurationContainerInternal) Closure producer, Closure action) {
         producer.delegate = configurationContainer
-        def provider = producer()
+        Provider<?> provider = producer()
 
         assert provider.isPresent()
         assert provider.name == name

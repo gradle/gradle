@@ -391,3 +391,10 @@
     ): PublishArtifact =
         add("compile", artifactNotation, configureAction)
 
+
+    /**
+     * Adds model defaults for the [softwareType][AccessorNameSpec(original=softwareType)] software type.
+     */
+    fun SharedModelDefaults.`softwareType`(configure: Action<org.gradle.kotlin.dsl.accessors.tasks.PrintAccessorsTest.TestSoftwareType>): Unit =
+        add("softwareType", org.gradle.kotlin.dsl.accessors.tasks.PrintAccessorsTest.TestSoftwareType, configure)
+

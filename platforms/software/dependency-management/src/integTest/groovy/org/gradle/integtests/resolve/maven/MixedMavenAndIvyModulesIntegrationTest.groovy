@@ -30,8 +30,8 @@ class MixedMavenAndIvyModulesIntegrationTest extends AbstractDependencyResolutio
         """
         buildFile << """
             repositories {
-                maven { url '${mavenRepo.uri}' }
-                ivy { url '${ivyRepo.uri}' }
+                maven { url = '${mavenRepo.uri}' }
+                ivy { url = "${ivyRepo.uri}" }
             }
             configurations {
                 conf
@@ -86,7 +86,7 @@ dependencies {
         }
     }
 
-    def "a dependency on compile scope of maven module includes default of required ivy module when they are present"() {
+    def "a dependency on maven module includes default of required ivy module when they are present"() {
         def inDefault = ivyRepo.module("org.test", "in-default", "1.0").publish()
         def m1 = ivyRepo.module("org.test", "m1", "1.0")
             .configuration("compile")
@@ -113,7 +113,7 @@ dependencies {
 
         buildFile << """
 dependencies {
-    conf group: 'org.test', name: 'maven', version: '1.0', configuration: 'compile'
+    conf group: 'org.test', name: 'maven', version: '1.0'
 }
 """
         expect:
@@ -236,7 +236,7 @@ dependencies {
 
         buildFile << """
 dependencies {
-    conf group: 'org.test', name: 'maven', version: '1.0', configuration: 'compile'
+    conf group: 'org.test', name: 'maven', version: '1.0'
 }
 configurations.conf.resolutionStrategy.force('org.test:ivy:1.2')
 """
@@ -283,7 +283,7 @@ configurations.conf.resolutionStrategy.force('org.test:ivy:1.2')
 
         buildFile << """
 dependencies {
-    conf group: 'org.test', name: 'maven', version: '1.0', configuration: 'compile'
+    conf group: 'org.test', name: 'maven', version: '1.0'
 }
 """
         expect:

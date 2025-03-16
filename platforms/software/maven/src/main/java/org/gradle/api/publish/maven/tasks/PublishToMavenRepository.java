@@ -36,6 +36,7 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.authentication.Authentication;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.serialization.Cached;
 import org.gradle.internal.serialization.Transient;
 import org.gradle.internal.service.ServiceRegistry;
@@ -64,6 +65,7 @@ public abstract class PublishToMavenRepository extends AbstractPublishToMaven {
      * @return The repository to publish to
      */
     @Internal
+    @ToBeReplacedByLazyProperty
     public MavenArtifactRepository getRepository() {
         return repository.get();
     }

@@ -22,7 +22,6 @@ import org.gradle.api.Action
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.scopes.Scope
-import org.gradle.internal.service.scopes.Scopes
 import org.gradle.launcher.daemon.registry.DaemonRegistry
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationListener
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult
@@ -99,7 +98,7 @@ class DefaultDaemonScanInfoSpec extends ConcurrentSpec {
             }
             start {
                 sleep 100
-                manager.createChild(Scopes.Build).getBroadcaster(BuildListener).buildFinished(null)
+                manager.createChild(Scope.Build).getBroadcaster(BuildListener).buildFinished(null)
             }
         }
 

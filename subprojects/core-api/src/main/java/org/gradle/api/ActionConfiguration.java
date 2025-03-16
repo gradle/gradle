@@ -16,6 +16,8 @@
 
 package org.gradle.api;
 
+import org.gradle.internal.instrumentation.api.annotations.NotToBeMigratedToLazy;
+
 /**
  * Allows specification of configuration for some action.
  *
@@ -36,6 +38,7 @@ package org.gradle.api;
  *
  * @since 4.0
  */
+@NotToBeMigratedToLazy
 public interface ActionConfiguration {
     /**
      * Adds initialization parameters to use when constructing an instance of the implementation class.

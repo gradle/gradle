@@ -16,8 +16,11 @@
 
 package org.gradle.model.internal.manage.binding;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.model.internal.type.ModelType;
 
+@ServiceScope(Scope.Global.class)
 public interface StructBindingsStore {
     <T> StructBindings<T> getBindings(ModelType<T> publicType);
 

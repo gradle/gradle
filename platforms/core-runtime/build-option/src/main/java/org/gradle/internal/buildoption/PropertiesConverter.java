@@ -21,5 +21,5 @@ import org.gradle.cli.CommandLineArgumentException;
 import java.util.Map;
 
 public interface PropertiesConverter<T> {
-    T convert(Map<String, String> args, T target) throws CommandLineArgumentException;
+    T convert(Map<String, String> properties, T target) throws CommandLineArgumentException;
 }

@@ -12,7 +12,7 @@ public abstract class JavaToolchainResolverPlugin implements Plugin<Settings> { 
     protected abstract JavaToolchainResolverRegistry getToolchainResolverRegistry(); // <2>
 
     public void apply(Settings settings) {
-        settings.getPlugins().apply("jvm-toolchain-management"); // <3>
+        settings.getPluginManager().apply("jvm-toolchain-management"); // <3>
 
         JavaToolchainResolverRegistry registry = getToolchainResolverRegistry();
         registry.register(JavaToolchainResolverImplementation.class);

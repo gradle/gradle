@@ -17,6 +17,8 @@
 import java.util.concurrent.Callable
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
+import java.nio.file.Files
+import java.nio.file.Paths
 
 /**
  * See https://github.com/gradle/gradle-private/issues/3919
@@ -32,15 +34,21 @@ import java.util.concurrent.Future
 class CheckBadMerge {
     private static final THREAD_POOL = Executors.newCachedThreadPool()
 
-    private static final List<String> MONITORED_FILES = [
+    private static final List<String> MONITORED_PATHS = [
         "subprojects/docs/src/docs/release/notes.md",
         "platforms/documentation/docs/src/docs/release/notes.md",
+        "platforms/documentation/docs/src/docs/release/release-notes-assets/",
         "subprojects/launcher/src/main/resources/release-features.txt",
         "platforms/core-runtime/launcher/src/main/resources/release-features.txt"
     ]
 
-    static void main(String[] commits) {
-        println("Commits to check: ${Arrays.toString(commits)}")
+    static void main(String[] args) {
+        if (args.length != 1) {
+            System.err.println("Usage: groovy CheckBadMerge.groovy <commits_file>")
+            System.exit(1)
+        }
+
+        List<String> commits = Files.readAllLines(Paths.get(args[0]))
         try {
             commits.each { checkCommit(it) }
         } finally {
@@ -55,64 +63,43 @@ class CheckBadMerge {
             return
         }
 
+        List<String> commitBranches = branchesOf(commit)
+        if (commitBranches.contains("origin/release")) {
+            println("$commit is a merge commit already on release, ignoring.")
+            println("  Branches: $commitBranches")
+            return
+        }
+
         // The correct state we are looking for is:
         // 1. It's a merge commit.
         // 2. One of its parent commits is from master only.
-        // 3. Another parent commit is from master and release branch.
+        // 3. Another parent commit is not from master but from release branch.
         // Otherwise, skip this commit.
         List<String> p1Branches = branchesOf(parentCommits[0])
         List<String> p2Branches = branchesOf(parentCommits[1])
 
+        println("$commit parents: $parentCommits")
+        println(" p1Branches: $p1Branches")
+        println(" p2Branches: $p2Branches")
         if (p1Branches.contains("origin/master") && !p2Branches.contains("origin/master") && p2Branches.any { it.startsWith("origin/release") }) {
-            List<String> badFiles = MONITORED_FILES.grep { isBadFileInMergeCommit(it, commit, parentCommits[0], parentCommits[1]) }
-            if (!badFiles.isEmpty()) {
-                throw new RuntimeException("Found bad files in merge commit $commit: $badFiles")
+            List<String> badFiles = filesFromMerge(commit).findAll {gitFile -> MONITORED_PATHS.any { forbiddenPath -> gitFile.startsWith(forbiddenPath)} }
+            if (!badFiles.empty) {
+                System.err.println("Found bad files in merge commit $commit, run the listed commands:")
+                badFiles.each {
+                    System.err.println("git restore --source=master -SW -- '$it'")
+                }
+                System.err.println("And then amend the merge commit to remove all offending changes.")
+                System.exit(1)
             } else {
-                println("No bad files found in $commit")
+                println(" -> No bad files found")
             }
         } else {
-            println("$commit is not a merge commit we're looking for. Parents: $parentCommits, p1Branches: $p1Branches, p2Branches: $p2Branches")
+            println(" -> is not a merge commit we're looking for.")
         }
     }
 
-    /**
-     * Check if the given file is "bad": we should only use the release note from the master branch.
-     * This means that every line in the merge commit version should be either:
-     * - Only exists on `master`.
-     * - Exists on `master` and `releaseX`.
-     * If any line is only present on `releaseX` version, then it's a bad file.
-     * Also, we ignore empty lines.
-     */
-    static boolean isBadFileInMergeCommit(String filePath, String mergeCommit, String masterCommit, String releaseCommit) {
-        try {
-            List<String> mergeCommitFileLines = showFileOnCommit(mergeCommit, filePath).readLines()
-            List<String> masterCommitFileLines = showFileOnCommit(masterCommit, filePath).readLines()
-            List<String> releaseCommitFileLines = showFileOnCommit(releaseCommit, filePath).readLines()
-            for (String line in mergeCommitFileLines) {
-                if (line.trim().isEmpty()) {
-                    continue
-                }
-                if (!masterCommitFileLines.contains(line) && releaseCommitFileLines.contains(line)) {
-                    println("Found bad file $filePath in merge commit $mergeCommit: '$line' only exists in $releaseCommit but not in $masterCommit")
-                    return true
-                }
-            }
-        } catch (AbortException ignore) {
-            return false
-        }
-        return false
-    }
-
-    static class AbortException extends RuntimeException {
-    }
-
-    static String showFileOnCommit(String commit, String filePath) {
-        ExecResult execResult = exec("git show $commit:$filePath")
-        if (execResult.returnCode != 0 && execResult.stderr ==~ /path '.*' exists on disk, but not in '.*'/) {
-            println("File $filePath does not exist on commit $commit, skip.")
-            throw new AbortException()
-        }
-        return execResult.stdout
+    static List<String> filesFromMerge(String commit) {
+        getStdout("git diff --name-only $commit^1..$commit").readLines()
     }
 
     static List<String> branchesOf(String commit) {
@@ -124,7 +111,7 @@ class CheckBadMerge {
     }
 
     static List<String> parentCommitsOf(String commit) {
-        return getStdout("git show --format=%P --no-patch $commit")
+        return getStdout("git show --format=%P --no-patch --no-show-signature $commit")
             .split(" ").collect { it.trim() }.grep { !it.isEmpty() }
     }
 

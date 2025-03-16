@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.VersionCatalog;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParser;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.catalog.AbstractExternalDependencyFactory.BundleFactory;
 import org.gradle.api.internal.catalog.AbstractExternalDependencyFactory.PluginFactory;
 import org.gradle.api.internal.catalog.AbstractExternalDependencyFactory.VersionFactory;
@@ -47,7 +47,7 @@ public class VersionCatalogView implements VersionCatalog {
         DefaultVersionCatalog config,
         ProviderFactory providerFactory,
         ObjectFactory objects,
-        ImmutableAttributesFactory attributesFactory,
+        AttributesFactory attributesFactory,
         CapabilityNotationParser capabilityNotationParser
     ) {
         this.config = config;

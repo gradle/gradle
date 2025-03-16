@@ -22,7 +22,7 @@ import org.gradle.launcher.daemon.server.DaemonRegistryUpdater
 import org.gradle.internal.remote.Address
 import spock.lang.Specification
 
-import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.*
+import static org.gradle.launcher.daemon.server.api.DaemonState.*
 
 public class DaemonRegistryUpdaterTest extends Specification {
 

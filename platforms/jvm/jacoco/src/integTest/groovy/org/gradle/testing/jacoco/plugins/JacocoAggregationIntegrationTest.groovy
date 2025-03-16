@@ -277,7 +277,6 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
             testing {
                 suites {
                     integTest(JvmTestSuite) {
-                        testType = TestSuiteType.INTEGRATION_TEST
                         useJUnit()
                         dependencies {
                           implementation project()
@@ -292,7 +291,6 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
             testing {
                 suites {
                     integTest(JvmTestSuite) {
-                        testType = TestSuiteType.INTEGRATION_TEST
                         useJUnit()
                         dependencies {
                             implementation project(':transitive') // necessary to access Divisor when compiling test
@@ -385,7 +383,7 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
             reporting {
                 reports {
                     testCodeCoverageReport(JacocoCoverageReport) {
-                        testType = TestSuiteType.UNIT_TEST
+                        testSuiteName = "test"
                     }
                 }
             }
@@ -421,7 +419,7 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
             reporting {
                 reports {
                     testCodeCoverageReport(JacocoCoverageReport) {
-                        testType = TestSuiteType.UNIT_TEST
+                        testSuiteName = "test"
                     }
                 }
             }
@@ -468,7 +466,7 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
             reporting {
                 reports {
                     testCodeCoverageReport(JacocoCoverageReport) {
-                        testType = TestSuiteType.UNIT_TEST
+                        testSuiteName = "test"
                     }
                 }
             }
@@ -515,7 +513,7 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
             reporting {
                 reports {
                     testCodeCoverageReport(JacocoCoverageReport) {
-                        testType = TestSuiteType.UNIT_TEST
+                        testSuiteName = "test"
                     }
                 }
             }
@@ -665,7 +663,7 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
                             suites {
                                 test {
                                     useJUnit()
-                                    jvmArgs '-XX:UnknownArgument'
+                                    jvmArgs('-XX:UnknownArgument')
                                 }
                             }
                         }
@@ -693,6 +691,26 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
         // despite --continue flag, :application:testCodeCoverageReport will not execute due to catastrophic failures
         file("application/build/reports/jacoco/testCodeCoverageReport/html/index.html").assertDoesNotExist()
         file("application/build/reports/jacoco/testCodeCoverageReport/testCodeCoverageReport.xml").assertDoesNotExist()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/29916")
+    def "can create jacoco report while report tasks are realized early"() {
+        buildFile << """
+            apply plugin: 'org.gradle.jacoco-report-aggregation'
+
+            tasks.withType(JacocoReport) {
+                // realizes all reports eagerly.
+            }
+
+            reporting {
+                reports {
+                    create("testCodeCoverageReport", JacocoCoverageReport)
+                }
+            }
+        """
+
+        expect:
+        succeeds("help")
     }
 
 }

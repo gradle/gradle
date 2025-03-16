@@ -31,8 +31,8 @@ import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.model.AbstractRealisedModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.AdditionalVariant;
 import org.gradle.internal.component.external.model.ComponentVariant;
-import org.gradle.internal.component.external.model.ConfigurationBoundExternalDependencyMetadata;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
+import org.gradle.internal.component.external.model.ExternalModuleVariantGraphResolveMetadata;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.external.model.LazyToRealisedModuleComponentResolveMetadataHelper;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
@@ -46,9 +46,8 @@ import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.ModuleConfigurationMetadata;
 import org.gradle.internal.component.model.ModuleSources;
-import org.gradle.internal.component.model.VariantGraphResolveMetadata;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
@@ -169,7 +168,7 @@ public class RealisedIvyModuleResolveMetadata extends AbstractRealisedModuleComp
     private final DefaultIvyModuleResolveMetadata metadata;
     private final String branch;
 
-    private Optional<List<? extends VariantGraphResolveMetadata>> derivedVariants;
+    private Optional<List<? extends ExternalModuleVariantGraphResolveMetadata>> derivedVariants;
 
     private RealisedIvyModuleResolveMetadata(RealisedIvyModuleResolveMetadata metadata, List<IvyDependencyDescriptor> dependencies, Map<String, ModuleConfigurationMetadata> transformedConfigurations) {
         super(metadata, metadata.getVariants(), transformedConfigurations);
@@ -236,7 +235,7 @@ public class RealisedIvyModuleResolveMetadata extends AbstractRealisedModuleComp
     }
 
     @Override
-    protected Optional<List<? extends VariantGraphResolveMetadata>> maybeDeriveVariants() {
+    protected Optional<List<? extends ExternalModuleVariantGraphResolveMetadata>> maybeDeriveVariants() {
         if (derivedVariants == null && getConfigurationNames().size() != configurationDefinitions.size()) {
             // if there are more configurations than definitions, configurations have been added by rules and thus they are variants
             derivedVariants = Optional.of(allConfigurationsThatAreVariants());
@@ -330,8 +329,10 @@ public class RealisedIvyModuleResolveMetadata extends AbstractRealisedModuleComp
             List<? extends DependencyMetadata> dependencies = configuration.getDependencies();
             ImmutableList.Builder<ModuleDependencyMetadata> transformedConfigurationDependencies = ImmutableList.builder();
             for (DependencyMetadata dependency : dependencies) {
-                if (dependency instanceof ConfigurationBoundExternalDependencyMetadata) {
-                    transformedConfigurationDependencies.add(((ConfigurationBoundExternalDependencyMetadata) dependency).withDescriptor(transformed.get(((ConfigurationBoundExternalDependencyMetadata) dependency).getDependencyDescriptor())));
+                if (dependency instanceof IvyDependencyMetadata) {
+                    IvyDependencyMetadata ivyDependency = (IvyDependencyMetadata) dependency;
+                    IvyDependencyDescriptor newDescriptor = transformed.get(ivyDependency.getDependencyDescriptor());
+                    transformedConfigurationDependencies.add(ivyDependency.withDescriptor(newDescriptor));
                 } else {
                     transformedConfigurationDependencies.add((ModuleDependencyMetadata) dependency);
                 }

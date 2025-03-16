@@ -18,8 +18,8 @@ package org.gradle.api.provider;
 
 import org.gradle.api.Action;
 import org.gradle.api.file.RegularFile;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 
 /**
@@ -45,7 +45,7 @@ import javax.inject.Inject;
  * considered as an input to the work graph cache.
  * </p>
  * <p>
- * It is possible to have some Gradle services to be <a href="https://docs.gradle.org/current/userguide/custom_gradle_types.html#service_injection">injected</a>
+ * It is possible to have some Gradle services to be <a href="https://docs.gradle.org/current/userguide/service_injection.html#service_injection">injected</a>
  * into the implementation, similar to tasks and plugins.
  * It can be done by adding a parameter to the constructor and annotating the
  * constructor with the {@code @Inject} annotation:
@@ -58,7 +58,11 @@ import javax.inject.Inject;
  *         this.execOperations = execOperations;
  *     }
  *
- *     // ...
+ *     {@literal @}Override
+ *     {@literal @}Nullable
+ *     public String obtain() {
+ *         // your custom implementation
+ *     }
  * }
  * </pre>
  * Currently, only a small subset of services is supported:

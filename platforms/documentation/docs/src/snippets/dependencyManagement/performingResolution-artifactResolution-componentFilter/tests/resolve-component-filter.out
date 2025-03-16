@@ -1,0 +1,7 @@
+> Task :resolveProjects
+other.jar
+
+> Task :resolveModules
+junit-platform-commons-1.11.0.jar
+junit-jupiter-api-5.11.0.jar
+opentest4j-1.3.0.jar

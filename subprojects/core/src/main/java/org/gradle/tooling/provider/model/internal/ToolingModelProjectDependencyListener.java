@@ -16,13 +16,13 @@
 
 package org.gradle.tooling.provider.model.internal;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.service.scopes.EventScope;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
+import org.jspecify.annotations.NullMarked;
 
-@NonNullApi
-@EventScope(Scopes.Build.class)
+@NullMarked
+@EventScope(Scope.Build.class)
 public interface ToolingModelProjectDependencyListener {
 
     /**

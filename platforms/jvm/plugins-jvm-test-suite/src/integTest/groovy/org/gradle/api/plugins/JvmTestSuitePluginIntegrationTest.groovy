@@ -47,16 +47,14 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec implemen
 --------------------------------------------------
 Variant testResultsElementsForTest (i)
 --------------------------------------------------
-Directory containing binary results of running tests for the test Test Suite's test target.
+Binary results obtained from running all targets in the 'test' Test Suite.
 
 Capabilities
     - :Test:unspecified (default capability)
 Attributes
-    - org.gradle.category              = verification
-    - org.gradle.testsuite.name        = test
-    - org.gradle.testsuite.target.name = test
-    - org.gradle.testsuite.type        = unit-test
-    - org.gradle.verificationtype      = test-results
+    - org.gradle.category         = verification
+    - org.gradle.testsuite.name   = test
+    - org.gradle.verificationtype = test-results
 Artifacts
     - $resultsPath (artifactType = directory)""".stripIndent())
 
@@ -75,8 +73,6 @@ Artifacts
             testing {
                 suites {
                     integrationTest(JvmTestSuite) {
-                        testType = TestSuiteType.INTEGRATION_TEST
-
                         dependencies {
                             implementation project()
                         }
@@ -93,16 +89,14 @@ Artifacts
 --------------------------------------------------
 Variant testResultsElementsForIntegrationTest (i)
 --------------------------------------------------
-Directory containing binary results of running tests for the integrationTest Test Suite's integrationTest target.
+Binary results obtained from running all targets in the 'integrationTest' Test Suite.
 
 Capabilities
     - :Test:unspecified (default capability)
 Attributes
-    - org.gradle.category              = verification
-    - org.gradle.testsuite.name        = integrationTest
-    - org.gradle.testsuite.target.name = integrationTest
-    - org.gradle.testsuite.type        = integration-test
-    - org.gradle.verificationtype      = test-results
+    - org.gradle.category         = verification
+    - org.gradle.testsuite.name   = integrationTest
+    - org.gradle.verificationtype = test-results
 Artifacts
     - $resultsPath (artifactType = directory)""".stripIndent())
 
@@ -110,77 +104,7 @@ Artifacts
         hasIncubatingLegend()
     }
 
-    def "Only one suite with a given test type allowed per project"() {
-        file("src/primaryIntTest/java/com/example/FooTest.java") << "package com.example; class FooTest {}"
-        settingsFile << """rootProject.name = 'Test'"""
-        buildFile << """plugins {
-                id 'java'
-            }
-
-            testing {
-                suites {
-                    primaryIntTest(JvmTestSuite) {
-                        testType = TestSuiteType.INTEGRATION_TEST
-                    }
-
-                    secondaryIntTest(JvmTestSuite) {
-                        testType = TestSuiteType.INTEGRATION_TEST
-                    }
-                }
-            }
-            """.stripIndent()
-
-        expect:
-        fails('primaryIntTest', 'secondaryIntTest')
-        result.assertHasErrorOutput("Could not configure suite: 'secondaryIntTest'. Another test suite: 'primaryIntTest' uses the type: 'integration-test' and has already been configured in project: 'Test'.")
-    }
-
-    def "Only one suite with a given test type allowed per project (including the built-in test suite)"() {
-        file("src/test/java/com/example/FooTest.java") << "package com.example; class FooTest {}"
-
-        settingsFile << """rootProject.name = 'Test'"""
-        buildFile << """plugins {
-                id 'java'
-            }
-
-            testing {
-                suites {
-                    secondaryTest(JvmTestSuite) {
-                        testType = TestSuiteType.UNIT_TEST
-                    }
-                }
-            }
-            """.stripIndent()
-
-        expect:
-        fails('test', 'secondaryTest')
-        result.assertHasErrorOutput("Could not configure suite: 'test'. Another test suite: 'secondaryTest' uses the type: 'unit-test' and has already been configured in project: 'Test'.")
-    }
-
-    def "Only one suite with a given test type allowed per project (using the default type of one suite and explicitly setting the other)"() {
-        file("src/integrationTest/java/com/example/FooTest.java") << "package com.example; class FooTest {}"
-        settingsFile << """rootProject.name = 'Test'"""
-        buildFile << """plugins {
-                id 'java'
-            }
-
-            testing {
-                suites {
-                    integrationTest(JvmTestSuite)
-
-                    secondaryIntegrationTest(JvmTestSuite) {
-                        testType = TestSuiteType.INTEGRATION_TEST
-                    }
-                }
-            }
-            """.stripIndent()
-
-        expect:
-        fails('integrationTest', 'secondaryIntegrationTest')
-        result.assertHasErrorOutput("Could not configure suite: 'secondaryIntegrationTest'. Another test suite: 'integrationTest' uses the type: 'integration-test' and has already been configured in project: 'Test'.")
-    }
-
-    def "Test suites in different projects can use same test type"() {
+    def "Test suites in different projects can have the same name"() {
         def subADir = createDir("subA")
         subADir.file("build.gradle") << """
             plugins {
@@ -191,9 +115,7 @@ Artifacts
 
             testing {
                 suites {
-                    integrationTest(JvmTestSuite) {
-                        testType = TestSuiteType.INTEGRATION_TEST
-                    }
+                    integrationTest(JvmTestSuite)
                 }
             }""".stripIndent()
 
@@ -207,9 +129,7 @@ Artifacts
 
             testing {
                 suites {
-                    integrationTest(JvmTestSuite) {
-                        testType = TestSuiteType.INTEGRATION_TEST
-                    }
+                    integrationTest(JvmTestSuite)
                 }
             }""".stripIndent()
 
@@ -230,9 +150,5 @@ Artifacts
 
         expect:
         succeeds('allIntegrationTests')
-    }
-
-    private String systemFilePath(String path) {
-        return path.replace('/', File.separator)
     }
 }

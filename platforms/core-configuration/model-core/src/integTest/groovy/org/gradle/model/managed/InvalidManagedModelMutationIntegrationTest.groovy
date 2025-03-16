@@ -24,7 +24,7 @@ class InvalidManagedModelMutationIntegrationTest extends AbstractIntegrationSpec
 
     def "mutating managed inputs of a rule is not allowed"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Person {
                 String getName()
@@ -59,7 +59,7 @@ class InvalidManagedModelMutationIntegrationTest extends AbstractIntegrationSpec
 
     def "mutating subject of a validate rule is not allowed"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Person {
                 String getName()
@@ -94,7 +94,7 @@ class InvalidManagedModelMutationIntegrationTest extends AbstractIntegrationSpec
 
     def "mutating composite managed inputs of a rule is not allowed"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Pet {
                 String getName()
@@ -130,7 +130,7 @@ class InvalidManagedModelMutationIntegrationTest extends AbstractIntegrationSpec
 
     def "mutating managed inputs of a dsl rule is not allowed"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Person {
                 String getName()
@@ -162,7 +162,7 @@ class InvalidManagedModelMutationIntegrationTest extends AbstractIntegrationSpec
 
     def "mutating managed objects outside of a creation rule is not allowed"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Person {
                 String getName()
@@ -198,7 +198,7 @@ class InvalidManagedModelMutationIntegrationTest extends AbstractIntegrationSpec
 
     def "mutating composite managed objects outside of a creation rule is not allowed"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Pet {
                 String getName()
@@ -239,7 +239,7 @@ class InvalidManagedModelMutationIntegrationTest extends AbstractIntegrationSpec
 
     def "mutating managed objects referenced by another managed object outside of a creation rule is not allowed"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Pet {
                 String getName()

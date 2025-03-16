@@ -46,7 +46,7 @@ class WindowsResourcesIntegrationTest extends AbstractNativeLanguageIntegrationT
 
                 toolChains {
                     ${toolChain.id} {
-                        windowsSdkDir "${TextUtil.normaliseFileSeparators(sdk.getBaseDir().absolutePath)}"
+                        windowsSdkDir = "${TextUtil.normaliseFileSeparators(sdk.getBaseDir().absolutePath)}"
                     }
                 }
             }

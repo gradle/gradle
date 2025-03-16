@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Gradle, Inc.
+// Copyright (C) 2024 Gradle, Inc.
 //
 // Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
@@ -31,27 +31,28 @@ A multi-project build consists of one root project and one or more subprojects.
 [[sec:project_structure]]
 == Multi-Project structure
 
-The following represents the structure of a multi-project build that contains two subprojects:
+The following represents the structure of a multi-project build that contains three subprojects:
 
 image::multi-project-structure.png[]
 
 The directory structure should look as follows:
 
+[source,text]
 ----
 ├── .gradle
 │   └── ⋮
 ├── gradle
-│   ├── libs.version.toml
+│   ├── libs.versions.toml
 │   └── wrapper
 ├── gradlew
 ├── gradlew.bat
-├── settings.gradle.kts  // <1>
+├── settings.gradle.kts // <1>
 ├── sub-project-1
-│   └── build.gradle.kts // <2>
+│   └── build.gradle.kts    // <2>
 ├── sub-project-2
-│   └── build.gradle.kts // <2>
+│   └── build.gradle.kts    // <2>
 └── sub-project-3
-    └── build.gradle.kts // <2>
+    └── build.gradle.kts    // <2>
 ----
 <1> The `settings.gradle.kts` file should include all subprojects.
 <2> Each subproject should have its own `build.gradle.kts` file.
@@ -98,11 +99,24 @@ This means that in order for Gradle to build `web-app` or `mobile-app`, it must 
 
 In this example, the root settings file will look as follows:
 
+====
+[.multi-language-sample]
+=====
 .settings.gradle.kts
 [source,kotlin]
 ----
 include("mobile-app", "web-app", "api", "lib", "documentation")
 ----
+=====
+[.multi-language-sample]
+=====
+.settings.gradle
+[source,groovy]
+----
+include("mobile-app", "web-app", "api", "lib", "documentation")
+----
+=====
+====
 
 NOTE: The order in which the subprojects (modules) are included does not matter.
 
@@ -124,7 +138,7 @@ The logic in `buildSrc` has been turned into a project that contains plugins and
 
 The plugin is moved to its own build called `build-logic` with a build script and settings file:
 
-[source]
+[source,text]
 ----
 .
 ├── gradle
@@ -152,7 +166,7 @@ NOTE: The fact that `build-logic` is located in a subdirectory of the root proje
 The root settings file includes the entire `build-logic` *build*:
 
 .settings.gradle.kts
-[source]
+[source,kotlin]
 ----
 pluginManagement {
     includeBuild("build-logic")
@@ -171,14 +185,14 @@ The root project, `:`, is the only project in a path not specified by its name.
 
 The rest of a project path is a colon-separated sequence of project names, where the next project is a subproject of the previous project:
 
-[source]
+[source,bash]
 ----
 :sub-project-1
 ----
 
 You can see the project paths when running `gradle projects`:
 
-[source]
+[source,text]
 ----
 ------------------------------------------------------------
 Root project 'project'
@@ -198,10 +212,10 @@ Most notably for <<composite_builds#defining_composite_builds,composite builds>>
 You can use the `gradle projects` command to identify the project structure.
 
 As an example, let's use a multi-project build with the following structure:
+
+[source,text]
 ----
-> gradle -q projects
-----
-----
+$ gradle -q projects
 include::{snippetsPath}/java/multiproject/tests/listProjects.out[]
 ----
 
@@ -250,31 +264,21 @@ You want to build any necessary supporting JARs but only perform code quality an
 
 The `build` task does this:
 
-====
-[.multi-language-sample]
-=====
+[source,text]
 ----
 $ gradle :api:build
-
 include::{snippetsPath}/multiproject/dependencies-java/tests/multitestingBuild.out[]
 ----
-=====
-====
 
 If you have just gotten the latest version of the source from your version control system, which included changes in other projects that `:api` depends on, you might want to build all the projects you depend on AND test them too.
 
 The `buildNeeded` task builds AND tests all the projects from the project dependencies of the `testRuntime` configuration:
 
-====
-[.multi-language-sample]
-=====
+[source,text]
 ----
 $ gradle :api:buildNeeded
-
 include::{snippetsPath}/multiproject/dependencies-java/tests/multitestingBuildNeeded.out[]
 ----
-=====
-====
 
 You may want to refactor some part of the `:api` project used in other projects.
 If you make these changes, testing only the `:api` project is insufficient.
@@ -282,16 +286,11 @@ You must test all projects that depend on the `:api` project.
 
 The `buildDependents` task tests ALL the projects that have a project dependency (in the testRuntime configuration) on the specified project:
 
-====
-[.multi-language-sample]
-=====
+[source, text]
 ----
 $ gradle :api:buildDependents
-
 include::{snippetsPath}/multiproject/dependencies-java/tests/multitestingBuildDependents.out[]
 ----
-=====
-====
 
 Finally, you can build and test everything in all projects.
 Any task you run in the root project folder will cause that same-named task to be run on all the children.

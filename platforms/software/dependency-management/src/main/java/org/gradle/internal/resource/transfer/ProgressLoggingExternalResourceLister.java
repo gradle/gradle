@@ -19,22 +19,22 @@ package org.gradle.internal.resource.transfer;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.resource.ExternalResourceListBuildOperationType;
 import org.gradle.internal.resource.ExternalResourceName;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.net.URI;
 import java.util.List;
 
 public class ProgressLoggingExternalResourceLister extends AbstractProgressLoggingHandler implements ExternalResourceLister {
     private final ExternalResourceLister delegate;
-    private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildOperationRunner buildOperationExecutor;
 
-    public ProgressLoggingExternalResourceLister(ExternalResourceLister delegate, BuildOperationExecutor buildOperationExecutor) {
+    public ProgressLoggingExternalResourceLister(ExternalResourceLister delegate, BuildOperationRunner buildOperationRunner) {
         this.delegate = delegate;
-        this.buildOperationExecutor = buildOperationExecutor;
+        this.buildOperationExecutor = buildOperationRunner;
     }
 
     @Nullable

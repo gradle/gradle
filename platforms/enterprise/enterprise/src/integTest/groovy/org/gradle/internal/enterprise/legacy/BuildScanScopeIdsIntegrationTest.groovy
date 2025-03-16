@@ -28,7 +28,7 @@ class BuildScanScopeIdsIntegrationTest extends AbstractIntegrationSpec {
 
     def "exposes scans view of scope IDs"() {
         when:
-        buildScript """
+        buildFile """
             def ids = project.gradle.services.get($BuildScanScopeIds.name)
             println "ids: [buildInvocation: \$ids.buildInvocationId, workspace: \$ids.workspaceId, user: \$ids.userId]"
         """
@@ -41,6 +41,4 @@ class BuildScanScopeIdsIntegrationTest extends AbstractIntegrationSpec {
 
         output.contains "ids: [buildInvocation: $buildInvocationId, workspace: $workspaceId, user: $userId]"
     }
-
-
 }

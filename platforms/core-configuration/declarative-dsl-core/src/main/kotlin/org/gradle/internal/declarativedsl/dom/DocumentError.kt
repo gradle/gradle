@@ -40,8 +40,9 @@ sealed interface UnsupportedSyntaxCause {
     data object ElementArgumentFormat : UnsupportedSyntaxCause
     data object ElementMultipleLambdas : UnsupportedSyntaxCause
     data object ValueFactoryCallWithComplexReceiver : UnsupportedSyntaxCause
+    data object ValueFactoryCallWithNamedReference : UnsupportedSyntaxCause
     data object ValueFactoryArgumentFormat : UnsupportedSyntaxCause
     data object UnsupportedThisValue : UnsupportedSyntaxCause
     data object UnsupportedNullValue : UnsupportedSyntaxCause
-    data object UnsupportedPropertyAccess : UnsupportedSyntaxCause
+    data object NamedReferenceWithExplicitReceiver : UnsupportedSyntaxCause
 }

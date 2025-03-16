@@ -16,12 +16,9 @@
 
 package org.gradle.integtests.tooling.r33
 
-
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
 
-@ToolingApiVersion('>=3.3')
 class BuildActionCompatibilityMappingCrossVersionSpec extends ToolingApiSpecification implements WithOldConfigurationsSupport {
 
     def "Applies idea module name compatibility mapping"() {

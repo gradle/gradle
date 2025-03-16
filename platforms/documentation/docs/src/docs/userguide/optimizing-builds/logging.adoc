@@ -1,0 +1,208 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[logging]]
+= Logging
+
+The log serves as the primary 'UI' of a build tool.
+If it becomes overly verbose, important warnings and issues can be obscured.
+However, it is essential to have relevant information to determine if something has gone wrong.
+
+Gradle defines six log levels, detailed in <<#logLevels,Log levels>>.
+In addition to the standard log levels, Gradle introduces two specific levels: _QUIET_ and _LIFECYCLE_.
+_LIFECYCLE_ is the default level used to report build progress.
+
+[[logLevels]]
+== Understanding Log levels
+
+There are 6 log levels in Gradle:
+
+[horizontal]
+ERROR:: Error messages
+QUIET:: Important information messages
+WARNING:: Warning messages
+LIFECYCLE:: Progress information messages
+INFO:: Information messages
+DEBUG:: Debug messages
+
+NOTE: The console's rich components (build status and work-in-progress area) are displayed regardless of the log level used.
+
+[[sec:choosing_a_log_level]]
+== Choosing a log level
+
+You can choose different log levels from the command line switches shown in <<#logLevelCommandLineOptions, Log level command-line options>>.
+
+You can also configure the log level using <<build_environment.adoc#sec:gradle_configuration_properties,`gradle.properties`>>.
+
+In <<#stacktraces,Stacktrace command-line options>> you can find the command line switches which affect stacktrace logging.
+
+[[logLevelCommandLineOptions]]
+Log level command-line options:
+
+[%header%autowidth,compact]
+|===
+| Option | Outputs Log Levels
+| `-q` or `--quiet` | QUIET and higher
+| `-w` or `--warn` | WARN and higher
+| no logging options | LIFECYCLE and higher
+| `-i` or `--info` | INFO and higher
+| `-d` or `--debug` | DEBUG and higher (that is, all log messages)
+|===
+
+CAUTION: The `DEBUG` log level can <<#sec:debug_security, expose sensitive security information to the console>>.
+
+[[stacktraces]]
+=== Stacktrace command-line options
+
+`-s` or `--stacktrace`::
+Truncated stacktraces are printed. We recommend this over full stacktraces. Groovy full stacktraces are extremely verbose due to the underlying dynamic invocation mechanisms. Yet they usually do not contain relevant information about what has gone wrong in _your_ code. This option renders stacktraces for deprecation warnings.
+
+`-S` or `--full-stacktrace`::
+The full stacktraces are printed out. This option renders stacktraces for deprecation warnings.
+
+&lt;No stacktrace options&gt;::
+No stacktraces are printed to the console in case of a build error (e.g., a compile error). Only in case of internal exceptions will stacktraces be printed. If the `DEBUG` log level is chosen, truncated stacktraces are always printed.
+
+[[sec:debug_security]]
+== Logging Sensitive Information
+
+Running Gradle with the `DEBUG` log level can potentially expose sensitive information to the console and build log.
+
+This information might include:
+
+- Environment variables
+- Private repository credentials
+- Build cache and Develocity credentials
+- Plugin Portal publishing credentials
+
+It's important to avoid using the `DEBUG` log level when running on public Continuous Integration (CI) services.
+Build logs on these services are accessible to the public and can expose sensitive information.
+Even on private CI services, logging sensitive credentials may pose a risk depending on your organization's threat model.
+It's advisable to discuss this with your organization's security team.
+
+Some CI providers attempt to redact sensitive credentials from logs, but this process is not foolproof and typically only redacts exact matches of pre-configured secrets.
+
+If you suspect that a Gradle Plugin may inadvertently expose sensitive information, please contact mailto:security@gradle.com[our security team] for assistance with disclosure.
+
+[[sec:sending_your_own_log_messages]]
+== Writing your own log messages
+
+A simple option for logging in your build file is to write messages to standard output.
+Gradle redirects anything written to standard output to its logging system at the `QUIET` log level:
+
+====
+include::sample[dir="snippets/tutorial/logging/kotlin",files="build.gradle.kts[tags=use-println]"]
+include::sample[dir="snippets/tutorial/logging/groovy",files="build.gradle[tags=use-println]"]
+====
+
+Gradle also provides a `logger` property to a build script, which is an instance of link:{javadocPath}/org/gradle/api/logging/Logger.html[Logger].
+This interface extends the SLF4J `Logger` interface and adds a few Gradle-specific methods.
+Below is an example of how this is used in the build script:
+
+====
+include::sample[dir="snippets/tutorial/logging/kotlin",files="build.gradle.kts[tags=use-logger]"]
+include::sample[dir="snippets/tutorial/logging/groovy",files="build.gradle[tags=use-logger]"]
+====
+
+Use the link https://www.slf4j.org/manual.html#typical_usage[typical SLF4J pattern] to replace a placeholder with an actual value in the log message.
+
+====
+include::sample[dir="snippets/tutorial/logging/kotlin",files="build.gradle.kts[tags=use-logger-placeholder]"]
+include::sample[dir="snippets/tutorial/logging/groovy",files="build.gradle[tags=use-logger-placeholder]"]
+====
+
+You can also hook into Gradle's logging system from within other classes used in the build (classes from the `buildSrc` directory, for example) with an SLF4J logger.
+You can use this logger the same way as you use the provided logger in the build script.
+
+====
+include::sample[dir="snippets/tutorial/logging/kotlin",files="build.gradle.kts[tags=use-slf4j]"]
+include::sample[dir="snippets/tutorial/logging/groovy",files="build.gradle[tags=use-slf4j]"]
+====
+
+[[sec:external_tools]]
+== Logging from external tools and libraries
+
+Internally, Gradle uses Ant and Ivy.
+Both have their own logging system.
+Gradle redirects their logging output into the Gradle logging system.
+
+There is a 1:1 mapping from the Ant/Ivy log levels to the Gradle log levels, except the Ant/Ivy `TRACE` log level, which is mapped to the Gradle `DEBUG` log level.
+This means the default Gradle log level will not show any Ant/Ivy output unless it is an error or a warning.
+
+Many tools out there still use the standard output for logging.
+By default, Gradle redirects standard output to the `QUIET` log level and standard error to the `ERROR` level.
+This behavior is configurable.
+
+The `project` object provides a link:{javadocPath}/org/gradle/api/logging/LoggingManager.html[LoggingManager], which allows you to change the log levels that standard out or error are redirected to when your build script is evaluated.
+
+====
+include::sample[dir="snippets/tutorial/logging/kotlin",files="build.gradle.kts[tags=capture-stdout]"]
+include::sample[dir="snippets/tutorial/logging/groovy",files="build.gradle[tags=capture-stdout]"]
+====
+
+To change the log level for standard out or error during task execution, use a link:{javadocPath}/org/gradle/api/logging/LoggingManager.html[LoggingManager].
+
+====
+include::sample[dir="snippets/tutorial/logging/kotlin",files="build.gradle.kts[tags=task-capture-stdout]"]
+include::sample[dir="snippets/tutorial/logging/groovy",files="build.gradle[tags=task-capture-stdout]"]
+====
+
+Gradle also integrates with the https://docs.oracle.com/javase/8/docs/api/java/util/logging/package-summary.html[Java Util Logging], Jakarta Commons Logging and https://logging.apache.org/log4j/2.x/[Log4j] logging toolkits.
+Any log messages your build classes write using these logging toolkits will be redirected to Gradle's logging system.
+
+[[sec:changing_what_gradle_logs]]
+== Changing what Gradle logs
+
+[WARNING]
+====
+This feature is deprecated and will be removed in the next major version without a replacement.
+
+The <<configuration_cache.adoc#config_cache,configuration cache>> limits the ability to customize Gradle's logging UI.
+The custom logger can only implement <<configuration_cache.adoc#config_cache:requirements:build_listeners,supported listener interfaces>>.
+These interfaces do not receive events when the configuration cache entry is reused because the configuration phase is skipped.
+====
+
+You can replace much of Gradle's logging UI with your own.
+You could do this if you want to customize the UI somehow - to log more or less information or to change the formatting.
+Simply replace the logging using the link:{groovyDslPath}/org.gradle.api.invocation.Gradle.html#org.gradle.api.invocation.Gradle:useLogger(java.lang.Object)[Gradle.useLogger(java.lang.Object)] method.
+This is accessible from a build script, an init script, or via the embedding API.
+Note that this completely disables Gradle's default output.
+Below is an example init script that changes how task execution and build completion are logged:
+
+====
+include::sample[dir="snippets/initScripts/customLogger/kotlin",files="customLogger.init.gradle.kts[]"]
+include::sample[dir="snippets/initScripts/customLogger/groovy",files="customLogger.init.gradle[]"]
+====
+
+[.multi-language-text.lang-kotlin]
+----
+$ gradle -I customLogger.init.gradle.kts build
+include::{snippetsPath}/initScripts/customLogger/tests/customLogger.out[]
+----
+[.multi-language-text.lang-groovy]
+----
+$ gradle -I customLogger.init.gradle build
+include::{snippetsPath}/initScripts/customLogger/tests/customLogger.out[]
+----
+
+Your logger can implement any of the listener interfaces listed below.
+When you register a logger, only the logging for the interfaces it implements is replaced.
+Logging for the other interfaces is left untouched.
+You can find out more about the listener interfaces in <<build_lifecycle.adoc#sec:build_phases,Build lifecycle events>>.
+
+* link:{javadocPath}/org/gradle/BuildListener.html[BuildListener]footnote:config_cache_incompat[Not compatible with the configuration cache.]
+* link:{javadocPath}/org/gradle/api/ProjectEvaluationListener.html[ProjectEvaluationListener]
+* link:{javadocPath}/org/gradle/api/execution/TaskExecutionGraphListener.html[TaskExecutionGraphListener]
+* link:{javadocPath}/org/gradle/api/execution/TaskExecutionListener.html[TaskExecutionListener]footnote:config_cache_incompat[]
+* link:{javadocPath}/org/gradle/api/execution/TaskActionListener.html[TaskActionListener]footnote:config_cache_incompat[]

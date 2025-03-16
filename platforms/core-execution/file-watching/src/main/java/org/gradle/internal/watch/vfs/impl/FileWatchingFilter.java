@@ -17,6 +17,8 @@
 package org.gradle.internal.watch.vfs.impl;
 
 import org.gradle.internal.file.FileHierarchySet;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.vfs.FileSystemAccess;
 
 import java.util.concurrent.atomic.AtomicReference;
@@ -31,6 +33,7 @@ import java.util.concurrent.atomic.AtomicReference;
  *   captured after the changes; to avoid this, after a known modification we assume no further modifications will
  *   happen to the same location, and all file events belong the know modifications instead.
  */
+@ServiceScope(Scope.UserHome.class)
 public class FileWatchingFilter implements FileSystemAccess.WriteListener {
     private final FileHierarchySet immutableLocations;
     private final AtomicReference<FileHierarchySet> locationsWrittenByCurrentBuild = new AtomicReference<>(FileHierarchySet.empty());

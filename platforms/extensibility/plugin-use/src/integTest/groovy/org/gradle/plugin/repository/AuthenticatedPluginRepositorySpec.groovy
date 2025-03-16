@@ -61,10 +61,10 @@ class AuthenticatedPluginRepositorySpec extends AbstractHttpDependencyResolution
           pluginManagement {
             repositories {
               ${repoType} {
-                  url "${repoUrl}"
+                  url = "${repoUrl}"
                   credentials {
-                      password '${PASSWORD}'
-                      username '${USERNAME}'
+                      password = '${PASSWORD}'
+                      username = '${USERNAME}'
                   }
                   ${configuredAuthentication}
               }
@@ -76,7 +76,7 @@ class AuthenticatedPluginRepositorySpec extends AbstractHttpDependencyResolution
     def "can resolve plugin from Ivy repo with #authSchemeName and #serverAuthScheme"() {
         given:
         def pluginResults = publishTestPlugin(IVY)
-        buildScript """
+        buildFile """
           plugins {
               id "org.example.plugin" version "1.0"
           }
@@ -111,7 +111,7 @@ class AuthenticatedPluginRepositorySpec extends AbstractHttpDependencyResolution
     def "can resolve plugin from Maven repo with #authSchemeName and #serverAuthScheme"() {
         given:
         def pluginResults = publishTestPlugin(MAVEN)
-        buildScript """
+        buildFile """
           plugins {
               id "org.example.plugin" version "1.0"
           }

@@ -32,8 +32,8 @@ import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
 import org.gradle.kotlin.dsl.concurrent.IO
 import org.gradle.kotlin.dsl.concurrent.withAsynchronousIO
 import org.gradle.kotlin.dsl.concurrent.writeFile
+import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.KOTLIN_DSL_PACKAGE_PATH
 import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.fileHeader
-import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.kotlinDslPackagePath
 import org.gradle.kotlin.dsl.internal.sharedruntime.support.appendReproducibleNewLine
 import org.gradle.kotlin.dsl.provider.kotlinScriptClassPathProviderOf
 import org.gradle.kotlin.dsl.support.PluginDependenciesSpecScopeInternal
@@ -133,9 +133,9 @@ fun IO.buildVersionCatalogAccessorsFor(
     srcDir: File,
     binDir: File
 ) {
-    makeAccessorOutputDirs(srcDir, binDir, kotlinDslPackagePath)
+    makeAccessorOutputDirs(srcDir, binDir, KOTLIN_DSL_PACKAGE_PATH)
 
-    val baseFileName = "$kotlinDslPackagePath/VersionCatalogAccessors"
+    val baseFileName = "$KOTLIN_DSL_PACKAGE_PATH/VersionCatalogAccessors"
     val sourceFile = srcDir.resolve("$baseFileName.kt")
 
     writeVersionCatalogAccessorsSourceCodeTo(sourceFile, versionCatalogs)
@@ -168,7 +168,7 @@ fun IO.buildVersionCatalogAccessorsFor(
                 versionCatalogAccessor.buildscriptExtension,
                 signature,
                 scriptHandlerScopeInternalInternalName,
-                scriptHandlerScopeInternalVersionCatalogExtensionMethodName,
+                SCRIPT_HANDLER_SCOPE_INTERNAL_VERSION_CATALOG_EXTENSION_METHOD_NAME,
                 scriptHandlerScopeInternalVersionCatalogExtensionMethodDesc,
             )
         }
@@ -177,7 +177,7 @@ fun IO.buildVersionCatalogAccessorsFor(
                 versionCatalogAccessor.pluginsExtension,
                 signature,
                 pluginDependenciesSpecScopeInternalInternalName,
-                pluginDependenciesSpecScopeInternalVersionCatalogForPluginsBlockMethodName,
+                PLUGIN_DEPENDENCIES_SPEC_SCOPE_INTERNAL_VERSION_CATALOG_FOR_PLUGINS_BLOCK_METHOD_NAME,
                 pluginDependenciesSpecScopeInternalVersionCatalogForPluginsBlockMethodDesc,
             )
         }
@@ -233,8 +233,8 @@ fun BufferedWriter.appendSourceCodeForVersionCatalogAccessors(
     }
 
     versionCatalogs.forEach { catalog ->
-        appendCatalogExtension(catalog.buildscriptExtension, ScriptHandlerScopeInternal::class, scriptHandlerScopeInternalVersionCatalogExtensionMethodName)
-        appendCatalogExtension(catalog.pluginsExtension, PluginDependenciesSpecScopeInternal::class, pluginDependenciesSpecScopeInternalVersionCatalogForPluginsBlockMethodName)
+        appendCatalogExtension(catalog.buildscriptExtension, ScriptHandlerScopeInternal::class, SCRIPT_HANDLER_SCOPE_INTERNAL_VERSION_CATALOG_EXTENSION_METHOD_NAME)
+        appendCatalogExtension(catalog.pluginsExtension, PluginDependenciesSpecScopeInternal::class, PLUGIN_DEPENDENCIES_SPEC_SCOPE_INTERNAL_VERSION_CATALOG_FOR_PLUGINS_BLOCK_METHOD_NAME)
     }
 }
 
@@ -267,7 +267,7 @@ val scriptHandlerScopeInternalInternalName = ScriptHandlerScopeInternal::class.i
 
 
 private
-const val scriptHandlerScopeInternalVersionCatalogExtensionMethodName = "versionCatalogExtension"
+const val SCRIPT_HANDLER_SCOPE_INTERNAL_VERSION_CATALOG_EXTENSION_METHOD_NAME = "versionCatalogExtension"
 
 
 private
@@ -283,7 +283,7 @@ val pluginDependenciesSpecScopeTypeSpec = TypeSpec("PluginDependenciesSpecScope"
 
 
 private
-const val pluginDependenciesSpecScopeInternalVersionCatalogForPluginsBlockMethodName = "versionCatalogForPluginsBlock"
+const val PLUGIN_DEPENDENCIES_SPEC_SCOPE_INTERNAL_VERSION_CATALOG_FOR_PLUGINS_BLOCK_METHOD_NAME = "versionCatalogForPluginsBlock"
 
 
 private

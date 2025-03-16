@@ -33,7 +33,7 @@ import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleM
 import org.gradle.api.internal.artifacts.repositories.resolver.IvyResolver
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory
+import org.gradle.api.internal.attributes.AttributesFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.filestore.DefaultArtifactIdentifierFileStore
 import org.gradle.api.internal.model.NamedObjectInstantiator
@@ -59,7 +59,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
     final AuthenticationContainer authenticationContainer = Stub()
     final ivyContextManager = Mock(IvyContextManager)
     final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock()
-    final GradleModuleMetadataParser moduleMetadataParser = new GradleModuleMetadataParser(Mock(ImmutableAttributesFactory), moduleIdentifierFactory, Mock(NamedObjectInstantiator))
+    final GradleModuleMetadataParser moduleMetadataParser = new GradleModuleMetadataParser(Mock(AttributesFactory), moduleIdentifierFactory, Mock(NamedObjectInstantiator))
     final IvyMutableModuleMetadataFactory metadataFactory = DependencyManagementTestUtil.ivyMetadataFactory()
     final DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory = new DefaultUrlArtifactRepository.Factory(fileResolver)
     final ProviderFactory providerFactory = Mock()

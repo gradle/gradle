@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -32,17 +31,17 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflict
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.SelectorStateResolver;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeMergingException;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.component.model.ComponentGraphSpecificResolveState;
 import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ForcingDependencyMetadata;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -57,18 +56,18 @@ import java.util.Set;
 /**
  * Resolution state for a given module.
  */
-class ModuleResolveState implements CandidateModule {
+public class ModuleResolveState implements CandidateModule {
     private static final Logger LOGGER = LoggerFactory.getLogger(ModuleResolveState.class);
     private static final int MAX_SELECTION_CHANGE = 1000;
 
     private final ComponentMetaDataResolver metaDataResolver;
     private final ComponentIdGenerator idGenerator;
     private final ModuleIdentifier id;
-    private final List<EdgeState> unattachedDependencies = new LinkedList<>();
+    private final List<EdgeState> unattachedEdges = new LinkedList<>();
     private final Map<ModuleVersionIdentifier, ComponentState> versions = new LinkedHashMap<>();
     private final ModuleSelectors<SelectorState> selectors;
     private final ConflictResolution conflictResolution;
-    private final ImmutableAttributesFactory attributesFactory;
+    private final AttributesFactory attributesFactory;
     private final Comparator<Version> versionComparator;
     private final VersionParser versionParser;
     final ResolveOptimizations resolveOptimizations;
@@ -90,7 +89,7 @@ class ModuleResolveState implements CandidateModule {
         ComponentIdGenerator idGenerator,
         ModuleIdentifier id,
         ComponentMetaDataResolver metaDataResolver,
-        ImmutableAttributesFactory attributesFactory,
+        AttributesFactory attributesFactory,
         Comparator<Version> versionComparator,
         VersionParser versionParser,
         SelectorStateResolver<ComponentState> selectorStateResolver,
@@ -146,7 +145,7 @@ class ModuleResolveState implements CandidateModule {
         if (areAllCandidatesForSelection(values)) {
             return values;
         }
-        List<ComponentState> versions = Lists.newArrayListWithCapacity(values.size());
+        List<ComponentState> versions = new ArrayList<>(values.size());
         for (ComponentState componentState : values) {
             if (componentState.isCandidateForConflictResolution()) {
                 versions.add(componentState);
@@ -155,6 +154,10 @@ class ModuleResolveState implements CandidateModule {
         return versions;
     }
 
+    /**
+     * Get all versions of this module that have been seen during graph resolution,
+     * even those which are no longer candidates for selection.
+     */
     public Collection<ComponentState> getAllVersions() {
         return this.versions.values();
     }
@@ -199,7 +202,7 @@ class ModuleResolveState implements CandidateModule {
     }
 
     /**
-     * Changes the selected target component for this module.
+     * Changes the selected target component for this module due to version conflict resolution.
      */
     private void changeSelection(ComponentState newSelection) {
         assert this.selected != null;
@@ -239,7 +242,8 @@ class ModuleResolveState implements CandidateModule {
     }
 
     /**
-     * Overrides the component selection for this module, when this module has been replaced by another.
+     * Overrides the component selection for this module, when this module has been replaced
+     * by another due to capability conflict resolution.
      */
     @Override
     public void replaceWith(ComponentState selected) {
@@ -255,6 +259,10 @@ class ModuleResolveState implements CandidateModule {
         }
         this.selected = selected;
         this.replaced = computeReplaced(selected);
+
+        if (replaced) {
+            selected.getModule().getPendingDependencies().retarget(pendingDependencies);
+        }
 
         doRestart(selected);
     }
@@ -272,41 +280,40 @@ class ModuleResolveState implements CandidateModule {
         for (SelectorState selector : selectors) {
             selector.overrideSelection(selected);
         }
-        if (!unattachedDependencies.isEmpty()) {
-            restartUnattachedDependencies();
+        if (!unattachedEdges.isEmpty()) {
+            restartUnattachedEdges();
         }
     }
 
-    private void restartUnattachedDependencies() {
-        if (unattachedDependencies.size() == 1) {
-            EdgeState singleDependency = unattachedDependencies.get(0);
-            singleDependency.restart();
+    private void restartUnattachedEdges() {
+        if (unattachedEdges.size() == 1) {
+            EdgeState singleEdge = unattachedEdges.get(0);
+            singleEdge.retarget();
         } else {
-            for (EdgeState dependency : new ArrayList<>(unattachedDependencies)) {
-                dependency.restart();
+            for (EdgeState edge : new ArrayList<>(unattachedEdges)) {
+                edge.retarget();
             }
         }
     }
 
-    public void addUnattachedDependency(EdgeState edge) {
-        unattachedDependencies.add(edge);
-        edge.markUnattached();
+    public void addUnattachedEdge(EdgeState edge) {
+        if (!edge.isUnattached()) {
+            unattachedEdges.add(edge);
+            edge.markUnattached();
+        }
     }
 
-    public void removeUnattachedDependency(EdgeState edge) {
-        if (unattachedDependencies.remove(edge)) {
+    public void removeUnattachedEdge(EdgeState edge) {
+        if (unattachedEdges.remove(edge)) {
             edge.markAttached();
         }
     }
 
     public ComponentState getVersion(ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier) {
         assert id.getModule().equals(this.id);
-        ComponentState moduleRevision = versions.get(id);
-        if (moduleRevision == null) {
-            moduleRevision = new ComponentState(idGenerator.nextGraphNodeId(), this, id, componentIdentifier, metaDataResolver);
-            versions.put(id, moduleRevision);
-        }
-        return moduleRevision;
+        return versions.computeIfAbsent(id, k ->
+            new ComponentState(idGenerator.nextGraphNodeId(), this, id, componentIdentifier, metaDataResolver)
+        );
     }
 
     void addSelector(SelectorState selector, boolean deferSelection) {
@@ -318,7 +325,7 @@ class ModuleResolveState implements CandidateModule {
         }
     }
 
-    void removeSelector(SelectorState selector, ResolutionConflictTracker conflictTracker) {
+    void removeSelector(SelectorState selector) {
         selectors.remove(selector);
         boolean alreadyReused = selector.markForReuse();
         mergedConstraintAttributes = ImmutableAttributes.EMPTY;
@@ -326,7 +333,7 @@ class ModuleResolveState implements CandidateModule {
             mergedConstraintAttributes = appendAttributes(mergedConstraintAttributes, selectorState);
         }
         if (!alreadyReused && selectors.size() != 0 && selected != null) {
-            maybeUpdateSelection(conflictTracker);
+            maybeUpdateSelection();
         }
     }
 
@@ -334,8 +341,8 @@ class ModuleResolveState implements CandidateModule {
         return selectors;
     }
 
-    List<EdgeState> getUnattachedDependencies() {
-        return unattachedDependencies;
+    List<EdgeState> getUnattachedEdges() {
+        return unattachedEdges;
     }
 
     ImmutableAttributes mergedConstraintsAttributes(AttributeContainer append) throws AttributeMergingException {
@@ -385,17 +392,39 @@ class ModuleResolveState implements CandidateModule {
         return platformState != null && !platformState.getParticipatingModules().isEmpty();
     }
 
-    void decreaseHardEdgeCount(NodeState removalSource) {
-        pendingDependencies.decreaseHardEdgeCount();
-        if (pendingDependencies.isPending()) {
-            // Back to being a pending dependency
-            // Clear remaining incoming edges, as they must be all from constraints
-            if (selected != null) {
-                for (NodeState node : selected.getNodes()) {
-                    node.clearConstraintEdges(pendingDependencies, removalSource);
-                }
+    void disconnectIncomingEdge(NodeState removalSource, EdgeState incomingEdge) {
+        removeUnattachedEdge(incomingEdge);
+        if (!incomingEdge.isConstraint()) {
+            pendingDependencies.decreaseHardEdgeCount();
+            if (pendingDependencies.isPending()) {
+                // We are back to pending, since we no longer have any hard edges targeting us.
+                // All incoming constraint edges must now be removed.
+                clearIncomingAttachedConstraints(removalSource);
+                clearIncomingUnattachedConstraints(removalSource);
             }
         }
+    }
+
+    private void clearIncomingAttachedConstraints(NodeState removalSource) {
+        if (selected != null) {
+            for (NodeState node : selected.getNodes()) {
+                node.clearIncomingConstraints(pendingDependencies, removalSource);
+            }
+        }
+    }
+
+    private void clearIncomingUnattachedConstraints(NodeState removalSource) {
+        for (EdgeState unattachedEdge : unattachedEdges) {
+            assert unattachedEdge.getDependencyMetadata().isConstraint();
+            NodeState from = unattachedEdge.getFrom();
+            if (from != removalSource) {
+                // Only remove edges that come from a different node than the source of the dependency
+                // going back to pending. The edges from the "From" will be removed first.
+                from.removeOutgoingEdge(unattachedEdge);
+            }
+            pendingDependencies.registerConstraintProvider(from);
+        }
+        unattachedEdges.clear();
     }
 
     boolean isPending() {
@@ -403,6 +432,9 @@ class ModuleResolveState implements CandidateModule {
     }
 
     PendingDependencies getPendingDependencies() {
+        if (replaced) {
+            return selected.getModule().getPendingDependencies();
+        }
         return pendingDependencies;
     }
 
@@ -414,7 +446,7 @@ class ModuleResolveState implements CandidateModule {
         pendingDependencies.unregisterConstraintProvider(nodeState);
     }
 
-    public void maybeUpdateSelection(ResolutionConflictTracker conflictTracker) {
+    public void maybeUpdateSelection() {
         if (replaced) {
             // Never update selection for a replaced module
             return;
@@ -426,14 +458,14 @@ class ModuleResolveState implements CandidateModule {
         ComponentState newSelected = selectorStateResolver.selectBest(getId(), selectors);
         newSelected.setSelectors(selectors);
         if (selected == null) {
-            // In some cases we should ignore this because the selection happens to be a known conflict
-            if (!conflictTracker.hasKnownConflict(newSelected.getId())) {
-                select(newSelected);
-            }
+            select(newSelected);
         } else if (newSelected != selected) {
             if (++selectionChangedCounter > MAX_SELECTION_CHANGE) {
                 // Let's ignore modules that are changing selection way too much, by keeping the highest version
                 if (maybeSkipSelectionChange(newSelected)) {
+                    // TODO: selectBest updates state, but we ignore that. We should do something with newSelected here
+                    // or reset the selectors to before the selectBest call. Alternatively, we should fail here and ask
+                    // the user to add a version constraint.
                     return;
                 }
             }

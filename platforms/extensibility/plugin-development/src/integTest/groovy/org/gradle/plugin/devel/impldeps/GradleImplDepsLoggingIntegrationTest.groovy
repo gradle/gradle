@@ -38,9 +38,8 @@ class GradleImplDepsLoggingIntegrationTest extends BaseGradleImplDepsIntegration
             }
 
             task resolveDependencies {
-                doLast {
-                    configurations.gradleImplDeps.resolve()
-                }
+                inputs.files(configurations.gradleImplDeps)
+                doLast {}
             }
         """
 

@@ -18,8 +18,8 @@ package org.gradle.model.dsl.internal.transform;
 
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.net.URI;
 
 public class SourceLocation {

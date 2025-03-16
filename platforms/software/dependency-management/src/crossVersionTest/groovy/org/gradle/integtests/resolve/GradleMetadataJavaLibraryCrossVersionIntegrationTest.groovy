@@ -31,9 +31,13 @@ class GradleMetadataJavaLibraryCrossVersionIntegrationTest extends CrossVersionI
     def setup() {
         settingsFile << """
             rootProject.name = 'test'
-            if (org.gradle.util.GradleVersion.current().nextMajor == '6.0') {
+
+            def currentVersion = org.gradle.util.GradleVersion.current().version
+            def nextMajorVersion = Integer.parseInt(currentVersion.substring(0, currentVersion.indexOf("."))) + 1
+            if (nextMajorVersion == 6) {
                 enableFeaturePreview('GRADLE_METADATA')
             }
+
             include 'consumer'
             include 'producer'
         """
@@ -45,7 +49,7 @@ class GradleMetadataJavaLibraryCrossVersionIntegrationTest extends CrossVersionI
                 version = '1.0'
 
                 repositories {
-                    maven { url "\${rootProject.buildDir}/repo" }
+                    maven { url = rootProject.layout.buildDirectory.dir("repo") }
                     ${mavenCentralRepository()}
                 }
             }
@@ -81,7 +85,7 @@ class GradleMetadataJavaLibraryCrossVersionIntegrationTest extends CrossVersionI
 
             publishing {
                 repositories {
-                    maven { url "\${rootProject.buildDir}/repo" }
+                    maven { url = rootProject.layout.buildDirectory.dir("repo") }
                 }
 
                 publications {

@@ -17,9 +17,8 @@
 
 package org.gradle.internal.resource.transfer
 
-
 import org.gradle.internal.operations.BuildOperationContext
-import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.internal.resource.ExternalResourceName
 import org.gradle.internal.resource.ExternalResourceWriteBuildOperationType
@@ -28,9 +27,9 @@ import spock.lang.Specification
 
 class ProgressLoggingExternalResourceUploaderTest extends Specification {
     def delegate = Mock(ExternalResourceUploader)
-    def buildOperationExecutor = Mock(BuildOperationExecutor)
+    def buildOperationRunner = Mock(BuildOperationRunner)
     def context = Mock(BuildOperationContext)
-    def uploader = new ProgressLoggingExternalResourceUploader(delegate, buildOperationExecutor)
+    def uploader = new ProgressLoggingExternalResourceUploader(delegate, buildOperationRunner)
     def inputStream = Mock(InputStream)
     def resource = Mock(ReadableContent)
     def location = new ExternalResourceName(new URI("https://location/thing.jar"))
@@ -73,7 +72,7 @@ class ProgressLoggingExternalResourceUploaderTest extends Specification {
     }
 
     def expectPutBuildOperation(long bytesWritten) {
-        1 * buildOperationExecutor.run(_) >> { RunnableBuildOperation action ->
+        1 * buildOperationRunner.run(_) >> { RunnableBuildOperation action ->
             def descriptor = action.description().build()
             assert descriptor.name == "Upload https://location/thing.jar"
             assert descriptor.displayName == "Upload https://location/thing.jar"

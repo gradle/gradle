@@ -17,6 +17,9 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+
+import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 
 class CachedPathSensitivityIntegrationTest extends AbstractPathSensitivityIntegrationSpec implements DirectoryBuildCacheFixture {
     def setup() {
@@ -40,6 +43,7 @@ class CachedPathSensitivityIntegrationTest extends AbstractPathSensitivityIntegr
         return "FROM-CACHE"
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "single #pathSensitivity input file loaded from cache can be used as input"() {
         file("src/data/input.txt").text = "data"
 

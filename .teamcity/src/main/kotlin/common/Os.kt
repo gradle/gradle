@@ -16,9 +16,14 @@
 
 package common
 
-enum class Arch(val suffix: String, val nameOnLinuxWindows: String, val nameOnMac: String) {
+enum class Arch(
+    val suffix: String,
+    val nameOnLinuxWindows: String,
+    val nameOnMac: String,
+) {
     AMD64("64bit", "amd64", "x86_64"),
-    AARCH64("aarch64", "aarch64", "aarch64");
+    AARCH64("aarch64", "aarch64", "aarch64"),
+    ;
 
     fun asName() = name.lowercase().toCapitalized()
 }
@@ -28,15 +33,20 @@ enum class Os(
     val androidHome: String,
     val jprofilerHome: String,
     val perfTestWorkingDir: String = "%teamcity.build.checkoutDir%",
-    val perfTestJavaVendor: JvmVendor = JvmVendor.openjdk,
-    val buildJavaVersion: JvmVersion = JvmVersion.java11,
-    val perfTestJavaVersion: JvmVersion = JvmVersion.java17,
-    val defaultArch: Arch = Arch.AMD64
+    val perfTestJavaVendor: JvmVendor = JvmVendor.OPENJDK,
+    val buildJavaVersion: JvmVersion = BuildToolBuildJvm.version,
+    val perfTestJavaVersion: JvmVersion = JvmVersion.JAVA_17,
+    val defaultArch: Arch = Arch.AMD64,
 ) {
     LINUX(
         "Linux",
         androidHome = "/opt/android/sdk",
-        jprofilerHome = "/opt/jprofiler/jprofiler11.1.4"
+        jprofilerHome = "/opt/jprofiler/jprofiler11.1.4",
+    ),
+    ALPINE(
+        "Linux",
+        androidHome = "/not/supported",
+        jprofilerHome = "/not/supported",
     ),
     WINDOWS(
         "Windows",
@@ -48,21 +58,51 @@ enum class Os(
         "Mac",
         androidHome = "/opt/android/sdk",
         jprofilerHome = "/Applications/JProfiler11.1.4.app",
-        defaultArch = Arch.AARCH64
-    );
+        defaultArch = Arch.AARCH64,
+    ),
+    ;
 
-    fun escapeKeyValuePair(key: String, value: String) = if (this == WINDOWS) """$key="$value"""" else """"$key=$value""""
+    fun escapeKeyValuePair(
+        key: String,
+        value: String,
+    ) = if (this == WINDOWS) """$key="$value"""" else """"$key=$value""""
 
     fun asName() = name.lowercase().toCapitalized()
 
-    fun javaInstallationLocations(): String {
-        val paths = enumValues<JvmVersion>().joinToString(",") { version ->
-            val vendor = when {
-                version.major >= 11 -> JvmVendor.openjdk
-                else -> JvmVendor.oracle
-            }
-            javaHome(DefaultJvm(version, vendor), this)
-        } + ",${javaHome(DefaultJvm(JvmVersion.java8, JvmVendor.openjdk), this)}"
+    fun javaInstallationLocations(arch: Arch = Arch.AMD64): String {
+        val paths =
+            when {
+                this == LINUX ->
+                    listOf(
+                        DefaultJvm(JvmVersion.JAVA_7, JvmVendor.ORACLE),
+                        DefaultJvm(JvmVersion.JAVA_8, JvmVendor.ORACLE),
+                        DefaultJvm(JvmVersion.JAVA_11, JvmVendor.OPENJDK),
+                        DefaultJvm(JvmVersion.JAVA_17, JvmVendor.OPENJDK),
+                        DefaultJvm(JvmVersion.JAVA_21, JvmVendor.OPENJDK),
+                        DefaultJvm(JvmVersion.JAVA_23, JvmVendor.OPENJDK),
+                        DefaultJvm(JvmVersion.JAVA_24, JvmVendor.OPENJDK),
+                    )
+
+                arch == Arch.AARCH64 && this == MACOS ->
+                    listOf(
+                        DefaultJvm(JvmVersion.JAVA_8, JvmVendor.ZULU),
+                        DefaultJvm(JvmVersion.JAVA_11, JvmVendor.OPENJDK),
+                        DefaultJvm(JvmVersion.JAVA_17, JvmVendor.OPENJDK),
+                        DefaultJvm(JvmVersion.JAVA_21, JvmVendor.OPENJDK),
+                        DefaultJvm(JvmVersion.JAVA_23, JvmVendor.OPENJDK),
+                        DefaultJvm(JvmVersion.JAVA_24, JvmVendor.OPENJDK),
+                    )
+
+                else ->
+                    listOf(
+                        DefaultJvm(JvmVersion.JAVA_8, JvmVendor.OPENJDK),
+                        DefaultJvm(JvmVersion.JAVA_11, JvmVendor.OPENJDK),
+                        DefaultJvm(JvmVersion.JAVA_17, JvmVendor.OPENJDK),
+                        DefaultJvm(JvmVersion.JAVA_21, JvmVendor.OPENJDK),
+                        DefaultJvm(JvmVersion.JAVA_23, JvmVendor.OPENJDK),
+                        DefaultJvm(JvmVersion.JAVA_24, JvmVendor.OPENJDK),
+                    )
+            }.joinToString(",") { javaHome(it, this, arch) }
         return """"-Porg.gradle.java.installations.paths=$paths""""
     }
 }

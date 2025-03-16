@@ -74,7 +74,6 @@ abstract class PerformanceTestReport : DefaultTask() {
     @get:Input
     abstract val branchName: Property<String>
 
-    @get:Option(option = "channel", description = "Channel to use when querying performance test results. By default, 'commits'.")
     @get:Input
     abstract val channel: Property<String>
 

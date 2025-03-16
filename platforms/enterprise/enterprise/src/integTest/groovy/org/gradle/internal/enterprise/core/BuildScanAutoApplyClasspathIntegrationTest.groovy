@@ -17,23 +17,32 @@
 package org.gradle.internal.enterprise.core
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.enterprise.BaseBuildScanPluginCheckInFixture
 import org.gradle.internal.enterprise.DevelocityPluginCheckInFixture
 import org.gradle.internal.enterprise.GradleEnterprisePluginCheckInFixture
 import org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService
 import org.gradle.util.internal.VersionNumber
+import org.junit.Assume
 
 abstract class BuildScanAutoApplyClasspathIntegrationTest extends AbstractIntegrationSpec {
 
     private static final VersionNumber PLUGIN_MINIMUM_NON_DEPRECATED_VERSION = DefaultGradleEnterprisePluginCheckInService.MINIMUM_SUPPORTED_PLUGIN_VERSION_SINCE_GRADLE_9
 
-    protected final GradleEnterprisePluginCheckInFixture autoAppliedPluginFixture = new GradleEnterprisePluginCheckInFixture(testDirectory, mavenRepo, createExecuter())
+    protected final DevelocityPluginCheckInFixture autoAppliedPluginFixture = new DevelocityPluginCheckInFixture(testDirectory, mavenRepo, createExecuter())
+
+    abstract boolean isIsolatedProjectsCompatible()
 
     abstract BaseBuildScanPluginCheckInFixture getTransitivePluginFixture()
 
     abstract void assertNotAutoApplied(String output)
 
-    static class GradleEnterpriseAutoApplyClasspathIntegrationTest extends BuildScanAutoApplyClasspathIntegrationTest {
+    static class DevelocityAutoApplyClasspathIntegrationTest extends BuildScanAutoApplyClasspathIntegrationTest {
+
+        @Override
+        boolean isIsolatedProjectsCompatible() {
+            return false
+        }
 
         @Override
         BaseBuildScanPluginCheckInFixture getTransitivePluginFixture() {
@@ -42,29 +51,36 @@ abstract class BuildScanAutoApplyClasspathIntegrationTest extends AbstractIntegr
 
         @Override
         void assertNotAutoApplied(String output) {
-            // GE plugin is transitively applied, but not via auto-application mechanism
+            // Develocity plugin is transitively applied, but not via auto-application mechanism
             autoAppliedPluginFixture.assertAutoApplied(output, false)
         }
     }
 
-    static class DevelocityAutoApplyClasspathIntegrationTest extends BuildScanAutoApplyClasspathIntegrationTest {
+    static class GradleEnterpriseAutoApplyClasspathIntegrationTest extends BuildScanAutoApplyClasspathIntegrationTest {
 
-        private final DevelocityPluginCheckInFixture develocityFixture = new DevelocityPluginCheckInFixture(testDirectory, mavenRepo, createExecuter())
+        private final GradleEnterprisePluginCheckInFixture gradleEnterpriseFixture = new GradleEnterprisePluginCheckInFixture(testDirectory, mavenRepo, createExecuter())
+
+        @Override
+        boolean isIsolatedProjectsCompatible() {
+            return true
+        }
 
         @Override
         BaseBuildScanPluginCheckInFixture getTransitivePluginFixture() {
-            // GE plugin is auto-applied but the Develocity plugin is a transitive dependency
-            develocityFixture
+            // Develocity plugin is auto-applied but the Gradle Enterprise plugin is a transitive dependency
+            gradleEnterpriseFixture
         }
 
         @Override
         void assertNotAutoApplied(String output) {
-            // GE plugin is applied neither as a transitive dependency, nor via auto-application mechanism as Develocity plugin is present
+            // Develocity plugin is applied neither as a transitive dependency, nor via auto-application mechanism as Gradle Enterprise plugin is present
             autoAppliedPluginFixture.notApplied(output)
         }
     }
 
     def setup() {
+        Assume.assumeTrue(GradleContextualExecuter.notIsolatedProjects || isIsolatedProjectsCompatible())
+
         autoAppliedPluginFixture.publishDummyPlugin(executer)
 
         transitivePluginFixture.publishDummyPlugin(executer)
@@ -77,12 +93,12 @@ abstract class BuildScanAutoApplyClasspathIntegrationTest extends AbstractIntegr
             }
 
             repositories {
-                 maven { url '${mavenRepo.uri}' }
+                 maven { url = '${mavenRepo.uri}' }
             }
 
             gradlePlugin {
                 plugins {
-                    enterprise {
+                    develocity {
                         id = 'my.plugin'
                         implementationClass = 'org.gradle.reproducer.MyPlugin'
                     }
@@ -117,7 +133,7 @@ abstract class BuildScanAutoApplyClasspathIntegrationTest extends AbstractIntegr
             pluginManagement {
                 includeBuild 'build-src'
                 repositories {
-                    maven { url '${mavenRepo.uri}' }
+                    maven { url = '${mavenRepo.uri}' }
                 }
             }
 

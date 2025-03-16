@@ -17,11 +17,14 @@
 package org.gradle.problems.buildtree;
 
 import com.google.common.base.Supplier;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.problems.ProblemDiagnostics;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
+@ServiceScope(Scope.BuildTree.class)
 public interface ProblemStream {
     /**
      * Returns diagnostics based on the state of the calling thread.

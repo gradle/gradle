@@ -17,17 +17,13 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.util.GradleVersion
-import spock.lang.Ignore
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.spockframework.lang.Wildcard
 
 class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDependencyResolutionTest {
-    @Ignore("https://github.com/gradle/gradle/issues/22088")
-    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
-    def "configuration in another project can not be resolved"() {
+    def "configuration in another project produces deprecation warning when resolved"() {
         mavenRepo.module("test", "test-jar", "1.0").publish()
 
-        createDirs("bar")
         settingsFile << """
             rootProject.name = "foo"
             include ":bar"
@@ -35,43 +31,18 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
 
         buildFile << """
             task resolve {
+                def otherProjectConfiguration = provider {
+                    project(':bar').configurations.bar
+                }
                 doLast {
-                    println project(':bar').configurations.bar.files
-                }
-            }
-
-            project(':bar') {
-                repositories {
-                    maven { url '${mavenRepo.uri}' }
-                }
-
-                configurations {
-                    bar
-                }
-
-                dependencies {
-                    bar "test:test-jar:1.0"
+                    println otherProjectConfiguration.get().files
                 }
             }
         """
-        executer.withArgument("--parallel")
 
-        expect:
-        fails(":resolve")
-        result.assertHasErrorOutput("Resolution of the configuration :bar:bar was attempted from a context different than the project context. See: https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more information.")
-    }
-
-    @ToBeFixedForConfigurationCache(because = "uses Configuration API at runtime")
-    def "exception when non-gradle thread resolves dependency graph"() {
-        mavenRepo.module("test", "test-jar", "1.0").publish()
-
-        settingsFile << """
-            rootProject.name = "foo"
-        """
-
-        buildFile << """
+        file("bar/build.gradle") << """
             repositories {
-                maven { url '${mavenRepo.uri}' }
+                maven { url = '${mavenRepo.uri}' }
             }
 
             configurations {
@@ -82,24 +53,76 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
                 bar "test:test-jar:1.0"
             }
 
+        """
+
+        executer.withArgument("--parallel")
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("Resolution of the configuration :bar:bar was attempted from a context different than the project context. Have a look at the documentation to understand why this is a problem and how it can be resolved. This behavior has been deprecated. This will fail with an error in Gradle 9.0. For more information, please refer to https://docs.gradle.org/current/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors in the Gradle documentation.")
+        succeeds(":resolve")
+    }
+
+    private String declareRunInAnotherThread() {
+        """
+        def runInAnotherThread = { toRun ->
+            def failure = null
+            def result = null
+            def thread = new Thread({
+                try {
+                    result = toRun.call()
+                } catch (Throwable t) {
+                    failure = t
+                }
+            })
+            thread.start()
+            thread.join()
+            return failure ?: result
+        }
+        """
+    }
+
+    def "exception when non-gradle thread resolves dependency graph"() {
+        mavenRepo.module("test", "test-jar", "1.0").publish()
+
+        settingsFile << """
+            rootProject.name = "foo"
+        """
+
+        buildFile << """
+            repositories {
+                maven { url = '${mavenRepo.uri}' }
+            }
+
+            configurations {
+                bar
+            }
+
+            dependencies {
+                bar "test:test-jar:1.0"
+            }
+
+            ${declareRunInAnotherThread()}
+
             task resolve {
+                def failure = provider {
+                    runInAnotherThread.call {
+                        configurations.bar.${expression}
+                    }
+                }
                 doFirst {
-                    def failure = null
-                    def thread = new Thread({
-                        try {
-                            file('bar') << configurations.bar.${expression}
-                        } catch(Throwable t) {
-                            failure = t
-                        }
-                    })
-                    thread.start()
-                    thread.join()
-                    throw failure
+                    assert failure.isPresent()
+                    assert (failure.get() instanceof Throwable)
+                    throw failure.get()
                 }
             }
         """
 
         when:
+        if (expression == "files { true }" ) {
+            executer.expectDocumentedDeprecationWarning("The Configuration.files(Closure) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration.getIncoming().artifactView(Action) with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
+        } else if (expression == "fileCollection { true }.files") {
+            executer.expectDocumentedDeprecationWarning("The Configuration.fileCollection(Closure) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration.getIncoming().artifactView(Action) with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
+        }
         fails(":resolve")
 
         then:
@@ -127,7 +150,6 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
         ]
     }
 
-    @ToBeFixedForConfigurationCache(because = "uses Configuration API at runtime")
     def "no exception when non-gradle thread iterates over dependency artifacts that were declared as task inputs"() {
         mavenRepo.module("test", "test-jar", "1.0").publish()
 
@@ -137,7 +159,7 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
 
         buildFile << """
             repositories {
-                maven { url '${mavenRepo.uri}' }
+                maven { url = '${mavenRepo.uri}' }
             }
 
             configurations {
@@ -148,48 +170,61 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
                 bar "test:test-jar:1.0"
             }
 
+            ${declareRunInAnotherThread()}
+
             task resolve {
                 def configuration = configurations.bar
                 inputs.files(configuration)
+                def layout = project.layout
+                def traversal = provider { configuration.${expression} }
                 doFirst {
-                    def failure = null
-                    def thread = new Thread({
-                        try {
-                            file('bar') << configuration.${expression}
-                        } catch(Throwable t) {
-                            failure = t
-                        }
-                    })
-                    thread.start()
-                    thread.join()
-                    if (failure != null) {
-                        throw failure
+                    runInAnotherThread.call {
+                        layout.projectDirectory.file('bar').asFile << traversal.get()
                     }
                 }
             }
         """
 
-        expect:
-        succeeds(":resolve")
+        when:
+        if (expression == "files { true }") {
+            executer.expectDocumentedDeprecationWarning("The Configuration.files(Closure) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration.getIncoming().artifactView(Action) with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
+        } else if (expression == "fileCollection { true }.files") {
+            executer.expectDocumentedDeprecationWarning("The Configuration.fileCollection(Closure) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration.getIncoming().artifactView(Action) with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
+        } else if (expression == "resolvedConfiguration.files") {
+            executer.expectDocumentedDeprecationWarning("The ResolvedConfiguration.getFiles() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration#getFiles instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_legacy_configuration_get_files")
+        }
+
+        def shouldSucceed = ccMessage instanceof Wildcard || !GradleContextualExecuter.isConfigCache()
+        if (shouldSucceed) {
+            run(":resolve")
+        } else {
+            fails(":resolve")
+        }
+
+        then:
+        if (shouldSucceed) {
+            result.assertTaskExecuted(":resolve")
+        } else {
+            result.assertHasErrorOutput(ccMessage as String)
+        }
 
         where:
-        expression << [
-            "files",
-            "incoming.resolutionResult.root",
-            "incoming.resolutionResult.rootComponent.get()",
-            "incoming.artifacts.artifactFiles.files",
-            "incoming.artifacts.artifacts",
-            "incoming.artifactView { }.files.files",
-            "incoming.artifactView { }.artifacts.artifacts",
-            "incoming.artifactView { }.artifacts.resolvedArtifacts.get()",
-            "incoming.artifactView { }.artifacts.failures",
-            "incoming.artifactView { }.artifacts.artifactFiles.files",
-            "resolve()",
-            "files { true }",
-            "fileCollection { true }.files",
-            "resolvedConfiguration.files",
-            "resolvedConfiguration.resolvedArtifacts"
-        ]
+        expression                                                      | ccMessage
+        "files"                                                         | _
+        "incoming.resolutionResult.root"                                | _
+        "incoming.resolutionResult.rootComponent.get()"                 | _
+        "incoming.artifacts.artifactFiles.files"                        | _
+        "incoming.artifacts.artifacts"                                  | "org.gradle.api.artifacts.result.ArtifactResult"
+        "incoming.artifactView { }.files.files"                         | _
+        "incoming.artifactView { }.artifacts.artifacts"                 | "org.gradle.api.artifacts.result.ArtifactResult"
+        "incoming.artifactView { }.artifacts.resolvedArtifacts.get()"   | "org.gradle.api.artifacts.result.ArtifactResult"
+        "incoming.artifactView { }.artifacts.failures"                  | _
+        "incoming.artifactView { }.artifacts.artifactFiles.files"       | _
+        "resolve()"                                                     | _
+        "files { true }"                                                | _
+        "fileCollection { true }.files"                                 | _
+        "resolvedConfiguration.files"                                   | _
+        "resolvedConfiguration.resolvedArtifacts"                       | "org.gradle.api.artifacts.ResolvedArtifact"
     }
 
     def "no exception when non-gradle thread iterates over dependency artifacts that were previously iterated"() {
@@ -201,7 +236,7 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
 
         buildFile << """
             repositories {
-                maven { url '${mavenRepo.uri}' }
+                maven { url = '${mavenRepo.uri}' }
             }
 
             configurations {
@@ -238,46 +273,43 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
         succeeds(":resolve")
     }
 
-    @Ignore("https://github.com/gradle/gradle/issues/22088")
-    def "fails when configuration is resolved while evaluating a different project"() {
+    def "deprecation warning when configuration is resolved while evaluating a different project"() {
         mavenRepo.module("test", "test-jar", "1.0").publish()
 
-        createDirs("bar", "baz")
         settingsFile << """
             rootProject.name = "foo"
             include ":bar", ":baz"
         """
 
-        buildFile << """
-            project(':baz') {
-                repositories {
-                    maven { url '${mavenRepo.uri}' }
-                }
-
-                configurations {
-                    baz
-                }
-
-                dependencies {
-                    baz "test:test-jar:1.0"
-                }
+        file("baz/build.gradle") << """
+            repositories {
+                maven { url = '${mavenRepo.uri}' }
             }
 
-            project(':bar') {
-                println project(':baz').configurations.baz.files
+            configurations {
+                baz
+            }
+
+            dependencies {
+                baz "test:test-jar:1.0"
             }
         """
+
+        file("bar/build.gradle") << """
+            evaluationDependsOn(":baz")
+            println project(':baz').configurations.baz.files
+        """
+
         executer.withArgument("--parallel")
 
         expect:
-        fails(":bar:help")
-        result.assertHasErrorOutput("Resolution of the configuration :baz:baz was attempted from a context different than the project context. See: https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more information.")
+        executer.expectDocumentedDeprecationWarning("Resolution of the configuration :baz:baz was attempted from a context different than the project context. Have a look at the documentation to understand why this is a problem and how it can be resolved. This behavior has been deprecated. This will fail with an error in Gradle 9.0. For more information, please refer to https://docs.gradle.org/current/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors in the Gradle documentation.")
+        succeeds(":bar:help")
     }
 
     def "no deprecation warning when configuration is resolved while evaluating same project"() {
         mavenRepo.module("test", "test-jar", "1.0").publish()
 
-        createDirs("bar")
         settingsFile << """
             rootProject.name = "foo"
             include ":bar"
@@ -285,7 +317,7 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
 
         buildFile << """
             repositories {
-                maven { url '${mavenRepo.uri}' }
+                maven { url = '${mavenRepo.uri}' }
             }
 
             configurations {
@@ -298,6 +330,8 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
 
             println configurations.foo.files
         """
+
+        file("bar/build.gradle") << ""
 
         expect:
         executer.withArgument("--parallel")
@@ -313,7 +347,7 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
 
         buildFile << """
             repositories {
-                maven { url '${mavenRepo.uri}' }
+                maven { url = '${mavenRepo.uri}' }
             }
 
             configurations {
@@ -345,7 +379,7 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
             allprojects {
                 beforeEvaluate {
                     repositories {
-                        maven { url '${mavenRepo.uri}' }
+                        maven { url = '${mavenRepo.uri}' }
                     }
 
                     configurations {
@@ -362,6 +396,37 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
         """
 
         expect:
+        executer.withArguments("--parallel", "-I", "init-script.gradle")
+        succeeds(":help")
+    }
+
+    def "deprecation warning when configuration is resolved while evaluating lifecycle.beforeProject block"() {
+        mavenRepo.module("test", "test-jar", "1.0").publish()
+
+        settingsFile << """
+            rootProject.name = "foo"
+        """
+
+        file('init-script.gradle') << """
+            gradle.lifecycle.beforeProject {
+                repositories {
+                    maven { url = '${mavenRepo.uri}' }
+                }
+
+                configurations {
+                    create("foo")
+                }
+
+                dependencies {
+                    foo "test:test-jar:1.0"
+                }
+
+                println configurations.foo.files
+            }
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("Resolution of the configuration :foo was attempted from a context different than the project context. Have a look at the documentation to understand why this is a problem and how it can be resolved. This behavior has been deprecated. This will fail with an error in Gradle 9.0. For more information, please refer to https://docs.gradle.org/current/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors in the Gradle documentation.")
         executer.withArguments("--parallel", "-I", "init-script.gradle")
         succeeds(":help")
     }

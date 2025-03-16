@@ -26,14 +26,14 @@ import org.gradle.internal.scan.config.BuildScanConfig;
 import org.gradle.internal.scan.config.BuildScanConfigProvider;
 import org.gradle.internal.scan.config.BuildScanPluginMetadata;
 import org.gradle.internal.scan.eob.BuildScanEndOfBuildNotifier;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.internal.VersionNumber;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 
-@ServiceScope(Scopes.Gradle.class)
+@ServiceScope(Scope.Build.class)
 public class LegacyGradleEnterprisePluginCheckInService implements BuildScanConfigProvider, BuildScanEndOfBuildNotifier {
 
     public static final String FIRST_GRADLE_ENTERPRISE_PLUGIN_VERSION_DISPLAY = "3.0";
@@ -70,8 +70,8 @@ public class LegacyGradleEnterprisePluginCheckInService implements BuildScanConf
         if (Boolean.getBoolean(UNSUPPORTED_TOGGLE)) {
             return UNSUPPORTED_TOGGLE_MESSAGE;
         } else if (buildModelParameters.isConfigurationCache()) {
-            return "Build scans have been disabled due to incompatibility between your Develocity plugin version (" + pluginVersion.toString() + ") and configuration caching. " +
-                "Please use Develocity plugin version 3.4 or later for compatibility with configuration caching.";
+            return "Build scans have been disabled due to incompatibility between your Gradle Enterprise plugin version (" + pluginVersion + ") and configuration caching. " +
+                "Please use Gradle Enterprise plugin version 3.4 or later for compatibility with configuration caching.";
         } else {
             return null;
         }

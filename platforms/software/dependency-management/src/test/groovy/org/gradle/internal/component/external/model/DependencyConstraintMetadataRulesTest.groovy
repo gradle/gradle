@@ -59,7 +59,7 @@ class DependencyConstraintMetadataRulesTest extends AbstractDependencyMetadataRu
         }))
 
         then:
-        def dependencies = selectTargetConfigurationMetadata(mavenMetadata).dependencies
+        def dependencies = selectTargetConfiguration(mavenMetadata).dependencies
         dependencies.size() == 1
         !dependencies[0].constraint
     }

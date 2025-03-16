@@ -26,7 +26,7 @@ import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.initialization.dsl.ScriptHandler;
-import org.gradle.api.internal.ProcessOperations;
+import org.gradle.api.internal.DeprecatedProcessOperations;
 import org.gradle.api.internal.file.DefaultFileOperations;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileLookup;
@@ -35,11 +35,11 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.HasScriptServices;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
-import org.gradle.api.internal.model.InstantiatorBackedObjectFactory;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.LoggingManager;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.ResourceHandler;
@@ -64,7 +64,7 @@ public abstract class DefaultScript extends BasicScript {
     private static final Logger LOGGER = Logging.getLogger(Script.class);
 
     private FileOperations fileOperations;
-    private ProcessOperations processOperations;
+    private DeprecatedProcessOperations deprecatedProcessOperations;
     private ProviderFactory providerFactory;
     private LoggingManager loggingManager;
 
@@ -78,7 +78,7 @@ public abstract class DefaultScript extends BasicScript {
         if (target instanceof HasScriptServices) {
             HasScriptServices scriptServices = (HasScriptServices) target;
             fileOperations = scriptServices.getFileOperations();
-            processOperations = scriptServices.getProcessOperations();
+            deprecatedProcessOperations = new DeprecatedProcessOperations(scriptServices.getProcessOperations());
         } else {
             Instantiator instantiator = services.get(Instantiator.class);
             FileLookup fileLookup = services.get(FileLookup.class);
@@ -87,16 +87,17 @@ public abstract class DefaultScript extends BasicScript {
             if (sourceFile != null) {
                 FileResolver resolver = fileLookup.getFileResolver(sourceFile.getParentFile());
                 FileCollectionFactory fileCollectionFactoryWithBase = fileCollectionFactory.withResolver(resolver);
+                ObjectFactory objectFactory = services.get(ObjectFactory.class);
                 fileOperations = DefaultFileOperations.createSimple(resolver, fileCollectionFactoryWithBase, services);
-                processOperations = services.get(ExecFactory.class).forContext()
+                deprecatedProcessOperations = new DeprecatedProcessOperations(services.get(ExecFactory.class).forContext()
                     .withFileResolver(resolver)
                     .withFileCollectionFactory(fileCollectionFactoryWithBase)
                     .withInstantiator(instantiator)
-                    .withObjectFactory(new InstantiatorBackedObjectFactory(instantiator))
-                    .build();
+                    .withObjectFactory(objectFactory)
+                    .build());
             } else {
                 fileOperations = DefaultFileOperations.createSimple(fileLookup.getFileResolver(), fileCollectionFactory, services);
-                processOperations = services.get(ExecFactory.class);
+                deprecatedProcessOperations = new DeprecatedProcessOperations(services.get(ExecFactory.class));
             }
         }
 
@@ -240,23 +241,27 @@ public abstract class DefaultScript extends BasicScript {
     }
 
     @Override
+    @Deprecated
     public ExecResult javaexec(Closure closure) {
-        return processOperations.javaexec(ConfigureUtil.configureUsing(closure));
+        return deprecatedProcessOperations.javaexec(closure);
     }
 
     @Override
+    @Deprecated
     public ExecResult javaexec(Action<? super JavaExecSpec> action) {
-        return processOperations.javaexec(action);
+        return deprecatedProcessOperations.javaexec(action);
     }
 
     @Override
+    @Deprecated
     public ExecResult exec(Closure closure) {
-        return processOperations.exec(ConfigureUtil.configureUsing(closure));
+        return deprecatedProcessOperations.exec(closure);
     }
 
     @Override
+    @Deprecated
     public ExecResult exec(Action<? super ExecSpec> action) {
-        return processOperations.exec(action);
+        return deprecatedProcessOperations.exec(action);
     }
 
     @Override

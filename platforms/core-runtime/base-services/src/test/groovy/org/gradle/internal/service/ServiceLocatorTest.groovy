@@ -34,7 +34,7 @@ class ServiceLocatorTest extends Specification {
     }
 
     def "uses union of resources found in all ClassLoaders"() {
-        def ClassLoader classLoader2 = Mock()
+        ClassLoader classLoader2 = Mock()
         def serviceLocator = new DefaultServiceLocator(classLoader, classLoader2)
 
         def serviceFile1 = stream('org.gradle.ImplClass')
@@ -46,7 +46,7 @@ class ServiceLocatorTest extends Specification {
         def result = serviceLocator.getAll(CharSequence.class)
 
         then:
-        result*.class == [String, StringBuilder, StringBuffer]
+        result*.class == [String, StringBuffer, StringBuilder]
         1 * classLoader.getResources("META-INF/services/java.lang.CharSequence") >> Collections.enumeration([serviceFile1, serviceFile2])
         1 * classLoader.loadClass('org.gradle.ImplClass') >> String
         1 * classLoader.loadClass('org.gradle.ImplClass2') >> StringBuilder

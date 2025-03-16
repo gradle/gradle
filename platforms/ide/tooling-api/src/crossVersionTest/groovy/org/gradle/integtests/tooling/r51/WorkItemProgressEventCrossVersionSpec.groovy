@@ -19,13 +19,11 @@ package org.gradle.integtests.tooling.r51
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.util.GradleVersion
 
-@ToolingApiVersion('>=5.1')
 @TargetGradleVersion('>=5.1')
 class WorkItemProgressEventCrossVersionSpec extends ToolingApiSpecification {
 

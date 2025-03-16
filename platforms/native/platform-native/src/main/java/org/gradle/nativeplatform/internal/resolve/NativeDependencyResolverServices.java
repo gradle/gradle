@@ -18,12 +18,15 @@ package org.gradle.nativeplatform.internal.resolve;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.resolve.ProjectModelResolver;
+import org.gradle.internal.service.Provides;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.nativeplatform.internal.prebuilt.PrebuiltLibraryBinaryLocator;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class NativeDependencyResolverServices {
+public class NativeDependencyResolverServices implements ServiceRegistrationProvider {
+    @Provides
     public LibraryBinaryLocator createLibraryBinaryLocator(ProjectModelResolver projectModelResolver, DomainObjectCollectionFactory domainObjectCollectionFactory) {
         List<LibraryBinaryLocator> locators = new ArrayList<LibraryBinaryLocator>();
         locators.add(new ProjectLibraryBinaryLocator(projectModelResolver, domainObjectCollectionFactory));
@@ -31,6 +34,7 @@ public class NativeDependencyResolverServices {
         return new CachingLibraryBinaryLocator(new ChainedLibraryBinaryLocator(locators), domainObjectCollectionFactory);
     }
 
+    @Provides
     public NativeDependencyResolver createResolver(LibraryBinaryLocator locator, FileCollectionFactory fileCollectionFactory) {
         NativeDependencyResolver resolver = new LibraryNativeDependencyResolver(locator);
         resolver = new ApiRequirementNativeDependencyResolver(resolver);

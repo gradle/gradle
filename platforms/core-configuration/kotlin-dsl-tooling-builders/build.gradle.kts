@@ -5,33 +5,44 @@ plugins {
 description = "Kotlin DSL Tooling Builders for IDEs"
 
 dependencies {
-    api(project(":core-api"))
-    api(project(":core"))
-    api(libs.futureKotlin("stdlib"))
+    api(projects.coreApi)
+    api(projects.core)
+    api(libs.kotlinStdlib)
 
-    implementation(project(":kotlin-dsl"))
-    implementation(project(":base-services"))
-    implementation(project(":resources"))
-    implementation(project(":platform-base"))
-    implementation(project(":platform-jvm"))
-    implementation(project(":plugins-java-base"))
-    implementation(project(":tooling-api"))
-    implementation(project(":logging"))
-    implementation(project(":kotlin-dsl-tooling-models"))
+    implementation(projects.classloaders)
+    implementation(projects.serviceLookup)
+    implementation(projects.stdlibJavaExtensions)
+    implementation(projects.time)
+    implementation(projects.kotlinDsl)
+    implementation(projects.baseServices)
+    implementation(projects.resources)
+    implementation(projects.platformBase)
+    implementation(projects.platformJvm)
+    implementation(projects.pluginsJavaBase)
+    implementation(projects.toolingApi)
+    implementation(projects.logging)
+    implementation(projects.kotlinDslToolingModels)
+    implementation(projects.buildProcessServices)
 
-    testImplementation(testFixtures(project(":kotlin-dsl")))
-    integTestImplementation(testFixtures(project(":tooling-api")))
+    implementation(libs.jspecify)
 
-    integTestImplementation(project(":internal-testing"))
-    testFixturesImplementation(project(":internal-integ-testing"))
+    testImplementation(testFixtures(projects.kotlinDsl))
+    integTestImplementation(testFixtures(projects.toolingApi))
 
-    crossVersionTestImplementation(project(":persistent-cache"))
+    integTestImplementation(projects.internalTesting)
+    testFixturesImplementation(projects.kotlinDsl)
+    testFixturesImplementation(projects.toolingApi)
+    testFixturesImplementation(projects.internalIntegTesting)
+
+    crossVersionTestImplementation(projects.persistentCache)
     crossVersionTestImplementation(libs.slf4jApi)
     crossVersionTestImplementation(libs.guava)
     crossVersionTestImplementation(libs.ant)
 
-    integTestDistributionRuntimeOnly(project(":distributions-basics"))
-    crossVersionTestDistributionRuntimeOnly(project(":distributions-basics"))
+    integTestDistributionRuntimeOnly(projects.distributionsBasics)
+    crossVersionTestDistributionRuntimeOnly(projects.distributionsJvm) {
+        because("Uses application plugin.")
+    }
 }
 
 testFilesCleanup.reportOnly = true

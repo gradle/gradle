@@ -18,8 +18,8 @@ package org.gradle.internal.configuration.inputs;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ForwardingMap;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;

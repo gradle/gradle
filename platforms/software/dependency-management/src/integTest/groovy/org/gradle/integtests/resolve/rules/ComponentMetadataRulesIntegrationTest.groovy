@@ -182,7 +182,7 @@ dependencies {
             """
 class UpdatingRule implements ComponentMetadataRule {
     public void execute(ComponentMetadataContext context) {
-            context.details.status "integration.changed" // verify that 'details' is enhanced
+            context.details.status = "integration.changed" // verify that 'details' is enhanced
             context.details.statusScheme = ["integration.changed", "milestone.changed", "release.changed"]
             context.details.changing = true
     }
@@ -544,58 +544,59 @@ dependencies {
             'org.test:projectB:1.0'()
         }
 
-        createDirs("sub")
         settingsFile << """
-rootProject.name = 'root'
-include 'sub'
-"""
+            rootProject.name = 'root'
+            include 'sub'
+        """
+
         buildFile << """
-class AddDependencyRule implements ComponentMetadataRule {
-    public void execute(ComponentMetadataContext context) {
-        context.details.allVariants {
-            withDependencies {
-                add('org.test:projectB:1.0')
+            task res {
+                def conf = configurations.conf
+                doLast {
+                    // Should get the unmodified component metadata for 'projectA'
+                    println conf.collect { it.name }
+                    assert conf.collect { it.name } == ['projectA-1.0.jar']
+                }
             }
-        }
-    }
-}
+        """
 
-project (':sub') {
-    $repositoryDeclaration
+        file("sub/build.gradle") << """
+            $repositoryDeclaration
 
-    configurations {
-        conf
-        other
-    }
-    dependencies {
-        conf 'org.test:projectA:1.0'
-        other 'org.test:projectA:1.0'
+            configurations {
+                conf
+                other
+            }
 
-        // Component metadata rule that applies only to the 'sub' project
-        components {
-            withModule('org.test:projectA', AddDependencyRule)
-        }
-    }
-    task res {
-        def conf = configurations.conf
-        def other = configurations.other
-        doLast {
-            // If we resolve twice the modified component metadata for 'projectA' must not be cached in-memory
-            println conf.collect { it.name }
-            println other.collect { it.name }
-        }
-    }
-}
+            class AddDependencyRule implements ComponentMetadataRule {
+                public void execute(ComponentMetadataContext context) {
+                    context.details.allVariants {
+                        withDependencies {
+                            add('org.test:projectB:1.0')
+                        }
+                    }
+                }
+            }
 
-task res {
-    def conf = configurations.conf
-    doLast {
-        // Should get the unmodified component metadata for 'projectA'
-        println conf.collect { it.name }
-        assert conf.collect { it.name } == ['projectA-1.0.jar']
-    }
-}
-"""
+            dependencies {
+                conf 'org.test:projectA:1.0'
+                other 'org.test:projectA:1.0'
+
+                // Component metadata rule that applies only to the 'sub' project
+                components {
+                    withModule('org.test:projectA', AddDependencyRule)
+                }
+            }
+            task res {
+                def conf = configurations.conf
+                def other = configurations.other
+                doLast {
+                    // If we resolve twice the modified component metadata for 'projectA' must not be cached in-memory
+                    println conf.collect { it.name }
+                    println other.collect { it.name }
+                }
+            }
+        """
 
         when:
         repositoryInteractions {

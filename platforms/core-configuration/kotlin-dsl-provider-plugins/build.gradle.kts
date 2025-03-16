@@ -5,36 +5,49 @@ plugins {
 description = "Kotlin DSL Provider Plugins"
 
 dependencies {
-    implementation(project(":kotlin-dsl"))
+    api(projects.classloaders)
+    api(projects.core)
+    api(projects.coreApi)
+    api(projects.kotlinDsl)
+    api(projects.logging)
+    api(projects.serviceProvider)
+    api(projects.stdlibJavaExtensions)
+    api(projects.persistentCache)
+    api(projects.declarativeDslToolingModels)
 
-    implementation(project(":base-services"))
-    implementation(project(":core"))
-    implementation(project(":core-api"))
-    implementation(project(":functional"))
-    implementation(project(":execution"))
-    implementation(project(":file-collections"))
-    implementation(project(":language-jvm"))
-    implementation(project(":logging"))
-    implementation(project(":model-core"))
-    implementation(project(":plugin-development"))
-    implementation(project(":plugins-java"))
-    implementation(project(":plugins-java-base"))
-    implementation(project(":platform-jvm"))
-    implementation(project(":resources"))
-    implementation(project(":snapshots"))
-    implementation(project(":tooling-api"))
-    implementation(project(":toolchains-jvm"))
+    api(libs.inject)
+    api(libs.kotlinStdlib)
+
+    implementation(projects.baseServices)
+    implementation(projects.concurrent)
+    implementation(projects.functional)
+    implementation(projects.fileCollections)
+    implementation(projects.hashing)
+    implementation(projects.jvmServices)
+    implementation(projects.loggingApi)
+    implementation(projects.pluginDevelopment)
+    implementation(projects.pluginsJavaBase)
+    implementation(projects.platformJvm)
+    implementation(projects.resources)
+    implementation(projects.serviceLookup)
+    implementation(projects.snapshots)
+    implementation(projects.toolingApi)
+    implementation(projects.toolchainsJvm)
+    implementation(projects.toolchainsJvmShared)
+    implementation(projects.declarativeDslEvaluator)
+    implementation(projects.declarativeDslProvider)
+    implementation(projects.declarativeDslCore)
 
     implementation(libs.futureKotlin("scripting-compiler-impl-embeddable")) {
         isTransitive = false
     }
-    implementation(libs.futureKotlin("compiler-embeddable"))
-
-    implementation(libs.groovy)
+    implementation(libs.kotlinCompilerEmbeddable)
+    implementation(libs.jspecify)
     implementation(libs.slf4jApi)
-    implementation(libs.inject)
 
-    testImplementation(testFixtures(project(":kotlin-dsl")))
+    compileOnly(libs.kotlinReflect)
+
+    testImplementation(testFixtures(projects.kotlinDsl))
     testImplementation(libs.mockitoKotlin2)
 }
 

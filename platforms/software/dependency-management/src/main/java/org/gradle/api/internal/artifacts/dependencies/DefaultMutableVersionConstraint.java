@@ -15,12 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.dependencies;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.VersionConstraintInternal;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -31,7 +31,7 @@ public class DefaultMutableVersionConstraint extends AbstractVersionConstraint i
     private String preferredVersion;
     private String strictVersion;
     private String branch;
-    private final List<String> rejectedVersions = Lists.newArrayListWithExpectedSize(1);
+    private final List<String> rejectedVersions = new ArrayList<>(1);
 
     public DefaultMutableVersionConstraint(VersionConstraint versionConstraint) {
         this(versionConstraint.getPreferredVersion(), versionConstraint.getRequiredVersion(), versionConstraint.getStrictVersion(), versionConstraint.getRejectedVersions(), versionConstraint.getBranch());
@@ -66,10 +66,6 @@ public class DefaultMutableVersionConstraint extends AbstractVersionConstraint i
 
     public static DefaultMutableVersionConstraint withStrictVersion(String version) {
         return new DefaultMutableVersionConstraint(null, version, version);
-    }
-
-    public static DefaultMutableVersionConstraint withPreferredVersion(String version) {
-        return new DefaultMutableVersionConstraint(version, null, null);
     }
 
     @Override

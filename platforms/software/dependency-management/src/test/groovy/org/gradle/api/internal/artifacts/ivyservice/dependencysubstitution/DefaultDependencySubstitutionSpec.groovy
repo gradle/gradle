@@ -16,12 +16,13 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution
 
+import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.component.ModuleComponentSelector
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.artifacts.component.ProjectComponentSelector
 import org.gradle.api.artifacts.result.ComponentSelectionCause
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
+import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.internal.component.model.IvyArtifactName
@@ -94,7 +95,7 @@ class DefaultDependencySubstitutionSpec extends Specification {
 
     def "can specify target project"() {
         def projectState = Mock(ProjectState)
-        projectState.componentIdentifier >> Stub(ProjectComponentIdentifier)
+        projectState.identity >> new ProjectIdentity(Mock(BuildIdentifier), Path.path(":id:path"), Path.path(":bar"), "bar")
         def project = Mock(ProjectInternal)
         project.identityPath >> Path.path(":id:path")
         project.projectPath >> Path.path(":bar")

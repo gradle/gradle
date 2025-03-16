@@ -1,0 +1,102 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[repository-content-filtering]]
+= Filtering Repository Content
+
+Gradle exposes an API to declare what a repository may or may not contain.
+There are different use cases for it:
+
+- **Performance** when you know a dependency will never be found in a specific repository
+- **Security** by avoiding leaking what dependencies are used in a private project
+- **Reliability** when some repositories contain invalid or incorrect metadata or artifacts
+
+It's even more important when considering that the declared order of repositories matter.
+
+[[sec:declaring-repository-filter]]
+== Declaring a repository filter
+
+====
+include::sample[dir="snippets//dependencyManagement/declaringRepositories-filtering/kotlin",files="build.gradle.kts[tags=repository-filter]"]
+include::sample[dir="snippets/dependencyManagement/declaringRepositories-filtering/groovy",files="build.gradle[tags=repository-filter]"]
+====
+
+By default, repositories include everything and exclude nothing:
+
+* If you declare an include, then it excludes everything _but_ what is included.
+* If you declare an exclude, then it includes everything _but_ what is excluded.
+* If you declare both includes and excludes, then it includes only what is explicitly included and not excluded.
+
+It is possible to filter either by explicit _group_, _module_ or _version_, either strictly or using regular expressions.
+When using a strict version, it is possible to use a version range, using <<dependency_versions.adoc#sec:single-version-declarations,the format supported>> by Gradle.
+In addition, there are filtering options by resolution context: configuration name or even configuration attributes.
+See link:{javadocPath}/org/gradle/api/artifacts/repositories/RepositoryContentDescriptor.html[RepositoryContentDescriptor] for details.
+
+[[sec:declaring-content-repositories]]
+== Declaring content exclusively found in one repository
+
+Filters declared using the <<#sec:declaring-repository-filter,repository-level content filter>> are not exclusive.
+This means that declaring that a repository _includes_ an artifact doesn't mean that the other repositories can't have it either: you must declare what every repository contains in extension.
+
+Alternatively, Gradle provides an API which lets you declare that a repository _exclusively includes_ an artifact.
+If you do so:
+
+- an artifact declared in a repository _can't_ be found in any other
+- exclusive repository content must be declared in extension (just like for <<#sec:declaring-repository-filter, repository-level content>>)
+
+====
+include::sample[dir="snippets/dependencyManagement/declaringRepositories-filtering/kotlin",files="build.gradle.kts[tags=exclusive-repository-filter]"]
+include::sample[dir="snippets/dependencyManagement/declaringRepositories-filtering/groovy",files="build.gradle[tags=exclusive-repository-filter]"]
+====
+
+It is possible to filter either by explicit _group_, _module_ or _version_, either strictly or using regular expressions.
+See link:{javadocPath}/org/gradle/api/artifacts/repositories/InclusiveRepositoryContentDescriptor.html[InclusiveRepositoryContentDescriptor] for details.
+
+[NOTE]
+====
+If you leverage exclusive content filtering in the <<plugins.adoc#sec:custom_plugin_repositories,`pluginManagement` section of the `settings.gradle(.kts)`>>, it becomes illegal to add more repositories through the project `buildscript.repositories`.
+In that case, the build configuration will fail.
+
+Your options are either to declare all repositories in settings or to use non-exclusive content filtering.
+====
+
+=== Maven repository filtering
+
+For <<supported_repository_types.adoc#sec:maven-repo,Maven repositories>>, it's often the case that a repository would either contain releases or snapshots.
+Gradle lets you declare what kind of artifacts are found in a repository using this DSL:
+
+====
+include::sample[dir="snippets/dependencyManagement/declaringRepositories-filtering/kotlin",files="build.gradle.kts[tags=repository-snapshots]"]
+include::sample[dir="snippets/dependencyManagement/declaringRepositories-filtering/groovy",files="build.gradle[tags=repository-snapshots]"]
+====
+
+[[sec:ivy_dynamic_resolve_mode]]
+== Enabling Ivy dynamic resolve mode
+
+Normally, in an Ivy repository, dependencies are specified using the `rev` (revision) attribute in `ivy.xml`.
+However, dynamic resolve mode allows Gradle to prefer the `revConstraint` attribute over `rev`:
+
+- If `revConstraint` is present in `ivy.xml`, Gradle will use it instead of `rev`.
+- If `revConstraint` is **not** present, Gradle falls back to `rev`.
+
+This provides more flexibility in dependency resolution, particularly when working with Ivy repositories that define constraints on acceptable versions.
+
+You need to explicitly enable dynamic resolve mode when declaring an Ivy repository:
+
+====
+include::sample[dir="snippets/dependencyManagement/customizingResolution-ivyDynamicMode/kotlin",files="build.gradle.kts[tags=ivy-repo-dynamic-mode]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-ivyDynamicMode/groovy",files="build.gradle[tags=ivy-repo-dynamic-mode]"]
+====
+
+NOTE: Dynamic resolve mode is only available for Gradle's Ivy repositories. It is not available for Maven repositories, or custom Ivy `DependencyResolver` implementations.

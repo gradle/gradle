@@ -19,7 +19,10 @@ package org.gradle.configuration.project
 import org.gradle.execution.taskgraph.NotifyTaskGraphWhenReadyBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.taskgraph.CalculateTreeTaskGraphBuildOperationType
+
+import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 
 class LifecycleProjectEvaluatorIntegrationTest extends AbstractIntegrationSpec {
 
@@ -49,6 +52,7 @@ class LifecycleProjectEvaluatorIntegrationTest extends AbstractIntegrationSpec {
         output =~ /> Outer\s+< Outer\s+Inner/
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "captures lifecycle operations"() {
         given:
         file('buildSrc/buildSrcWhenReady.gradle') << ""

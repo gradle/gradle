@@ -1,0 +1,146 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[collection_types]]
+= Understanding Collections
+
+Gradle provides types for maintaining collections of objects, intended to work well to extends Gradle's DSLs and provide useful features such as lazy configuration.
+
+[[available_collections]]
+== Available collections
+
+These collection types are used for managing collections of objects, particularly in the context of build scripts and plugins:
+
+1. <<domainobjectset,`DomainObjectSet<T>`>>: Represents a set of objects of type T. This set does not allow duplicate elements, and you can add, remove, and query objects in the set.
+
+2. <<nameddomainobjectset,`NamedDomainObjectSet<T>`>>: A specialization of `DomainObjectSet` where each object has a unique name associated with it. This is often used for collections where each element needs to be uniquely identified by a name.
+
+3. <<nameddomainobjectlist,`NamedDomainObjectList<T>`>>: Similar to `NamedDomainObjectSet`, but represents a list of objects where order matters. Each element has a unique name associated with it, and you can access elements by index as well as by name.
+
+4. <<nameddomainobjectcontainer,`NamedDomainObjectContainer<T>`>>: A container for managing objects of type T, where each object has a unique name. This container provides methods for adding, removing, and querying objects by name.
+
+5. <<extensiblepolymorphicdomainobjectcontainer,`ExtensiblePolymorphicDomainObjectContainer<T>`>>: An extension of `NamedDomainObjectContainer` that allows you to define instantiation strategies for different types of objects. This is useful when you have a container that can hold multiple types of objects, and you want to control how each type of object is instantiated.
+
+These types are commonly used in Gradle plugins and build scripts to manage collections of objects, such as tasks, configurations, or custom domain objects.
+
+[[domainobjectset]]
+== 1. `DomainObjectSet`
+
+A link:{javadocPath}/org/gradle/api/DomainObjectSet.html[`DomainObjectSet`] simply holds a set of configurable objects.
+
+Compared to `NamedDomainObjectContainer`, a `DomainObjectSet` doesn't manage the objects in the collection.
+They need to be created and added manually.
+
+You can create an instance using the link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#domainObjectSet-java.lang.Class-[ObjectFactory.domainObjectSet()] method:
+
+====
+include::sample[dir="snippets/providers/collections/kotlin",files="build.gradle.kts[tags=dos]"]
+include::sample[dir="snippets/providers/collections/groovy",files="build.gradle[tags=dos]"]
+====
+
+[[nameddomainobjectset]]
+== 2. `NamedDomainObjectSet`
+
+A link:{javadocPath}/org/gradle/api/NamedDomainObjectSet.html[`NamedDomainObjectSet`] holds a set of configurable objects, where each element has a name associated with it.
+
+This is similar to `NamedDomainObjectContainer`, however a `NamedDomainObjectSet` doesn't manage the objects in the collection.
+They need to be created and added manually.
+
+You can create an instance using the link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#namedDomainObjectSet-java.lang.Class-[ObjectFactory.namedDomainObjectSet()] method.
+
+====
+include::sample[dir="snippets/providers/collections/kotlin",files="build.gradle.kts[tags=ndos]"]
+include::sample[dir="snippets/providers/collections/groovy",files="build.gradle[tags=ndos]"]
+====
+
+[[nameddomainobjectlist]]
+== 3. `NamedDomainObjectList`
+
+A link:{javadocPath}/org/gradle/api/NamedDomainObjectList.html[`NamedDomainObjectList`] holds a list of configurable objects, where each element has a name associated with it.
+
+This is similar to `NamedDomainObjectContainer`, however a `NamedDomainObjectList` doesn't manage the objects in the collection.
+They need to be created and added manually.
+
+You can create an instance using the link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#namedDomainObjectList-java.lang.Class-[ObjectFactory.namedDomainObjectList()] method.
+
+====
+include::sample[dir="snippets/providers/collections/kotlin",files="build.gradle.kts[tags=ndol]"]
+include::sample[dir="snippets/providers/collections/groovy",files="build.gradle[tags=ndol]"]
+====
+
+[[nameddomainobjectcontainer]]
+== 4. `NamedDomainObjectContainer`
+
+A link:{javadocPath}/org/gradle/api/NamedDomainObjectContainer.html[`NamedDomainObjectContainer`] manages a set of objects, where each element has a name associated with it.
+
+The container takes care of creating and configuring the elements, and provides a DSL that build scripts can use to define and configure elements.
+It is intended to hold objects which are themselves configurable, for example a set of custom Gradle objects.
+
+Gradle uses `NamedDomainObjectContainer` type extensively throughout the API.
+For example, the `project.tasks` object used to manage the tasks of a project is a `NamedDomainObjectContainer<Task>`.
+
+You can create a container instance using the link:{javadocPath}/org/gradle/api/model/ObjectFactory.html[ObjectFactory] service, which provides the link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#domainObjectContainer-java.lang.Class-[ObjectFactory.domainObjectContainer()] method.
+This is also available using the link:{javadocPath}/org/gradle/api/Project.html#container-java.lang.Class-[Project.container()] method, however in a custom Gradle type it's generally better to use the injected `ObjectFactory` service instead of passing around a `Project` instance.
+
+You can also create a container instance using a <<properties_providers.adoc#read_only_managed_properties,read-only managed property>>.
+
+====
+include::sample[dir="snippets/providers/collections/kotlin",files="build.gradle.kts[tags=ndoc]"]
+include::sample[dir="snippets/providers/collections/groovy",files="build.gradle[tags=ndoc]"]
+====
+
+In order to use a type with any of the `domainObjectContainer()` methods, it must either
+
+- be a <<properties_providers.adoc#managed_types,named managed type>>; or
+- expose a property named "`name`" as the unique, and constant, name for the object. The `domainObjectContainer(Class)`
+variant of the method creates new instances by calling the constructor of the class that takes a string argument, which is the desired name of the object.
+
+Objects created this way are treated as custom Gradle types, and so can make use of the features discussed in this chapter, for example service injection or
+managed properties.
+
+See the above link for `domainObjectContainer()` method variants that allow custom instantiation strategies:
+
+[source,java]
+----
+include::{snippetsPath}/plugins/namedDomainObjectContainer/groovy/buildSrc/src/main/java/DownloadExtension.java[tags=download-extension]
+include::{snippetsPath}/plugins/namedDomainObjectContainer/groovy/buildSrc/src/main/java/Resource.java[tags=resource]
+----
+
+For each container property, Gradle automatically adds a block to the Groovy and Kotlin DSL that you can use to configure the contents of the container:
+
+====
+[source.multi-language-sample,kotlin]
+.build.gradle.kts
+----
+include::{snippetsPath}/plugins/namedDomainObjectContainer/kotlin/build.gradle.kts[]
+----
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{snippetsPath}/plugins/namedDomainObjectContainer/groovy/build.gradle[]
+----
+====
+
+[[extensiblepolymorphicdomainobjectcontainer]]
+== 5. `ExtensiblePolymorphicDomainObjectContainer`
+
+An link:{javadocPath}/org/gradle/api/ExtensiblePolymorphicDomainObjectContainer.html[ExtensiblePolymorphicDomainObjectContainer] is a `NamedDomainObjectContainer` that allows you to
+define instantiation strategies for different types of objects.
+
+You can create an instance using the link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#polymorphicDomainObjectContainer-java.lang.Class-[ObjectFactory.polymorphicDomainObjectContainer()] method:
+
+====
+include::sample[dir="snippets/providers/collections/kotlin",files="build.gradle.kts[tags=epdoc]"]
+include::sample[dir="snippets/providers/collections/groovy",files="build.gradle[tags=epdoc]"]
+====

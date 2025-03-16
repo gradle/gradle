@@ -19,12 +19,12 @@ package org.gradle.integtests.tooling.r68
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.tooling.BuildActionFailureException
 import org.junit.Rule
 
-@ToolingApiVersion(">=6.8")
+@Flaky(because = "https://github.com/gradle/gradle-private/issues/4534")
 class ParallelActionExecutionCrossVersionSpec extends ToolingApiSpecification {
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
@@ -92,11 +92,10 @@ class ParallelActionExecutionCrossVersionSpec extends ToolingApiSpecification {
 
         expect:
         server.expectConcurrent(1, 'root', 'a', 'b')
-        def models = withConnection {
-            def action = action(new ActionRunsNestedActions())
-            collectOutputs(action)
-            action.addArguments(args)
-            action.run()
+        def models = withConnection { connection ->
+            connection.action(new ActionRunsNestedActions())
+                .addArguments(args)
+                .run()
         }
 
         !models.mayRunInParallel

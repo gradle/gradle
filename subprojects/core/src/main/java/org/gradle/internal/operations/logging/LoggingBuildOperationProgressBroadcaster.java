@@ -29,7 +29,7 @@ import org.gradle.internal.logging.sink.OutputEventListenerManager;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.OperationIdentifier;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
@@ -45,21 +45,21 @@ import org.gradle.internal.service.scopes.ServiceScope;
  *
  * This solution has some quirks due to how the console output subsystem in Gradle has evolved.
  *
- * An “output event” effectively represents something of interest happening that
+ * An "output event" effectively represents something of interest happening that
  * some observer may wish to know about in order to visualise what is happening, e.g. a console renderer.
  * We are integrating at this level, but imposing different semantics.
- * We only broadcast the subset of events that influence the “plain console”, because this is all we need right now.
+ * We only broadcast the subset of events that influence the "plain console", because this is all we need right now.
  * The build scan infrastructure has some knowledge of how different versions of Gradle respond to these events
  * with regard to console rendering and effectively emulate.
  *
  * Ideally, we would emit a more concrete model.
- * This would be something like more clearly separating logging output from “user code” from Gradle's “UI” output,
+ * This would be something like more clearly separating logging output from "user code" from Gradle's "UI" output,
  * and separately observing it from rendering instructions.
  * This may come later.
  *
  * @since 4.7
  */
-@ServiceScope(Scopes.BuildSession.class)
+@ServiceScope(Scope.CrossBuildSession.class)
 public class LoggingBuildOperationProgressBroadcaster implements Stoppable, OutputEventListener {
 
     private final OutputEventListenerManager outputEventListenerManager;

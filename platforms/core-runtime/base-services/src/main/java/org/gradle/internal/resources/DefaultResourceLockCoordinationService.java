@@ -21,8 +21,8 @@ import org.gradle.api.Action;
 import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.MutableReference;
 import org.gradle.internal.UncheckedException;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.Arrays;
@@ -112,7 +112,10 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
                             try {
                                 lock.wait();
                             } catch (InterruptedException e) {
-                                throw UncheckedException.throwAsUncheckedException(e);
+                                // Interrupting the state lock thread means something changed,
+                                // so let's retry obtaining the lock.
+                                // Clear the interrupted flag.
+                                boolean ignored = Thread.interrupted();
                             }
                             startOperation(resourceLockState);
                             break;

@@ -177,6 +177,11 @@ class BuildPhaseOperationEventCrossVersionTest extends ToolingApiSpecification {
         def progressEvents = events.getAll()
         progressEvents.size() == 10
 
+        // NOTE This code is here to help debugging this flaky test -----------
+        println "Progress events:"
+        progressEvents.each { println it }
+        // --------------------------------------------------------------------
+
         // Root project configuration, we have 3 projects in root (root, a, b)
         assertStartEventHas(progressEvents[0], "CONFIGURE_ROOT_BUILD", 3)
         // We then configure included build c

@@ -109,7 +109,7 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
         buildFile << """
             configurations { conf }
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
 
             dependencies {
@@ -399,11 +399,11 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
                     }
                 }
             }
-            configurations.add(configurations.conf.copy())
+            def copy = configurations.conf.copy()
 
             task('assertDeps') {
                 def conf = configurations.conf
-                def confCopy = configurations.confCopy
+                def confCopy = copy
                 def notCopy = configurations.notCopy
                 doLast {
                     assert conf*.name == ['api-1.1.jar']

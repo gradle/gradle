@@ -16,16 +16,17 @@
 
 package org.gradle.api.internal.provider
 
-
 import org.gradle.api.Describable
 import org.gradle.api.GradleException
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
+import org.gradle.api.reflect.ObjectInstantiationException
 import org.gradle.internal.state.Managed
 import org.gradle.process.ExecOperations
 import org.gradle.process.ExecResult
+import org.gradle.util.internal.TextUtil
 
 import javax.inject.Inject
 
@@ -201,13 +202,35 @@ class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
         !StatusTrackingValueSource.INSIDE_COMPUTATION.get()
     }
 
-    def "failed value source restores state"() {
+    def "failed value source notifies before-after listeners"() {
         given:
         ValueSourceProviderFactory.ComputationListener listener = Mock()
         valueSourceProviderFactory.addComputationListener(listener)
+        def provider = createProviderOf(vsClass) {}
 
         when:
+        provider.get()
+
+        then:
+        thrown(exceptionClass)
+        1 * listener.beforeValueObtained()
+
+        then:
+        1 * listener.afterValueObtained()
+
+        where:
+        vsClass                        | exceptionClass
+        ThrowingValueSource            | UnsupportedOperationException
+        ConstructorThrowingValueSource | ObjectInstantiationException
+    }
+
+    def "failure to obtain value source notifies value listener"() {
+        given:
+        ValueSourceProviderFactory.ValueListener listener = Mock()
+        valueSourceProviderFactory.addValueListener(listener)
         def provider = createProviderOf(ThrowingValueSource) {}
+
+        when:
         try {
             provider.get()
         } catch (UnsupportedOperationException ignored) {
@@ -215,9 +238,37 @@ class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
         }
 
         then:
-        1 * listener.beforeValueObtained()
+        1 * listener.valueObtained({ ObtainedValue it -> it.value.failure.isPresent() }, _)
+    }
+
+    def "failure to create value source does not notify value listener"() {
+        given:
+        ValueSourceProviderFactory.ValueListener listener = Mock()
+        valueSourceProviderFactory.addValueListener(listener)
+        def provider = createProviderOf(ConstructorThrowingValueSource) {}
+
+        when:
+        try {
+            provider.get()
+        } catch (ObjectInstantiationException ignored) {
+            // expected
+        }
+
         then:
-        1 * listener.afterValueObtained()
+        0 * listener.valueObtained(_, _)
+    }
+
+    def "describable value source provides source information of missing value"() {
+        given:
+        def provider = createProviderOf(NullValueSourceWithDisplayName) {}
+
+        when:
+        provider.get()
+
+        then:
+        def e = thrown(MissingValueException)
+        e.message == TextUtil.toPlatformLineSeparators("""Cannot query the value of this provider because it has no value available.
+The value of this provider is derived from: nullValueSource""")
     }
 
     static abstract class EchoValueSource implements ValueSource<String, Parameters> {
@@ -272,6 +323,7 @@ class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
         static final ThreadLocal<Boolean> INSIDE_COMPUTATION = ThreadLocal.withInitial(() -> false)
 
         private boolean isInsideComputationInConstructor
+
         StatusTrackingValueSource() {
             isInsideComputationInConstructor = INSIDE_COMPUTATION.get()
         }
@@ -286,6 +338,29 @@ class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
         @Override
         Boolean obtain() {
             throw new UnsupportedOperationException("Cannot compute value")
+        }
+    }
+
+    static abstract class ConstructorThrowingValueSource implements ValueSource<Boolean, ValueSourceParameters.None> {
+        ConstructorThrowingValueSource() {
+            throw new UnsupportedOperationException("Cannot construct")
+        }
+
+        @Override
+        Boolean obtain() {
+            return false
+        }
+    }
+
+    static abstract class NullValueSourceWithDisplayName implements ValueSource<Boolean, ValueSourceParameters.None>, Describable {
+        @Override
+        Boolean obtain() {
+            return null
+        }
+
+        @Override
+        String getDisplayName() {
+            "nullValueSource"
         }
     }
 }

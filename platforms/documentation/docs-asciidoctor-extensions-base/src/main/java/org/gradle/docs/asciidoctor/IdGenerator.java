@@ -16,6 +16,7 @@
 
 package org.gradle.docs.asciidoctor;
 
+import java.util.Locale;
 import java.util.regex.Pattern;
 
 /**
@@ -33,7 +34,7 @@ public class IdGenerator {
     private static final String PART_SEPARATOR = "-";
 
     static String generateId(String source) {
-        String result = source.toLowerCase();
+        String result = source.toLowerCase(Locale.ROOT);
 
         // replace invalid characters
         result = ID_PATTERN.matcher(result).replaceAll("");

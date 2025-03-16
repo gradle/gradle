@@ -18,8 +18,9 @@ package org.gradle.testing.jacoco.tasks.rules;
 
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.math.BigDecimal;
 
@@ -36,6 +37,7 @@ public interface JacocoLimit extends Serializable {
      * Valid values are INSTRUCTION, LINE, BRANCH, COMPLEXITY, METHOD and CLASS. Defaults to INSTRUCTION.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     String getCounter();
 
     /**
@@ -51,6 +53,7 @@ public interface JacocoLimit extends Serializable {
      * Valid values are TOTALCOUNT, MISSEDCOUNT, COVEREDCOUNT, MISSEDRATIO and COVEREDRATIO. Defaults to COVEREDRATIO.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     String getValue();
 
     /**
@@ -66,6 +69,7 @@ public interface JacocoLimit extends Serializable {
     @Nullable
     @Optional
     @Input
+    @ToBeReplacedByLazyProperty
     BigDecimal getMinimum();
 
     /**
@@ -81,6 +85,7 @@ public interface JacocoLimit extends Serializable {
     @Nullable
     @Optional
     @Input
+    @ToBeReplacedByLazyProperty
     BigDecimal getMaximum();
 
     /**

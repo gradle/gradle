@@ -23,7 +23,7 @@ import org.gradle.api.tasks.TaskAction
 
 
 /**
- * This [Task][org.gradle.api.Task] reorders the changes in an accepted API changes file
+ * This [Task][org.gradle.api.Task] reorders the changes in an accepted API changes files
  * so that they are alphabetically sorted (by type, then member).
  */
 @CacheableTask
@@ -31,13 +31,15 @@ abstract class SortAcceptedApiChangesTask : AbstractAcceptedApiChangesMaintenanc
 
     @TaskAction
     fun execute() {
-        val sortedChanges = sortChanges(loadChanges())
-        val json = formatChanges(sortedChanges)
-        apiChangesFile.asFile.get().bufferedWriter().use { out -> out.write(json) }
+        loadChanges().mapValues {
+            formatChanges(sortChanges(it.value))
+        }.forEach {
+            it.key.bufferedWriter().use { out -> out.write(it.value) }
+        }
     }
 
     private
-    fun formatChanges(changes: List<AbstractAcceptedApiChangesMaintenanceTask.AcceptedApiChange>): String {
+    fun formatChanges(changes: List<AcceptedApiChange>): String {
         val gson: Gson = GsonBuilder().setPrettyPrinting().create()
         val initialString = gson.toJson(AcceptedApiChanges(changes))
         return adjustIndentation(initialString) + "\n"

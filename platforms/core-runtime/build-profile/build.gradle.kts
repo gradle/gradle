@@ -4,29 +4,29 @@ plugins {
 
 description = "Provides high-level insights into a Gradle build (--profile)"
 
-errorprone {
-    disabledChecks.addAll(
-        "DateFormatConstant", // 2 occurrences
-        "ThreadLocalUsage", // 1 occurrences
-        "UnnecessaryParentheses", // 1 occurrences
-    )
-}
-
 dependencies {
-    api(project(":base-annotations"))
-    api(project(":base-services"))
-    api(project(":core"))
-    api(project(":core-api"))
-    api(project(":enterprise-logging"))
+    api(projects.stdlibJavaExtensions)
+    api(projects.serviceProvider)
+    api(projects.time)
+    api(projects.baseServices)
+    api(projects.core)
+    api(projects.coreApi)
+    api(projects.enterpriseLogging)
 
-    implementation(project(":logging"))
-    implementation(project(":logging-api"))
+    implementation(projects.logging)
+    implementation(projects.loggingApi)
+    implementation(projects.reportRendering)
+    implementation(projects.serviceLookup)
 
     implementation(libs.guava)
+    implementation(libs.jspecify)
 
-    testImplementation(project(":internal-testing"))
+    testImplementation(projects.internalTesting)
 
     integTestImplementation(libs.jsoup)
 
-    integTestDistributionRuntimeOnly(project(":distributions-full"))
+    integTestDistributionRuntimeOnly(projects.distributionsFull)
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

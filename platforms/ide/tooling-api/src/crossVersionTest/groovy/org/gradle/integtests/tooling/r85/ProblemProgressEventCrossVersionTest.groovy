@@ -53,11 +53,8 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
         then:
         thrown(BuildException)
-        def problems = listener.problems.collect { new JsonSlurper().parseText(it.json) }
-        problems.size() == 2
-        problems.every {
-            it == [:]
-        }
+        def problems = listener.problems.collect { new JsonSlurper().parseText(it.descriptor.json) }
+        problems.size() == 0
     }
 
     class ProblemProgressListener implements ProgressListener {

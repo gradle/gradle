@@ -18,6 +18,7 @@ package org.gradle.vcs;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.initialization.definition.InjectedPluginDependencies;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 /**
  * Captures user-provided information about a version control repository.
@@ -29,11 +30,13 @@ public interface VersionControlSpec extends Describable {
      * Returns a {@link String} identifier which will be unique to this version
      * control specification among other version control specifications.
      */
+    @ToBeReplacedByLazyProperty
     String getUniqueId();
 
     /**
      * Returns the name of the repository.
      */
+    @ToBeReplacedByLazyProperty
     String getRepoName();
 
     /**
@@ -44,6 +47,7 @@ public interface VersionControlSpec extends Describable {
      * @return the root directory of the build, relative to the root of this repository.
      * @since 4.5
      */
+    @ToBeReplacedByLazyProperty
     String getRootDir();
 
     /**

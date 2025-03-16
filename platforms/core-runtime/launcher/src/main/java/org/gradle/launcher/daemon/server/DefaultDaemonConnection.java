@@ -34,7 +34,7 @@ import org.gradle.launcher.daemon.protocol.OutputMessage;
 import org.gradle.launcher.daemon.protocol.Result;
 import org.gradle.launcher.daemon.protocol.UserResponse;
 import org.gradle.launcher.daemon.server.api.DaemonConnection;
-import org.gradle.launcher.daemon.server.api.StdinHandler;
+import org.gradle.internal.daemon.clientinput.StdinHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

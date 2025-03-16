@@ -17,6 +17,7 @@
 package org.gradle.scala
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 import spock.lang.Issue
@@ -42,7 +43,7 @@ class ScalaConcurrencyIntegrationTest extends AbstractIntegrationSpec {
                 ${mavenCentralRepository()}
                 plugins.withId("scala") {
                     dependencies {
-                        implementation 'org.scala-lang:scala-library:2.13.12'
+                        implementation 'org.scala-lang:scala-library:${ScalaCoverage.SCALA_2.last()}'
 
                         testImplementation 'junit:junit:4.12'
                         testImplementation 'org.scalatest:scalatest_2.13:3.2.0'

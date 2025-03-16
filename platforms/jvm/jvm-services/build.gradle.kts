@@ -23,38 +23,53 @@ description = "JVM invocation and inspection abstractions"
 errorprone {
     disabledChecks.addAll(
         "DefaultCharset", // 2 occurrences
-        "StringCaseLocaleUsage", // 1 occurrences
     )
 }
 
 dependencies {
-    api(project(":logging-api"))
-    api(project(":base-annotations"))
-    api(project(":base-services"))
-    api(project(":core-api"))
-    api(project(":enterprise-logging"))
-    api(project(":file-temp"))
-    api(project(":file-collections"))
-    api(project(":process-services"))
+    api(projects.loggingApi)
+    api(projects.stdlibJavaExtensions)
+    api(projects.baseServices)
+    api(projects.buildOperations)
+    api(projects.coreApi)
+    api(projects.enterpriseLogging)
+    api(projects.fileTemp)
+    api(projects.fileCollections)
+    api(projects.processServices)
+    api(projects.persistentCache)
 
     api(libs.inject)
-    api(libs.jsr305)
+    api(libs.jspecify)
     api(libs.nativePlatform)
 
-    implementation(project(":build-operations"))
-    implementation(project(":functional"))
+    implementation(projects.functional)
+    implementation(projects.native)
+    implementation(projects.serialization)
 
-    implementation(libs.guava)
     implementation(libs.asm)
-    implementation(libs.xmlApis)
+    implementation(libs.commonsLang)
+    implementation(libs.guava)
     implementation(libs.slf4jApi)
+    implementation(libs.xmlApis)
 
-    testImplementation(project(":native"))
-    testImplementation(project(":file-collections"))
-    testImplementation(project(":snapshots"))
-    testImplementation(project(":resources"))
+    testImplementation(projects.native)
+    testImplementation(projects.fileCollections)
+    testImplementation(projects.snapshots)
+    testImplementation(projects.resources)
     testImplementation(libs.slf4jApi)
-    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(projects.core))
 
-    integTestDistributionRuntimeOnly(project(":distributions-core"))
+    integTestDistributionRuntimeOnly(projects.distributionsCore)
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}
+
+packageCycles {
+    // Needed for the factory methods in the interface since the implementation is in an internal package
+    // which in turn references the interface.
+    excludePatterns.add("org/gradle/jvm/toolchain/JavaLanguageVersion**")
+    excludePatterns.add("org/gradle/jvm/toolchain/JvmVendorSpec**")
+    // Needed as this type uses org.gradle.internal.jvm.inspection.JvmVendor which is in a package using this package
+    excludePatterns.add("org/gradle/jvm/toolchain/internal/DefaultJvmVendorSpec**")
 }

@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.artifacts.result
 
+import com.google.common.collect.ImmutableList
+import com.google.common.collect.ImmutableMap
+import com.google.common.collect.ImmutableSet
 import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.component.ModuleComponentSelector
@@ -25,17 +28,20 @@ import org.gradle.api.artifacts.result.ResolvedVariantResult
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
-import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.api.internal.artifacts.resolver.ResolutionAccess
+import org.gradle.api.internal.artifacts.resolver.ResolutionOutputsInternal
+import org.gradle.api.internal.attributes.AttributeDesugaring
+import org.gradle.api.internal.provider.Providers
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.UnresolvedDependencyEdge
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.resolve.ModuleVersionNotFoundException
+import org.gradle.util.AttributeTestUtil
 import org.gradle.util.Path
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.result.ResolutionResultDataBuilder.newDependency
 import static org.gradle.api.internal.artifacts.result.ResolutionResultDataBuilder.newModule
 import static org.gradle.api.internal.artifacts.result.ResolutionResultDataBuilder.newUnresolvedDependency
-import static org.gradle.api.internal.artifacts.result.ResolutionResultDataBuilder.newVariant
 
 class DefaultResolutionResultTest extends Specification {
 
@@ -44,12 +50,13 @@ class DefaultResolutionResultTest extends Specification {
         def dep1 = newDependency('dep1')
         def dep2 = newDependency('dep2')
 
-        def root = newModule('root').addDependency(dep1).addDependency(dep2)
+        def root = newModule('root')
+        root.addDependencies(ImmutableSet.of(dep1, dep2))
 
         def dep3 = newDependency('dep3')
         def dep4 = newUnresolvedDependency('dep4')
 
-        dep2.selected.addDependency(dep3).addDependency(dep4)
+        (dep2.selected as DefaultResolvedComponentResult).addDependencies(ImmutableSet.of(dep3, dep4))
 
         when:
         def deps = newResolutionResult(root).allDependencies
@@ -68,8 +75,10 @@ class DefaultResolutionResultTest extends Specification {
         //root -> dep1,dep2; dep1 -> dep3
         def dep = newDependency('dep1')
         def dep3 = newDependency('dep3')
-        def root = newModule('root').addDependency(dep).addDependency(newDependency('dep2')).addDependency(dep3)
-        dep.selected.addDependency(dep3)
+
+        def root = newModule('root')
+        root.addDependencies(ImmutableSet.of(dep, newDependency('dep2'), dep3))
+        (dep.selected as DefaultResolvedComponentResult).addDependencies(ImmutableSet.of(dep3))
 
         def result = newResolutionResult(root)
 
@@ -91,8 +100,10 @@ class DefaultResolutionResultTest extends Specification {
         // a->b->a
         def root = newModule('a', 'a', '1')
         def dep1 = newDependency('b', 'b', '1')
-        root.addDependency(dep1)
-        dep1.selected.addDependency(new DefaultResolvedDependencyResult(DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('a', 'a'), '1'), false, root, newVariant(), dep1.selected))
+        root.addDependencies(ImmutableSet.of(dep1))
+
+        def dep2 = new DefaultResolvedDependencyResult(DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('a', 'a'), '1'), false, root, ResolutionResultDataBuilder.newVariant(), dep1.selected)
+        (dep1.selected as DefaultResolvedComponentResult).addDependencies(ImmutableSet.of(dep2))
 
         when:
         def deps = newResolutionResult(root).allDependencies
@@ -108,7 +119,8 @@ class DefaultResolutionResultTest extends Specification {
         def dep1 = newDependency('dep1')
         def dep2 = newDependency('dep2')
 
-        def root = newModule('root').addDependency(dep1).addDependency(dep2)
+        def root = newModule('root')
+        root.addDependencies(ImmutableSet.of(dep1, dep2))
 
         when:
         def result = newResolutionResult(root)
@@ -136,9 +148,10 @@ class DefaultResolutionResultTest extends Specification {
         def mid = DefaultModuleVersionIdentifier.newId("foo", "bar", "1.0")
         org.gradle.internal.Factory<String> broken = { "too bad" }
         def dep = new DefaultUnresolvedDependencyResult(
-            Stub(ComponentSelector), false,
+            Stub(ComponentSelector),
+            false,
             Stub(ComponentSelectionReason),
-            new DefaultResolvedComponentResult(mid, Stub(ComponentSelectionReason), projectId, [1: Stub(ResolvedVariantResult)], [Stub(ResolvedVariantResult)], null),
+            new DefaultResolvedComponentResult(mid, Stub(ComponentSelectionReason), projectId, ImmutableMap.of(1L, Stub(ResolvedVariantResult)), ImmutableList.of(Stub(ResolvedVariantResult)), null),
             new ModuleVersionNotFoundException(Stub(ModuleComponentSelector), broken, [])
         )
         def edge = new UnresolvedDependencyEdge(dep)
@@ -150,8 +163,13 @@ class DefaultResolutionResultTest extends Specification {
         from.is(projectId)
     }
 
-    private static ResolutionResult newResolutionResult(root) {
-        new DefaultResolutionResult(new DefaultMinimalResolutionResult(() -> root, ImmutableAttributes.EMPTY))
+    private ResolutionResult newResolutionResult(ResolvedComponentResultInternal root) {
+        ResolutionAccess resolutionAccess = Mock(ResolutionAccess) {
+            getPublicView() >> Mock(ResolutionOutputsInternal) {
+                getRootComponent() >> Providers.of(root)
+            }
+        }
+        new DefaultResolutionResult(resolutionAccess, new AttributeDesugaring(AttributeTestUtil.attributesFactory()))
     }
 
 }

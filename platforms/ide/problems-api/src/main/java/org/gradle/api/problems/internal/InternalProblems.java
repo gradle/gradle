@@ -17,14 +17,20 @@
 package org.gradle.api.problems.internal;
 
 import org.gradle.api.problems.Problems;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
+@ServiceScope(Scope.BuildTree.class)
 public interface InternalProblems extends Problems {
 
     /**
      * Returns a reporter then provides additional problem service functionality specific for Gradle internals.
-     * <p>
      *
      * @return The reporter.
      */
     InternalProblemReporter getInternalReporter();
+
+    ProblemsInfrastructure getInfrastructure();
+
+    InternalProblemBuilder getProblemBuilder();
 }

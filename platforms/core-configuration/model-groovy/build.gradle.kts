@@ -4,29 +4,28 @@ plugins {
 
 description = "Groovy specific adaptations to the model management."
 
-errorprone {
-    disabledChecks.addAll(
-        "UnnecessaryParentheses", // 1 occurrences
-    )
-}
-
 dependencies {
-    api(project(":base-services"))
-    api(project(":model-core"))
-    api(project(":base-services-groovy"))
+    api(projects.baseServices)
+    api(projects.modelCore)
+    api(projects.baseServicesGroovy)
 
-    api(libs.jsr305)
+    api(libs.jspecify)
     api(libs.groovy)
 
-    implementation(project(":core-api"))
+    implementation(projects.stdlibJavaExtensions)
+    implementation(projects.coreApi)
 
     implementation(libs.guava)
+    implementation(libs.jsr305)
 
-    testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":model-core")))
+    testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.modelCore))
 
-    testRuntimeOnly(project(":distributions-core")) {
+    testRuntimeOnly(projects.distributionsCore) {
         because("NonTransformedModelDslBackingTest instantiates DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-core"))
+    integTestDistributionRuntimeOnly(projects.distributionsCore)
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

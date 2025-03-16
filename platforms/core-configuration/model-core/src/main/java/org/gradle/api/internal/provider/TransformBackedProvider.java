@@ -18,9 +18,9 @@ package org.gradle.api.internal.provider;
 
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.Transformer;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.gradle.internal.evaluation.EvaluationScopeContext;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 /**
  * <p>A mapping provider that uses a transform for which {@link MappingProvider} cannot be used.
@@ -55,14 +55,14 @@ public class TransformBackedProvider<OUT, IN> extends AbstractMinimalProvider<OU
 
     @Override
     public ValueProducer getProducer() {
-        try (EvaluationContext.ScopeContext ignored = openScope()) {
+        try (EvaluationScopeContext ignored = openScope()) {
             return provider.getProducer();
         }
     }
 
     @Override
     public ExecutionTimeValue<? extends OUT> calculateExecutionTimeValue() {
-        try (EvaluationContext.ScopeContext context = openScope()) {
+        try (EvaluationScopeContext context = openScope()) {
             ExecutionTimeValue<? extends IN> value = provider.calculateExecutionTimeValue();
             if (value.hasChangingContent()) {
                 // Need the value contents in order to transform it to produce the value of this provider,
@@ -76,22 +76,22 @@ public class TransformBackedProvider<OUT, IN> extends AbstractMinimalProvider<OU
 
     @Override
     protected Value<? extends OUT> calculateOwnValue(ValueConsumer consumer) {
-        try (EvaluationContext.ScopeContext context = openScope()) {
+        try (EvaluationScopeContext context = openScope()) {
             beforeRead(context);
             Value<? extends IN> value = provider.calculateValue(consumer);
             return mapValue(context, value);
         }
     }
 
-    @Nonnull
-    protected Value<OUT> mapValue(EvaluationContext.ScopeContext context, Value<? extends IN> value) {
+    @NonNull
+    protected Value<OUT> mapValue(EvaluationScopeContext context, Value<? extends IN> value) {
         if (value.isMissing()) {
             return value.asType();
         }
         return value.transform(transformer);
     }
 
-    protected void beforeRead(EvaluationContext.ScopeContext context) {
+    protected void beforeRead(EvaluationScopeContext context) {
         provider.getProducer().visitContentProducerTasks(producer -> {
             if (!producer.getState().getExecuted()) {
                 throw new InvalidUserCodeException(

@@ -30,7 +30,7 @@ import java.lang.annotation.Target;
  * The name is defined either by the name of the method, or the {@link #value} of this annotation.
  * The type is defined differently depending on whether the new element is {@link Managed} or not.
 
- * <h3>Creating managed model elements</h3>
+ * <h2>Creating managed model elements</h2>
  * <p>
  * If the element is to be of a managed type, the method must return {@code void} and receive the newly created instance as the <b>first</b> parameter.
  * All other parameters are considered <i>inputs</i>.
@@ -39,7 +39,7 @@ import java.lang.annotation.Target;
  * It is an error for a {@code @Model} rule to return {@code void} and for the first parameter to be annotated with {@link Path}.
  * It is an error for a {@code @Model} rule to specify a managed type as the return type.
 
- * <h3>Creating non-managed model elements</h3>
+ * <h2>Creating non-managed model elements</h2>
  * <p>
  * If the element is to be of a non-managed type, the method must return the newly created instance.
  * All parameters are considered <i>inputs</i>.

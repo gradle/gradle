@@ -17,7 +17,8 @@
 package org.gradle.testing.base;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.Named;
+import org.gradle.api.file.Directory;
+import org.gradle.api.provider.Provider;
 
 /**
  * Base test suite target.
@@ -27,5 +28,14 @@ import org.gradle.api.Named;
  * @since 7.3
  */
 @Incubating
-public interface TestSuiteTarget extends Named {
+public interface TestSuiteTarget {
+
+    /**
+     * The directory containing the binary results produced by executing this test suite target.
+     *
+     * @return the binary results directory
+     *
+     * @since 8.13
+     */
+    Provider<Directory> getBinaryResultsDirectory();
 }

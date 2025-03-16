@@ -18,7 +18,6 @@ package org.gradle.api.plugins
 
 import org.gradle.api.Action
 import org.gradle.api.JavaVersion
-import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.java.archives.Manifest
 import org.gradle.api.java.archives.internal.DefaultManifest
 import org.gradle.api.plugins.internal.DefaultJavaPluginConvention
@@ -96,7 +95,7 @@ class DefaultJavaPluginConventionTest extends Specification {
         convention.testReportDir == new File(project.buildDir, 'reports/tests')
 
         when:
-        project.reporting.baseDir = 'other-reports-dir'
+        project.reporting.baseDirectory.set(project.file('other-reports-dir'))
         convention.testReportDirName = 'other-test-dir'
 
         then:
@@ -137,9 +136,7 @@ class DefaultJavaPluginConventionTest extends Specification {
 
     def "creates manifest with file resolving and values"() {
         given:
-        def fileResolver = Mock(FileResolver)
-        def manifestFile = tmpDir.file('file') << "key2: value2"
-        project.fileResolver = fileResolver
+        project.file('file') << "key2: value2"
         def manifest = convention.manifest {
             from 'file'
             attributes(key1: 'value1')
@@ -149,7 +146,6 @@ class DefaultJavaPluginConventionTest extends Specification {
         def mergedManifest = manifest.effectiveManifest
 
         then:
-        1 * fileResolver.resolve('file') >> manifestFile
         manifest instanceof DefaultManifest
         mergedManifest.attributes as Map == [key1: 'value1', key2: 'value2', 'Manifest-Version': '1.0']
     }

@@ -18,7 +18,6 @@ package org.gradle.plugins.ide.tooling.r31
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.model.eclipse.EclipseProject
@@ -95,7 +94,6 @@ class AdHocCompositeDependencySubstitutionCrossVersionSpec extends ToolingApiSpe
         eclipseProject.projectDependencies.find { it.path == 'b2-renamed' }
     }
 
-    @ToolingApiVersion(">=3.2")
     def "Idea model has dependencies substituted in composite"() {
         when:
         def ideaModule = withConnection {
@@ -110,7 +108,6 @@ class AdHocCompositeDependencySubstitutionCrossVersionSpec extends ToolingApiSpe
         }
     }
 
-    @ToolingApiVersion(">=3.2")
     def "Idea model honours custom module name"() {
         when:
         buildB.buildFile << """

@@ -60,5 +60,4 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
         return merged;
     }
 
-
 }

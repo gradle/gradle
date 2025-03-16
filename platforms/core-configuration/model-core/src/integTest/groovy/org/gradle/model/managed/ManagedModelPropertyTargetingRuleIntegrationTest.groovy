@@ -24,7 +24,7 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
 
     def "rule can target nested element of managed element as input"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Platform {
                 OperatingSystem getOperatingSystem()
@@ -84,7 +84,7 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
 
     def "rule can target nested element of managed element as subject"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Platform {
                 OperatingSystem getOperatingSystem()
@@ -145,7 +145,7 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
 
     def "rule can target managed element as input through a reference"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Platform {
                 OperatingSystem getOperatingSystem()
@@ -206,7 +206,7 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
 
     def "rule can target nested element of managed element as input through a reference to managed element"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Platform {
                 OperatingSystem getOperatingSystem()
@@ -272,7 +272,7 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
 
     def "rule can target managed element via a series of references"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Platform {
                 OperatingSystem getOperatingSystem()
@@ -344,7 +344,7 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
 
     def "target of reference is realized when used as an input"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Platforms {
                 OperatingSystem getCurrent()
@@ -414,7 +414,7 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
 
     def "rule can target scalar property of managed element as input"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Platform {
                 String getName()
@@ -460,7 +460,7 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
 
     def "rule can configure scalar property of managed element"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Platform {
                 OperatingSystem getOperatingSystem()
@@ -510,7 +510,7 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
 
     def "creation rule can target scalar property of managed element as input"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface OperatingSystem {
                 String getName()

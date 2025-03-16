@@ -16,7 +16,8 @@
 
 package org.gradle.api.credentials;
 
-import javax.annotation.Nullable;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A username/password credentials that can be used to login to something protected by a username and password.
@@ -30,6 +31,7 @@ public interface PasswordCredentials extends Credentials {
      * @return The user name. May be null.
      */
     @Nullable
+    @ToBeReplacedByLazyProperty
     String getUsername();
 
     /**
@@ -45,6 +47,7 @@ public interface PasswordCredentials extends Credentials {
      * @return The password. May be null.
      */
     @Nullable
+    @ToBeReplacedByLazyProperty
     String getPassword();
 
     /**

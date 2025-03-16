@@ -29,7 +29,6 @@ class CppDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrati
     @Rule
     GitFileRepository repo = new GitFileRepository(testDirectory)
 
-    @ToBeFixedForConfigurationCache
     def "can combine C++ builds in a composite"() {
         given:
         createDirs("app", "hello", "log")
@@ -58,7 +57,7 @@ class CppDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrati
 
     // NOTE: This method is named in a short way because of the maximum path length
     // on Windows.
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = "source dependencies")
     def "from VCS"() {
         given:
         createDirs("app")
@@ -70,7 +69,7 @@ class CppDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrati
                     all { details ->
                         if (details.requested.group == "org.gradle.cpp") {
                             from(${GitVersionControlSpec.name}) {
-                                url = uri("${repo.url}")
+                                url = "${repo.url}"
                                 rootDir = details.requested.module
                             }
                         }

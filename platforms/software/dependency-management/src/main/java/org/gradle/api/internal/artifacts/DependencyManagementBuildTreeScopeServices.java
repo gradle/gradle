@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts;
 
 import com.google.common.collect.ImmutableMap;
 import org.gradle.StartParameter;
+import org.gradle.api.internal.artifacts.capability.CapabilitySelectorSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingAccessCoordinator;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider;
@@ -49,11 +50,18 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.InMemoryModuleVersionsCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.ReadOnlyModuleVersionsCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.TwoStageModuleVersionsCache;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultLocalVariantGraphResolveStateBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalVariantGraphResolveStateBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectLocalComponentProvider;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectPublicationRegistry;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentProvider;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifactResolver;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VariantArtifactSetCache;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AdhocHandlingComponentResultSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ThisBuildOnlyComponentDetailsSerializer;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ThisBuildOnlySelectedVariantSerializer;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.CompleteComponentResultSerializer;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ThisBuildTreeOnlyComponentResultSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.ResolutionResultsStoreFactory;
 import org.gradle.api.internal.artifacts.repositories.metadata.DefaultMetadataFileSourceCodec;
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory;
@@ -65,19 +73,23 @@ import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.filestore.ArtifactIdentifierFileStore;
 import org.gradle.api.internal.filestore.DefaultArtifactIdentifierFileStore;
 import org.gradle.api.internal.filestore.TwoStageArtifactIdentifierFileStore;
+import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveStateFactory;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory;
 import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.component.model.PersistentModuleSource;
 import org.gradle.internal.hash.ChecksumService;
+import org.gradle.internal.resolve.resolver.ResolvedVariantCache;
 import org.gradle.internal.resource.cached.ByUrlCachedExternalResourceIndex;
 import org.gradle.internal.resource.cached.CachedExternalResourceIndex;
 import org.gradle.internal.resource.cached.DefaultExternalResourceFileStore;
 import org.gradle.internal.resource.cached.ExternalResourceFileStore;
 import org.gradle.internal.resource.cached.TwoStageByUrlCachedExternalResourceIndex;
 import org.gradle.internal.resource.cached.TwoStageExternalResourceFileStore;
+import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 import org.gradle.util.internal.SimpleMapInterner;
 
@@ -90,7 +102,7 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * The set of dependency management services that are created per build tree.
  */
-class DependencyManagementBuildTreeScopeServices {
+class DependencyManagementBuildTreeScopeServices implements ServiceRegistrationProvider {
     void configure(ServiceRegistration registration) {
         registration.add(ProjectArtifactResolver.class);
         registration.add(DefaultExternalResourceFileStore.Factory.class);
@@ -100,20 +112,29 @@ class DependencyManagementBuildTreeScopeServices {
         registration.add(ComponentIdGenerator.class);
         registration.add(LocalComponentGraphResolveStateFactory.class);
         registration.add(ModuleComponentGraphResolveStateFactory.class);
-        registration.add(ThisBuildOnlyComponentDetailsSerializer.class);
-        registration.add(ThisBuildOnlySelectedVariantSerializer .class);
+        registration.add(CapabilitySelectorSerializer.class);
+        registration.add(CompleteComponentResultSerializer.class);
+        registration.add(ThisBuildTreeOnlyComponentResultSerializer.class);
+        registration.add(AdhocHandlingComponentResultSerializer.class);
         registration.add(ConnectionFailureRepositoryDisabler.class);
-        registration.add(DefaultProjectLocalComponentProvider.class);
+        registration.add(LocalComponentProvider.class, DefaultProjectLocalComponentProvider.class);
+        registration.add(ProjectPublicationRegistry.class, HoldsProjectState.class, DefaultProjectPublicationRegistry.class);
+        registration.add(LocalVariantGraphResolveStateBuilder.class, DefaultLocalVariantGraphResolveStateBuilder.class);
+        registration.add(ResolvedVariantCache.class);
+        registration.add(VariantArtifactSetCache.class);
     }
 
+    @Provides
     SimpleMapInterner createStringInterner() {
         return SimpleMapInterner.threadSafe();
     }
 
+    @Provides
     BuildCommencedTimeProvider createBuildTimeProvider(StartParameter startParameter) {
         return new BuildCommencedTimeProvider(startParameter);
     }
 
+    @Provides
     ResolutionResultsStoreFactory createResolutionResultsStoreFactory(TemporaryFileProvider temporaryFileProvider) {
         return new ResolutionResultsStoreFactory(temporaryFileProvider);
     }
@@ -128,6 +149,7 @@ class DependencyManagementBuildTreeScopeServices {
         );
     }
 
+    @Provides
     FileStoreAndIndexProvider createFileStoreAndIndexProvider(
         BuildCommencedTimeProvider timeProvider,
         ArtifactCachesProvider artifactCaches,
@@ -148,6 +170,7 @@ class DependencyManagementBuildTreeScopeServices {
             externalResourceFileStore, artifactIdentifierFileStore);
     }
 
+    @Provides
     ModuleSourcesSerializer createModuleSourcesSerializer(ImmutableModuleIdentifierFactory moduleIdentifierFactory, FileStoreAndIndexProvider fileStoreAndIndexProvider) {
         Map<Integer, PersistentModuleSource.Codec<? extends PersistentModuleSource>> codecs = ImmutableMap.of(
             MetadataFileSource.CODEC_ID, new DefaultMetadataFileSourceCodec(moduleIdentifierFactory, fileStoreAndIndexProvider.getArtifactIdentifierFileStore()),
@@ -156,17 +179,20 @@ class DependencyManagementBuildTreeScopeServices {
         return new ModuleSourcesSerializer(codecs);
     }
 
+    @Provides
     StartParameterResolutionOverride createStartParameterResolutionOverride(StartParameter startParameter, BuildLayout buildLayout) {
         File rootDirectory = buildLayout.getRootDirectory();
         File gradleDir = new File(rootDirectory, "gradle");
         return new StartParameterResolutionOverride(startParameter, gradleDir);
     }
 
+    @Provides
     ModuleRepositoryCacheProvider createModuleRepositoryCacheProvider(
         BuildCommencedTimeProvider timeProvider,
         ImmutableModuleIdentifierFactory moduleIdentifierFactory,
         ArtifactCachesProvider artifactCaches,
         AttributeContainerSerializer attributeContainerSerializer,
+        CapabilitySelectorSerializer capabilitySelectorSerializer,
         MavenMutableModuleMetadataFactory mavenMetadataFactory,
         IvyMutableModuleMetadataFactory ivyMetadataFactory,
         SimpleMapInterner stringInterner,
@@ -175,11 +201,11 @@ class DependencyManagementBuildTreeScopeServices {
         ChecksumService checksumService
     ) {
         ArtifactIdentifierFileStore artifactIdentifierFileStore = fileStoreAndIndexProvider.getArtifactIdentifierFileStore();
-        ModuleRepositoryCaches writableCaches = artifactCaches.withWritableCache((md, manager) -> prepareModuleRepositoryCaches(md, manager, timeProvider, moduleIdentifierFactory, attributeContainerSerializer, mavenMetadataFactory, ivyMetadataFactory, stringInterner, artifactIdentifierFileStore, moduleSourcesSerializer, checksumService));
+        ModuleRepositoryCaches writableCaches = artifactCaches.withWritableCache((md, manager) -> prepareModuleRepositoryCaches(md, manager, timeProvider, moduleIdentifierFactory, attributeContainerSerializer, capabilitySelectorSerializer, mavenMetadataFactory, ivyMetadataFactory, stringInterner, artifactIdentifierFileStore, moduleSourcesSerializer, checksumService));
         AtomicReference<Path> roCachePath = new AtomicReference<>();
         Optional<ModuleRepositoryCaches> readOnlyCaches = artifactCaches.withReadOnlyCache((ro, manager) -> {
             roCachePath.set(ro.getCacheDir().toPath());
-            return prepareReadOnlyModuleRepositoryCaches(ro, manager, timeProvider, moduleIdentifierFactory, attributeContainerSerializer, mavenMetadataFactory, ivyMetadataFactory, stringInterner, artifactIdentifierFileStore, moduleSourcesSerializer, checksumService);
+            return prepareReadOnlyModuleRepositoryCaches(ro, manager, timeProvider, moduleIdentifierFactory, attributeContainerSerializer, capabilitySelectorSerializer, mavenMetadataFactory, ivyMetadataFactory, stringInterner, artifactIdentifierFileStore, moduleSourcesSerializer, checksumService);
         });
         AbstractModuleVersionsCache moduleVersionsCache = readOnlyCaches.map(mrc -> (AbstractModuleVersionsCache) new TwoStageModuleVersionsCache(timeProvider, mrc.moduleVersionsCache, writableCaches.moduleVersionsCache)).orElse(writableCaches.moduleVersionsCache);
         AbstractModuleMetadataCache persistentModuleMetadataCache = readOnlyCaches.map(mrc -> (AbstractModuleMetadataCache) new TwoStageModuleMetadataCache(timeProvider, mrc.moduleMetadataCache, writableCaches.moduleMetadataCache)).orElse(writableCaches.moduleMetadataCache);
@@ -200,7 +226,7 @@ class DependencyManagementBuildTreeScopeServices {
         return new ModuleRepositoryCacheProvider(persistentCaches, inMemoryOnlyCaches);
     }
 
-    private static ModuleRepositoryCaches prepareModuleRepositoryCaches(ArtifactCacheMetadata artifactCacheMetadata, ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator, BuildCommencedTimeProvider timeProvider, ImmutableModuleIdentifierFactory moduleIdentifierFactory, AttributeContainerSerializer attributeContainerSerializer, MavenMutableModuleMetadataFactory mavenMetadataFactory, IvyMutableModuleMetadataFactory ivyMetadataFactory, SimpleMapInterner stringInterner, ArtifactIdentifierFileStore artifactIdentifierFileStore, ModuleSourcesSerializer moduleSourcesSerializer, ChecksumService checksumService) {
+    private static ModuleRepositoryCaches prepareModuleRepositoryCaches(ArtifactCacheMetadata artifactCacheMetadata, ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator, BuildCommencedTimeProvider timeProvider, ImmutableModuleIdentifierFactory moduleIdentifierFactory, AttributeContainerSerializer attributeContainerSerializer, CapabilitySelectorSerializer capabilitySelectorSerializer, MavenMutableModuleMetadataFactory mavenMetadataFactory, IvyMutableModuleMetadataFactory ivyMetadataFactory, SimpleMapInterner stringInterner, ArtifactIdentifierFileStore artifactIdentifierFileStore, ModuleSourcesSerializer moduleSourcesSerializer, ChecksumService checksumService) {
         DefaultModuleVersionsCache moduleVersionsCache = new DefaultModuleVersionsCache(
             timeProvider,
             cacheAccessCoordinator,
@@ -211,6 +237,7 @@ class DependencyManagementBuildTreeScopeServices {
             artifactCacheMetadata,
             moduleIdentifierFactory,
             attributeContainerSerializer,
+            capabilitySelectorSerializer,
             mavenMetadataFactory,
             ivyMetadataFactory,
             stringInterner,
@@ -235,7 +262,7 @@ class DependencyManagementBuildTreeScopeServices {
         );
     }
 
-    private static ModuleRepositoryCaches prepareReadOnlyModuleRepositoryCaches(ArtifactCacheMetadata artifactCacheMetadata, ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator, BuildCommencedTimeProvider timeProvider, ImmutableModuleIdentifierFactory moduleIdentifierFactory, AttributeContainerSerializer attributeContainerSerializer, MavenMutableModuleMetadataFactory mavenMetadataFactory, IvyMutableModuleMetadataFactory ivyMetadataFactory, SimpleMapInterner stringInterner, ArtifactIdentifierFileStore artifactIdentifierFileStore, ModuleSourcesSerializer moduleSourcesSerializer, ChecksumService checksumService) {
+    private static ModuleRepositoryCaches prepareReadOnlyModuleRepositoryCaches(ArtifactCacheMetadata artifactCacheMetadata, ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator, BuildCommencedTimeProvider timeProvider, ImmutableModuleIdentifierFactory moduleIdentifierFactory, AttributeContainerSerializer attributeContainerSerializer, CapabilitySelectorSerializer capabilitySelectorSerializer, MavenMutableModuleMetadataFactory mavenMetadataFactory, IvyMutableModuleMetadataFactory ivyMetadataFactory, SimpleMapInterner stringInterner, ArtifactIdentifierFileStore artifactIdentifierFileStore, ModuleSourcesSerializer moduleSourcesSerializer, ChecksumService checksumService) {
         ReadOnlyModuleVersionsCache moduleVersionsCache = new ReadOnlyModuleVersionsCache(
             timeProvider,
             cacheAccessCoordinator,
@@ -246,6 +273,7 @@ class DependencyManagementBuildTreeScopeServices {
             artifactCacheMetadata,
             moduleIdentifierFactory,
             attributeContainerSerializer,
+            capabilitySelectorSerializer,
             mavenMetadataFactory,
             ivyMetadataFactory,
             stringInterner,

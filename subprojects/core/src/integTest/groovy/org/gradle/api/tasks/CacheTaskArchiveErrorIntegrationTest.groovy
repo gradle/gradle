@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildCacheOperationFixtures
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.TestBuildCache
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
@@ -28,6 +29,7 @@ import spock.lang.Issue
 import java.util.function.Consumer
 import java.util.function.Predicate
 
+import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 import static org.gradle.util.internal.TextUtil.escapeString
 
 class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
@@ -45,6 +47,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << localCache.localCacheConfiguration()
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "fails build when packing archive fails"() {
         when:
         file("input.txt") << "data"
@@ -73,6 +76,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
         localCache.listCacheTempFiles().empty
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "archive is not pushed to remote when packing fails"() {
         executer.withStacktraceEnabled()
 
@@ -102,6 +106,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
         errorOutput =~ /${RuntimeException.name}: Could not pack tree 'output'/
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "corrupt archive loaded from remote cache is not copied into local cache"() {
         when:
         file("input.txt") << "data"

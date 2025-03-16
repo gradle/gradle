@@ -41,7 +41,9 @@ import org.gradle.tooling.events.task.TaskFinishEvent
 import org.gradle.tooling.events.task.TaskOperationDescriptor
 import org.gradle.tooling.events.task.TaskStartEvent
 import org.gradle.tooling.events.test.TestFinishEvent
+import org.gradle.tooling.events.test.TestMetadataEvent
 import org.gradle.tooling.events.test.TestOperationDescriptor
+import org.gradle.tooling.events.test.TestOutputEvent
 import org.gradle.tooling.events.test.TestStartEvent
 import org.gradle.tooling.events.transform.TransformFinishEvent
 import org.gradle.tooling.events.transform.TransformOperationDescriptor
@@ -104,6 +106,7 @@ class ProgressEvents implements ProgressListener {
                         || descriptor.displayName.startsWith('Configure project ')
                         || descriptor.displayName.startsWith('Cross-configure project ')
                         || descriptor.displayName.startsWith('Resolve files of')
+                        || descriptor.displayName.startsWith('Fingerprint transform inputs')
                         || descriptor.displayName.startsWith('Identifying ')
                         || descriptor.displayName.startsWith('Execute unit of work')
                         || descriptor.displayName.startsWith('Execute transform')
@@ -156,6 +159,8 @@ class ProgressEvents implements ProgressListener {
 
                 assert event.result.startTime == startEvent.eventTime
                 assert event.result.endTime == event.eventTime
+            } else if (event instanceof TestOutputEvent || event instanceof TestMetadataEvent) {
+                // Do nothing - these are treated differently, their contents are stored separately from the events
             } else {
                 def descriptor = event.descriptor
                 // operation should still be running

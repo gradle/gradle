@@ -25,6 +25,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -40,7 +41,7 @@ public class LoggingExcludeFactory extends DelegatingExcludeFactory {
 
     private static Subject computeWhatToLog() {
         String subjectString = System.getProperty("org.gradle.internal.dm.trace.excludes", Subject.all.toString());
-        return Subject.valueOf(subjectString.toLowerCase());
+        return Subject.valueOf(subjectString.toLowerCase(Locale.ROOT));
     }
 
     public static ExcludeFactory maybeLog(ExcludeFactory factory) {

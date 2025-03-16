@@ -19,14 +19,17 @@ package org.gradle.internal.build.event;
 import org.gradle.internal.operations.BuildOperationAncestryTracker;
 import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.operations.DefaultBuildOperationAncestryTracker;
+import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
+import org.gradle.internal.service.ServiceRegistrationProvider;
+import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 
-public class BuildEventServices extends AbstractPluginServiceRegistry {
+public class BuildEventServices extends AbstractGradleModuleServices {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
-        registration.add(DefaultBuildEventsListenerRegistry.class);
-        registration.addProvider(new Object() {
+        registration.add(BuildEventListenerRegistryInternal.class, DefaultBuildEventsListenerRegistry.class);
+        registration.addProvider(new ServiceRegistrationProvider() {
+            @Provides
             BuildOperationAncestryTracker createBuildOperationAncestryTracker(BuildOperationListenerManager listenerManager) {
                 DefaultBuildOperationAncestryTracker tracker = new DefaultBuildOperationAncestryTracker();
                 listenerManager.addListener(tracker);

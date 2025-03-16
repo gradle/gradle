@@ -19,13 +19,13 @@ package org.gradle.internal.enterprise.impl;
 import org.gradle.internal.enterprise.GradleEnterprisePluginBuildState;
 import org.gradle.internal.enterprise.GradleEnterprisePluginConfig;
 import org.gradle.internal.enterprise.GradleEnterprisePluginEndOfBuildListener;
+import org.gradle.internal.enterprise.GradleEnterprisePluginRequiredServices;
 import org.gradle.internal.enterprise.GradleEnterprisePluginService;
 import org.gradle.internal.enterprise.GradleEnterprisePluginServiceFactory;
 import org.gradle.internal.enterprise.GradleEnterprisePluginServiceRef;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginAdapter;
 import org.gradle.internal.operations.notify.BuildOperationNotificationListenerRegistrar;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Captures the state to recreate the {@link GradleEnterprisePluginService} instance.
@@ -43,9 +43,10 @@ public class DefaultGradleEnterprisePluginAdapter implements GradleEnterprisePlu
 
     private final GradleEnterprisePluginServiceFactory pluginServiceFactory;
     private final GradleEnterprisePluginConfig config;
-    private final DefaultGradleEnterprisePluginRequiredServices requiredServices;
+    private final GradleEnterprisePluginRequiredServices requiredServices;
     private final GradleEnterprisePluginBuildState buildState;
-    private final DefaultGradleEnterprisePluginServiceRef pluginServiceRef;
+    private final GradleEnterprisePluginBackgroundJobExecutorsInternal backgroundJobExecutors;
+    private final GradleEnterprisePluginServiceRefInternal pluginServiceRef;
 
     private final BuildOperationNotificationListenerRegistrar buildOperationNotificationListenerRegistrar;
 
@@ -54,15 +55,17 @@ public class DefaultGradleEnterprisePluginAdapter implements GradleEnterprisePlu
     public DefaultGradleEnterprisePluginAdapter(
         GradleEnterprisePluginServiceFactory pluginServiceFactory,
         GradleEnterprisePluginConfig config,
-        DefaultGradleEnterprisePluginRequiredServices requiredServices,
+        GradleEnterprisePluginRequiredServices requiredServices,
         GradleEnterprisePluginBuildState buildState,
-        DefaultGradleEnterprisePluginServiceRef pluginServiceRef,
+        GradleEnterprisePluginBackgroundJobExecutorsInternal backgroundJobExecutors,
+        GradleEnterprisePluginServiceRefInternal pluginServiceRef,
         BuildOperationNotificationListenerRegistrar buildOperationNotificationListenerRegistrar
     ) {
         this.pluginServiceFactory = pluginServiceFactory;
         this.config = config;
         this.requiredServices = requiredServices;
         this.buildState = buildState;
+        this.backgroundJobExecutors = backgroundJobExecutors;
         this.pluginServiceRef = pluginServiceRef;
         this.buildOperationNotificationListenerRegistrar = buildOperationNotificationListenerRegistrar;
 
@@ -86,16 +89,10 @@ public class DefaultGradleEnterprisePluginAdapter implements GradleEnterprisePlu
     @Override
     public void buildFinished(@Nullable Throwable buildFailure) {
         // Ensure that all tasks are complete prior to the buildFinished callback.
-        requiredServices.getBackgroundJobExecutors().stop();
+        backgroundJobExecutors.shutdown();
 
         if (pluginService != null) {
-            pluginService.getEndOfBuildListener().buildFinished(new GradleEnterprisePluginEndOfBuildListener.BuildResult() {
-                @Nullable
-                @Override
-                public Throwable getFailure() {
-                    return buildFailure;
-                }
-            });
+            pluginService.getEndOfBuildListener().buildFinished(new DefaultDevelocityPluginResult(buildFailure));
         }
     }
 
@@ -105,4 +102,17 @@ public class DefaultGradleEnterprisePluginAdapter implements GradleEnterprisePlu
         buildOperationNotificationListenerRegistrar.register(pluginService.getBuildOperationNotificationListener());
     }
 
+    private static class DefaultDevelocityPluginResult implements GradleEnterprisePluginEndOfBuildListener.BuildResult {
+        private final Throwable buildFailure;
+
+        public DefaultDevelocityPluginResult(@Nullable Throwable buildFailure) {
+            this.buildFailure = buildFailure;
+        }
+
+        @Nullable
+        @Override
+        public Throwable getFailure() {
+            return buildFailure;
+        }
+    }
 }

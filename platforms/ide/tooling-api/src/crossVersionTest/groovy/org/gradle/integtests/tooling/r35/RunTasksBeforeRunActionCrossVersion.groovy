@@ -16,17 +16,14 @@
 
 package org.gradle.integtests.tooling.r35
 
-
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ResultHandler
 import org.gradle.tooling.UnsupportedVersionException
 
 import java.util.regex.Pattern
 
-@ToolingApiVersion('>=3.5')
 @TargetGradleVersion('>=3.5')
 class RunTasksBeforeRunActionCrossVersion extends ToolingApiSpecification {
     def setup() {
@@ -99,7 +96,6 @@ class RunTasksBeforeRunActionCrossVersion extends ToolingApiSpecification {
     }
 
     // older versions do not run any tasks
-    @ToolingApiVersion('>4.7')
     @TargetGradleVersion('>=4.7')
     def "empty array of task names means run help task"() {
         file('build.gradle') << """
@@ -118,7 +114,6 @@ class RunTasksBeforeRunActionCrossVersion extends ToolingApiSpecification {
     }
 
     // older versions do not run any tasks
-    @ToolingApiVersion('>4.7')
     @TargetGradleVersion('>=4.7')
     def "empty array of task names means run default tasks when they are defined"() {
         file('build.gradle') << """
@@ -140,7 +135,6 @@ class RunTasksBeforeRunActionCrossVersion extends ToolingApiSpecification {
     }
 
     // older versions do not run any tasks
-    @ToolingApiVersion('>4.7')
     @TargetGradleVersion('>=4.7')
     def "empty list of task names means run help task"() {
         file('build.gradle') << """
@@ -159,7 +153,6 @@ class RunTasksBeforeRunActionCrossVersion extends ToolingApiSpecification {
     }
 
     // older versions do not run any tasks
-    @ToolingApiVersion('>4.7')
     @TargetGradleVersion('>=4.7')
     def "empty list of task names means run default tasks when they are defined"() {
         file('build.gradle') << """
@@ -181,7 +174,6 @@ class RunTasksBeforeRunActionCrossVersion extends ToolingApiSpecification {
     }
 
     // older versions do not run any tasks
-    @ToolingApiVersion('>4.7')
     @TargetGradleVersion('>=4.7')
     def "empty array of task names means run tasks injected by build logic"() {
         file('build.gradle') << """
@@ -203,7 +195,6 @@ class RunTasksBeforeRunActionCrossVersion extends ToolingApiSpecification {
     }
 
     // older versions do not run any tasks
-    @ToolingApiVersion('>4.7')
     @TargetGradleVersion('>=4.7')
     def "empty list of task names means run tasks injected by build logic"() {
         file('build.gradle') << """
@@ -224,7 +215,7 @@ class RunTasksBeforeRunActionCrossVersion extends ToolingApiSpecification {
         result.assertTasksExecuted(":thing")
     }
 
-    @TargetGradleVersion(">=2.6 <3.5")
+    @TargetGradleVersion(">=3.0 <3.5")
     def "BuildExecuter.forTasks() should fail when it is not supported by target"() {
         when:
         withConnection {
@@ -238,7 +229,7 @@ class RunTasksBeforeRunActionCrossVersion extends ToolingApiSpecification {
         assert e.message == "The version of Gradle you are using (${targetDist.version.version}) does not support the forTasks() method on BuildActionExecuter. Support for this is available in Gradle 3.5 and all later versions."
     }
 
-    @TargetGradleVersion(">=2.6 <3.5")
+    @TargetGradleVersion(">=3.0 <3.5")
     def "BuildExecuter.forTasks() notifies failure to handler when it is not supported by target"() {
         def handler = Mock(ResultHandler)
         def version = targetDist.version.version

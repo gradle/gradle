@@ -25,6 +25,8 @@ import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
 
+import java.util.regex.Pattern
+
 import static org.gradle.util.Matchers.isSerializable
 import static org.hamcrest.MatcherAssert.assertThat
 
@@ -367,5 +369,30 @@ class StartParameterTest extends Specification {
     private void assertRunsDefaultTasks(StartParameter parameter) {
         assert parameter.taskNames.empty
         assert parameter.taskRequests.size() == 1 && parameter.taskRequests[0] instanceof RunDefaultTasksExecutionRequest
+    }
+
+    // Previously StartParameter's toString got wildly out of sync with the state inside of it
+    // Ensure that all state is represented in the toString, so it's more useful for debugging
+    // In the future StartParameter should be replaced with a `record` so this doesn't need to be checked
+    void "all state is represented in toString"() {
+        given:
+        def parameter = new StartParameter()
+        def fieldNames = StartParameter.class.getDeclaredFields()
+            .findAll { !it.synthetic }
+            .collect { it.name }
+            .toSet()
+
+        // Replace fields that are represented as multiple fields in the toString
+        fieldNames.remove("loggingConfiguration")
+        fieldNames.add("logLevel")
+        fieldNames.add("showStacktrace")
+
+        fieldNames.remove("parallelismConfiguration")
+        fieldNames.add("parallelProjectExecution")
+        fieldNames.add("maxWorkerCount")
+
+        for (fieldName in fieldNames) {
+            parameter.toString().matches("${Pattern.quote(fieldName)}=.*(, |\$)")
+        }
     }
 }

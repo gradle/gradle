@@ -17,11 +17,14 @@
 package org.gradle.internal.service;
 
 import org.gradle.internal.Cast;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@ServiceScope(Scope.Global.class)
 public class CachingServiceLocator implements ServiceLocator {
     private final ServiceLocator delegate;
     private final Map<Class<?>, DefaultServiceLocator.ServiceFactory<?>> serviceFactories = new HashMap<Class<?>, DefaultServiceLocator.ServiceFactory<?>>();

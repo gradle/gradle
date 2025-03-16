@@ -39,7 +39,10 @@ import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 public interface ComponentArtifactResolveState {
     ComponentIdentifier getId();
 
-    ComponentArtifactResolveMetadata getResolveMetadata();
+    /**
+     * Metadata for this component's artifacts.
+     */
+    ComponentArtifactResolveMetadata getArtifactMetadata();
 
     /**
      * Discovers the set of artifacts belonging to this component, with the type specified. Does not download the artifacts. Any failures are packaged up in the result.

@@ -38,10 +38,10 @@ public interface BuildServiceRegistration<T extends BuildService<P>, P extends B
      * When this property has no value defined, then any number of tasks may use this service in parallel. This is the default.
      *
      * <p>
-     * IMPORTANT: the build service must be explicitly registered with every using task via {@link org.gradle.api.Task#usesService(Provider) Task#usesService}
-     * for this constraint to be honored.
-     * </p>
+     * IMPORTANT: the build service must be consumed via a {@link ServiceReference} property, or explicitly registered with every using task
+     * via {@link org.gradle.api.Task#usesService(Provider) Task#usesService} for this constraint to be honored.
      *
+     * @see ServiceReference
      * @see org.gradle.api.Task#usesService(Provider)
      */
     Property<Integer> getMaxParallelUsages();

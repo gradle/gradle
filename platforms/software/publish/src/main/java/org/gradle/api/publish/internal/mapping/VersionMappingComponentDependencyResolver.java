@@ -34,8 +34,8 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDepende
 import org.gradle.internal.Actions;
 import org.gradle.internal.component.local.model.ProjectComponentSelectorInternal;
 import org.gradle.util.Path;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -68,7 +68,7 @@ public class VersionMappingComponentDependencyResolver implements ComponentDepen
 
     @Override
     public ResolvedCoordinates resolveComponentCoordinates(ProjectDependency dependency) {
-        Path identityPath = ((ProjectDependencyInternal) dependency).getIdentityPath();
+        Path identityPath = ((ProjectDependencyInternal) dependency).getTargetProjectIdentity().getBuildTreePath();
         ModuleVersionIdentifier coordinates = projectDependencyResolver.resolveComponent(ModuleVersionIdentifier.class, identityPath);
         ModuleVersionIdentifier resolved = maybeResolveVersion(coordinates.getGroup(), coordinates.getName(), identityPath);
         return ResolvedCoordinates.create(resolved != null ? resolved : coordinates);

@@ -16,6 +16,8 @@
 
 package org.gradle.internal.declarativedsl.schemaBuilder
 
+import org.gradle.internal.declarativedsl.analysis.interpretationCheck
+import org.gradle.internal.declarativedsl.InstanceAndPublicType
 import java.lang.reflect.Proxy
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
@@ -25,6 +27,7 @@ import kotlin.reflect.full.createType
 import kotlin.reflect.full.declaredMemberFunctions
 import kotlin.reflect.full.instanceParameter
 import kotlin.reflect.full.isSubtypeOf
+import kotlin.reflect.jvm.jvmErasure
 import kotlin.reflect.typeOf
 
 
@@ -35,9 +38,9 @@ interface ConfigureLambdaHandler {
 
     class ValueCaptor(
         val lambda: Any,
-        private val lazyValue: Lazy<Any?>
+        private val lazyValue: Lazy<InstanceAndPublicType>
     ) {
-        val value: Any?
+        val value: InstanceAndPublicType
             get() = lazyValue.value
     }
 }
@@ -62,7 +65,7 @@ val kotlinFunctionAsConfigureLambda: ConfigureLambdaHandler = object : Configure
     override fun produceValueCaptor(lambdaType: KType): ConfigureLambdaHandler.ValueCaptor {
         lateinit var value: Any
         val lambda: Function1<Any, Unit> = { value = it }
-        return ConfigureLambdaHandler.ValueCaptor(lambda, lazy { value })
+        return ConfigureLambdaHandler.ValueCaptor(lambda, lazy { InstanceAndPublicType.of(value, getTypeConfiguredByLambda(lambdaType)?.jvmErasure) })
     }
 
     private
@@ -116,7 +119,9 @@ fun treatInterfaceAsConfigureLambda(functionalInterface: KClass<*>): ConfigureLa
 
     init {
         check(functionalInterface.java.isInterface)
-        check(typeParameters.size <= 1) { "generic types with more than one type parameter are not supported" }
+        interpretationCheck(typeParameters.size <= 1) {
+            "${functionalInterface.simpleName} interpreted as a configure lambda, but generic types with more than one type parameter are not supported"
+        }
     }
 
     override fun getTypeConfiguredByLambda(type: KType): KType? =
@@ -125,13 +130,13 @@ fun treatInterfaceAsConfigureLambda(functionalInterface: KClass<*>): ConfigureLa
     override fun isConfigureLambdaForType(configuredType: KType, maybeLambdaType: KType) =
         maybeLambdaType.isSubtypeOf(interfaceTypeWithArgument(configuredType))
 
-    override fun produceValueCaptor(lambdaType: KType): ConfigureLambdaHandler.ValueCaptor =
-        if (lambdaType.isSubtypeOf(starProjectedType)) {
-            valueCaptor()
-        } else throw IllegalArgumentException("requested lambda type $lambdaType is not a subtype of the interface $starProjectedType")
+    override fun produceValueCaptor(lambdaType: KType): ConfigureLambdaHandler.ValueCaptor {
+        require(lambdaType.isSubtypeOf(starProjectedType)) { "requested lambda type $lambdaType is not a subtype of the interface $starProjectedType" }
+        return valueCaptor(getTypeConfiguredByLambda(lambdaType))
+    }
 
     private
-    fun valueCaptor(): ConfigureLambdaHandler.ValueCaptor {
+    fun valueCaptor(typeConfiguredByLambda: KType?): ConfigureLambdaHandler.ValueCaptor {
         var value: Any? = null
         val lambda = Proxy.newProxyInstance(
             functionalInterface.java.classLoader,
@@ -140,6 +145,6 @@ fun treatInterfaceAsConfigureLambda(functionalInterface: KClass<*>): ConfigureLa
             value = args[0]
             return@newProxyInstance null
         }
-        return ConfigureLambdaHandler.ValueCaptor(lambda, lazy { value })
+        return ConfigureLambdaHandler.ValueCaptor(lambda, lazy { InstanceAndPublicType.of(value, typeConfiguredByLambda?.jvmErasure) })
     }
 }

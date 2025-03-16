@@ -17,8 +17,8 @@
 package org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps;
 
 import com.google.common.base.Objects;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.tools.JavaFileManager;
 import javax.tools.StandardLocation;
 import java.io.Serializable;

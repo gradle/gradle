@@ -18,12 +18,12 @@ package org.gradle.api.internal.provider.sources.process;
 
 import org.gradle.api.Action;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.process.ExecSpec;
 import org.gradle.process.JavaExecSpec;
 
-@ServiceScope(Scopes.Build.class)
+@ServiceScope(Scope.Build.class)
 public class ProcessOutputProviderFactory {
     private final Instantiator instantiator;
     private final ExecSpecFactory execSpecFactory;

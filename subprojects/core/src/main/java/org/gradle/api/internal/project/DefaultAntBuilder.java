@@ -36,8 +36,8 @@ import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.ant.AntTarget;
 import org.gradle.internal.Transformers;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -147,6 +147,7 @@ public class DefaultAntBuilder extends BasicAntBuilder implements GroovyObject {
         for (String name : newAntTargets) {
             final Target target = getAntProject().getTargets().get(name);
             String taskName = taskNamer.transform(target.getName());
+            @SuppressWarnings("deprecation")
             final AntTarget task = gradleProject.getTasks().create(taskName, AntTarget.class);
             configureTask(target, task, baseDir, taskNamer);
         }

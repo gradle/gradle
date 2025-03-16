@@ -18,7 +18,8 @@ package org.gradle.cache.internal;
 
 import org.gradle.cache.FileIntegrityViolationException;
 import org.gradle.cache.ObjectHolder;
-import org.gradle.internal.Factory;
+
+import java.util.function.Supplier;
 
 public class FileIntegrityViolationSuppressingObjectHolderDecorator<T> implements ObjectHolder<T> {
 
@@ -44,27 +45,17 @@ public class FileIntegrityViolationSuppressingObjectHolderDecorator<T> implement
 
     @Override
     public T update(final UpdateAction<T> updateAction) {
-        return doUpdate(updateAction, new Factory<T>() {
-            @Override
-            public T create() {
-                return delegate.update(updateAction);
-            }
-        });
+        return doUpdate(updateAction, () -> delegate.update(updateAction));
     }
 
     @Override
     public T maybeUpdate(final UpdateAction<T> updateAction) {
-        return doUpdate(updateAction, new Factory<T>() {
-            @Override
-            public T create() {
-                return delegate.maybeUpdate(updateAction);
-            }
-        });
+        return doUpdate(updateAction, () -> delegate.maybeUpdate(updateAction));
     }
 
-    private T doUpdate(UpdateAction<T> updateAction, Factory<T> work) {
+    private T doUpdate(UpdateAction<T> updateAction, Supplier<T> work) {
         try {
-            return work.create();
+            return work.get();
         } catch (FileIntegrityViolationException e) {
             T newValue = updateAction.update(null);
             set(newValue);

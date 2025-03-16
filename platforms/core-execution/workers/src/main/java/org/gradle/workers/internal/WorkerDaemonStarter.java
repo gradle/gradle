@@ -48,23 +48,36 @@ public class WorkerDaemonStarter {
         this.actionExecutionSpecFactory = actionExecutionSpecFactory;
     }
 
-    public WorkerDaemonClient startDaemon(DaemonForkOptions forkOptions) {
+    WorkerDaemonClient startDaemon(DaemonForkOptions forkOptions) {
         LOG.debug("Starting Gradle worker daemon with fork options {}.", forkOptions);
         Timer clock = Time.startTimer();
         MultiRequestWorkerProcessBuilder<TransportableActionExecutionSpec, DefaultWorkResult> builder = workerDaemonProcessFactory.multiRequestWorker(WorkerDaemonServer.class);
         builder.setBaseName("Gradle Worker Daemon");
         builder.setLogLevel(loggingManager.getLevel()); // NOTE: might make sense to respect per-compile-task log level
         builder.sharedPackages("org.gradle", "javax.inject");
+
+        // We know the exact minimal classpath for the WorkerDaemonServer.
+        // Do not use the automatic implementation classpath.
+        builder.withoutAutomaticImplementationClasspath();
+        builder.applicationClasspath(classPathRegistry.getClassPath("DAEMON_SERVER_WORKER").getAsFiles());
+
+        // For flat classloaders, we include the work classpath along with the WorkerDaemonServer implementation.
+        // As a consequence of a flat classloader, the work is able to see the classes of the WorkerDaemonServer
+        // at runtime.
+        // This is fine for internal work, but for user-provided work, we serialize the work classpath and load
+        // it on the worker side.
+        // We primarily use a flat classloader for Java compilation workers, as using a hierarchical classloader
+        // caused performance regressions. The Java compiler seems to hammer the classloader, and performance
+        // is better with a flat classloader. A hierarchical classloader should be preferred when classloader
+        // performance is not a concern.
         if (forkOptions.getClassLoaderStructure() instanceof FlatClassLoaderStructure) {
             FlatClassLoaderStructure flatClassLoaderStructure = (FlatClassLoaderStructure) forkOptions.getClassLoaderStructure();
-            builder.applicationClasspath(classPathRegistry.getClassPath("MINIMUM_WORKER_RUNTIME").getAsFiles());
-            builder.useApplicationClassloaderOnly();
-            builder.applicationClasspath(toFiles(flatClassLoaderStructure.getSpec()));
-        } else {
-            builder.applicationClasspath(classPathRegistry.getClassPath("CORE_WORKER_RUNTIME").getAsFiles());
+            Iterable<File> workClasspath = toFiles(flatClassLoaderStructure.getSpec());
+            builder.applicationClasspath(workClasspath);
         }
+
         JavaExecHandleBuilder javaCommand = builder.getJavaCommand();
-        forkOptions.getJavaForkOptions().copyTo(javaCommand);
+        forkOptions.copyTo(javaCommand);
         builder.registerArgumentSerializer(TransportableActionExecutionSpec.class, new TransportableActionExecutionSpecSerializer());
         MultiRequestClient<TransportableActionExecutionSpec, DefaultWorkResult> workerDaemonProcess = builder.build();
         WorkerProcess workerProcess = workerDaemonProcess.start();

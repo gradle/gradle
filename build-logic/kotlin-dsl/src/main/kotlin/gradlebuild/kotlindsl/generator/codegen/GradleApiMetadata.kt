@@ -26,34 +26,24 @@ import java.util.jar.JarFile
 internal
 data class GradleApiMetadata(
     val includes: List<String>,
-    val excludes: List<String>,
-    val parameterNamesSupplier: (String) -> List<String>?
+    val excludes: List<String>
 ) {
     val spec = apiSpecFor(includes, excludes)
 }
 
 
 internal
-fun gradleApiMetadataFrom(gradleApiMetadataJar: File, gradleApiJars: Collection<File>): GradleApiMetadata =
+fun gradleApiMetadataFrom(gradleApiMetadataJar: File): GradleApiMetadata =
     apiDeclarationFrom(gradleApiMetadataJar).let { (includes, excludes) ->
-        GradleApiMetadata(includes, excludes, parameterNamesSupplierFor(parameterNamesFrom(gradleApiJars)))
+        GradleApiMetadata(includes, excludes)
     }
 
 
 private
 fun apiDeclarationFrom(gradleApiMetadataJar: File): Pair<List<String>, List<String>> =
     JarFile(gradleApiMetadataJar).use { jar ->
-        val apiDeclaration = jar.loadProperties(gradleApiDeclarationPropertiesName)
+        val apiDeclaration = jar.loadProperties(GRADLE_API_DECLARATION_PROPERTIES_NAME)
         apiDeclaration.getProperty("includes").split(":") to apiDeclaration.getProperty("excludes").split(":")
-    }
-
-
-private
-fun parameterNamesFrom(gradleApiJars: Collection<File>): List<Properties> =
-    gradleApiJars.mapNotNull { gradleApiJar ->
-        JarFile(gradleApiJar).use { jar ->
-            jar.loadPropertiesOrNull(parameterNamesResourceNameFor(gradleApiJar))
-        }
     }
 
 
@@ -72,22 +62,7 @@ fun JarFile.loadProperties(name: String): Properties =
 
 
 private
-const val gradleApiDeclarationPropertiesName = "gradle-api-declaration.properties"
-
-
-private
-fun parameterNamesResourceNameFor(jar: File) =
-    "${jar.name.split(Regex("\\d")).first()}parameter-names.properties"
-
-
-private
-fun parameterNamesSupplierFor(parameterNames: List<Properties>): (String) -> List<String>? =
-    { key: String ->
-        parameterNames.asSequence()
-            .mapNotNull { it.getProperty(key, null) }
-            .firstOrNull()
-            ?.split(",")
-    }
+const val GRADLE_API_DECLARATION_PROPERTIES_NAME = "gradle-api-declaration.properties"
 
 
 private

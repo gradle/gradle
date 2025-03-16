@@ -37,6 +37,7 @@ public abstract class CompositeSpec<T> implements Spec<T> {
         this.specs = uncheckedCast(EMPTY);
     }
 
+    @SuppressWarnings("unchecked")
     protected CompositeSpec(Spec<? super T>... specs) {
         if (specs.length == 0) {
             this.specs = uncheckedCast(EMPTY);
@@ -63,7 +64,7 @@ public abstract class CompositeSpec<T> implements Spec<T> {
         }
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "TypeParameterUnusedInFormals"})
     static <T> T uncheckedCast(Object object) {
         return (T) object;
     }

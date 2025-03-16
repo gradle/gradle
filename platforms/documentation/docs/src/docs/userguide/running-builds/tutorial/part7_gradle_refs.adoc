@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Gradle, Inc.
+// Copyright (C) 2024 Gradle, Inc.
 //
 // Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
@@ -38,7 +38,8 @@ Learn about the references you will need as you work with Gradle.
 To work with Gradle, the following references are useful:
 
 - Gradle API http://gradle.org/docs/current/javadoc/[Javadocs]
-- Gradle's https://docs.gradle.org/current/dsl/index.html[Groovy DSL] or Gradle's https://docs.gradle.org/current/kotlin-dsl/index.html[Kotlin DSL]
+- Gradle's https://docs.gradle.org/current/dsl/index.html[Groovy DSL]
+- Gradle's https://docs.gradle.org/current/kotlin-dsl/index.html[Kotlin DSL]
 
 To find plugins:
 

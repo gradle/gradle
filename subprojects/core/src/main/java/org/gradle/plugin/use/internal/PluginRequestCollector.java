@@ -18,8 +18,6 @@ package org.gradle.plugin.use.internal;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
-import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.ProviderConvertible;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.plugin.internal.InvalidPluginIdException;
@@ -30,17 +28,17 @@ import org.gradle.plugin.management.internal.InvalidPluginRequestException;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.management.internal.PluginRequests;
 import org.gradle.plugin.use.PluginDependenciesSpec;
-import org.gradle.plugin.use.PluginDependency;
 import org.gradle.plugin.use.PluginDependencySpec;
 import org.gradle.plugin.use.PluginId;
-import org.gradle.util.internal.CollectionUtils;
 
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.groupingBy;
 import static org.gradle.util.internal.CollectionUtils.collect;
 
 /**
@@ -76,7 +74,7 @@ public class PluginRequestCollector {
             new DefaultPluginRequest(original.id, original.apply, PluginRequestInternal.Origin.OTHER, scriptSource.getDisplayName(), original.lineNumber, original.version, null, null, null)
         );
 
-        Map<PluginId, Collection<PluginRequestInternal>> groupedById = CollectionUtils.groupBy(pluginRequests, PluginRequest::getId);
+        Map<PluginId, List<PluginRequestInternal>> groupedById = pluginRequests.stream().collect(groupingBy(PluginRequest::getId, Collectors.toList()));
 
         // Check for duplicates
         for (PluginId key : groupedById.keySet()) {
@@ -109,18 +107,6 @@ public class PluginRequestCollector {
             PluginDependencySpecImpl spec = new PluginDependencySpecImpl(id, requestLineNumber);
             specs.add(spec);
             return spec;
-        }
-
-        @Override
-        public PluginDependencySpec alias(Provider<PluginDependency> notation) {
-            PluginDependency pluginDependency = notation.get();
-            // For now we use the _required version_ when a plugin comes from a catalog
-            return id(pluginDependency.getPluginId()).version(pluginDependency.getVersion().getRequiredVersion());
-        }
-
-        @Override
-        public PluginDependencySpec alias(ProviderConvertible<PluginDependency> notation) {
-            return alias(notation.asProvider());
         }
     }
 

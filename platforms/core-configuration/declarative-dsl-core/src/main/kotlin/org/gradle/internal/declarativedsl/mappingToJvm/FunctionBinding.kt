@@ -16,7 +16,8 @@
 
 package org.gradle.internal.declarativedsl.mappingToJvm
 
-import org.gradle.internal.declarativedsl.analysis.DataParameter
+import org.gradle.declarative.dsl.schema.DataParameter
+import org.gradle.internal.declarativedsl.analysis.interpretationCheck
 import org.gradle.internal.declarativedsl.schemaBuilder.ConfigureLambdaHandler
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
@@ -27,12 +28,13 @@ import kotlin.reflect.full.instanceParameter
 object FunctionBinding {
     fun convertBinding(
         kFunction: KFunction<*>,
-        receiver: Any,
+        receiver: Any?,
         arguments: Map<DataParameter, Any?>,
+        hasLambda: Boolean,
         configureLambdaHandler: ConfigureLambdaHandler
     ): Binding? {
         var captor: ConfigureLambdaHandler.ValueCaptor? = null
-        val map = buildMap(arguments.size + 1) {
+        val map = buildMap<KParameter, Any?>(arguments.size + 1) {
             val namedArguments = arguments.mapKeys { (param, _) -> param.name }
             var used = 0
 
@@ -46,9 +48,9 @@ object FunctionBinding {
                     param == kFunction.instanceParameter -> put(param, receiver)
                     param == kFunction.extensionReceiverParameter -> put(param, receiver)
 
-                    configureLambdaHandler.getTypeConfiguredByLambda(param.type) != null -> {
+                    (hasLambda || param.isOptional) && configureLambdaHandler.getTypeConfiguredByLambda(param.type) != null -> {
                         val newCaptor = configureLambdaHandler.produceValueCaptor(param.type)
-                        check(captor == null) { "multiple lambda argument captors are not supported" }
+                        interpretationCheck(captor == null) { "multiple lambda argument captors are not supported" }
                         captor = newCaptor
                         put(param, newCaptor.lambda)
                     }
@@ -63,6 +65,9 @@ object FunctionBinding {
             }
 
             if (used < namedArguments.size)
+                return null
+
+            if (hasLambda && captor == null)
                 return null
         }
         return Binding(map, captor)

@@ -21,7 +21,7 @@
  *
  * <p>Properties are providers with configurable values.</p>
  *
- * <h3>Provider</h3>
+ * <h2>Provider</h2>
  *
  * <p>For the public API, see {@link org.gradle.api.provider.Provider Provider}.</p>
  *
@@ -46,7 +46,7 @@
  *     Note that this class and <code>AbstractCollectionProperty</code> have a lot of duplication, as they implement very similar contracts.
  * </ul>
  */
-@NonNullApi
+@NullMarked
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;

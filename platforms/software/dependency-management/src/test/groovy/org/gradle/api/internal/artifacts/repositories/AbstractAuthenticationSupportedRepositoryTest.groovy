@@ -32,6 +32,7 @@ import org.gradle.internal.authentication.DefaultAuthenticationContainer
 import org.gradle.internal.credentials.DefaultAwsCredentials
 import org.gradle.internal.credentials.DefaultPasswordCredentials
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.util.TestCredentialUtil
 import org.gradle.util.internal.ClosureBackedAction
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -44,7 +45,7 @@ class AbstractAuthenticationSupportedRepositoryTest extends Specification {
 
     def "should configure default password credentials using an action only"() {
         setup:
-        DefaultPasswordCredentials passwordCredentials = new DefaultPasswordCredentials()
+        DefaultPasswordCredentials passwordCredentials = TestCredentialUtil.defaultPasswordCredentials()
         enhanceCredentials(passwordCredentials, 'username', 'password')
 
         Instantiator instantiator = Mock()
@@ -72,7 +73,7 @@ class AbstractAuthenticationSupportedRepositoryTest extends Specification {
 
     def "getCredentials(Class) instantiates credentials if not yet configured"() {
         given:
-        DefaultAwsCredentials enhancedCredentials = new DefaultAwsCredentials()
+        DefaultAwsCredentials enhancedCredentials = TestCredentialUtil.defaultAwsCredentials()
         enhanceCredentials(enhancedCredentials, 'accessKey', 'secretKey')
 
         Instantiator instantiator = Mock()

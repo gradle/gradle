@@ -7,49 +7,53 @@ description = "Plugins, tasks and domain objects for testing native code"
 errorprone {
     disabledChecks.addAll(
         "MixedMutabilityReturnType", // 1 occurrences
-        "StringSplitter", // 1 occurrences
-        "UnusedVariable", // 1 occurrences
     )
 }
 
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":native"))
-    implementation(project(":logging"))
-    implementation(project(":process-services"))
-    implementation(project(":core-api"))
-    implementation(project(":model-core"))
-    implementation(project(":core"))
-    implementation(project(":diagnostics"))
-    implementation(project(":reporting"))
-    implementation(project(":platform-base"))
-    implementation(project(":platform-native"))
-    implementation(project(":language-native"))
-    implementation(project(":testing-base"))
-    implementation(project(":test-suites-base"))
+    api(projects.baseDiagnostics)
+    api(projects.baseServices)
+    api(projects.core)
+    api(projects.coreApi)
+    api(projects.stdlibJavaExtensions)
+    api(projects.languageNative)
+    api(projects.modelCore)
+    api(projects.native)
+    api(projects.platformBase)
+    api(projects.platformNative)
+    api(projects.processServices)
+    api(projects.serviceLookup)
+    api(projects.serviceProvider)
+    api(projects.testSuitesBase)
+    api(projects.testingBase)
+    api(projects.testingBaseInfrastructure)
+    api(projects.time)
 
-    implementation(libs.groovy)
-    implementation(libs.guava)
-    implementation(libs.commonsLang)
+    api(libs.inject)
+    api(libs.jspecify)
+
+    implementation(projects.logging)
+    implementation(projects.loggingApi)
+    implementation(projects.io)
+    implementation(projects.softwareDiagnostics)
+
     implementation(libs.commonsIo)
-    implementation(libs.inject)
+    implementation(libs.commonsLang)
+    implementation(libs.guava)
 
-    testImplementation(project(":file-collections"))
-    testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":platform-native")))
-    testImplementation(testFixtures(project(":diagnostics")))
-    testImplementation(testFixtures(project(":platform-base")))
-    testImplementation(testFixtures(project(":testing-base")))
-    testImplementation(testFixtures(project(":language-native")))
-    testImplementation(testFixtures(project(":ide")))
+    testImplementation(projects.fileCollections)
+    testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.platformNative))
+    testImplementation(testFixtures(projects.platformBase))
+    testImplementation(testFixtures(projects.testingBase))
+    testImplementation(testFixtures(projects.languageNative))
+    testImplementation(testFixtures(projects.ide))
 
-    testRuntimeOnly(project(":distributions-core")) {
+    testRuntimeOnly(projects.distributionsCore) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-native"))
+    integTestDistributionRuntimeOnly(projects.distributionsNative)
 }
-
-// Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
-tasks.configCacheIntegTest {
-    systemProperties["org.gradle.configuration-cache.internal.test-disable-load-after-store"] = "true"
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

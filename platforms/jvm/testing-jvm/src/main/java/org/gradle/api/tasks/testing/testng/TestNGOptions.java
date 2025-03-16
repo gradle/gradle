@@ -22,6 +22,7 @@ import groovy.xml.MarkupBuilder;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestClassProcessor;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
@@ -32,9 +33,10 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.testing.TestFrameworkOptions;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.IoActions;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.serialization.Cached;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -54,6 +56,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
     public static final String DEFAULT_CONFIG_FAILURE_POLICY = TestNGTestClassProcessor.DEFAULT_CONFIG_FAILURE_POLICY;
     private static final String DEFAULT_PARALLEL_MODE = null;
     private static final int DEFAULT_THREAD_COUNT = -1;
+    private static final int DEFAULT_SUITE_THREAD_POOL_SIZE_DEFAULT = 1;
 
     private File outputDirectory;
 
@@ -99,6 +102,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
     @Inject
     public TestNGOptions(ProjectLayout projectLayout) {
         this.projectDir = projectLayout.getProjectDirectory().getAsFile();
+        this.getSuiteThreadPoolSize().convention(DEFAULT_SUITE_THREAD_POOL_SIZE_DEFAULT);
     }
 
     /**
@@ -113,6 +117,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
         replace(this.listeners, other.listeners);
         this.parallel = other.parallel;
         this.threadCount = other.threadCount;
+        this.getSuiteThreadPoolSize().set(other.getSuiteThreadPoolSize());
         this.useDefaultListeners = other.useDefaultListeners;
         this.threadPoolFactoryClass = other.threadPoolFactoryClass;
         this.suiteName = other.suiteName;
@@ -156,6 +161,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
         suiteXmlFiles.addAll(Arrays.asList(suiteFiles));
     }
 
+    @ToBeReplacedByLazyProperty
     public List<File> getSuites(File testSuitesDir) {
         List<File> suites = new ArrayList<File>();
 
@@ -228,6 +234,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * @since 1.11
      */
     @OutputDirectory
+    @ToBeReplacedByLazyProperty
     public File getOutputDirectory() {
         return outputDirectory;
     }
@@ -240,6 +247,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * The set of groups to run.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public Set<String> getIncludeGroups() {
         return includeGroups;
     }
@@ -252,6 +260,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * The set of groups to exclude.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public Set<String> getExcludeGroups() {
         return excludeGroups;
     }
@@ -264,6 +273,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * Option for what to do for other tests that use a configuration step when that step fails. Can be "skip" or "continue", defaults to "skip".
      */
     @Internal
+    @ToBeReplacedByLazyProperty
     public String getConfigFailurePolicy() {
         return configFailurePolicy;
     }
@@ -291,6 +301,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * </pre>
      */
     @Internal
+    @ToBeReplacedByLazyProperty
     public Set<String> getListeners() {
         return listeners;
     }
@@ -308,6 +319,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      */
     @Nullable
     @Internal
+    @ToBeReplacedByLazyProperty
     public String getParallel() {
         return parallel;
     }
@@ -320,6 +332,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * The number of threads to use for this run. Ignored unless the parallel mode is also specified
      */
     @Internal
+    @ToBeReplacedByLazyProperty
     public int getThreadCount() {
         return threadCount;
     }
@@ -328,7 +341,16 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
         this.threadCount = threadCount;
     }
 
+    /**
+     * The number of XML suites will run parallel
+     * @since 8.9
+     */
     @Internal
+    @Incubating
+    public abstract Property<Integer> getSuiteThreadPoolSize();
+
+    @Internal
+    @ToBeReplacedByLazyProperty
     public boolean getUseDefaultListeners() {
         return useDefaultListeners;
     }
@@ -339,6 +361,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      */
     @Internal
     @Incubating
+    @ToBeReplacedByLazyProperty
     public String getThreadPoolFactoryClass() {
         return threadPoolFactoryClass;
     }
@@ -369,6 +392,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * generate: TestNG variant of HTML results, TestNG variant of XML results in JUnit format, emailable HTML test report, XML results in TestNG format.
      */
     @Internal
+    @ToBeReplacedByLazyProperty
     public boolean isUseDefaultListeners() {
         return useDefaultListeners;
     }
@@ -393,6 +417,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * Sets the default name of the test suite, if one is not specified in a suite XML file or in the source code.
      */
     @Internal
+    @ToBeReplacedByLazyProperty
     public String getSuiteName() {
         return suiteName;
     }
@@ -405,6 +430,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * Sets the default name of the test, if one is not specified in a suite XML file or in the source code.
      */
     @Internal
+    @ToBeReplacedByLazyProperty
     public String getTestName() {
         return testName;
     }
@@ -420,6 +446,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      */
     @InputFiles
     @PathSensitive(PathSensitivity.NONE)
+    @ToBeReplacedByLazyProperty
     public List<File> getSuiteXmlFiles() {
         return suiteXmlFiles;
     }
@@ -429,6 +456,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
     }
 
     @Internal
+    @ToBeReplacedByLazyProperty
     public boolean getPreserveOrder() {
         return preserveOrder;
     }
@@ -442,6 +470,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * If not present, the order will not be preserved.
      */
     @Internal
+    @ToBeReplacedByLazyProperty
     public boolean isPreserveOrder() {
         return preserveOrder;
     }
@@ -451,6 +480,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
     }
 
     @Internal
+    @ToBeReplacedByLazyProperty
     public boolean getGroupByInstances() {
         return groupByInstances;
     }
@@ -464,6 +494,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * If not present, the tests will not be grouped by instances.
      */
     @Internal
+    @ToBeReplacedByLazyProperty
     public boolean isGroupByInstances() {
         return groupByInstances;
     }
@@ -484,6 +515,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
     }
 
     @Internal
+    @ToBeReplacedByLazyProperty
     public StringWriter getSuiteXmlWriter() {
         return suiteXmlWriter;
     }
@@ -493,6 +525,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
     }
 
     @Internal
+    @ToBeReplacedByLazyProperty
     public MarkupBuilder getSuiteXmlBuilder() {
         return suiteXmlBuilder;
     }

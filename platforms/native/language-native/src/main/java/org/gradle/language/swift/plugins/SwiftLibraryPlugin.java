@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
@@ -71,11 +71,11 @@ import static org.gradle.language.nativeplatform.internal.Dimensions.useHostAsDe
 public abstract class SwiftLibraryPlugin implements Plugin<Project> {
     private final NativeComponentFactory componentFactory;
     private final ToolChainSelector toolChainSelector;
-    private final ImmutableAttributesFactory attributesFactory;
+    private final AttributesFactory attributesFactory;
     private final TargetMachineFactory targetMachineFactory;
 
     @Inject
-    public SwiftLibraryPlugin(NativeComponentFactory componentFactory, ToolChainSelector toolChainSelector, ImmutableAttributesFactory attributesFactory, TargetMachineFactory targetMachineFactory) {
+    public SwiftLibraryPlugin(NativeComponentFactory componentFactory, ToolChainSelector toolChainSelector, AttributesFactory attributesFactory, TargetMachineFactory targetMachineFactory) {
         this.componentFactory = componentFactory;
         this.toolChainSelector = toolChainSelector;
         this.attributesFactory = attributesFactory;

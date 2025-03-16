@@ -16,9 +16,13 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.VersionConstraint;
+import org.gradle.api.artifacts.capability.CapabilitySelector;
+import org.gradle.api.internal.artifacts.capability.SpecificCapabilitySelector;
+import org.gradle.api.internal.artifacts.capability.FeatureCapabilitySelector;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -26,39 +30,36 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
+import org.gradle.api.internal.artifacts.capability.DefaultSpecificCapabilitySelector;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 
-import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 public class DefaultModuleComponentSelector implements ModuleComponentSelector {
     private final ModuleIdentifier moduleIdentifier;
     private final ImmutableVersionConstraint versionConstraint;
     private final ImmutableAttributes attributes;
-    private final ImmutableList<Capability> requestedCapabilities;
+    private final ImmutableSet<CapabilitySelector> capabilitySelectors;
     private final int hashCode;
 
-    private DefaultModuleComponentSelector(ModuleIdentifier module, ImmutableVersionConstraint version, ImmutableAttributes attributes, ImmutableList<Capability> requestedCapabilities) {
-        assert module != null : "module cannot be null";
-        assert version != null : "version cannot be null";
-        assert attributes != null : "attributes cannot be null";
-        assert requestedCapabilities != null : "capabilities cannot be null";
+    private DefaultModuleComponentSelector(ModuleIdentifier module, ImmutableVersionConstraint version, ImmutableAttributes attributes, ImmutableSet<CapabilitySelector> capabilitySelectors) {
         this.moduleIdentifier = module;
         this.versionConstraint = version;
         this.attributes = attributes;
-        this.requestedCapabilities = requestedCapabilities;
+        this.capabilitySelectors = capabilitySelectors;
         // Do NOT change the order of members used in hash code here, it's been empirically
         // tested to reduce the number of collisions on a large dependency graph (performance test)
-        this.hashCode = computeHashcode(module, version, attributes, requestedCapabilities);
+        this.hashCode = computeHashcode(module, version, attributes, capabilitySelectors);
     }
 
-    private int computeHashcode(ModuleIdentifier module, ImmutableVersionConstraint version, ImmutableAttributes attributes, ImmutableList<Capability> requestedCapabilities) {
+    private int computeHashcode(ModuleIdentifier module, ImmutableVersionConstraint version, ImmutableAttributes attributes, ImmutableSet<CapabilitySelector> capabilitySelectors) {
         int hashCode = version.hashCode();
         hashCode = 31 * hashCode + module.hashCode();
         hashCode = 31 * hashCode + attributes.hashCode();
-        hashCode = 31 * hashCode + requestedCapabilities.hashCode();
+        hashCode = 31 * hashCode + capabilitySelectors.hashCode();
         return hashCode;
     }
 
@@ -104,8 +105,28 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public List<Capability> getRequestedCapabilities() {
-        return requestedCapabilities;
+        return capabilitySelectors.stream()
+            .map(c -> {
+                if (c instanceof SpecificCapabilitySelector) {
+                    return ((DefaultSpecificCapabilitySelector) c).getBackingCapability();
+                } else if (c instanceof FeatureCapabilitySelector) {
+                    return new DefaultImmutableCapability(
+                        getGroup(),
+                        getModule() + "-" + ((FeatureCapabilitySelector) c).getFeatureName(),
+                        getVersion()
+                    );
+                } else {
+                    throw new UnsupportedOperationException("Unsupported capability selector type: " + c.getClass().getName());
+                }
+            })
+            .collect(ImmutableList.toImmutableList());
+    }
+
+    @Override
+    public ImmutableSet<CapabilitySelector> getCapabilitySelectors() {
+        return capabilitySelectors;
     }
 
     @Override
@@ -115,8 +136,6 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
 
     @Override
     public boolean matchesStrictly(ComponentIdentifier identifier) {
-        assert identifier != null : "identifier cannot be null";
-
         if (identifier instanceof ModuleComponentIdentifier) {
             ModuleComponentIdentifier moduleComponentIdentifier = (ModuleComponentIdentifier) identifier;
             return moduleIdentifier.getName().equals(moduleComponentIdentifier.getModule())
@@ -151,7 +170,7 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
         if (!attributes.equals(that.attributes)) {
             return false;
         }
-        return requestedCapabilities.equals(that.requestedCapabilities);
+        return capabilitySelectors.equals(that.capabilitySelectors);
     }
 
     @Override
@@ -164,32 +183,20 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
         return getDisplayName();
     }
 
-    public static ModuleComponentSelector newSelector(ModuleIdentifier id, VersionConstraint version, AttributeContainer attributes, Collection<Capability> requestedCapabilities) {
-        assert attributes != null : "attributes cannot be null";
-        assert version != null : "version cannot be null";
-        assert requestedCapabilities != null : "capabilities cannot be null";
-        assertModuleIdentifier(id);
-        return new DefaultModuleComponentSelector(id, DefaultImmutableVersionConstraint.of(version), ((AttributeContainerInternal)attributes).asImmutable(), ImmutableList.copyOf(requestedCapabilities));
-    }
-
-    private static void assertModuleIdentifier(ModuleIdentifier id) {
-        assert id.getGroup() != null : "group cannot be null";
-        assert id.getName() != null : "name cannot be null";
+    public static ModuleComponentSelector newSelector(ModuleIdentifier id, VersionConstraint version, AttributeContainer attributes, Set<CapabilitySelector> capabilitySelectors) {
+        return new DefaultModuleComponentSelector(id, DefaultImmutableVersionConstraint.of(version), ((AttributeContainerInternal) attributes).asImmutable(), ImmutableSet.copyOf(capabilitySelectors));
     }
 
     public static ModuleComponentSelector newSelector(ModuleIdentifier id, VersionConstraint version) {
-        assert version != null : "version cannot be null";
-        assertModuleIdentifier(id);
-        return new DefaultModuleComponentSelector(id, DefaultImmutableVersionConstraint.of(version), ImmutableAttributes.EMPTY, ImmutableList.of());
+        return new DefaultModuleComponentSelector(id, DefaultImmutableVersionConstraint.of(version), ImmutableAttributes.EMPTY, ImmutableSet.of());
     }
 
     public static ModuleComponentSelector newSelector(ModuleIdentifier id, String version) {
-        assertModuleIdentifier(id);
-        return new DefaultModuleComponentSelector(id, DefaultImmutableVersionConstraint.of(version), ImmutableAttributes.EMPTY, ImmutableList.of());
+        return new DefaultModuleComponentSelector(id, DefaultImmutableVersionConstraint.of(version), ImmutableAttributes.EMPTY, ImmutableSet.of());
     }
 
     public static ModuleComponentSelector newSelector(ModuleVersionSelector selector) {
-        return new DefaultModuleComponentSelector(selector.getModule(), DefaultImmutableVersionConstraint.of(selector.getVersion()), ImmutableAttributes.EMPTY, ImmutableList.of());
+        return new DefaultModuleComponentSelector(selector.getModule(), DefaultImmutableVersionConstraint.of(selector.getVersion()), ImmutableAttributes.EMPTY, ImmutableSet.of());
     }
 
     public static ModuleComponentSelector withAttributes(ModuleComponentSelector selector, ImmutableAttributes attributes) {
@@ -198,17 +205,17 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
             cs.moduleIdentifier,
             cs.versionConstraint,
             attributes,
-            cs.requestedCapabilities
+            cs.capabilitySelectors
         );
     }
 
-    public static ComponentSelector withCapabilities(ModuleComponentSelector selector, List<Capability> requestedCapabilities) {
+    public static ComponentSelector withCapabilities(ModuleComponentSelector selector, ImmutableSet<CapabilitySelector> capabilitySelectors) {
         DefaultModuleComponentSelector cs = (DefaultModuleComponentSelector) selector;
         return new DefaultModuleComponentSelector(
             cs.moduleIdentifier,
             cs.versionConstraint,
             cs.attributes,
-            ImmutableList.copyOf(requestedCapabilities)
+            ImmutableSet.copyOf(capabilitySelectors)
         );
     }
 }

@@ -1,0 +1,94 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[dependency-constraints]]
+= Declaring Dependency Constraints
+
+*Dependency constraints* function similarly to <<declaring_dependencies_basics.adoc#declaring-dependencies-basics,dependencies>>, with the key distinction that they do not introduce a dependency themselves.
+Instead, _constraints define version requirements_ that influence the resolution process when a dependency is brought into the project by other means.
+
+Although constraints are not <<dependency_versions.adoc#sec:strict-version,strict versions>> by default, you can specify a strict version constraint if needed.
+Once the dependency is included, the version specified by the constraint participates in conflict resolution just as if it were declared as a direct dependency.
+
+When developing a single-project library, *constraints* can be directly declared alongside direct dependencies.
+However, when developing multi-project libraries and applications, dependencies are best declared centrally in a <<platforms.adoc#sec:sharing-dep-versions-between-projects,platform>>:
+
+====
+include::sample[dir="snippets/java-platform/recommender/kotlin/platform",files="build.gradle.kts[tags=full-platform]"]
+include::sample[dir="snippets/java-platform/recommender/groovy/platform",files="build.gradle[tags=full-platform]"]
+====
+
+In general, dependencies are categorized as either *direct* or *transitive*:
+
+- *Direct dependencies* are those explicitly specified within a component's build or metadata.
+- *Transitive dependencies* are not directly specified; they are pulled in automatically as dependencies of the direct dependencies.
+
+A component may require both direct and transitive dependencies to compile or run.
+
+[[sec:declaring-constraints-dependencies]]
+== Declaring constraints alongside direct dependencies
+
+**Dependency constraints** allow you to define the version or version range for a specific dependency, _whenever that dependency is encountered during resolution_.
+
+This is the preferred method for managing the version of a component across multiple configurations or projects.
+
+When Gradle resolves a module version, it considers all relevant factors, including <<dependency_versions.adoc#sec:rich-version-constraints,rich versions>>, transitive dependencies, and dependency constraints for that module.
+The highest version that meets all the conditions is selected.
+If no such version exists, Gradle will fail with an error, detailing the conflicting declarations.
+
+In such cases, you can adjust your dependency declarations, dependency constraints, or make necessary changes to transitive dependencies.
+
+Like dependency declarations, dependency constraints are <<dependency_configurations.adoc#sub:what-are-dependency-configurations,scoped by configurations>>, allowing you to selectively apply them to specific parts of a build.
+
+The `constraints{}` block is used within the `dependencies{}` block to declare these constraints:
+
+====
+include::sample[dir="snippets/java-platform/quickstart/kotlin",files="build.gradle.kts[tags=use-plugin,constraints]"]
+include::sample[dir="snippets/java-platform/quickstart/groovy",files="build.gradle[tags=use-plugin,constraints]"]
+====
+
+1. `api("commons-httpclient:commons-httpclient:3.1")`:
+- This line creates a constraint on the `api` configuration, asserting that if `commons-httpclient` is ever resolved by a resolvable configuration that extends the `api` configuration, its version must be `3.1` or higher.
+- If a transitive dependency (a dependency of a dependency) or another module in the project pulls in a different version of `commons-httpclient`, Gradle enforce the dependency to resolve to at least version `3.1`.
+- This constraint ensures that the library `commons-httpclient` will be at least version `3.1` across all configuration that extend the `api` configuration.
+
+2. `runtime("org.postgresql:postgresql:42.2.5")`:
+- Similarly, this line applies a constraint on the `runtime` configuration, enforcing that `org.postgresql:postgresql` must resolve to at least version `42.2.5`.
+- Even if other dependencies or modules within the project try to bring in a different version of `postgresql`, Gradle will choose the higher of `42.2.5` and the other declared versions.
+- This ensures that any runtime dependencies on `postgresql` will resolve to at least version `42.2.5` across all resolvable configurations that extend the `runtime` configuration.
+
+[[sec:adding-constraints-transitive-deps]]
+== Adding constraints on transitive dependencies
+
+Issues with dependency management often arise from transitive dependencies.
+Developers sometimes mistakenly address these issues by adding direct dependencies instead of handling them properly with constraints.
+
+**Dependency constraints** allow you to control the selection of transitive dependencies.
+
+In the following example, the version constraint for `commons-codec:1.11` applies only when `commons-codec` is brought in as a transitive dependency since it is not directly declared as a dependency in the project.
+If `commons-codec` is not pulled in transitively, the constraint has no effect:
+
+====
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-versionsWithConstraints/kotlin",files="build.gradle.kts[tags=dependency-constraints]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-versionsWithConstraints/groovy",files="build.gradle[tags=dependency-constraints]"]
+====
+
+Dependency constraints can also define <<dependency_versions.adoc#sec:rich-version-constraints,rich version>> constraints and support <<dependency_versions.adoc#sec:strict-version,strict versions>>, allowing you to enforce a specific version even if it conflicts with a transitive dependency's version (e.g., if a downgrade is necessary).
+
+NOTE: Dependency constraints are only published when using <<publishing_gradle_module_metadata.adoc#sec:understanding-gradle-module-md,Gradle Module Metadata>>. This means they are fully supported only when both publishing and consuming modules with Gradle. If modules are consumed with Maven or Ivy, the constraints may not be preserved.
+
+Dependency constraints are transitive.
+If `library A` depends on `library B`, and `library B` declares a constraint on `module C`, that constraint will affect the version of `module C` that `library A` depends on.
+
+For example, if `library A` depends on `module C version 2`, but `library B` declares a constraint on `module C version 3`, `library A` will resolve `version 3 of module C`.

@@ -35,7 +35,7 @@ class LocaleSupportDaemonIntegrationTest extends DaemonIntegrationSpec {
 
     def "custom locale is applied to daemon"() {
 
-        buildScript """
+        buildFile """
             task printLocale {
                 doFirst {
                     println "defaultLocale: " + Locale.default
@@ -62,7 +62,7 @@ class LocaleSupportDaemonIntegrationTest extends DaemonIntegrationSpec {
         def startLocale = locales[0]
         def changeLocale = locales[1]
 
-        buildScript """
+        buildFile """
             task printLocale {
                 doFirst {
                     Locale.setDefault(new Locale("$changeLocale.language", "$changeLocale.country", "$changeLocale.variant"))
@@ -89,7 +89,7 @@ class LocaleSupportDaemonIntegrationTest extends DaemonIntegrationSpec {
     @Issue("https://github.com/gradle/gradle/issues/4973")
     def "can use a locale without region (#overrideVersion)"() {
         Locale locale = Locale.ENGLISH
-        buildScript """
+        buildFile """
             import org.gradle.util.GradleVersion
 
             task printLocale {

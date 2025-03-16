@@ -20,19 +20,18 @@ import groovy.lang.Closure;
 import groovy.lang.GroovySystem;
 import groovy.lang.MetaClass;
 import groovy.lang.MetaClassRegistry;
-import org.gradle.api.NonNullApi;
 import org.gradle.internal.classpath.intercept.CallInterceptorResolver;
 import org.gradle.internal.classpath.intercept.CallInterceptorResolver.ClosureCallInterceptorResolver;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import static org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter.ALL;
 
 /**
  * Injects the logic for Groovy calls instrumentation into the Groovy metaclasses.
  */
-@NonNullApi
+@NullMarked
 public class InstrumentedGroovyMetaClassHelper {
     /**
      * Should be invoked on an object that a Groovy Closure can dispatch the calls to. Injects the call interception logic into the metaclass of that object.
@@ -53,7 +52,9 @@ public class InstrumentedGroovyMetaClassHelper {
         CallInterceptorResolver resolver = ClosureCallInterceptorResolver.of(interceptorFilter);
         addInvocationHooksToMetaClass(closure.getThisObject().getClass(), resolver);
         addInvocationHooksToMetaClass(closure.getOwner().getClass(), resolver);
-        addInvocationHooksToMetaClass(closure.getDelegate().getClass(), resolver);
+        if (closure.getDelegate() != null) {
+            addInvocationHooksToMetaClass(closure.getDelegate().getClass(), resolver);
+        }
     }
 
     @SuppressWarnings("unused") // resolved via a method handle

@@ -16,7 +16,8 @@
 
 package org.gradle.api.credentials;
 
-import javax.annotation.Nullable;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Represents credentials used to authenticate with Amazon Web Services.
@@ -27,6 +28,7 @@ public interface AwsCredentials extends Credentials {
      * Returns the access key to use to authenticate with AWS.
      */
     @Nullable
+    @ToBeReplacedByLazyProperty
     String getAccessKey();
 
     /**
@@ -38,6 +40,7 @@ public interface AwsCredentials extends Credentials {
      * Returns the secret key to use to authenticate with AWS.
      */
     @Nullable
+    @ToBeReplacedByLazyProperty
     String getSecretKey();
 
     /**
@@ -51,6 +54,7 @@ public interface AwsCredentials extends Credentials {
      * @since 3.3
      */
     @Nullable
+    @ToBeReplacedByLazyProperty
     String getSessionToken();
 
     /**

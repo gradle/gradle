@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 import com.google.common.collect.Interner;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
+import org.gradle.api.internal.artifacts.capability.CapabilitySelectorSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingAccessCoordinator;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
@@ -29,8 +30,8 @@ import org.gradle.internal.hash.ChecksumService;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 
 public class ReadOnlyModuleMetadataCache extends PersistentModuleMetadataCache {
-    public ReadOnlyModuleMetadataCache(BuildCommencedTimeProvider timeProvider, ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator, ArtifactCacheMetadata artifactCacheMetadata, ImmutableModuleIdentifierFactory moduleIdentifierFactory, AttributeContainerSerializer attributeContainerSerializer, MavenMutableModuleMetadataFactory mavenMetadataFactory, IvyMutableModuleMetadataFactory ivyMetadataFactory, Interner<String> stringInterner, ModuleSourcesSerializer moduleSourcesSerializer, ChecksumService checksumService) {
-        super(timeProvider, cacheAccessCoordinator, artifactCacheMetadata, moduleIdentifierFactory, attributeContainerSerializer, mavenMetadataFactory, ivyMetadataFactory, stringInterner, moduleSourcesSerializer, checksumService);
+    public ReadOnlyModuleMetadataCache(BuildCommencedTimeProvider timeProvider, ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator, ArtifactCacheMetadata artifactCacheMetadata, ImmutableModuleIdentifierFactory moduleIdentifierFactory, AttributeContainerSerializer attributeContainerSerializer, CapabilitySelectorSerializer capabilitySelectorSerializer, MavenMutableModuleMetadataFactory mavenMetadataFactory, IvyMutableModuleMetadataFactory ivyMetadataFactory, Interner<String> stringInterner, ModuleSourcesSerializer moduleSourcesSerializer, ChecksumService checksumService) {
+        super(timeProvider, cacheAccessCoordinator, artifactCacheMetadata, moduleIdentifierFactory, attributeContainerSerializer, capabilitySelectorSerializer, mavenMetadataFactory, ivyMetadataFactory, stringInterner, moduleSourcesSerializer, checksumService);
     }
 
     @Override

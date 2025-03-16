@@ -18,7 +18,6 @@ package org.gradle.api.internal.file.archive.impl;
 
 import com.google.common.io.ByteStreams;
 import org.gradle.api.internal.file.archive.ZipEntry;
-import org.gradle.internal.io.IoFunction;
 
 import java.io.IOException;
 import java.io.InputStream;

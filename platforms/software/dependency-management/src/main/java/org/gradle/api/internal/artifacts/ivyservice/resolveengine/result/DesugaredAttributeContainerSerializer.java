@@ -17,13 +17,13 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.snapshot.impl.CoercingStringValueSnapshot;
 
@@ -34,15 +34,15 @@ import java.io.IOException;
  * types: it will serialize the contents as strings, and read them as strings, only for reporting
  * purposes.
  */
-@ServiceScope(Scopes.BuildSession.class)
+@ServiceScope(Scope.BuildSession.class)
 public class DesugaredAttributeContainerSerializer extends AbstractSerializer<AttributeContainer> implements AttributeContainerSerializer {
-    private final ImmutableAttributesFactory attributesFactory;
+    private final AttributesFactory attributesFactory;
     private final NamedObjectInstantiator instantiator;
     private static final byte STRING_ATTRIBUTE = 1;
     private static final byte BOOLEAN_ATTRIBUTE = 2;
     private static final byte INTEGER_ATTRIBUTE = 3;
 
-    public DesugaredAttributeContainerSerializer(ImmutableAttributesFactory attributesFactory, NamedObjectInstantiator instantiator) {
+    public DesugaredAttributeContainerSerializer(AttributesFactory attributesFactory, NamedObjectInstantiator instantiator) {
         this.attributesFactory = attributesFactory;
         this.instantiator = instantiator;
     }

@@ -23,6 +23,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.file.FileTreeInternal;
+import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
@@ -45,15 +46,17 @@ import org.gradle.api.tasks.javadoc.internal.JavadocSpec;
 import org.gradle.api.tasks.javadoc.internal.JavadocToolAdapter;
 import org.gradle.external.javadoc.MinimalJavadocOptions;
 import org.gradle.external.javadoc.StandardJavadocDocletOptions;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.file.Deleter;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavadocTool;
 import org.gradle.jvm.toolchain.internal.JavaExecutableUtils;
 import org.gradle.util.internal.ConfigureUtil;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
@@ -123,13 +126,14 @@ public abstract class Javadoc extends SourceTask {
 
     public Javadoc() {
         ObjectFactory objectFactory = getObjectFactory();
+        PropertyFactory propertyFactory = getPropertyFactory();
         this.modularity = objectFactory.newInstance(DefaultModularitySpec.class);
         JavaToolchainService javaToolchainService = getJavaToolchainService();
         Provider<JavadocTool> javadocToolConvention = getProviderFactory()
-            .provider(() -> JavadocExecutableUtils.getExecutableOverrideToolchainSpec(this, objectFactory))
+            .provider(() -> JavadocExecutableUtils.getExecutableOverrideToolchainSpec(this, propertyFactory))
             .flatMap(javaToolchainService::javadocToolFor)
             .orElse(javaToolchainService.javadocToolFor(it -> {}));
-        this.javadocTool = objectFactory.property(JavadocTool.class).convention(javadocToolConvention);
+        this.javadocTool = propertyFactory.property(JavadocTool.class).convention(javadocToolConvention);
         this.javadocTool.finalizeValueOnRead();
     }
 
@@ -220,6 +224,7 @@ public abstract class Javadoc extends SourceTask {
      */
     @PathSensitive(PathSensitivity.RELATIVE)
     @Override
+    @ToBeReplacedByLazyProperty
     public FileTree getSource() {
         return super.getSource();
     }
@@ -241,6 +246,7 @@ public abstract class Javadoc extends SourceTask {
      */
     @Internal
     @Nullable
+    @ToBeReplacedByLazyProperty
     public File getDestinationDir() {
         return destinationDir;
     }
@@ -266,6 +272,7 @@ public abstract class Javadoc extends SourceTask {
      */
     @Internal
     @Nullable
+    @ToBeReplacedByLazyProperty
     public String getMaxMemory() {
         return maxMemory;
     }
@@ -287,6 +294,7 @@ public abstract class Javadoc extends SourceTask {
     @Nullable
     @Optional
     @Input
+    @ToBeReplacedByLazyProperty
     public String getTitle() {
         return title;
     }
@@ -302,9 +310,16 @@ public abstract class Javadoc extends SourceTask {
      * Returns whether Javadoc generation is accompanied by verbose output.
      *
      * @see #setVerbose(boolean)
+     * @deprecated This method duplicates the functionality of {@code getOptions().isVerbose()}. It will be removed in Gradle 9.0.
      */
+    @Deprecated
     @Internal
     public boolean isVerbose() {
+        DeprecationLogger.deprecateMethod(Javadoc.class, "isVerbose()")
+            .replaceWith("getOptions().isVerbose()")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecated_javadoc_verbose")
+            .nagUser();
         return options.isVerbose();
     }
 
@@ -313,10 +328,23 @@ public abstract class Javadoc extends SourceTask {
      * (by the underlying Ant task). Thus it is not handled by our logging.
      *
      * @param verbose Whether the output should be verbose.
+     * @deprecated This method duplicates the functionality of {@code getOptions().verbose()}. It will be removed in Gradle 9.0.
      */
+    @Deprecated
     public void setVerbose(boolean verbose) {
         if (verbose) {
+            DeprecationLogger.deprecateMethod(Javadoc.class, "setVerbose(true)")
+                .replaceWith("getOptions().verbose()")
+                .willBeRemovedInGradle9()
+                .withUpgradeGuideSection(8, "deprecated_javadoc_verbose")
+                .nagUser();
             options.verbose();
+        } else {
+            DeprecationLogger.deprecateMethod(Javadoc.class, "setVerbose(false)")
+                .withAdvice("Passing false to this method does nothing. You may want to call getOptions().quiet().")
+                .willBeRemovedInGradle9()
+                .withUpgradeGuideSection(8, "deprecated_javadoc_verbose")
+                .nagUser();
         }
     }
 
@@ -326,6 +354,7 @@ public abstract class Javadoc extends SourceTask {
      * @return The classpath.
      */
     @Classpath
+    @ToBeReplacedByLazyProperty
     public FileCollection getClasspath() {
         return classpath;
     }
@@ -383,6 +412,7 @@ public abstract class Javadoc extends SourceTask {
      * this task will fail on Javadoc error. When {@code false}, this task will ignore Javadoc errors.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public boolean isFailOnError() {
         return failOnError;
     }
@@ -392,6 +422,7 @@ public abstract class Javadoc extends SourceTask {
     }
 
     @Internal
+    @ToBeReplacedByLazyProperty
     public File getOptionsFile() {
         return new File(getTemporaryDir(), "javadoc.options");
     }
@@ -406,6 +437,7 @@ public abstract class Javadoc extends SourceTask {
     @Nullable
     @Optional
     @Input
+    @ToBeReplacedByLazyProperty
     public String getExecutable() {
         return executable;
     }
@@ -426,6 +458,11 @@ public abstract class Javadoc extends SourceTask {
 
     @Inject
     protected ObjectFactory getObjectFactory() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected PropertyFactory getPropertyFactory() {
         throw new UnsupportedOperationException();
     }
 

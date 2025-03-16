@@ -19,43 +19,50 @@ package org.gradle.api.internal.initialization;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
-import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
-import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
-import org.gradle.api.internal.artifacts.dsl.dependencies.UnknownProjectFinder;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.groovy.scripts.ScriptSource;
 
 public class DefaultScriptHandlerFactory implements ScriptHandlerFactory {
     private final DependencyManagementServices dependencyManagementServices;
-    private final FileCollectionFactory fileCollectionFactory;
-    private final DependencyMetaDataProvider dependencyMetaDataProvider;
     private final BuildLogicBuilder buildLogicBuilder;
-    private final FileResolver fileResolver;
-    private final ProjectFinder projectFinder = new UnknownProjectFinder("Cannot use project dependencies in a script classpath definition.");
 
     public DefaultScriptHandlerFactory(
         DependencyManagementServices dependencyManagementServices,
-        FileResolver fileResolver,
-        FileCollectionFactory fileCollectionFactory,
-        DependencyMetaDataProvider dependencyMetaDataProvider,
         BuildLogicBuilder buildLogicBuilder
     ) {
         this.dependencyManagementServices = dependencyManagementServices;
-        this.fileResolver = fileResolver;
-        this.fileCollectionFactory = fileCollectionFactory;
-        this.dependencyMetaDataProvider = dependencyMetaDataProvider;
         this.buildLogicBuilder = buildLogicBuilder;
     }
 
     @Override
-    public ScriptHandlerInternal create(ScriptSource scriptSource, ClassLoaderScope classLoaderScope) {
-        return create(scriptSource, classLoaderScope, RootScriptDomainObjectContext.INSTANCE);
+    public ScriptHandlerInternal create(ScriptSource scriptSource, ClassLoaderScope classLoaderScope, DomainObjectContext context) {
+        DependencyResolutionServices services = dependencyManagementServices.newBuildscriptResolver(context);
+        return getDefaultScriptHandler(scriptSource, classLoaderScope, services);
     }
 
     @Override
-    public ScriptHandlerInternal create(ScriptSource scriptSource, ClassLoaderScope classLoaderScope, DomainObjectContext context) {
-        DependencyResolutionServices services = dependencyManagementServices.create(fileResolver, fileCollectionFactory, dependencyMetaDataProvider, projectFinder, context);
+    public ScriptHandlerInternal createProjectScriptHandler(
+        ScriptSource scriptSource,
+        ClassLoaderScope classLoaderScope,
+        FileResolver fileResolver,
+        FileCollectionFactory fileCollectionFactory,
+        ProjectInternal project
+    ) {
+        DependencyResolutionServices services = dependencyManagementServices.newProjectBuildscriptResolver(
+            fileResolver,
+            fileCollectionFactory,
+            project
+        );
+        return getDefaultScriptHandler(scriptSource, classLoaderScope, services);
+    }
+
+    private DefaultScriptHandler getDefaultScriptHandler(
+        ScriptSource scriptSource,
+        ClassLoaderScope classLoaderScope,
+        DependencyResolutionServices services
+    ) {
         return services.getObjectFactory().newInstance(
             DefaultScriptHandler.class,
             scriptSource,

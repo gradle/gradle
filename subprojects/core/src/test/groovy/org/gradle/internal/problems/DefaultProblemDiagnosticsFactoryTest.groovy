@@ -19,6 +19,8 @@ package org.gradle.internal.problems
 import com.google.common.base.Supplier
 import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.code.UserCodeSource
+import org.gradle.internal.problems.failure.DefaultFailureFactory
+import org.gradle.internal.problems.failure.Failure
 import org.gradle.problems.Location
 import org.gradle.problems.buildtree.ProblemStream
 import spock.lang.Specification
@@ -26,7 +28,7 @@ import spock.lang.Specification
 class DefaultProblemDiagnosticsFactoryTest extends Specification {
     def locationAnalyzer = Mock(ProblemLocationAnalyzer)
     def userCodeContext = Mock(UserCodeApplicationContext)
-    def factory = new DefaultProblemDiagnosticsFactory(locationAnalyzer, userCodeContext, 2)
+    def factory = new DefaultProblemDiagnosticsFactory(DefaultFailureFactory.withDefaultClassifier(), locationAnalyzer, userCodeContext, 2)
 
     def "uses caller's stack trace to calculate problem location"() {
         given:
@@ -41,8 +43,8 @@ class DefaultProblemDiagnosticsFactoryTest extends Specification {
         assertIsCallerStackTrace(diagnostics.stack)
         diagnostics.location == location
 
-        1 * locationAnalyzer.locationForUsage(_, false) >> { List<StackTraceElement> trace, b ->
-            assertIsCallerStackTrace(trace)
+        1 * locationAnalyzer.locationForUsage(_, false) >> { Failure failure, b ->
+            assertIsCallerStackTrace(failure.stackTrace)
             location
         }
     }
@@ -64,8 +66,8 @@ class DefaultProblemDiagnosticsFactoryTest extends Specification {
         diagnostics.stack == exception.stackTrace.toList()
         diagnostics.location == location
 
-        1 * locationAnalyzer.locationForUsage(_, false) >> { List<StackTraceElement> trace, b ->
-            assert trace == exception.stackTrace.toList()
+        1 * locationAnalyzer.locationForUsage(_, false) >> { Failure failure, b ->
+            assert failure.stackTrace == exception.stackTrace.toList()
             location
         }
     }
@@ -102,12 +104,6 @@ class DefaultProblemDiagnosticsFactoryTest extends Specification {
     }
 
     def "each stream has an independent stack trace limit"() {
-        def transformer = Stub(ProblemStream.StackTraceTransformer) {
-            transform(_) >> { StackTraceElement[] original -> original.toList() }
-        }
-        def supplier = Stub(Supplier) {
-            get() >> { throw new Exception() }
-        }
         def stream1 = factory.newStream()
         def stream2 = factory.newStream()
 

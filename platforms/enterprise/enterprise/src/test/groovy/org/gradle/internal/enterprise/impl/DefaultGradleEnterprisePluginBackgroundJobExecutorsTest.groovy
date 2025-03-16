@@ -16,7 +16,7 @@
 
 package org.gradle.internal.enterprise.impl
 
-import org.gradle.configurationcache.InputTrackingState
+import org.gradle.internal.cc.impl.InputTrackingState
 import spock.lang.Specification
 
 import java.util.concurrent.FutureTask
@@ -26,11 +26,11 @@ class DefaultGradleEnterprisePluginBackgroundJobExecutorsTest extends Specificat
     DefaultGradleEnterprisePluginBackgroundJobExecutors jobExecutors
 
     void setup() {
-        jobExecutors = new DefaultGradleEnterprisePluginBackgroundJobExecutors(new InputTrackingState())
+        jobExecutors = new DefaultGradleEnterprisePluginBackgroundJobExecutors(new DefaultDevelocityPluginUnsafeConfigurationService(new InputTrackingState()))
     }
 
     void cleanup() {
-        jobExecutors.stop()
+        jobExecutors.shutdown()
     }
 
     def "background job is executed"() {
@@ -44,7 +44,7 @@ class DefaultGradleEnterprisePluginBackgroundJobExecutorsTest extends Specificat
 
     def "background job is rejected if submitted after shutdown"() {
         given:
-        jobExecutors.stop()
+        jobExecutors.shutdown()
 
         when:
         jobExecutors.userJobExecutor.execute {}

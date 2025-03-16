@@ -31,11 +31,11 @@ import org.gradle.internal.declarativedsl.language.LocalValue
 import org.gradle.internal.declarativedsl.language.MultipleFailuresResult
 import org.gradle.internal.declarativedsl.language.Null
 import org.gradle.internal.declarativedsl.language.ParsingError
-import org.gradle.internal.declarativedsl.language.PropertyAccess
+import org.gradle.internal.declarativedsl.language.NamedReference
 import org.gradle.internal.declarativedsl.language.SourceData
 import org.gradle.internal.declarativedsl.language.This
 import org.gradle.internal.declarativedsl.language.UnsupportedConstruct
-import org.gradle.internal.declarativedsl.parsing.ParseTestUtil.Parser.parse
+import org.gradle.internal.declarativedsl.parsing.ParseTestUtil.parse
 
 
 fun prettyPrintLanguageTreeResult(languageTreeResult: LanguageTreeResult): String {
@@ -98,6 +98,7 @@ fun prettyPrintLanguageResult(languageResult: LanguageResult<*>, startDepth: Int
 }
 
 
+@Suppress("CyclomaticComplexMethod")
 fun prettyPrintLanguageTree(languageTreeElement: LanguageTreeElement): String {
     fun StringBuilder.recurse(current: LanguageTreeElement, depth: Int) {
         fun indent() = "    ".repeat(depth)
@@ -177,8 +178,8 @@ fun prettyPrintLanguageTree(languageTreeElement: LanguageTreeElement): String {
             }
 
             is Null -> append("Null")
-            is PropertyAccess -> {
-                append("PropertyAccess [${source()}] (\n")
+            is NamedReference -> {
+                append("NamedReference [${source()}] (\n")
                 current.receiver?.let { receiver ->
                     appendNextIndented("receiver = ")
                     recurseDeeper(receiver)
@@ -237,6 +238,8 @@ fun prettyPrintLanguageTree(languageTreeElement: LanguageTreeElement): String {
                 appendLine()
                 appendIndented(")")
             }
+
+            is FunctionArgument.GroupedVarargs -> error("should not appear in the sources")
         }
     }
 
@@ -247,8 +250,9 @@ fun prettyPrintLanguageTree(languageTreeElement: LanguageTreeElement): String {
 private
 fun SourceData.prettyPrint(): String =
     buildString {
-        append("indexes: $indexRange, ")
-        append("line/column: ${lineRange.first}/$startColumn..${lineRange.last}/$endColumn, ")
+        // We add +1 here as that was how the original implementation worked, just to avoid fixing all test data:
+        append("indexes: ${indexRange.start}..${indexRange.endInclusive + 1}, ")
+        append("line/column: ${lineRange.first}/$startColumn..${lineRange.last}/${endColumn + 1}, ")
         append("file: ${sourceIdentifier.fileIdentifier}")
     }
 

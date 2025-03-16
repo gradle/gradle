@@ -9,9 +9,9 @@ dependencies {
     implementation("gradlebuild:basics")
     implementation("gradlebuild:module-identity")
 
-    implementation(project(":integration-testing"))
-    implementation(project(":cleanup"))
-    implementation(project(":build-update-utils"))
+    implementation(projects.integrationTesting)
+    implementation(projects.cleanup)
+    implementation(projects.buildUpdateUtils)
 
     implementation("org.openmbee.junit:junit-xml-parser") {
         exclude(module = "lombok") // don't need it at runtime
@@ -21,11 +21,10 @@ dependencies {
     implementation("commons-io:commons-io")
     implementation("javax.activation:activation")
     implementation("javax.xml.bind:jaxb-api")
-    implementation("com.gradle:gradle-enterprise-gradle-plugin")
+    implementation("com.gradle:develocity-gradle-plugin")
 
     testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation("junit:junit")
-    testImplementation("io.mockk:mockk")
 }
 
 gradlePlugin {

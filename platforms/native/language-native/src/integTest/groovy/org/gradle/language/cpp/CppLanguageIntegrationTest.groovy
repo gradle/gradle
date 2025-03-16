@@ -16,7 +16,6 @@
 
 package org.gradle.language.cpp
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.language.AbstractNativeLanguageIntegrationTest
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
@@ -31,7 +30,6 @@ class CppLanguageIntegrationTest extends AbstractNativeLanguageIntegrationTest {
 
     HelloWorldApp helloWorldApp = new CppHelloWorldApp()
 
-    @ToBeFixedForConfigurationCache
     def "build fails when compilation fails"() {
         given:
         buildFile << """
@@ -56,7 +54,6 @@ model {
         failure.assertThatCause(containsText("C++ compiler failed while compiling broken.cpp"))
     }
 
-    @ToBeFixedForConfigurationCache
     def "finds C and C++ standard library headers"() {
         // https://github.com/gradle/gradle-native/issues/282
         Assume.assumeFalse(toolChain.id == "gcccygwin")
@@ -83,7 +80,6 @@ model {
         output.contains("Found all include files for ':compileMainSharedLibraryMainCpp'")
     }
 
-    @ToBeFixedForConfigurationCache
     def "sources are compiled with C++ compiler"() {
         def app = new CppCompilerDetectingTestApp()
 
@@ -104,7 +100,6 @@ model {
         executable("build/exe/main/main").exec().out == app.expectedOutput(toolChain)
     }
 
-    @ToBeFixedForConfigurationCache
     def "can manually define C++ source sets"() {
         given:
         helloWorldApp.library.headerFiles.each { it.writeToDir(file("src/shared")) }
@@ -153,7 +148,6 @@ model {
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.GCC_COMPATIBLE)
-    @ToBeFixedForConfigurationCache
     def "system headers are not evaluated when compiler warnings are enabled"() {
         def app = new CppCompilerDetectingTestApp()
 

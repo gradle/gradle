@@ -35,7 +35,7 @@ import org.gradle.util.AttributeTestUtil
 import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
 
 class DefaultIvyModuleResolveMetadataTest extends AbstractLazyModuleComponentResolveMetadataTest {
-    def ivyMetadataFactory = new IvyMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), AttributeTestUtil.attributesFactory(), DependencyManagementTestUtil.defaultSchema())
+    def ivyMetadataFactory = new IvyMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), AttributeTestUtil.attributesFactory(), DependencyManagementTestUtil.preferJavaRuntimeVariant())
 
     @Override
     ModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, List<Configuration> configurations, List dependencies) {
@@ -118,10 +118,10 @@ class DefaultIvyModuleResolveMetadataTest extends AbstractLazyModuleComponentRes
         def runtime = metadata.getConfiguration("runtime")
 
         then:
-        runtime.variants.size() == 1
-        runtime.variants.first().attributes.keySet().size() == 1
-        runtime.variants.first().attributes.getAttribute(ProjectInternal.STATUS_ATTRIBUTE) == 'integration'
-        runtime.variants.first().artifacts*.name.name == ["one", "two"]
+        runtime.artifactVariants.size() == 1
+        runtime.artifactVariants.first().attributes.keySet().size() == 1
+        runtime.artifactVariants.first().attributes.getAttribute(ProjectInternal.STATUS_ATTRIBUTE) == 'integration'
+        runtime.artifactVariants.first().artifacts*.name.name == ["one", "two"]
     }
 
     def "artifacts include union of those inherited from other configurations"() {

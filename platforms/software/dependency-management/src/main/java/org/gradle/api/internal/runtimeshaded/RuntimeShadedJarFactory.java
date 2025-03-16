@@ -22,14 +22,17 @@ import org.gradle.internal.classpath.ClasspathWalker;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.Collection;
 
+@ServiceScope(Scope.Build.class)
 public class RuntimeShadedJarFactory {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RuntimeShadedJarFactory.class);
@@ -38,18 +41,18 @@ public class RuntimeShadedJarFactory {
     private final ProgressLoggerFactory progressLoggerFactory;
     private final ClasspathWalker classpathWalker;
     private final ClasspathBuilder classpathBuilder;
-    private final BuildOperationExecutor executor;
+    private final BuildOperationRunner buildOperationRunner;
 
-    public RuntimeShadedJarFactory(GeneratedGradleJarCache cache, ProgressLoggerFactory progressLoggerFactory, ClasspathWalker classpathWalker, ClasspathBuilder classpathBuilder, BuildOperationExecutor executor) {
+    public RuntimeShadedJarFactory(GeneratedGradleJarCache cache, ProgressLoggerFactory progressLoggerFactory, ClasspathWalker classpathWalker, ClasspathBuilder classpathBuilder, BuildOperationRunner buildOperationRunner) {
         this.cache = cache;
         this.progressLoggerFactory = progressLoggerFactory;
         this.classpathWalker = classpathWalker;
         this.classpathBuilder = classpathBuilder;
-        this.executor = executor;
+        this.buildOperationRunner = buildOperationRunner;
     }
 
     public File get(final RuntimeShadedJarType type, final Collection<? extends File> classpath) {
-        final File jarFile = cache.get(type.getIdentifier(), file -> executor.run(new RunnableBuildOperation() {
+        final File jarFile = cache.get(type.getIdentifier(), file -> buildOperationRunner.run(new RunnableBuildOperation() {
             @Override
             public void run(BuildOperationContext context) {
                 RuntimeShadedJarCreator creator = new RuntimeShadedJarCreator(

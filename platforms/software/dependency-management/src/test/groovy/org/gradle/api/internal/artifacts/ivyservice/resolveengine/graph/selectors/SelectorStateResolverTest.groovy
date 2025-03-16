@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.ComponentMetadata
 import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
+import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
@@ -36,19 +37,21 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflict
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ModuleSelectors
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ResolveOptimizations
 import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.component.model.ComponentGraphResolveState
 import org.gradle.internal.component.model.ComponentGraphSpecificResolveState
-import org.gradle.internal.component.model.DependencyMetadata
+import org.gradle.internal.component.model.ComponentOverrideMetadata
 import org.gradle.internal.resolve.ModuleVersionNotFoundException
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult
 import org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios
 import org.gradle.util.Path
-import org.jetbrains.annotations.Nullable
 import spock.lang.Specification
+
+import javax.annotation.Nullable
 
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.FIXED_10
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.FIXED_9
@@ -202,9 +205,10 @@ class SelectorStateResolverTest extends Specification {
     }
 
     def 'short circuits for matching project selectors'() {
-        def projectId = new DefaultProjectComponentIdentifier(DefaultBuildIdentifier.ROOT, Path.ROOT, Path.ROOT, "projectA")
-        def nine = new TestProjectSelectorState(projectId)
-        def otherNine = new TestProjectSelectorState(projectId)
+        ProjectIdentity id = new ProjectIdentity(DefaultBuildIdentifier.ROOT, Path.ROOT, Path.ROOT, "projectA")
+        def projectId = new DefaultProjectComponentIdentifier(id)
+        def nine = new TestProjectSelectorState(id)
+        def otherNine = new TestProjectSelectorState(id)
         ModuleConflictResolver mockResolver = Mock()
         SelectorStateResolver resolverWithMock = new SelectorStateResolver(mockResolver, componentFactory, root, resolveOptimizations, versionComparator.asVersionComparator(), versionParser)
 
@@ -313,7 +317,7 @@ class SelectorStateResolverTest extends Specification {
      */
     class TestDependencyToComponentIdResolver implements DependencyToComponentIdResolver {
         @Override
-        void resolve(DependencyMetadata dependency, VersionSelector acceptor, VersionSelector rejector, BuildableComponentIdResolveResult result) {
+        void resolve(ComponentSelector selector, ComponentOverrideMetadata overrideMetadata, VersionSelector acceptor, VersionSelector rejector, BuildableComponentIdResolveResult result) {
             if (!acceptor.isDynamic()) {
                 def id = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(moduleId.group, moduleId.name), acceptor.selector)
                 resolvedOrRejected(id, rejector, result)

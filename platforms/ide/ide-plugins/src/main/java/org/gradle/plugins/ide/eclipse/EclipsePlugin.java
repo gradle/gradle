@@ -17,6 +17,7 @@ package org.gradle.plugins.ide.eclipse;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
@@ -268,7 +269,7 @@ public abstract class EclipsePlugin extends IdePlugin {
                     @Override
                     public Collection<Configuration> call() {
                         SourceSetContainer sourceSets = project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets();
-                        List<Configuration> sourceSetsConfigurations = Lists.newArrayListWithCapacity(sourceSets.size() * 2);
+                        List<Configuration> sourceSetsConfigurations = new ArrayList<>(sourceSets.size() * 2);
                         ConfigurationContainer configurations = project.getConfigurations();
                         for (SourceSet sourceSet : sourceSets) {
                             sourceSetsConfigurations.add(configurations.getByName(sourceSet.getCompileClasspathConfigurationName()));
@@ -368,7 +369,7 @@ public abstract class EclipsePlugin extends IdePlugin {
 
                 // exclude the dependencies already provided by SCALA_CONTAINER; prevents problems with Eclipse Scala plugin
                 project.getGradle().projectsEvaluated(gradle -> {
-                    final List<String> provided = Lists.newArrayList("scala-library", "scala-swing", "scala-dbc");
+                    Set<String> provided = ImmutableSet.of("scala-library", "scala-swing", "scala-dbc");
                     Predicate<Dependency> dependencyInProvided = dependency -> provided.contains(dependency.getName());
                     List<Dependency> dependencies = Lists.newArrayList(Iterables.filter(Iterables.concat(Iterables.transform(model.getClasspath().getPlusConfigurations(), new Function<Configuration, Iterable<Dependency>>() {
                         @Override

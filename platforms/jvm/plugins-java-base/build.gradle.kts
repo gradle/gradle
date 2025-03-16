@@ -27,42 +27,43 @@ errorprone {
 }
 
 dependencies {
-    api(project(":base-annotations"))
-    api(project(":base-services"))
-    api(project(":core"))
-    api(project(":core-api"))
-    api(project(":dependency-management"))
-    api(project(":language-java"))
-    api(project(":language-jvm"))
-    api(project(":model-core"))
-    api(project(":platform-jvm"))
-    api(project(":toolchains-jvm"))
+    api(projects.stdlibJavaExtensions)
+    api(projects.serviceProvider)
+    api(projects.baseServices)
+    api(projects.core)
+    api(projects.coreApi)
+    api(projects.dependencyManagement)
+    api(projects.languageJava)
+    api(projects.languageJvm)
+    api(projects.modelCore)
+    api(projects.platformJvm)
+    api(projects.toolchainsJvmShared)
 
     api(libs.groovy)
     api(libs.inject)
-    api(libs.jsr305)
+    api(libs.jspecify)
 
-    implementation(project(":file-collections"))
-    implementation(project(":logging"))
-    implementation(project(":platform-base"))
-    implementation(project(":reporting"))
-    implementation(project(":testing-base"))
-    implementation(project(":testing-jvm"))
+    implementation(projects.fileCollections)
+    implementation(projects.fileOperations)
+    implementation(projects.functional)
+    implementation(projects.jvmServices)
+    implementation(projects.logging)
+    implementation(projects.platformBase)
+    implementation(projects.reporting)
+    implementation(projects.testingBase)
+    implementation(projects.testingJvm)
+    implementation(projects.toolchainsJvm)
+    implementation(projects.serviceLookup)
 
     implementation(libs.commonsLang)
     implementation(libs.guava)
 
-    runtimeOnly(project(":diagnostics"))
+    testImplementation(testFixtures(projects.core))
 
-    testImplementation(testFixtures(project(":core")))
-    testImplementation(project(":core-jvm"))
+    integTestDistributionRuntimeOnly(projects.distributionsJvm)
 
-    integTestImplementation(project(":core-jvm"))
-
-    integTestDistributionRuntimeOnly(project(":distributions-jvm"))
-
-    testFixturesImplementation(project(":internal-integ-testing"))
-    testFixturesImplementation(project(":logging"))
+    testFixturesImplementation(projects.internalIntegTesting)
+    testFixturesImplementation(projects.logging)
 }
 
 packageCycles {

@@ -18,26 +18,27 @@ package org.gradle.api.internal.catalog;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.artifacts.ExternalModuleDependencyBundle;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParser;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.Problems;
+import org.gradle.api.problems.internal.GradleCoreProblemGroup;
+import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.InternalProblemSpec;
 import org.gradle.api.problems.internal.InternalProblems;
-import org.gradle.api.problems.internal.ProblemReport;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.plugin.use.PluginDependency;
 import org.gradle.util.internal.TextUtil;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -47,6 +48,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -178,7 +180,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
 
     private void writeEntryPoints(String className, EntryPoints entryPoints, boolean deprecated) throws IOException {
         writeLn(" */");
-        writeLn("@NonNullApi");
+        writeLn("@NullMarked");
         writeLn("public class " + className + " extends AbstractExternalDependencyFactory {");
         writeLn();
         indent(() -> {
@@ -189,7 +191,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
             writeSubAccessorFieldsOf(entryPoints.pluginsEntryPoint, AccessorKind.plugin);
             writeLn();
             writeLn("@Inject");
-            writeLn("public " + className + "(DefaultVersionCatalog config, ProviderFactory providers, ObjectFactory objects, ImmutableAttributesFactory attributesFactory, CapabilityNotationParser capabilityNotationParser) {");
+            writeLn("public " + className + "(DefaultVersionCatalog config, ProviderFactory providers, ObjectFactory objects, AttributesFactory attributesFactory, CapabilityNotationParser capabilityNotationParser) {");
             writeLn("    super(config, providers, objects, attributesFactory, capabilityNotationParser);");
             writeLn("}");
             writeLn();
@@ -206,7 +208,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
     }
 
     private void addImports() throws IOException {
-        addImport(NonNullApi.class);
+        addImport(NullMarked.class);
         addImport(MinimalExternalModuleDependency.class);
         addImport(PluginDependency.class);
         addImport(ExternalModuleDependencyBundle.class);
@@ -217,7 +219,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         addImport(AbstractExternalDependencyFactory.class);
         addImport(DefaultVersionCatalog.class);
         addImport(Map.class);
-        addImport(ImmutableAttributesFactory.class);
+        addImport(AttributesFactory.class);
         addImport(CapabilityNotationParser.class);
         addImport(Inject.class);
     }
@@ -268,7 +270,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         indent(() -> {
             writeSubAccessorFieldsOf(classNode, AccessorKind.bundle);
             writeLn();
-            writeLn("public " + bundleClassName + "(ObjectFactory objects, ProviderFactory providers, DefaultVersionCatalog config, ImmutableAttributesFactory attributesFactory, CapabilityNotationParser capabilityNotationParser) { super(objects, providers, config, attributesFactory, capabilityNotationParser); }");
+            writeLn("public " + bundleClassName + "(ObjectFactory objects, ProviderFactory providers, DefaultVersionCatalog config, AttributesFactory attributesFactory, CapabilityNotationParser capabilityNotationParser) { super(objects, providers, config, attributesFactory, capabilityNotationParser); }");
             writeLn();
             if (isProvider) {
                 String path = classNode.getFullAlias();
@@ -304,7 +306,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
 
     private String getClassName0(ClassNode classNode) {
         String name = classNode.getClassName();
-        String loweredName = name.toLowerCase();
+        String loweredName = name.toLowerCase(Locale.ROOT);
         if (!classNameCounter.containsKey(loweredName)) {
             classNameCounter.put(loweredName, 0);
             return name;
@@ -511,7 +513,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         assertUnique(plugins, "plugins", "Plugin");
         int size = libraries.size() + bundles.size() + versions.size() + plugins.size();
         if (size > MAX_ENTRIES) {
-            throw throwVersionCatalogProblemException(problemsService.getInternalReporter().create(builder ->
+            throw throwVersionCatalogProblemException(problemsService.getInternalReporter().internalCreate(builder ->
                 configureVersionCatalogError(builder, getProblemPrefix() + "version catalog model contains too many entries (" + size + ").", TOO_MANY_ENTRIES)
                     .details("The maximum number of aliases in a catalog is " + MAX_ENTRIES)
                     .solution("Reduce the number of aliases defined in this catalog")
@@ -519,27 +521,26 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         }
     }
 
-    private RuntimeException throwVersionCatalogProblemException(ProblemReport problem) {
+    private RuntimeException throwVersionCatalogProblemException(InternalProblem problem) {
         throw throwError(problemsService, ERROR_HEADER, ImmutableList.of(problem));
     }
 
     private static InternalProblemSpec configureVersionCatalogError(InternalProblemSpec spec, String message, VersionCatalogProblemId catalogProblemId) {
         return spec
-            .label(message)
-            .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase()))
-            .category("dependency-version-catalog", TextUtil.screamingSnakeToKebabCase(catalogProblemId.name()))
+            .id(TextUtil.screamingSnakeToKebabCase(catalogProblemId.name()), message, GradleCoreProblemGroup.versionCatalog()) // TODO is message stable?
+            .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase(Locale.ROOT)))
             .severity(ERROR);
     }
 
     private void assertUnique(List<String> names, String prefix, String suffix) {
-        List<ProblemReport> errors = names.stream()
+        List<InternalProblem> errors = names.stream()
             .collect(groupingBy(AbstractSourceGenerator::toJavaName))
             .entrySet()
             .stream()
             .filter(e -> e.getValue().size() > 1)
             .map(e -> {
                 String errorValues = e.getValue().stream().sorted().collect(oxfordJoin("and"));
-                return this.problemsService.getInternalReporter().create(builder ->
+                return this.problemsService.getInternalReporter().internalCreate(builder ->
                     configureVersionCatalogError(builder, getProblemPrefix() + prefix + " " + errorValues + " are mapped to the same accessor name get" + e.getKey() + suffix + "().", ACCESSOR_NAME_CLASH)
                         .details("A name clash was detected")
                         .solution("Use a different alias for " + errorValues));

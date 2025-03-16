@@ -127,16 +127,9 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
                 ":second", file("build/overlap/second.txt")]
     }
 
-    private addMustRunAfter(String earlierTask, String laterTask) {
-        buildFile << """
-            ${laterTask}.mustRunAfter(${earlierTask})
-        """
-    }
-
     def "overlapping output directory with first, second then first, second"() {
         def (String first, TestFile firstOutput,
-             String second, TestFile secondOutput) = useOverlappingOutputDirectories()
-        addMustRunAfter('first', 'second')
+        String second, TestFile secondOutput) = useOverlappingOutputDirectories()
 
         when:
         withBuildCache().run(first, second)
@@ -162,7 +155,7 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
 
     def "overlapping output directory with first, second then second, first"() {
         def (String first, TestFile firstOutput,
-             String second, TestFile secondOutput) = useOverlappingOutputDirectories()
+        String second, TestFile secondOutput) = useOverlappingOutputDirectories()
 
         when:
         withBuildCache().run(first, second)
@@ -415,7 +408,6 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
 
     def "overlapping output files with first, second then first, second"() {
         def (String first, String second, TestFile sharedOutput) = useOverlappingOutputFiles()
-        addMustRunAfter('first', 'second')
 
         when:
         withBuildCache().run(first, second)
@@ -522,7 +514,7 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
 
     def "overlapping output with localStateFileTask, dirTask then localStateFileTask, dirTask"() {
         def (String localStateFileTask, TestFile localStateFileTaskOutput, TestFile localStateFileTaskState,
-             String dirTask, TestFile dirTaskOutput) = useOverlappingLocalStateFileAndOutputDirectory()
+        String dirTask, TestFile dirTaskOutput) = useOverlappingLocalStateFileAndOutputDirectory()
 
         when:
         withBuildCache().run(localStateFileTask, dirTask)
@@ -600,8 +592,7 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
     @ToBeImplemented("We don't yet detect when somebody messes with a task's local state")
     def "overlapping output with localStateDirTask, fileTask then localStateDirTask, fileTask"() {
         def (String localStateDirTask, TestFile localStateDirTaskOutput, TestFile localStateDirTaskState,
-             String fileTask, TestFile fileTaskOutput) = useOverlappingLocalStateDirectoryAndOutputFile()
-        addMustRunAfter('localStateDirTask', 'fileTask')
+        String fileTask, TestFile fileTaskOutput) = useOverlappingLocalStateDirectoryAndOutputFile()
 
         when:
         withBuildCache().run(localStateDirTask, fileTask)
@@ -669,9 +660,6 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
 
         when:
         cleanBuildDir()
-        // When configuration cache is enabled, the task graph for this build will be loaded from the cache and tasks will run in parallel and start in an arbitrary order
-        // Use max-workers=1 to force non-parallel execution and the tasks to run in the specified order (--no-parallel doesn't have an effect with CC)
-        executer.withArgument("--max-workers=1")
         withBuildCache().run(fileTask, localStateDirTask)
         then:
         // Outcome should look the same again
@@ -805,5 +793,14 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
     private void assertTaskOutputNotCached(String taskName) {
         def cacheKey = cacheOperations.getCacheKeyForTaskOrNull(taskName)
         assert cacheKey == null
+    }
+
+    @Override
+    AbstractIntegrationSpec withBuildCache() {
+        // When configuration cache is enabled, the task graph for cache-hit builds will be loaded from the cache and tasks will run in parallel and start in an arbitrary order
+        // Use max-workers=1 to force non-parallel execution and the tasks to run in the specified order
+        // (--no-parallel doesn't have an effect with CC, but max-workers should affect both CC and parallel executors)
+        args("--max-workers=1")
+        return super.withBuildCache()
     }
 }

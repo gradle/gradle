@@ -32,7 +32,7 @@ class PgpEntry extends VerificationEntry {
     private final Set<String> trustedKeys = new TreeSet<>();
     private final AtomicBoolean requiresChecksums = new AtomicBoolean();
     private final Set<String> failed = Sets.newConcurrentHashSet();
-    private final AtomicBoolean missing = new AtomicBoolean();
+    private final AtomicBoolean noSignature = new AtomicBoolean();
     private final AtomicBoolean hasSignatureFile = new AtomicBoolean();
 
     // this field is used during "grouping" of entries to tell if we should ignore writing this entry
@@ -76,7 +76,11 @@ class PgpEntry extends VerificationEntry {
 
     public void missing() {
         requiresChecksums.set(true);
-        missing.set(true);
+    }
+
+    public void noSignatures() {
+        requiresChecksums.set(true);
+        noSignature.set(true);
     }
 
     public boolean isRequiringChecksums() {
@@ -84,7 +88,7 @@ class PgpEntry extends VerificationEntry {
     }
 
     public boolean isFailed() {
-        return !failed.isEmpty();
+        return !failed.isEmpty() || noSignature.get();
     }
 
     public Set<String> getFailed() {

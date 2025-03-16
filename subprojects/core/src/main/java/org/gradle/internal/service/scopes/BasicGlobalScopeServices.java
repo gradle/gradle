@@ -24,7 +24,6 @@ import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
-import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.tasks.util.PatternSet;
@@ -35,40 +34,41 @@ import org.gradle.cache.internal.DefaultFileLockManager;
 import org.gradle.cache.internal.DefaultProcessMetaDataProvider;
 import org.gradle.cache.internal.locklistener.DefaultFileLockContentionHandler;
 import org.gradle.cache.internal.locklistener.FileLockContentionHandler;
+import org.gradle.cache.internal.locklistener.InetAddressProvider;
+import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.event.ScopedListenerManager;
 import org.gradle.internal.file.PathToFileResolver;
-import org.gradle.internal.jvm.inspection.CachingJvmMetadataDetector;
-import org.gradle.internal.jvm.inspection.DefaultJvmMetadataDetector;
-import org.gradle.internal.jvm.inspection.DefaultJvmVersionDetector;
-import org.gradle.internal.jvm.inspection.InvalidInstallationWarningReporter;
-import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
-import org.gradle.internal.jvm.inspection.JvmVersionDetector;
-import org.gradle.internal.jvm.inspection.ReportingJvmMetadataDetector;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 import org.gradle.internal.remote.services.MessagingServices;
+import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.Scope.Global;
-import org.gradle.process.internal.DefaultExecActionFactory;
-import org.gradle.process.internal.ExecFactory;
-import org.gradle.process.internal.ExecHandleFactory;
+import org.gradle.process.internal.ClientExecHandleBuilderFactory;
+import org.gradle.process.internal.DefaultClientExecHandleBuilderFactory;
+
+import java.net.InetAddress;
 
 /**
  * Defines the basic global services of a given process. This includes the Gradle CLI, daemon and tooling API provider. These services
  * should be as few as possible to keep the CLI startup fast. Global services that are only needed for the process running the build should go in
  * {@link GlobalScopeServices}.
  */
-public class BasicGlobalScopeServices {
+public class BasicGlobalScopeServices implements ServiceRegistrationProvider {
     void configure(ServiceRegistration serviceRegistration) {
-        serviceRegistration.add(DefaultFileLookup.class);
+        serviceRegistration.add(FileLookup.class, DefaultFileLookup.class);
         serviceRegistration.addProvider(new MessagingServices());
     }
 
+    @Provides
     FileLockManager createFileLockManager(ProcessEnvironment processEnvironment, FileLockContentionHandler fileLockContentionHandler) {
         return new DefaultFileLockManager(
             new DefaultProcessMetaDataProvider(
@@ -76,65 +76,81 @@ public class BasicGlobalScopeServices {
             fileLockContentionHandler);
     }
 
-
-    DefaultFileLockContentionHandler createFileLockContentionHandler(ExecutorFactory executorFactory, InetAddressFactory inetAddressFactory) {
+    @Provides
+    FileLockContentionHandler createFileLockContentionHandler(ExecutorFactory executorFactory, InetAddressFactory inetAddressFactory) {
         return new DefaultFileLockContentionHandler(
             executorFactory,
-            inetAddressFactory);
+            new InetAddressProvider() {
+                @Override
+                public InetAddress getWildcardBindingAddress() {
+                    return inetAddressFactory.getWildcardBindingAddress();
+                }
+
+                @Override
+                public InetAddress getCommunicationAddress() {
+                    return inetAddressFactory.getLocalBindingAddress();
+                }
+            });
     }
 
+    @Provides
     ExecutorFactory createExecutorFactory() {
         return new DefaultExecutorFactory();
     }
 
+    @Provides
     DocumentationRegistry createDocumentationRegistry() {
         return new DocumentationRegistry();
     }
 
-    JvmMetadataDetector createJvmMetadataDetector(ExecHandleFactory execHandleFactory, TemporaryFileProvider temporaryFileProvider) {
-        return new CachingJvmMetadataDetector(
-            new ReportingJvmMetadataDetector(
-                new DefaultJvmMetadataDetector(execHandleFactory, temporaryFileProvider),
-                new InvalidInstallationWarningReporter()
-            )
-        );
+    @Provides
+    BuildCancellationToken createBuildCancellationToken() {
+        return new DefaultBuildCancellationToken();
     }
 
-    JvmVersionDetector createJvmVersionDetector(JvmMetadataDetector detector) {
-        return new DefaultJvmVersionDetector(detector);
+    @Provides
+    ClientExecHandleBuilderFactory createExecHandleFactory(
+        FileResolver fileResolver,
+        ExecutorFactory executorFactory,
+        BuildCancellationToken buildCancellationToken
+    ) {
+        return DefaultClientExecHandleBuilderFactory.of(fileResolver, executorFactory, buildCancellationToken);
     }
 
-    ExecFactory createExecFactory(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, ExecutorFactory executorFactory, TemporaryFileProvider temporaryFileProvider) {
-        return DefaultExecActionFactory.of(fileResolver, fileCollectionFactory, executorFactory, temporaryFileProvider);
-    }
-
+    @Provides
     FileResolver createFileResolver(FileLookup lookup) {
         return lookup.getFileResolver();
     }
 
+    @Provides
     DirectoryFileTreeFactory createDirectoryFileTreeFactory(Factory<PatternSet> patternSetFactory, FileSystem fileSystem) {
         return new DefaultDirectoryFileTreeFactory(patternSetFactory, fileSystem);
     }
 
+    @Provides
     PropertyHost createPropertyHost() {
         return PropertyHost.NO_OP;
     }
 
+    @Provides
     FileCollectionFactory createFileCollectionFactory(PathToFileResolver fileResolver, Factory<PatternSet> patternSetFactory, DirectoryFileTreeFactory directoryFileTreeFactory, PropertyHost propertyHost, FileSystem fileSystem) {
         return new DefaultFileCollectionFactory(fileResolver, DefaultTaskDependencyFactory.withNoAssociatedProject(), directoryFileTreeFactory, patternSetFactory, propertyHost, fileSystem);
     }
 
+    @Provides
     PatternSpecFactory createPatternSpecFactory(ListenerManager listenerManager) {
         PatternSpecFactory patternSpecFactory = PatternSpecFactory.INSTANCE;
         listenerManager.addListener(patternSpecFactory);
         return patternSpecFactory;
     }
 
-    protected Factory<PatternSet> createPatternSetFactory(final PatternSpecFactory patternSpecFactory) {
+    @Provides
+    Factory<PatternSet> createPatternSetFactory(final PatternSpecFactory patternSpecFactory) {
         return PatternSets.getPatternSetFactory(patternSpecFactory);
     }
 
-    DefaultListenerManager createListenerManager() {
+    @Provides
+    ScopedListenerManager createListenerManager() {
         return new DefaultListenerManager(Global.class);
     }
 }

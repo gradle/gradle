@@ -25,7 +25,7 @@ class TypeSafeRootProjectAccessorsIntegrationTest extends AbstractTypeSafeProjec
         buildFile << """
             def projectDependency = projects.${accessor}
             assert projectDependency instanceof ProjectDependency
-            println("Dependency path: \\"\${projectDependency.dependencyProject.path}\\"")
+            println('Dependency path: "' + projectDependency.path + '"')
         """
 
         when:

@@ -25,7 +25,7 @@ class ExecuteTaskActionBuildOperationTypeIntegrationTest extends AbstractIntegra
 
     def "emits operation for each task action execution"() {
         when:
-        buildScript """
+        buildFile """
             task t {
                 doLast {}
                 doLast {}
@@ -46,7 +46,7 @@ class ExecuteTaskActionBuildOperationTypeIntegrationTest extends AbstractIntegra
 
     def "emits operation result for failed task action execution"() {
         when:
-        buildScript """
+        buildFile """
             task t {
                 doLast {
                     throw new RuntimeException("fail")
@@ -61,7 +61,7 @@ class ExecuteTaskActionBuildOperationTypeIntegrationTest extends AbstractIntegra
 
     def "does not emit operation for non-executed task action"() {
         when:
-        buildScript """
+        buildFile """
             task t {
                 doLast {
                     throw new RuntimeException("fail")

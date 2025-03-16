@@ -18,8 +18,8 @@ package org.gradle.testkit.runner;
 
 import org.gradle.api.Incubating;
 import org.gradle.testkit.runner.internal.DefaultGradleRunner;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.Writer;
 import java.net.URI;
@@ -190,7 +190,7 @@ public abstract class GradleRunner {
      * All builds executed with the runner effectively do not search parent directories for a {@code settings.gradle} file.
      * This suppresses Gradle's default behaviour of searching upwards through the file system in order to find the root of the current project tree.
      * This default behaviour is often utilised when focusing on a particular build within a multi-project build.
-     * This behaviour is suppressed due to test builds being executed potentially being created within a “real build”
+     * This behaviour is suppressed due to test builds being executed potentially being created within a "real build"
      * (e.g. under the {@code /build} directory of the plugin's project directory).
      *
      * @param projectDir the project directory
@@ -285,7 +285,7 @@ public abstract class GradleRunner {
     public abstract GradleRunner withPluginClasspath(Iterable<? extends File> classpath);
 
     /**
-     * Indicates whether the build should be executed “in process” so that it is debuggable.
+     * Indicates whether the build should be executed "in process" so that it is debuggable.
      * <p>
      * If debug support is not enabled, the build will be executed in an entirely separate process.
      * This means that any debugger that is attached to the test execution process will not be attached to the build process.

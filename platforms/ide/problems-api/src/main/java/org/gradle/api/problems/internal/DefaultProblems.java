@@ -17,43 +17,71 @@
 package org.gradle.api.problems.internal;
 
 import org.gradle.api.problems.ProblemReporter;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.exception.ExceptionAnalyser;
+import org.gradle.internal.isolation.IsolatableFactory;
+import org.gradle.internal.operations.CurrentBuildOperationRef;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.problems.buildtree.ProblemStream;
+import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
+import org.jspecify.annotations.NonNull;
 
-import java.util.Collections;
-import java.util.List;
-
-@ServiceScope(Scopes.BuildTree.class)
+@ServiceScope(Scope.BuildTree.class)
 public class DefaultProblems implements InternalProblems {
 
-    private final ProblemEmitter emitter;
-    private final List<ProblemTransformer> transformers;
+    private final CurrentBuildOperationRef currentBuildOperationRef;
+    private final ProblemSummarizer problemSummarizer;
     private final InternalProblemReporter internalReporter;
+    private final ExceptionProblemRegistry exceptionProblemRegistry;
+    private final ExceptionAnalyser exceptionAnalyser;
+    private final ProblemsInfrastructure infrastructure;
 
-    public DefaultProblems(ProblemEmitter emitter) {
-        this(emitter, Collections.<ProblemTransformer>emptyList());
-    }
-
-    public DefaultProblems(ProblemEmitter emitter, List<ProblemTransformer> transformers) {
-        this.emitter = emitter;
-        this.transformers = transformers;
-        internalReporter = createReporter(DefaultProblemCategory.GRADLE_CORE_NAMESPACE, emitter, transformers);
+    public DefaultProblems(
+        ProblemSummarizer problemSummarizer,
+        ProblemStream problemStream,
+        CurrentBuildOperationRef currentBuildOperationRef,
+        ExceptionProblemRegistry exceptionProblemRegistry,
+        ExceptionAnalyser exceptionAnalyser,
+        Instantiator instantiator,
+        PayloadSerializer payloadSerializer,
+        IsolatableFactory isolatableFactory,
+        IsolatableToBytesSerializer isolatableSerializer
+    ) {
+        this.problemSummarizer = problemSummarizer;
+        this.currentBuildOperationRef = currentBuildOperationRef;
+        this.exceptionProblemRegistry = exceptionProblemRegistry;
+        this.exceptionAnalyser = exceptionAnalyser;
+        this.infrastructure = new ProblemsInfrastructure(new AdditionalDataBuilderFactory(), instantiator, payloadSerializer, isolatableFactory, isolatableSerializer, problemStream);
+        this.internalReporter = createReporter();
     }
 
     @Override
-    public ProblemReporter forNamespace(String namespace) {
-        if (DefaultProblemCategory.GRADLE_CORE_NAMESPACE.equals(namespace)) {
-            throw new IllegalStateException("Cannot use " + DefaultProblemCategory.GRADLE_CORE_NAMESPACE + " namespace.");
-        }
-        return createReporter(namespace, emitter, transformers);
+    public ProblemReporter getReporter() {
+        return createReporter();
     }
 
-    private static DefaultProblemReporter createReporter(String namespace, ProblemEmitter emitter, List<ProblemTransformer> transformers) {
-        return new DefaultProblemReporter(emitter, transformers, namespace);
+    @NonNull
+    private DefaultProblemReporter createReporter() {
+        return new DefaultProblemReporter(
+            problemSummarizer,
+            currentBuildOperationRef,
+            exceptionProblemRegistry,
+            exceptionAnalyser,
+            infrastructure);
     }
 
     @Override
     public InternalProblemReporter getInternalReporter() {
         return internalReporter;
+    }
+
+    @Override
+    public ProblemsInfrastructure getInfrastructure() {
+        return infrastructure;
+    }
+    @Override
+    public InternalProblemBuilder getProblemBuilder() {
+        return new DefaultProblemBuilder(infrastructure);
     }
 }

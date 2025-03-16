@@ -94,7 +94,7 @@ task block {
         daemons.daemon.assertIdle()
 
         when:
-        executer.withJavaHome(AvailableJavaHomes.differentJdk.javaHome)
+        executer.withJvm(AvailableJavaHomes.differentJdk)
         executer.withArguments("--stop").run()
 
         then:

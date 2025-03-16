@@ -18,7 +18,6 @@ package org.gradle.testkit.runner
 
 import org.gradle.api.GradleException
 import org.gradle.initialization.StartParameterBuildOptions
-import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.launcher.daemon.client.DaemonDisappearedException
 import org.gradle.testkit.runner.fixtures.HideEnvVariableValuesInDaemonLog
@@ -33,7 +32,7 @@ class GradleRunnerMechanicalFailureIntegrationTest extends BaseGradleRunnerInteg
 
     def "treats invalid argument as build failure and throws if not expected"() {
         given:
-        buildScript helloWorldTask()
+        buildFile helloWorldTask()
 
         when:
         runner('helloWorld', '--unknown').build()
@@ -44,7 +43,7 @@ class GradleRunnerMechanicalFailureIntegrationTest extends BaseGradleRunnerInteg
 
     def "treats invalid argument as build failure and does not throw if expected"() {
         given:
-        buildScript helloWorldTask()
+        buildFile helloWorldTask()
 
         when:
         runner('helloWorld', '--unknown').buildAndFail()
@@ -105,7 +104,7 @@ class GradleRunnerMechanicalFailureIntegrationTest extends BaseGradleRunnerInteg
     @InspectsExecutedTasks
     def "build fails if project directory does not exist and provides diagnostic information"() {
         given:
-        buildScript helloWorldTask()
+        buildFile helloWorldTask()
         def nonExistentWorkingDir = new File('some/path/that/does/not/exist')
 
         when:
@@ -171,16 +170,14 @@ class GradleRunnerMechanicalFailureIntegrationTest extends BaseGradleRunnerInteg
         t.cause.cause.class.name == DaemonDisappearedException.name // not the same class because it's coming from the tooling client
 
         and:
-        def output = OutputScrapingExecutionResult.from(t.message, "")
         def taskHeader = gradleVersion >= GradleVersion.version("4.0") ? "\n> Task :helloWorld" : ":helloWorld"
         // GradleRunner disables FS watching on Windows by passing a command line argument, so the arguments are different for Windows and other operating systems
         // See GradleRunner's Javadoc.
         def actualArguments = OperatingSystem.current().windows
             ? ["-D${StartParameterBuildOptions.WatchFileSystemOption.GRADLE_PROPERTY}=false"] + runner.arguments
             : runner.arguments
-        output.normalizedOutput == """An error occurred executing build with args '${actualArguments.join(' ')}' in directory '$testDirectory.canonicalPath'. Output before error:
-$taskHeader
-Hello world!
-"""
+        t.message.contains("An error occurred executing build with args '${actualArguments.join(' ')}' in directory '$testDirectory.canonicalPath'. Output before error:")
+        t.message.contains("$taskHeader")
+        t.message.contains("Hello world!")
     }
 }

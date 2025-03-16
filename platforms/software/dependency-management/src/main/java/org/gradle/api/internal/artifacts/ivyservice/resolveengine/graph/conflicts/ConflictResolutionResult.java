@@ -24,9 +24,11 @@ public interface ConflictResolutionResult {
 
     /**
      * Performs an action on all conflicting modules.
+     *
      * @param action the action to execute on each participating module
+     * @param result the result of the conflict, with the winning node
      */
-    void withParticipatingModules(Action<? super ModuleIdentifier> action);
+    void withParticipatingModules(Action<? super ModuleIdentifier> action, ConflictResolutionResult result);
 
     /**
      * The actual selected component.

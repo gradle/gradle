@@ -19,28 +19,37 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.execution.ProjectConfigurer;
 import org.gradle.initialization.ProjectsEvaluatedNotifier;
 import org.gradle.internal.buildtree.BuildModelParameters;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
+
+import static org.gradle.configuration.DeferredProjectEvaluationCondition.skipEvaluationDuringProjectPreparation;
 
 public class DefaultProjectsPreparer implements ProjectsPreparer {
-    private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildOperationRunner buildOperationRunner;
     private final ProjectConfigurer projectConfigurer;
     private final BuildModelParameters buildModelParameters;
 
     public DefaultProjectsPreparer(
         ProjectConfigurer projectConfigurer,
         BuildModelParameters buildModelParameters,
-        BuildOperationExecutor buildOperationExecutor
+        BuildOperationRunner buildOperationRunner
     ) {
         this.projectConfigurer = projectConfigurer;
         this.buildModelParameters = buildModelParameters;
-        this.buildOperationExecutor = buildOperationExecutor;
+        this.buildOperationRunner = buildOperationRunner;
     }
 
     @Override
     public void prepareProjects(GradleInternal gradle) {
-        if (!buildModelParameters.isConfigureOnDemand() || !gradle.isRootBuild()) {
-            projectConfigurer.configureHierarchy(gradle.getRootProject());
-            new ProjectsEvaluatedNotifier(buildOperationExecutor).notify(gradle);
+        if (skipEvaluationDuringProjectPreparation(buildModelParameters, gradle)) {
+            return;
         }
+
+        if (buildModelParameters.isIsolatedProjects()) {
+            projectConfigurer.configureHierarchyInParallel(gradle.getRootProject());
+        } else {
+            projectConfigurer.configureHierarchy(gradle.getRootProject());
+        }
+        new ProjectsEvaluatedNotifier(buildOperationRunner).notify(gradle);
     }
+
 }

@@ -19,6 +19,8 @@ package org.gradle.internal.classpath
 import org.gradle.internal.classpath.intercept.DefaultCallSiteDecorator
 import org.gradle.internal.classpath.intercept.DefaultCallSiteInterceptorSet
 import org.gradle.internal.classpath.intercept.CallSiteInterceptorSet
+import org.gradle.test.precondition.TestPrecondition
+import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Specification
 
 import static org.gradle.internal.classpath.BasicCallInterceptionTestInterceptorsDeclaration.TEST_GENERATED_CLASSES_PACKAGE
@@ -129,9 +131,12 @@ class CallInterceptingMetaClassTest extends Specification {
         "invokeMethod(receiver, methodName, (Object) arguments)"              | { instance.metaClass.invokeMethod(instance, "test", (Object) [].toArray()) }                  | true        | false
         "invokeMethod(sender, receiver, methodName, arguments, false, false)" | { instance.metaClass.invokeMethod(getClass(), instance, "test", [].toArray(), false, false) } | true        | false
 
-        // These should not be intercepted because of isCallToSuper and fromInsideClass
+        // This should not be intercepted because of fromInsideClass, however in Groovy 4.x it is still invoked without encountering an exception due to a new fallback
+        // I have no idea if the fallback is supposed to do this, because it was added without any explanation as part of https://github.com/apache/groovy/pull/1598
+        "invokeMethod(sender, receiver, methodName, arguments, false, true)"  | { instance.metaClass.invokeMethod(getClass(), instance, "test", [].toArray(), false, true) }  | false       | TestPrecondition.satisfied(UnitTestPreconditions.IsGroovy3)
+
+        // These should not be intercepted because of isCallToSuper
         "invokeMethod(sender, receiver, methodName, arguments, true, false)"  | { instance.metaClass.invokeMethod(getClass(), instance, "test", [].toArray(), true, false) }  | false       | true
-        "invokeMethod(sender, receiver, methodName, arguments, false, true)"  | { instance.metaClass.invokeMethod(getClass(), instance, "test", [].toArray(), false, true) }  | false       | true
         "invokeMethod(sender, receiver, methodName, arguments, true, true)"   | { instance.metaClass.invokeMethod(getClass(), instance, "test", [].toArray(), true, true) }   | false       | true
     }
 

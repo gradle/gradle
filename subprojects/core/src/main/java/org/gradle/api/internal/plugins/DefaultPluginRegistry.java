@@ -27,9 +27,9 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.util.internal.GUtil;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.Optional;
@@ -54,7 +54,7 @@ public class DefaultPluginRegistry implements PluginRegistry {
         this.classMappings = CacheBuilder.newBuilder().build(new PotentialPluginCacheLoader(pluginInspector));
         this.idMappings = CacheBuilder.newBuilder().build(new CacheLoader<PluginIdLookupCacheKey, Optional<PluginImplementation<?>>>() {
             @Override
-            public Optional<PluginImplementation<?>> load(@Nonnull PluginIdLookupCacheKey key) {
+            public Optional<PluginImplementation<?>> load(@NonNull PluginIdLookupCacheKey key) {
                 PluginId pluginId = key.getId();
                 ClassLoader classLoader = key.getClassLoader();
 
@@ -170,7 +170,7 @@ public class DefaultPluginRegistry implements PluginRegistry {
     @Nullable
     private PluginImplementation<?> lookup(PluginId pluginId, ClassLoader classLoader) {
         // Don't go up the parent chain.
-        // Don't want to risk classes crossing “scope” boundaries and being non collectible.
+        // Don't want to risk classes crossing "scope" boundaries and being non collectible.
 
         if (pluginId.getNamespace() == null) {
             PluginId qualified = pluginId.withNamespace(DefaultPluginManager.CORE_PLUGIN_NAMESPACE);
@@ -239,7 +239,7 @@ public class DefaultPluginRegistry implements PluginRegistry {
         }
 
         @Override
-        public PluginImplementation<?> load(@Nonnull Class<?> key) {
+        public PluginImplementation<?> load(@NonNull Class<?> key) {
             ClassLoader classLoader = classLoaderScope.defines(key) ? classLoaderScope.getLocalClassLoader() : key.getClassLoader();
             return new RegistryAwarePluginImplementation(classLoader, null, pluginInspector.inspect(key));
         }

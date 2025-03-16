@@ -5,37 +5,47 @@ plugins {
 description = "Plugin for cryptographic signing of publications, artifacts or files."
 
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":logging"))
-    implementation(project(":process-services"))
-    implementation(project(":core-api"))
-    implementation(project(":model-core"))
-    implementation(project(":core"))
-    implementation(project(":file-collections"))
-    implementation(project(":functional"))
-    implementation(project(":platform-base"))
-    implementation(project(":dependency-management"))
-    implementation(project(":publish"))
-    implementation(project(":maven"))
-    implementation(project(":security"))
+    api(projects.baseServices)
+    api(projects.core)
+    api(projects.coreApi)
+    api(projects.fileCollections)
+    api(projects.publish)
+    api(projects.stdlibJavaExtensions)
 
-    implementation(libs.groovy)
+    api(libs.bouncycastlePgp)
+    api(libs.jspecify)
+    api(libs.groovy)
+    api(libs.inject)
+
+    implementation(projects.functional)
+    implementation(projects.loggingApi)
+    implementation(projects.modelCore)
+    implementation(projects.platformBase)
+
     implementation(libs.guava)
-    implementation(libs.inject)
 
-    testFixturesImplementation(project(":base-services")) {
+    testFixturesImplementation(projects.baseServices) {
         because("Required to access org.gradle.internal.SystemProperties")
     }
 
-    testImplementation(project(":ivy"))
-    testImplementation(testFixtures(project(":core")))
+    testImplementation(projects.maven)
+    testImplementation(projects.ivy)
+    testImplementation(testFixtures(projects.core))
 
-    testRuntimeOnly(testFixtures(project(":security")))
-    testRuntimeOnly(project(":distributions-publishing")) {
+    testRuntimeOnly(projects.distributionsPublishing) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
 
-    integTestDistributionRuntimeOnly(project(":distributions-publishing"))
+    integTestDistributionRuntimeOnly(projects.distributionsPublishing)
+
+    testFixturesImplementation(projects.baseServices)
+    testFixturesImplementation(projects.internalIntegTesting)
+    testFixturesImplementation(projects.security)
+    testFixturesImplementation(testFixtures(projects.core))
+
+    testFixturesImplementation(libs.slf4jApi)
+    testFixturesImplementation(libs.jetty)
+    testFixturesImplementation(libs.jettyWebApp)
 }
 
 strictCompile {
@@ -50,4 +60,7 @@ tasks {
     integTest {
         usesJavadocCodeSnippets = true
     }
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

@@ -20,8 +20,9 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 
 class AttributeContainerResolutionIntegrationTest extends AbstractIntegrationSpec {
+
     @Issue("https://github.com/gradle/gradle/issues/26298")
-    def "lazy attributes provided to a Configuration do not fail resolution when they have side effects"() {
+    def "lazy attributes provided to a Configuration fail when they query the same attribute container"() {
         buildFile << """
             configurations {
                 conf {
@@ -42,8 +43,12 @@ class AttributeContainerResolutionIntegrationTest extends AbstractIntegrationSpe
                 inputs.files(configurations.conf)
             }
         """
-        expect:
-        // When this has failed in the past, building the task graph hits a NPE from the attribute container
-        succeeds("resolve")
+
+        when:
+        fails("resolve")
+
+        then:
+        failure.assertHasCause("Circular evaluation detected")
     }
+
 }

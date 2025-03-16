@@ -132,6 +132,7 @@ operator fun DependencyModifier.invoke(dependencyNotation: CharSequence): Extern
  * @see DependencyModifier
  * @since 8.0
  */
+@Incubating
 operator fun DependencyModifier.invoke(dependency: ProviderConvertible<out MinimalExternalModuleDependency>): Provider<out MinimalExternalModuleDependency> = modify(dependency)
 
 
@@ -190,6 +191,7 @@ operator fun DependencyCollector.invoke(files: FileCollection, configuration: Ac
  * @param externalModule external module to add as a dependency
  * @since 8.6
  */
+@Incubating
 operator fun DependencyCollector.invoke(externalModule: ProviderConvertible<out MinimalExternalModuleDependency>) = add(externalModule)
 
 
@@ -200,6 +202,7 @@ operator fun DependencyCollector.invoke(externalModule: ProviderConvertible<out 
  * @param configuration an action to configure the dependency
  * @since 8.6
  */
+@Incubating
 operator fun DependencyCollector.invoke(externalModule: ProviderConvertible<out MinimalExternalModuleDependency>, configuration: Action<in ExternalModuleDependency>) = add(externalModule, configuration)
 
 

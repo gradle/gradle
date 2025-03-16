@@ -27,8 +27,19 @@ import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
 class DefaultFileLockContentionHandlerTest extends ConcurrentSpecification {
     def addressFactory = new InetAddressFactory()
-    def handler = new DefaultFileLockContentionHandler(executorFactory, addressFactory)
-    def client = new DefaultFileLockContentionHandler(executorFactory, addressFactory)
+    def addressProvider = new InetAddressProvider() {
+        @Override
+        InetAddress getWildcardBindingAddress() {
+            return addressFactory.wildcardBindingAddress
+        }
+
+        @Override
+        InetAddress getCommunicationAddress() {
+            return addressFactory.localBindingAddress
+        }
+    }
+    def handler = new DefaultFileLockContentionHandler(executorFactory, addressProvider)
+    def client = new DefaultFileLockContentionHandler(executorFactory, addressProvider)
 
     def cleanup() {
         handler?.stop()
@@ -75,30 +86,22 @@ class DefaultFileLockContentionHandlerTest extends ConcurrentSpecification {
     }
 
     def "there are only two executors: one lock request listener and one release lock action executor"() {
-        def factory = Mock(ExecutorFactory)
-        handler = new DefaultFileLockContentionHandler(factory, addressFactory)
+        def factory = Mock(ExecutorFactory) {
+            2 * create(_ as String) >> Mock(ManagedExecutor)
+        }
 
-        when:
+        FileLockContentionHandler handler = new DefaultFileLockContentionHandler(factory, addressProvider)
+
+        expect:
         handler.reservePort()
         handler.start(10, {})
         handler.start(11, {})
         handler.start(12, {})
-
-        then:
-        2 * factory.create(_ as String) >> Mock(ManagedExecutor)
     }
 
     def "cannot start contention handling when the handler was stopped"() {
         handler.stop()
 
-        when:
-        handler.start(10, {})
-
-        then:
-        thrown(IllegalStateException)
-    }
-
-    def "cannot start contention handling when the handler was not initialized"() {
         when:
         handler.start(10, {})
 
@@ -160,22 +163,13 @@ class DefaultFileLockContentionHandlerTest extends ConcurrentSpecification {
         thrown(IllegalStateException)
     }
 
-    def "reserving port does not start the thread"() {
-        def factory = Mock(ExecutorFactory)
-        handler = new DefaultFileLockContentionHandler(factory, addressFactory)
-
-        when:
-        handler.reservePort()
-
-        then:
-        0 * factory._
-    }
-
     def "stopping the handler stops both executors"() {
-        def factory = Mock(ExecutorFactory)
+        def factory = Stub(ExecutorFactory)
         def lockRequestListener = Mock(ManagedExecutor)
         def releaseLockActionExecutor = Mock(ManagedExecutor)
-        handler = new DefaultFileLockContentionHandler(factory, addressFactory)
+        factory.create(_ as String) >>> [lockRequestListener, releaseLockActionExecutor]
+
+        FileLockContentionHandler handler = new DefaultFileLockContentionHandler(factory, addressProvider)
 
         when:
         handler.reservePort()
@@ -183,8 +177,6 @@ class DefaultFileLockContentionHandlerTest extends ConcurrentSpecification {
         handler.stop()
 
         then:
-        1 * factory.create(_ as String) >> lockRequestListener
-        1 * factory.create(_ as String) >> releaseLockActionExecutor
         1 * lockRequestListener.stop()
         1 * releaseLockActionExecutor.stop()
     }

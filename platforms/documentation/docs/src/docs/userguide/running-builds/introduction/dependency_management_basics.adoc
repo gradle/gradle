@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Gradle, Inc.
+// Copyright (C) 2024 Gradle, Inc.
 //
 // Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
@@ -109,7 +109,7 @@ testImplementation - Implementation only dependencies for source set 'test'. (n)
 ...
 ----
 
-Consult the <<dependency_management_terminology.adoc#dependency_management_terminology,Dependency Management chapter>> to learn more.
+Consult the <<glossary.adoc#dependency_management_terminology,Dependency Management chapter>> to learn more.
 
 [.text-right]
 **Next Step:** <<task_basics.adoc#task_basics,Learn about Tasks>> >>

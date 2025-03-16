@@ -16,11 +16,11 @@
 
 package org.gradle.language.cpp.plugins;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
+import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
@@ -35,6 +35,7 @@ import org.gradle.nativeplatform.toolchain.internal.ToolType;
 import org.gradle.nativeplatform.toolchain.internal.plugins.StandardToolChainsPlugin;
 import org.gradle.swiftpm.internal.NativeProjectPublication;
 import org.gradle.swiftpm.internal.SwiftPmTarget;
+import org.jspecify.annotations.NullMarked;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -46,7 +47,7 @@ import java.util.concurrent.Callable;
  *
  * @since 4.1
  */
-@NonNullApi
+@NullMarked
 public abstract class CppBasePlugin implements Plugin<Project> {
     private final ProjectPublicationRegistry publicationRegistry;
 
@@ -96,7 +97,8 @@ public abstract class CppBasePlugin implements Plugin<Project> {
         project.getComponents().withType(ProductionCppComponent.class, component -> {
             project.afterEvaluate(p -> {
                 DefaultCppComponent componentInternal = (DefaultCppComponent) component;
-                publicationRegistry.registerPublication((ProjectInternal) project, new NativeProjectPublication(componentInternal.getDisplayName(), new SwiftPmTarget(component.getBaseName().get())));
+                ProjectIdentity projectIdentity = ((ProjectInternal) project).getProjectIdentity();
+                publicationRegistry.registerPublication(projectIdentity, new NativeProjectPublication(componentInternal.getDisplayName(), new SwiftPmTarget(component.getBaseName().get())));
             });
         });
     }

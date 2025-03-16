@@ -16,23 +16,23 @@
 
 package org.gradle.process.internal.worker;
 
-import org.gradle.api.NonNullApi;
+import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.internal.InternalProblemReporter;
-import org.gradle.api.problems.internal.ProblemReport;
 import org.gradle.api.problems.internal.ProblemsProgressEventEmitterHolder;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.process.internal.worker.problem.WorkerProblemProtocol;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * Default daemon-side implementation of {@link WorkerProblemProtocol}.
  * <p>
  * This implementation will take care of reporting problems received from the worker.
  */
-@NonNullApi
+@NullMarked
 public class DefaultWorkerProblemProtocol implements WorkerProblemProtocol {
 
     @Override
-    public void reportProblem(ProblemReport problem, OperationIdentifier id) {
+    public void reportProblem(Problem problem, OperationIdentifier id) {
         InternalProblemReporter problemsService = ProblemsProgressEventEmitterHolder.get().getInternalReporter();
         problemsService.report(problem, id);
     }

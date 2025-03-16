@@ -55,10 +55,10 @@ class TarSlipIntegrationTest extends AbstractIntegrationSpec {
         executer.withStacktraceEnabled()
 
         given:
-        buildFile << '''
+        buildFile '''
             task copyEvilTar(type: Copy) {
                 from(tarTree('evil.tar.bz'))
-                into('.')
+                into(layout.buildDirectory)
             }
         '''
 

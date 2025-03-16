@@ -116,7 +116,7 @@ class ZipCopyActionTest extends Specification {
         }
 
         def docRegistry = Mock(DocumentationRegistry)
-        1 * docRegistry.getDslRefForProperty(Zip, "zip64") >> "doc url"
+        1 * docRegistry.getDslRefForProperty(Zip.name, "zip64") >> "doc url"
         0 * docRegistry._
 
         visitor = new ZipCopyAction(zipFile, compressor, docRegistry, encoding, false)

@@ -24,11 +24,5 @@ import java.util.Set;
 public interface ConfigurationGraphResolveMetadata extends VariantGraphResolveMetadata {
     Set<String> getHierarchy();
 
-    boolean isCanBeConsumed();
-
     boolean isVisible();
-
-    default boolean isDeprecatedForConsumption() {
-        return false;
-    }
 }

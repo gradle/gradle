@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.SetMultimap;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
@@ -27,6 +26,7 @@ import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ModuleComponentSelectorSerializer;
+import org.gradle.api.internal.artifacts.capability.CapabilitySelectorSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultExcludeRuleConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ExcludeRuleConverter;
@@ -84,11 +84,17 @@ public class ModuleMetadataSerializer {
     private final AttributeContainerSerializer attributeContainerSerializer;
     private final ModuleSourcesSerializer moduleSourcesSerializer;
 
-    public ModuleMetadataSerializer(AttributeContainerSerializer attributeContainerSerializer, MavenMutableModuleMetadataFactory mavenMetadataFactory, IvyMutableModuleMetadataFactory ivyMetadataFactory, ModuleSourcesSerializer moduleSourcesSerializer) {
+    public ModuleMetadataSerializer(
+        AttributeContainerSerializer attributeContainerSerializer,
+        CapabilitySelectorSerializer capabilitySelectorSerializer,
+        MavenMutableModuleMetadataFactory mavenMetadataFactory,
+        IvyMutableModuleMetadataFactory ivyMetadataFactory,
+        ModuleSourcesSerializer moduleSourcesSerializer
+    ) {
         this.mavenMetadataFactory = mavenMetadataFactory;
         this.ivyMetadataFactory = ivyMetadataFactory;
         this.attributeContainerSerializer = attributeContainerSerializer;
-        this.componentSelectorSerializer = new ModuleComponentSelectorSerializer(attributeContainerSerializer);
+        this.componentSelectorSerializer = new ModuleComponentSelectorSerializer(attributeContainerSerializer, capabilitySelectorSerializer);
         this.moduleSourcesSerializer = moduleSourcesSerializer;
     }
 
@@ -151,7 +157,7 @@ public class ModuleMetadataSerializer {
         private void writeVariantConstraints(ImmutableList<? extends ComponentVariant.DependencyConstraint> constraints) throws IOException {
             encoder.writeSmallInt(constraints.size());
             for (ComponentVariant.DependencyConstraint constraint : constraints) {
-                componentSelectorSerializer.write(encoder, constraint.getGroup(), constraint.getModule(), constraint.getVersionConstraint(), constraint.getAttributes(), Collections.emptyList());
+                componentSelectorSerializer.write(encoder, constraint.getGroup(), constraint.getModule(), constraint.getVersionConstraint(), constraint.getAttributes(), Collections.emptySet());
                 encoder.writeNullableString(constraint.getReason());
             }
         }
@@ -159,7 +165,7 @@ public class ModuleMetadataSerializer {
         private void writeVariantDependencies(List<? extends ComponentVariant.Dependency> dependencies) throws IOException {
             encoder.writeSmallInt(dependencies.size());
             for (ComponentVariant.Dependency dependency : dependencies) {
-                componentSelectorSerializer.write(encoder, dependency.getGroup(), dependency.getModule(), dependency.getVersionConstraint(), dependency.getAttributes(), dependency.getRequestedCapabilities());
+                componentSelectorSerializer.write(encoder, dependency.getGroup(), dependency.getModule(), dependency.getVersionConstraint(), dependency.getAttributes(), dependency.getCapabilitySelectors());
                 encoder.writeNullableString(dependency.getReason());
                 writeVariantDependencyExcludes(dependency.getExcludes());
                 encoder.writeBoolean(dependency.isEndorsingStrictVersions());
@@ -483,7 +489,7 @@ public class ModuleMetadataSerializer {
                 ImmutableList<ExcludeMetadata> excludes = readVariantDependencyExcludes();
                 boolean endorsing = decoder.readBoolean();
                 IvyArtifactName dependencyArtifact = IvyArtifactNameSerializer.INSTANCE.readNullable(decoder);
-                variant.addDependency(selector.getGroup(), selector.getModule(), selector.getVersionConstraint(), excludes, reason, (ImmutableAttributes) selector.getAttributes(), selector.getRequestedCapabilities(), endorsing, dependencyArtifact);
+                variant.addDependency(selector.getGroup(), selector.getModule(), selector.getVersionConstraint(), excludes, reason, (ImmutableAttributes) selector.getAttributes(), selector.getCapabilitySelectors(), endorsing, dependencyArtifact);
             }
         }
 
@@ -583,7 +589,7 @@ public class ModuleMetadataSerializer {
 
         private List<Artifact> readArtifacts() throws IOException {
             int size = readCount();
-            List<Artifact> result = Lists.newArrayListWithCapacity(size);
+            List<Artifact> result = new ArrayList<>(size);
             for (int i = 0; i < size; i++) {
                 IvyArtifactName ivyArtifactName = IvyArtifactNameSerializer.INSTANCE.read(decoder);
                 result.add(new Artifact(ivyArtifactName, readStringSet()));
@@ -593,7 +599,7 @@ public class ModuleMetadataSerializer {
 
         private List<IvyDependencyDescriptor> readIvyDependencies() throws IOException {
             int len = readCount();
-            List<IvyDependencyDescriptor> result = Lists.newArrayListWithCapacity(len);
+            List<IvyDependencyDescriptor> result = new ArrayList<>(len);
             for (int i = 0; i < len; i++) {
                 result.add(readIvyDependency());
             }
@@ -625,7 +631,7 @@ public class ModuleMetadataSerializer {
 
         private List<Artifact> readDependencyArtifactDescriptors() throws IOException {
             int size = readCount();
-            List<Artifact> result = Lists.newArrayListWithCapacity(size);
+            List<Artifact> result = new ArrayList<>(size);
             for (int i = 0; i < size; i++) {
                 IvyArtifactName ivyArtifactName = IvyArtifactNameSerializer.INSTANCE.read(decoder);
                 result.add(new Artifact(ivyArtifactName, readStringSet()));
@@ -635,7 +641,7 @@ public class ModuleMetadataSerializer {
 
         private List<Exclude> readDependencyExcludes() throws IOException {
             int len = readCount();
-            List<Exclude> result = Lists.newArrayListWithCapacity(len);
+            List<Exclude> result = new ArrayList<>(len);
             for (int i = 0; i < len; i++) {
                 DefaultExclude rule = readExcludeRule();
                 result.add(rule);
@@ -663,7 +669,7 @@ public class ModuleMetadataSerializer {
 
         private List<MavenDependencyDescriptor> readMavenDependencies(Map<Integer, MavenDependencyDescriptor> deduplicationDependencyCache) throws IOException {
             int len = readCount();
-            List<MavenDependencyDescriptor> result = Lists.newArrayListWithCapacity(len);
+            List<MavenDependencyDescriptor> result = new ArrayList<>(len);
             for (int i = 0; i < len; i++) {
                 result.add(readMavenDependency(deduplicationDependencyCache));
             }
@@ -690,7 +696,7 @@ public class ModuleMetadataSerializer {
 
         private List<ExcludeMetadata> readMavenDependencyExcludes() throws IOException {
             int len = readCount();
-            List<ExcludeMetadata> result = Lists.newArrayListWithCapacity(len);
+            List<ExcludeMetadata> result = new ArrayList<>(len);
             for (int i = 0; i < len; i++) {
                 String moduleOrg = readString();
                 String moduleName = readString();

@@ -22,6 +22,8 @@ import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.File;
 import java.net.URL;
@@ -30,6 +32,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+@ServiceScope(Scope.UserHome.class)
 public class ClassLoaderStructureProvider {
     private final ClassLoaderRegistry classLoaderRegistry;
 
@@ -59,6 +62,8 @@ public class ClassLoaderStructureProvider {
     /**
      * Returns a spec representing the combined "user" classloader for the given classes and additional classpath.  The user classloader assumes it is used as a child of a classloader with the Gradle API.
      */
+    // TODO Avoid hash-based containers of java.net.URL--the containers rely on equals() and hashCode(), which cause java.net.URL to make blocking internet connections.
+    @SuppressWarnings("URLEqualsHashCode")
     public VisitableURLClassLoader.Spec getUserSpec(String name, Iterable<File> additionalClasspath, Class<?>... classes) {
         Set<URL> classpath = new LinkedHashSet<>();
         classpath.addAll(DefaultClassPath.of(additionalClasspath).getAsURLs());

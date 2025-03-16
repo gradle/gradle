@@ -16,6 +16,7 @@
 package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.Action;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.Console;
@@ -26,8 +27,10 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.HashMap;
@@ -37,6 +40,7 @@ import java.util.Map;
 /**
  * Compilation options to be passed to the Groovy compiler.
  */
+@SuppressWarnings("deprecation")
 public abstract class GroovyCompileOptions extends AbstractOptions {
     private static final long serialVersionUID = 0;
 
@@ -77,6 +81,7 @@ public abstract class GroovyCompileOptions extends AbstractOptions {
      * Tells whether the compilation task should fail if compile errors occurred. Defaults to {@code true}.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public boolean isFailOnError() {
         return failOnError;
     }
@@ -92,6 +97,7 @@ public abstract class GroovyCompileOptions extends AbstractOptions {
      * Tells whether to turn on verbose output. Defaults to {@code false}.
      */
     @Console
+    @ToBeReplacedByLazyProperty
     public boolean isVerbose() {
         return verbose;
     }
@@ -107,6 +113,7 @@ public abstract class GroovyCompileOptions extends AbstractOptions {
      * Tells whether to print which source files are to be compiled. Defaults to {@code false}.
      */
     @Console
+    @ToBeReplacedByLazyProperty
     public boolean isListFiles() {
         return listFiles;
     }
@@ -122,6 +129,7 @@ public abstract class GroovyCompileOptions extends AbstractOptions {
      * Tells the source encoding. Defaults to {@code UTF-8}.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public String getEncoding() {
         return encoding;
     }
@@ -137,6 +145,7 @@ public abstract class GroovyCompileOptions extends AbstractOptions {
      * Tells whether to run the Groovy compiler in a separate process. Defaults to {@code true}.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public boolean isFork() {
         return fork;
     }
@@ -189,6 +198,7 @@ public abstract class GroovyCompileOptions extends AbstractOptions {
     @Optional
     @PathSensitive(PathSensitivity.NONE)
     @InputFile
+    @ToBeReplacedByLazyProperty
     public File getConfigurationScript() {
         return configurationScript;
     }
@@ -215,6 +225,7 @@ public abstract class GroovyCompileOptions extends AbstractOptions {
      * No annotation processing will be performed regardless, on Java or Groovy source.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public boolean isJavaAnnotationProcessing() {
         return javaAnnotationProcessing;
     }
@@ -234,6 +245,7 @@ public abstract class GroovyCompileOptions extends AbstractOptions {
      * @since 6.1
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public boolean isParameters() {
         return parameters;
     }
@@ -260,9 +272,27 @@ public abstract class GroovyCompileOptions extends AbstractOptions {
     /**
      * Sets options for running the Groovy compiler in a separate process. These options only take effect
      * if {@code fork} is set to {@code true}.
+     *
+     * @deprecated Setting a new instance of this property is unnecessary. This method will be removed in Gradle 9.0. Use {@link #forkOptions(Action)} instead.
      */
+    @Deprecated
     public void setForkOptions(GroovyForkOptions forkOptions) {
+        DeprecationLogger.deprecateMethod(GroovyCompileOptions.class, "setForkOptions(GroovyForkOptions)")
+            .replaceWith("forkOptions(Action)")
+            .withContext("Setting a new instance of forkOptions is unnecessary.")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecated_nested_properties_setters")
+            .nagUser();
         this.forkOptions = forkOptions;
+    }
+
+    /**
+     * Execute the given action against {@link #getForkOptions()}.
+     *
+     * @since 8.11
+     */
+    public void forkOptions(Action<? super GroovyForkOptions> action) {
+        action.execute(forkOptions);
     }
 
     /**
@@ -280,6 +310,7 @@ public abstract class GroovyCompileOptions extends AbstractOptions {
      *     <dd>Enable or disable all optimizations. Note that some optimizations might be mutually exclusive.
      * </dl>
      */
+    @ToBeReplacedByLazyProperty
     @Nullable @Optional @Input
     public Map<String, Boolean> getOptimizationOptions() {
         return optimizationOptions;
@@ -309,6 +340,7 @@ public abstract class GroovyCompileOptions extends AbstractOptions {
      * compilation. Defaults to {@code null}, in which case a temporary directory will be used.
      */
     @Internal
+    @ToBeReplacedByLazyProperty
     // TOOD:LPTR Should be just a relative path
     public File getStubDir() {
         return stubDir;
@@ -327,6 +359,7 @@ public abstract class GroovyCompileOptions extends AbstractOptions {
      * Groovy 1.7 or higher. Defaults to {@code ImmutableList.of("java", "groovy")}.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public List<String> getFileExtensions() {
         return fileExtensions;
     }
@@ -345,6 +378,7 @@ public abstract class GroovyCompileOptions extends AbstractOptions {
      * Defaults to {@code false}.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public boolean isKeepStubs() {
         return keepStubs;
     }
@@ -361,10 +395,22 @@ public abstract class GroovyCompileOptions extends AbstractOptions {
     /**
      * Convenience method to set {@link GroovyForkOptions} with named parameter syntax.
      * Calling this method will set {@code fork} to {@code true}.
+     *
+     * @deprecated This method will be removed in Gradle 9.0
      */
+    @Deprecated
     public GroovyCompileOptions fork(Map<String, Object> forkArgs) {
+
+        DeprecationLogger.deprecateMethod(GroovyCompileOptions.class, "fork(Map)")
+            .withAdvice("Set properties directly on the 'forkOptions' property instead.")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecated_abstract_options")
+            .nagUser();
+
         fork = true;
-        forkOptions.define(forkArgs);
+
+        // Disable deprecation to avoid double-warning
+        DeprecationLogger.whileDisabled(() -> forkOptions.define(forkArgs));
         return this;
     }
 }

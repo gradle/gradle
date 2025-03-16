@@ -41,6 +41,7 @@ import org.gradle.kotlin.dsl.provider.fileCollectionOf
 import org.gradle.kotlin.dsl.provider.gradleKotlinDslOf
 import org.gradle.kotlin.dsl.support.ScriptHandlerScopeInternal
 import org.gradle.kotlin.dsl.support.invalidPluginsCall
+import org.gradle.kotlin.dsl.support.serviceOf
 
 import org.gradle.plugin.use.PluginDependenciesSpec
 
@@ -59,7 +60,7 @@ fun Project.buildscript(action: ScriptHandlerScope.() -> Unit): Unit =
  * Sets the default tasks of this project. These are used when no tasks names are provided when
  * starting the build.
  */
-@Suppress("nothing_to_inline")
+@Suppress("nothing_to_inline", "SpreadOperator")
 inline fun Project.defaultTasks(vararg tasks: Task) {
     defaultTasks(*tasks.map { it.name }.toTypedArray())
 }
@@ -186,7 +187,9 @@ fun <T : Any> Project.the(extensionType: KClass<T>): T =
  * Creates a [Task] with the given [name] and [type], configures it with the given [configuration] action,
  * and adds it to this project tasks container.
  */
+@Deprecated("Use tasks.register instead", ReplaceWith("tasks.register<type>(name, configuration)"))
 inline fun <reified type : Task> Project.task(name: String, noinline configuration: type.() -> Unit) =
+    @Suppress("DEPRECATION")
     task(name, type::class, configuration)
 
 
@@ -196,11 +199,13 @@ inline fun <reified type : Task> Project.task(name: String, noinline configurati
  * @see [Project.getTasks]
  * @see [TaskContainer.create]
  */
-@Suppress("extension_shadowed_by_member")
+@Deprecated("Use tasks.register instead", ReplaceWith("tasks.register<type>(name)"))
+@Suppress("extension_shadowed_by_member", "DEPRECATION")
 inline fun <reified type : Task> Project.task(name: String) =
     tasks.create(name, type::class.java)
 
-
+@Deprecated("Use tasks.register instead", ReplaceWith("tasks.register(name, type, configuration)"))
+@Suppress("DEPRECATION")
 fun <T : Task> Project.task(name: String, type: KClass<T>, configuration: T.() -> Unit) =
     tasks.create(name, type.java, configuration)
 
@@ -252,7 +257,7 @@ fun Project.artifacts(configuration: ArtifactHandlerScope.() -> Unit) =
  * Locates a property on [Project].
  */
 operator fun Project.provideDelegate(any: Any?, property: KProperty<*>): PropertyDelegate =
-    propertyDelegateFor(this, property)
+    propertyDelegateFor(serviceOf(), this, property)
 
 
 /**
@@ -268,7 +273,7 @@ operator fun Project.provideDelegate(any: Any?, property: KProperty<*>): Propert
  *
  * @see [Project.container]
  */
-inline fun <reified T> Project.container(): NamedDomainObjectContainer<T> =
+inline fun <reified T : Any> Project.container(): NamedDomainObjectContainer<T> =
     container(T::class.java)
 
 

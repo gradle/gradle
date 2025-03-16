@@ -23,7 +23,13 @@ import org.gradle.initialization.ClassLoaderScopeRegistryListener;
 import org.gradle.initialization.ClassLoaderScopeRegistryListenerManager;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.problems.failure.Failure;
+import org.gradle.internal.problems.failure.InternalStackTraceClassifier;
+import org.gradle.internal.problems.failure.StackFramePredicate;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.problems.Location;
+import org.jspecify.annotations.Nullable;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -33,7 +39,11 @@ import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+@ServiceScope(Scope.BuildTree.class)
 public class DefaultProblemLocationAnalyzer implements ProblemLocationAnalyzer, ClassLoaderScopeRegistryListener, Closeable {
+
+    private static final StackFramePredicate GRADLE_CODE = (frame, relevance) -> InternalStackTraceClassifier.isGradleCall(frame.getClassName());
+
     private final Lock lock = new ReentrantLock();
     private final Map<String, ClassLoaderScopeOrigin.Script> scripts = new HashMap<>();
     private final ClassLoaderScopeRegistryListenerManager listenerManager;
@@ -55,7 +65,7 @@ public class DefaultProblemLocationAnalyzer implements ProblemLocationAnalyzer, 
     }
 
     @Override
-    public void childScopeCreated(ClassLoaderScopeId parentId, ClassLoaderScopeId childId, @javax.annotation.Nullable ClassLoaderScopeOrigin origin) {
+    public void childScopeCreated(ClassLoaderScopeId parentId, ClassLoaderScopeId childId, @org.jspecify.annotations.Nullable ClassLoaderScopeOrigin origin) {
         if (origin instanceof ClassLoaderScopeOrigin.Script) {
             ClassLoaderScopeOrigin.Script scriptOrigin = (ClassLoaderScopeOrigin.Script) origin;
             lock.lock();
@@ -68,11 +78,13 @@ public class DefaultProblemLocationAnalyzer implements ProblemLocationAnalyzer, 
     }
 
     @Override
-    public void classloaderCreated(ClassLoaderScopeId scopeId, ClassLoaderId classLoaderId, ClassLoader classLoader, ClassPath classPath, @javax.annotation.Nullable HashCode implementationHash) {
+    public void classloaderCreated(ClassLoaderScopeId scopeId, ClassLoaderId classLoaderId, ClassLoader classLoader, ClassPath classPath, @org.jspecify.annotations.Nullable HashCode implementationHash) {
     }
 
     @Override
-    public Location locationForUsage(List<StackTraceElement> stack, boolean fromException) {
+    @Nullable
+    public Location locationForUsage(Failure failure, boolean fromException) {
+        List<StackTraceElement> stack = failure.getStackTrace();
         int startPos;
         int endPos;
         if (fromException) {
@@ -84,59 +96,59 @@ public class DefaultProblemLocationAnalyzer implements ProblemLocationAnalyzer, 
             startPos = 0;
             endPos = stack.size();
         } else {
-            // When analysing a problem stack trace, consider only the deepest user code in the stack.
-            startPos = findFirstUserCode(stack);
-            if (startPos == stack.size()) {
+            // When analysing a problem stack trace, consider only the deepest user code with a location in the stack.
+            startPos = getStartPosWithLocation(failure);
+            if (startPos == -1) {
                 // No user code in the stack
                 return null;
             }
-            endPos = findNextGradleType(startPos, stack);
+            // Treat Gradle code as the boundary to allow stepping over JDK and Groovy calls
+            endPos = failure.indexOfStackFrame(startPos + 1, GRADLE_CODE);
+            if (endPos == -1) {
+                endPos = stack.size();
+            }
         }
 
         lock.lock();
         try {
-            for (int i = startPos; i < endPos; i++) {
-                StackTraceElement element = stack.get(i);
-                if (element.getLineNumber() >= 0 && scripts.containsKey(element.getFileName())) {
-                    ClassLoaderScopeOrigin.Script source = scripts.get(element.getFileName());
-                    int lineNumber = element.getLineNumber();
-                    return new Location(source.getLongDisplayName(), source.getShortDisplayName(), lineNumber);
-                }
-            }
-            return null;
+            return locationFromStackRange(startPos, endPos, stack);
         } finally {
             lock.unlock();
         }
     }
 
-    private int findNextGradleType(int startPos, List<StackTraceElement> stack) {
-        for (int i = startPos; i < stack.size(); i++) {
-            StackTraceElement element = stack.get(i);
-            if (element.getClassName().startsWith("org.gradle.")) {
-                return i;
+    private static int getStartPosWithLocation(Failure failure) {
+        int startPos = -1;
+        List<StackTraceElement> stackTrace = failure.getStackTrace();
+        do {
+            startPos = failure.indexOfStackFrame(startPos + 1, StackFramePredicate.USER_CODE);
+        } while (startPos >= 0 && stackTrace.get(startPos).getLineNumber() < 0);
+        return startPos;
+    }
+
+    @Nullable
+    private Location locationFromStackRange(int startPos, int endPos, List<StackTraceElement> stack) {
+        for (int i = startPos; i < endPos; i++) {
+            Location location = tryGetLocation(stack.get(i));
+            if (location != null) {
+                return location;
             }
         }
-        return stack.size();
+        return null;
     }
 
-    private int findFirstUserCode(List<StackTraceElement> stack) {
-        int pos = 0;
-        while (pos < stack.size() && isNonUserCode(stack.get(pos))) {
-            pos++;
+    @Nullable
+    private Location tryGetLocation(StackTraceElement frame) {
+        int lineNumber = frame.getLineNumber();
+        if (lineNumber < 0) {
+            return null;
         }
-        return pos;
-    }
 
-    private static boolean isNonUserCode(StackTraceElement element) {
-        String className = element.getClassName();
-        return className.startsWith("org.gradle.") ||
-            className.startsWith("jdk.") ||
-            className.startsWith("java.lang.reflect.") ||
-            className.startsWith("java.util.concurrent.") ||
-            className.equals("java.lang.Thread") ||
-            className.startsWith("sun.") ||
-            className.startsWith("com.sun.") ||
-            className.startsWith("groovy.lang.") ||
-            className.startsWith("org.codehaus.groovy.");
+        ClassLoaderScopeOrigin.Script source = scripts.get(frame.getFileName());
+        if (source == null) {
+            return null;
+        }
+
+        return new Location(source.getLongDisplayName(), source.getShortDisplayName(), source.getFileName(), lineNumber);
     }
 }

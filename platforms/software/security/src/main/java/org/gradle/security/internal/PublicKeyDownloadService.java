@@ -24,8 +24,7 @@ import org.bouncycastle.openpgp.operator.bc.BcKeyFingerprintCalculator;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.io.ExponentialBackoff;
-import org.gradle.internal.io.IOQuery;
+import org.gradle.internal.time.ExponentialBackoff;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ExternalResourceReadResult;
 import org.gradle.internal.resource.ExternalResourceRepository;
@@ -79,13 +78,13 @@ public class PublicKeyDownloadService implements PublicKeyService {
                 URI baseUri = serversLeft.poll();
                 if (baseUri == null) {
                     // no more servers left despite retries
-                    return IOQuery.Result.successful(false);
+                    return ExponentialBackoff.Result.successful(false);
                 }
                 try {
                     ExternalResourceName query = toQuery(baseUri, fingerprint);
-                    ExternalResourceReadResult<IOQuery.Result<Boolean>> response = client.resource(query).withContentIfPresent(inputStream -> {
+                    ExternalResourceReadResult<ExponentialBackoff.Result<Boolean>> response = client.resource(query).withContentIfPresent(inputStream -> {
                         extractKeyRing(inputStream, builder, onKeyring);
-                        return IOQuery.Result.successful(true);
+                        return ExponentialBackoff.Result.successful(true);
                     });
                     if (response != null) {
                         return response.getResult();
@@ -99,7 +98,7 @@ public class PublicKeyDownloadService implements PublicKeyService {
                     serversLeft.add(baseUri);
                 }
                 // retry
-                return IOQuery.Result.notSuccessful(false);
+                return ExponentialBackoff.Result.notSuccessful(false);
             });
         } catch (InterruptedException | IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);

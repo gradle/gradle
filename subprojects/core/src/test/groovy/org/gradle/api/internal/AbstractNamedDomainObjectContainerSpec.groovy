@@ -99,16 +99,29 @@ abstract class AbstractNamedDomainObjectContainerSpec<T> extends AbstractNamedDo
         }
 
         then:
-        buildOperationExecutor.log.all(ExecuteDomainObjectCollectionCallbackBuildOperationType).empty
+        buildOperationRunner.log.all(ExecuteDomainObjectCollectionCallbackBuildOperationType).empty
 
         when:
         container.getByName("a")
 
         then:
-        def ops = buildOperationExecutor.log.all(ExecuteDomainObjectCollectionCallbackBuildOperationType)
+        def ops = buildOperationRunner.log.all(ExecuteDomainObjectCollectionCallbackBuildOperationType)
         ops.size() == 2
         ids.size() == 2
         ops[0].details.applicationId == id1.longValue()
         ops[1].details.applicationId == id2.longValue()
+    }
+
+    def "can configure task based on its provider"() {
+        given:
+        setupContainerDefaults()
+        def p = container.register("r1")
+        def derived = p.map { "value" }
+        p.configure {
+            derived.get()
+        }
+
+        expect:
+        "value" == derived.get()
     }
 }

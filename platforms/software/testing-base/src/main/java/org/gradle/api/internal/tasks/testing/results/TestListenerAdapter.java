@@ -20,6 +20,7 @@ import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.tasks.testing.TestListener;
+import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestOutputListener;
 import org.gradle.api.tasks.testing.TestResult;
@@ -54,5 +55,10 @@ public class TestListenerAdapter implements TestListenerInternal {
     @Override
     public void output(TestDescriptorInternal test, TestOutputEvent event) {
         testOutputListener.onOutput(test, event);
+    }
+
+    @Override
+    public void metadata(TestDescriptorInternal testDescriptor, TestMetadataEvent event) {
+        // Ignore
     }
 }

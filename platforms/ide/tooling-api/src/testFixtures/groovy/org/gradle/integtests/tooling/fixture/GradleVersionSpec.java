@@ -22,7 +22,25 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GradleVersionSpec {
-    public static Spec<GradleVersion> toSpec(String constraint) {
+    private GradleVersion lowestTestedVersion = getLowestTestedVersion();
+
+    private static GradleVersion getLowestTestedVersion() {
+        String property = System.getProperty("org.gradle.integtest.crossVersion.lowestTestedVersion");
+        if(property == null) {
+            return GradleVersion.version("0.0");
+        }
+        return GradleVersion.version(property);
+    }
+
+    public GradleVersionSpec() {
+        this.lowestTestedVersion = getLowestTestedVersion();
+    }
+
+    public GradleVersionSpec(String lowestTestedVersion) {
+        this.lowestTestedVersion = GradleVersion.version(lowestTestedVersion);
+    }
+
+    public Spec<GradleVersion> toSpec(String constraint) {
         String trimmed = constraint.trim();
         if (trimmed.equals("current")) {
             return new Spec<GradleVersion>() {
@@ -54,7 +72,8 @@ public class GradleVersionSpec {
         String[] patterns = trimmed.split("\\s+");
         for (String value : patterns) {
             if (value.startsWith(">=")) {
-                final GradleVersion minVersion = GradleVersion.version(value.substring(2));
+                final GradleVersion minVersion = getVersion(value, 2);
+                validateLowestTestedVersion(constraint, value, minVersion);
                 specs.add(new Spec<GradleVersion>() {
                     @Override
                     public boolean isSatisfiedBy(GradleVersion element) {
@@ -62,7 +81,8 @@ public class GradleVersionSpec {
                     }
                 });
             } else if (value.startsWith(">")) {
-                final GradleVersion minVersion = GradleVersion.version(value.substring(1));
+                final GradleVersion minVersion = getVersion(value, 1);
+                validateLowestTestedVersion(constraint, value, minVersion);
                 specs.add(new Spec<GradleVersion>() {
                     @Override
                     public boolean isSatisfiedBy(GradleVersion element) {
@@ -70,7 +90,8 @@ public class GradleVersionSpec {
                     }
                 });
             } else if (value.startsWith("<=")) {
-                final GradleVersion maxVersion = GradleVersion.version(value.substring(2));
+                final GradleVersion maxVersion = getVersion(value, 2);
+                validateLowestTestedVersion(constraint, value, maxVersion);
                 specs.add(new Spec<GradleVersion>() {
                     @Override
                     public boolean isSatisfiedBy(GradleVersion element) {
@@ -78,7 +99,8 @@ public class GradleVersionSpec {
                     }
                 });
             } else if (value.startsWith("<")) {
-                final GradleVersion maxVersion = GradleVersion.version(value.substring(1));
+                final GradleVersion maxVersion = getVersion(value, 1);
+                validateLowestTestedVersion(constraint, value, maxVersion);
                 specs.add(new Spec<GradleVersion>() {
                     @Override
                     public boolean isSatisfiedBy(GradleVersion element) {
@@ -86,7 +108,8 @@ public class GradleVersionSpec {
                     }
                 });
             } else if (value.startsWith("!")) {
-                final GradleVersion excludedVersion = GradleVersion.version(value.substring(1));
+                final GradleVersion excludedVersion = getVersion(value, 1);
+                validateLowestTestedVersion(constraint, value, excludedVersion);
                 specs.add(new Spec<GradleVersion>() {
                     @Override
                     public boolean isSatisfiedBy(GradleVersion element) {
@@ -101,6 +124,18 @@ public class GradleVersionSpec {
             return specs.get(0);
         }
         return Specs.intersect(specs);
+    }
+
+    private void validateLowestTestedVersion(String constraint, String value, GradleVersion minVersion) {
+        // The cross-version tests should fail if the specified version range is outside the supported set of versions
+        if(minVersion.getBaseVersion().compareTo(lowestTestedVersion) < 0) {
+            throw new RuntimeException(String.format("Unsupported version range '%s' specified in constraint '%s'. " +
+                "The minimum version that can be provided is '%s'", value, constraint, lowestTestedVersion.getVersion()));
+        }
+    }
+
+    private static GradleVersion getVersion(String value, int beginIndex) {
+        return GradleVersion.version(value.substring(beginIndex));
     }
 
 }

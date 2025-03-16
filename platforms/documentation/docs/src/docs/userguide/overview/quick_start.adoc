@@ -1,0 +1,83 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[quick_start]]
+= Gradle Quick Start
+
+== Installing Gradle
+
+Most projects will start with an existing Gradle build which does not require the installation of Gradle.
+However, if you are starting a project from scratch, and you need to install Gradle, check out the <<installation.adoc#installation,installation guide>>.
+
+== DPE University
+
+Want to get up and running with Gradle quickly? Take our free, self-paced Gradle Build Tool courses at DPE University:
+
+++++
+<div class="badge-wrapper">
+    <a class="badge" href="https://dpeuniversity.gradle.com/" target="_blank">
+        <span class="badge-type button--blue">LEARN</span>
+        <span class="badge-text">Take courses on DPE University&nbsp;&nbsp;&nbsp;&gt;</span>
+    </a>
+</div>
+++++
+
+== For Software Developers
+
+For software developers that need to build, test, and publish their app, or add dependencies to their build, get started here:
+
+=== 1. Core Concepts
+
+[sidebar]
+_Description_: *Learn how to invoke tasks and add dependencies.* +
+_Training level_: **Beginner** +
+_Reading time_: **25 minutes** +
+<<gradle_basics.adoc#gradle,-> Read Core Concepts >>
+
+=== 2. Hands-on Tutorial
+
+[sidebar]
+_Description_: *Initialize a Gradle build for a basic Java App.* +
+_Training level_: **Beginner** +
+_Training time_: **45 minutes** +
+<<part1_gradle_init#part1_begin,-> Start the Tutorial >>
+
+== For Build Engineers and Plugin Developers
+
+Build engineers and plugin developers that are ready to configure custom build logic or write their own plugins should start here:
+
+=== 1. Core Concepts
+
+[sidebar]
+_Description_: *Learn to configure builds, create tasks, and write plugins.* +
+_Training level_: **Intermediate** +
+_Reading time_: **35 minutes** +
+<<gradle_directories.adoc#gradle_directories,-> Read Core Concepts >>
+
+=== 2. Hands-on Tutorial
+
+[sidebar]
+_Description_: *Initialize a Gradle project and create a basic plugin.* +
+_Training level_: **Intermediate** +
+_Training time_: **55 minutes** +
+<<part1_gradle_init_project#part1_begin,-> Start the Tutorial >>
+
+[[reference]]
+=== 3. API Reference
+
+Gradle's API references can be found in the links below:
+
+- link:{javadocPath}/index.html[Javadocs^]
+- link:{groovyDslPath}/index.html[Groovy DSL Reference^]
+- link:{kotlinDslPath}/index.html[Kotlin DSL Reference^]

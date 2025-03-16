@@ -27,7 +27,7 @@ import org.gradle.internal.execution.history.impl.DefaultExecutionOutputState;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.time.Time;
@@ -42,6 +42,8 @@ import java.util.Optional;
  * All changes to the outputs must be done at this point, so this step needs to be around anything
  * which uses an {@link ChangingOutputsContext}.
  */
+// TODO Find better names for Result types
+@SuppressWarnings("SameNameButDifferent")
 public class CaptureOutputsAfterExecutionStep<C extends WorkspaceContext & CachingContext> extends BuildOperationStep<C, AfterExecutionResult> {
     private final UniqueId buildInvocationScopeId;
     private final OutputSnapshotter outputSnapshotter;
@@ -49,13 +51,13 @@ public class CaptureOutputsAfterExecutionStep<C extends WorkspaceContext & Cachi
     private final Step<? super C, ? extends Result> delegate;
 
     public CaptureOutputsAfterExecutionStep(
-        BuildOperationExecutor buildOperationExecutor,
+        BuildOperationRunner buildOperationRunner,
         UniqueId buildInvocationScopeId,
         OutputSnapshotter outputSnapshotter,
         AfterExecutionOutputFilter<? super C> outputFilter,
         Step<? super C, ? extends Result> delegate
     ) {
-        super(buildOperationExecutor);
+        super(buildOperationRunner);
         this.buildInvocationScopeId = buildInvocationScopeId;
         this.outputSnapshotter = outputSnapshotter;
         this.outputFilter = outputFilter;
@@ -90,7 +92,7 @@ public class CaptureOutputsAfterExecutionStep<C extends WorkspaceContext & Cachi
     private OriginMetadata createOriginMetadata(CachingState.CacheKeyCalculatedState cacheKeyCalculatedState, Result result, Timer timer) {
         long snapshotOutputDuration = timer.getElapsedMillis();
 
-        // The origin execution time is recorded as “work duration” + “output snapshotting duration”,
+        // The origin execution time is recorded as "work duration" + "output snapshotting duration",
         // As this is _roughly_ the amount of time that is avoided by reusing the outputs,
         // which is currently the _only_ thing this value is used for.
         Duration originExecutionTime = result.getDuration().plus(Duration.ofMillis(snapshotOutputDuration));

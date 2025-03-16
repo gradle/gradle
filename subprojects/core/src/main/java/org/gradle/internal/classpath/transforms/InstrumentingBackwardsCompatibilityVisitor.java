@@ -28,7 +28,7 @@ import java.util.List;
 
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
-import static org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL;
+import static org.gradle.model.internal.asm.AsmConstants.ASM_LEVEL;
 
 class InstrumentingBackwardsCompatibilityVisitor extends ClassVisitor {
 

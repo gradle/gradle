@@ -15,6 +15,8 @@
  */
 
 plugins {
-    id("gradlebuild.distribution-module")
-    id("gradlebuild.distribution.api")
+    id("gradlebuild.distribution.uninstrumented.api-java")
+    id("gradlebuild.instrumented-java-project")
 }
+
+description = "Used for Gradle API projects that apply instrumentation"

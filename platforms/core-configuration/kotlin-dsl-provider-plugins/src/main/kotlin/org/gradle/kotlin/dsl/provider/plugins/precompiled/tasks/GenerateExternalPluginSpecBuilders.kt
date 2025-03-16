@@ -20,9 +20,8 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
-
 import org.gradle.kotlin.dsl.accessors.writeSourceCodeForPluginSpecBuildersFor
-
+import org.gradle.kotlin.dsl.precompile.PrecompiledScriptDependenciesResolver.EnvironmentProperties.kotlinDslPluginSpecBuildersImplicitImports
 import java.io.File
 
 
@@ -47,7 +46,7 @@ abstract class GenerateExternalPluginSpecBuilders : ClassPathSensitiveCodeGenera
             )
         }
         metadataOutputDir.withOutputDirectory { outputDir ->
-            outputDir.resolve("implicit-imports").writeText(
+            outputDir.resolve(kotlinDslPluginSpecBuildersImplicitImports).writeText(
                 "$packageName.*"
             )
         }

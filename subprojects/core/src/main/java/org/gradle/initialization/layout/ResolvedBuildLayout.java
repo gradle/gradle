@@ -18,7 +18,7 @@ package org.gradle.initialization.layout;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.cache.scopes.BuildScopedCacheBuilderFactory;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.File;
@@ -26,7 +26,7 @@ import java.io.File;
 /**
  * Contains information about the build layout, resolved after running the settings script and selecting the default project.
  */
-@ServiceScope(Scopes.Build.class)
+@ServiceScope(Scope.Build.class)
 public class ResolvedBuildLayout {
     private final GradleInternal gradle;
     private final BuildLayout buildLayout;

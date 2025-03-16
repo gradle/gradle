@@ -20,7 +20,7 @@ import org.gradle.groovy.scripts.Transformer;
 import org.gradle.internal.serialize.Serializer;
 
 /**
- * A stateful “backing” for a compilation operation.
+ * A stateful "backing" for a compilation operation.
  * <p>
  * The compilation may extract data from the source under compilation, made available after compilation by {@link #getExtractedData()}.
  * The exposed transformer typically gathers the data while transforming.

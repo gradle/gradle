@@ -18,9 +18,9 @@ package org.gradle.launcher.cli.converter
 
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.jvm.Jvm
-import org.gradle.launcher.configuration.BuildLayoutResult
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions
 import org.gradle.launcher.daemon.configuration.DaemonParameters
+import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -28,12 +28,8 @@ import spock.lang.Specification
 class PropertiesToDaemonParametersConverterTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider(getClass())
-    def buildLayoutResult = Stub(BuildLayoutResult) {
-        getGradleUserHomeDir() >> temp.file("gradle-user-home")
-    }
-
     def converter = new DaemonBuildOptions().propertiesConverter()
-    def params = new DaemonParameters(buildLayoutResult, TestFiles.fileCollectionFactory())
+    def params = new DaemonParameters(temp.file("gradle-user-home"), TestFiles.fileCollectionFactory())
 
     def "allows whitespace around boolean properties"() {
         when:
@@ -76,7 +72,8 @@ class PropertiesToDaemonParametersConverterTest extends Specification {
         then:
         params.effectiveJvmArgs.contains("-Xmx256m")
         params.debug
-        params.effectiveJvm == Jvm.current()
+        params.requestedJvmCriteria instanceof DaemonJvmCriteria.JavaHome
+        ((DaemonJvmCriteria.JavaHome) params.requestedJvmCriteria).javaHome == Jvm.current().javaHome.absoluteFile
         !params.enabled
         params.baseDir == new File("baseDir").absoluteFile
         params.idleTimeout == 115

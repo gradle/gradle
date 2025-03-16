@@ -21,11 +21,12 @@ import groovy.lang.GroovySystem;
 import groovy.lang.MetaClass;
 import groovy.lang.MetaClassRegistry;
 import org.apache.commons.lang.StringUtils;
-import org.gradle.internal.classanalysis.AsmConstants;
 import org.gradle.internal.classloader.TransformingClassLoader;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.reflect.PropertyAccessorType;
+import org.gradle.model.internal.asm.AsmConstants;
+import org.jspecify.annotations.Nullable;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
@@ -35,7 +36,6 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
-import javax.annotation.Nullable;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
@@ -94,9 +94,8 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
         this.legacyTypesSupport = legacyTypesSupport;
     }
 
-    @Nullable
     @Override
-    protected byte[] generateMissingClass(String name) {
+    protected byte @Nullable [] generateMissingClass(String name) {
         if (!legacyTypesSupport.getSyntheticClasses().contains(name)) {
             return null;
         }
@@ -125,7 +124,7 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
          * the converted classes only contain these kinds of constants.
          *
          * This is a mapping of the synthesized accessor name to the name of the backing field,
-         * i.e. "getFOO" -> "FOO"
+         * i.e. "getFOO" to "FOO"
          */
         private Map<String, String> missingStaticStringConstantGetters = new HashMap<String, String>();
         private Set<String> booleanGetGetters = new HashSet<String>();
@@ -150,7 +149,7 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
             if (((access & PUBLIC_STATIC_FINAL) == PUBLIC_STATIC_FINAL) && Type.getDescriptor(String.class).equals(desc)) {
                 missingStaticStringConstantGetters.put("get" + name, name);
             }
-            if (((access & Opcodes.ACC_PRIVATE) > 0) && !isStatic(access) && (Type.getDescriptor(boolean.class).equals(desc))) {
+            if (((access & Opcodes.ACC_PRIVATE) > 0) && !isStatic(access) && Type.getDescriptor(boolean.class).equals(desc)) {
                 booleanFields.add(name);
             }
             return super.visitField(access, name, desc, signature, value);

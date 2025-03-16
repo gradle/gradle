@@ -17,8 +17,7 @@
 package org.gradle.internal.watch.vfs;
 
 import org.gradle.internal.operations.BuildOperationType;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public interface BuildFinishedFileSystemWatchingBuildOperationType extends BuildOperationType<BuildFinishedFileSystemWatchingBuildOperationType.Details, BuildFinishedFileSystemWatchingBuildOperationType.Result> {
     String DISPLAY_NAME = "Build finished for file system watching";

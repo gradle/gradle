@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Gradle, Inc.
+// Copyright (C) 2024 Gradle, Inc.
 //
 // Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
@@ -51,13 +51,12 @@ Tasks either come from *build scripts* or *plugins*.
 
 Once we apply a plugin to our project, such as the `application` plugin, additional tasks become available:
 
-.build.gradle.kts
-[source,kotlin]
-plugins {
-    id("application")
-}
+====
+include::sample[dir="snippets/tasks/taskTutorial/kotlin", files="build.gradle.kts[tags=app]"]
+include::sample[dir="snippets/tasks/taskTutorial/groovy", files="build.gradle[tags=app]"]
+====
 
-[source]
+[source,text]
 ----
 $ ./gradlew tasks
 
@@ -112,7 +111,7 @@ In the example, the build script *registers* a single task called `hello` using 
 
 If the tasks in the project are listed, the `hello` task is available to Gradle:
 
-[source]
+[source,text]
 ----
 $ ./gradlew app:tasks --all
 
@@ -134,12 +133,11 @@ startScripts - Creates OS-specific scripts to run the project as a JVM applicati
 
 You can execute the task in the build script with `./gradlew hello`:
 
-====
+[source,text]
 ----
 $ ./gradlew hello
 include::{snippetsPath}/tutorial/hello/tests/hello.out[]
 ----
-====
 
 When Gradle executes the `hello` task, it executes the *action* provided.
 In this case, the action is simply a block containing some code: `println("Hello world!")`.
@@ -148,21 +146,14 @@ In this case, the action is simply a block containing some code: `println("Hello
 
 The `hello` task from the previous section can be detailed with a *description* and assigned to a *group* with the following update:
 
-.build.gradle.kts
-[source,kotlin]
-----
-tasks.register("hello") {
-    group = "Custom"
-    description = "A lovely greeting task."
-    doLast {
-        println("Hello world!")
-    }
-}
-----
+====
+include::sample[dir="snippets/tasks/taskTutorial/kotlin", files="build.gradle.kts[tags=task]"]
+include::sample[dir="snippets/tasks/taskTutorial/groovy", files="build.gradle[tags=task]"]
+====
 
 Once the task is assigned to a group, it will be listed by `./gradlew tasks`:
 
-[source]
+[source,text]
 ----
 $ ./gradlew tasks
 
@@ -175,7 +166,7 @@ hello - A lovely greeting task.
 
 To view information about a task, use the `help --task <task-name>` command:
 
-[source]
+[source,text]
 ----
 $./gradlew help --task hello
 
@@ -229,22 +220,14 @@ include::{snippetsPath}/tutorial/lazyDependsOn/tests/lazyDependsOn.out[]
 
 The `hello` task from the previous example is updated to include a dependency:
 
-.build.gradle.kts
-[source,kotlin]
-----
-tasks.register("hello") {
-    group = "Custom"
-    description = "A lovely greeting task."
-    doLast {
-        println("Hello world!")
-    }
-    dependsOn(tasks.assemble)
-}
-----
+====
+include::sample[dir="snippets/tutorial/dynamicDepends/kotlin", files="build.gradle.kts[tags=hello]"]
+include::sample[dir="snippets/tutorial/dynamicDepends/groovy", files="build.gradle[tags=hello]"]
+====
 
 The `hello` task now depends on the `assemble` task, which means that Gradle must execute the `assemble` task *before* it can execute the `hello` task:
 
-[source]
+[source,text]
 ----
 $ ./gradlew :app:hello
 
@@ -269,8 +252,8 @@ Once registered, tasks can be accessed via the link:{javadocPath}/org/gradle/api
 For instance, you can use this to add dependencies to a task at runtime dynamically:
 
 ====
-include::sample[dir="snippets/tutorial/dynamicDepends/kotlin", files="build.gradle.kts[]"]
-include::sample[dir="snippets/tutorial/dynamicDepends/groovy", files="build.gradle[]"]
+include::sample[dir="snippets/tutorial/dynamicDepends/kotlin", files="build.gradle.kts[tags=app]"]
+include::sample[dir="snippets/tutorial/dynamicDepends/groovy", files="build.gradle[tags=app]"]
 
 ----
 $ gradle -q task0
@@ -297,41 +280,26 @@ When the task executes, the actions in the action list are executed in order.
 
 Here is an example of the `named` method being used to configure a task added by a plugin:
 
-[source,groovy]
-----
-tasks.named("dokkaHtml") {
-    outputDirectory.set(buildDir.resolve("dokka"))
-}
-----
+====
+include::sample[dir="snippets/tutorial/dynamicDepends/kotlin", files="build.gradle.kts[tags=dokka]"]
+include::sample[dir="snippets/tutorial/dynamicDepends/groovy", files="build.gradle[tags=dokka]"]
+====
 
 == Task types
 Gradle tasks are a subclass of link:{javadocPath}/org/gradle/api/Task.html[`Task`].
 
 In the build script, the `HelloTask` class is created by extending link:{javadocPath}/org/gradle/api/DefaultTask.html[`DefaultTask`]:
 
-.build.gradle.kts
-[source, kotlin]
-----
-// Extend the DefaultTask class to create a HelloTask class
-abstract class HelloTask : DefaultTask() {
-    @TaskAction
-    fun hello() {
-        println("hello from HelloTask")
-    }
-}
-
-// Register the hello Task with type HelloTask
-tasks.register<HelloTask>("hello") {
-    group = "Custom tasks"
-    description = "A lovely greeting task."
-}
-----
+====
+include::sample[dir="snippets/tasks/tutorialTask/kotlin", files="build.gradle.kts[tags=hello]"]
+include::sample[dir="snippets/tasks/tutorialTask/groovy", files="build.gradle[tags=hello]"]
+====
 
 The `hello` task is registered with the *type* `HelloTask`.
 
 Executing our new `hello` task:
 
-[source]
+[source,text]
 ----
 $ ./gradlew hello
 
@@ -343,7 +311,7 @@ Now the `hello` task is of type `HelloTask` instead of type `Task`.
 
 The Gradle `help` task reveals the change:
 
-[source]
+[source,text]
 ----
 $ ./gradlew help --task hello
 
@@ -371,14 +339,10 @@ Gradle provides many built-in task types with common and popular functionality, 
 
 This example task copies `*.war` files from the `source` directory to the `target` directory using the `Copy` built-in task:
 
-[source]
-----
-tasks.register("copyTask",Copy) {
-    from("source")
-    into("target")
-    include("*.war")
-}
-----
+====
+include::sample[dir="snippets/tasks/taskTutorial/kotlin", files="build.gradle.kts[tags=copy]"]
+include::sample[dir="snippets/tasks/taskTutorial/groovy", files="build.gradle[tags=copy]"]
+====
 
 There are many task types developers can take advantage of, including `GroovyDoc`, `Zip`, `Jar`, `JacocoReport`, `Sign`, or `Delete`, which are available in the link:link:{groovyDslPath}/org.gradle.api.plugins.antlr.AntlrTask.html[DSL].
 

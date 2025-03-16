@@ -16,6 +16,9 @@
 package org.gradle.api.artifacts.repositories;
 
 import org.gradle.api.Action;
+import org.gradle.declarative.dsl.model.annotations.Restricted;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import java.net.URI;
 import java.util.Set;
@@ -34,6 +37,8 @@ public interface MavenArtifactRepository extends ArtifactRepository, UrlArtifact
      * @return The URL.
      */
     @Override
+    @Restricted
+    @ToBeReplacedByLazyProperty
     URI getUrl();
 
     /**
@@ -63,6 +68,7 @@ public interface MavenArtifactRepository extends ArtifactRepository, UrlArtifact
      *
      * @return The additional URLs. Returns an empty list if there are no such URLs.
      */
+    @ToBeReplacedByLazyProperty
     Set<URI> getArtifactUrls();
 
     /**
@@ -108,6 +114,7 @@ public interface MavenArtifactRepository extends ArtifactRepository, UrlArtifact
      *
      * @since 6.4
      */
+    @NotToBeReplacedByLazyProperty(because = "Not settable property")
     MetadataSources getMetadataSources();
 
     /**

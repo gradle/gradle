@@ -31,8 +31,8 @@ import org.gradle.api.internal.artifacts.verification.model.IgnoredKey;
 import org.gradle.api.internal.artifacts.verification.model.ImmutableArtifactVerificationMetadata;
 import org.gradle.api.internal.artifacts.verification.model.ImmutableComponentVerificationMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -69,7 +69,7 @@ public class DependencyVerifierBuilder {
             return null;
         }
         try {
-            return DependencyVerificationConfiguration.KeyringFormat.valueOf(keyringFormat.toUpperCase());
+            return DependencyVerificationConfiguration.KeyringFormat.valueOf(keyringFormat.toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException e) {
             throw new DependencyVerificationException("Invalid keyring format: " + keyringFormat + ". The keyring format should be either 'armored' or 'binary', which determines how keys are stored. Please choose a valid format or leave it unset to generate both.");
         }

@@ -35,6 +35,7 @@ public enum DirectorySensitivity {
      */
     IGNORE_DIRECTORIES(snapshot -> snapshot.getType() != FileType.Directory);
 
+    @SuppressWarnings("ImmutableEnumChecker")
     private final Predicate<FileSystemLocationSnapshot> fingerprintCheck;
 
     DirectorySensitivity(Predicate<FileSystemLocationSnapshot> fingerprintCheck) {

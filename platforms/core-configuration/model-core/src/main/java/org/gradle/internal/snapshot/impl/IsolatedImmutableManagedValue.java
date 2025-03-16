@@ -21,8 +21,7 @@ import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.state.Managed;
 import org.gradle.internal.state.ManagedFactory;
 import org.gradle.internal.state.ManagedFactoryRegistry;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class IsolatedImmutableManagedValue extends AbstractIsolatableScalarValue<Managed> {
     private final ManagedFactoryRegistry managedFactoryRegistry;

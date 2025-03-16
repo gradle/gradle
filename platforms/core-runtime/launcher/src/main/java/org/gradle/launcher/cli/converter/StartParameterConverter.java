@@ -48,9 +48,9 @@ public class StartParameterConverter {
     public StartParameterInternal convert(ParsedCommandLine parsedCommandLine, BuildLayoutResult buildLayout, AllProperties properties, StartParameterInternal startParameter) throws CommandLineArgumentException {
         buildLayout.applyTo(startParameter);
 
-        welcomeMessageConfigurationCommandLineConverter.convert(parsedCommandLine, properties, startParameter.getWelcomeMessageConfiguration());
-        loggingConfigurationCommandLineConverter.convert(parsedCommandLine, properties, startParameter);
-        parallelConfigurationCommandLineConverter.convert(parsedCommandLine, properties, startParameter);
+        welcomeMessageConfigurationCommandLineConverter.convert(parsedCommandLine, properties.getProperties(), startParameter.getWelcomeMessageConfiguration());
+        loggingConfigurationCommandLineConverter.convert(parsedCommandLine, properties.getProperties(), startParameter);
+        parallelConfigurationCommandLineConverter.convert(parsedCommandLine, properties.getProperties(), startParameter);
 
         startParameter.getSystemPropertiesArgs().putAll(properties.getRequestedSystemProperties());
 
@@ -60,7 +60,7 @@ public class StartParameterConverter {
             startParameter.setTaskNames(parsedCommandLine.getExtraArguments());
         }
 
-        buildOptionsConverter.convert(parsedCommandLine, properties, startParameter);
+        buildOptionsConverter.convert(parsedCommandLine, properties.getProperties(), startParameter);
 
         return startParameter;
     }

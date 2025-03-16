@@ -51,7 +51,7 @@ class JavaGradlePluginLegacyPluginPublishingIntegrationTest extends AbstractInte
             publishing {
                 repositories {
                     maven {
-                        url '${mavenRepo.uri}'
+                        url = "${mavenRepo.uri}"
                     }
                 }
             }
@@ -64,7 +64,7 @@ class JavaGradlePluginLegacyPluginPublishingIntegrationTest extends AbstractInte
             publishing {
                 repositories {
                     ivy {
-                        url '${ivyRepo.uri}'
+                        url = "${ivyRepo.uri}"
                     }
                 }
             }

@@ -27,8 +27,8 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.external.model.ProjectDerivedCapability;
 import org.gradle.internal.deprecation.DocumentedFailure;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -46,7 +46,7 @@ public class VariantIdentityUniquenessVerifier {
         ListMultimap<VariantIdentity, ConfigurationInternal> byIdentity =
             MultimapBuilder.linkedHashKeys().arrayListValues().build();
 
-        configurations.visitAll(configuration -> {
+        configurations.visitConsumable(configuration -> {
             if (!mustHaveUniqueAttributes(configuration)) {
                 return;
             }
@@ -61,8 +61,7 @@ public class VariantIdentityUniquenessVerifier {
      * Consumable, non-resolvable, non-default configurations with attributes must have unique attributes.
      */
     private static boolean mustHaveUniqueAttributes(Configuration configuration) {
-        return configuration.isCanBeConsumed() &&
-            !configuration.isCanBeResolved() &&
+        return !configuration.isCanBeResolved() &&
             !Dependency.DEFAULT_CONFIGURATION.equals(configuration.getName()) &&
             !configuration.getAttributes().isEmpty();
     }

@@ -20,32 +20,35 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.AttributesFactory;
+import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.component.external.model.PreferJavaRuntimeVariant;
 import org.gradle.internal.component.external.model.maven.DefaultMutableMavenModuleResolveMetadata;
 import org.gradle.internal.component.external.model.maven.MavenDependencyDescriptor;
 import org.gradle.internal.component.external.model.maven.MutableMavenModuleResolveMetadata;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+import javax.inject.Inject;
 import java.util.Collections;
 import java.util.List;
 
-@ServiceScope(Scopes.BuildSession.class)
+@ServiceScope(Scope.BuildSession.class)
 public class MavenMutableModuleMetadataFactory implements MutableModuleMetadataFactory<MutableMavenModuleResolveMetadata> {
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
-    private final MavenImmutableAttributesFactory attributesFactory;
+    private final MavenAttributesFactory attributesFactory;
     private final NamedObjectInstantiator objectInstantiator;
-    private final PreferJavaRuntimeVariant schema;
+    private final ImmutableAttributesSchema schema;
 
+    @Inject
     public MavenMutableModuleMetadataFactory(ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                                             ImmutableAttributesFactory attributesFactory,
+                                             AttributesFactory attributesFactory,
                                              NamedObjectInstantiator objectInstantiator,
                                              PreferJavaRuntimeVariant schema) {
         this.moduleIdentifierFactory = moduleIdentifierFactory;
-        this.schema = schema;
-        this.attributesFactory = new DefaultMavenImmutableAttributesFactory(attributesFactory, objectInstantiator);
+        this.schema = schema.getSchema();
+        this.attributesFactory = new DefaultMavenAttributesFactory(attributesFactory, objectInstantiator);
         this.objectInstantiator = objectInstantiator;
     }
 

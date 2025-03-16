@@ -17,6 +17,8 @@ package org.gradle.api.artifacts.dsl;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
+import groovy.transform.stc.ClosureParams;
+import groovy.transform.stc.SimpleType;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ArtifactRepositoryContainer;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
@@ -26,6 +28,8 @@ import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.declarative.dsl.model.annotations.Adding;
 import org.gradle.internal.HasInternalProtocol;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.Map;
 
@@ -33,6 +37,7 @@ import java.util.Map;
  * A {@code RepositoryHandler} manages a set of repositories, allowing repositories to be defined and queried.
  */
 @HasInternalProtocol
+@ServiceScope(Scope.Project.class)
 public interface RepositoryHandler extends ArtifactRepositoryContainer {
 
     /**
@@ -43,7 +48,8 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      *
      * The following parameter are accepted as keys for the map:
      *
-     * <table summary="Shows property keys and associated values">
+     * <table>
+     * <caption>Shows property keys and associated values</caption>
      * <tr><th>Key</th>
      *     <th>Description of Associated Value</th></tr>
      * <tr><td><code>name</code></td>
@@ -155,7 +161,8 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      *
      * <p>The following parameter are accepted as keys for the map:
      *
-     * <table summary="Shows property keys and associated values">
+     * <table>
+     * <caption>Shows property keys and associated values</caption>
      * <tr><th>Key</th>
      *     <th>Description of Associated Value</th></tr>
      * <tr><td><code>name</code></td>
@@ -310,7 +317,9 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * @param closure The closure to use to configure the repository.
      * @return The added repository.
      */
-    MavenArtifactRepository maven(@DelegatesTo(MavenArtifactRepository.class) Closure closure);
+    MavenArtifactRepository maven(@DelegatesTo(MavenArtifactRepository.class)
+                                  @ClosureParams(value = SimpleType.class, options = "org.gradle.api.artifacts.repositories.MavenArtifactRepository")
+                                  Closure closure);
 
     /**
      * Adds and configures a Maven repository.
@@ -318,6 +327,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * @param action The action to use to configure the repository.
      * @return The added repository.
      */
+    @Adding
     MavenArtifactRepository maven(Action<? super MavenArtifactRepository> action);
 
     /**

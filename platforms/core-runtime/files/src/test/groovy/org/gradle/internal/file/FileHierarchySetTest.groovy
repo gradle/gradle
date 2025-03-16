@@ -76,7 +76,7 @@ class FileHierarchySetTest extends Specification {
         !set.contains(tmpDir.file("dir"))
         !set.contains(tmpDir.file("dir12"))
         !set.contains(tmpDir.file("common/dir21"))
-        set.flatten() == [parent.path, "1:dir1", "1:common", "2:dir2", "2:dir3"]
+        flatten(set) == [parent.path, "1:dir1", "1:common", "2:dir2", "2:dir3"]
     }
 
     def "creates from files where one file is ancestor of the others"() {
@@ -93,7 +93,7 @@ class FileHierarchySetTest extends Specification {
         !set.contains(tmpDir.file("dir"))
         !set.contains(tmpDir.file("dir12"))
         !set.contains(tmpDir.file("dir21"))
-        set.flatten() == [dir1.path]
+        flatten(set) == [dir1.path]
     }
 
     @Issue("https://github.com/gradle/gradle/issues/11508")
@@ -199,7 +199,7 @@ class FileHierarchySetTest extends Specification {
         !s1.contains(tooFew)
         !s1.contains(tooMany)
         !s1.contains(parent)
-        s1.flatten() == [parent.path, "1:dir1", "1:dir2"]
+        flatten(s1) == [parent.path, "1:dir1", "1:dir2"]
 
         def s2 = single.plus(dir1)
         s2.contains(dir1)
@@ -209,7 +209,7 @@ class FileHierarchySetTest extends Specification {
         !s2.contains(tooFew)
         !s2.contains(tooMany)
         !s2.contains(parent)
-        s2.flatten() == [dir1.path]
+        flatten(s2) == [dir1.path]
 
         def s3 = single.plus(child)
         s3.contains(dir1)
@@ -219,7 +219,7 @@ class FileHierarchySetTest extends Specification {
         !s3.contains(tooFew)
         !s3.contains(tooMany)
         !s3.contains(parent)
-        s3.flatten() == [dir1.path]
+        flatten(s3) == [dir1.path]
 
         def s4 = single.plus(parent)
         s4.contains(dir1)
@@ -227,7 +227,7 @@ class FileHierarchySetTest extends Specification {
         s4.contains(dir2)
         s4.contains(dir3)
         s4.contains(parent)
-        s4.flatten() == [parent.path]
+        flatten(s4) == [parent.path]
 
         def s5 = single.plus(tooFew)
         s5.contains(dir1)
@@ -236,7 +236,7 @@ class FileHierarchySetTest extends Specification {
         !s5.contains(dir2)
         !s5.contains(tooMany)
         !s5.contains(parent)
-        s5.flatten() == [parent.path, "1:dir1", "1:dir"]
+        flatten(s5) == [parent.path, "1:dir1", "1:dir"]
 
         def s6 = single.plus(tooMany)
         s6.contains(dir1)
@@ -245,7 +245,7 @@ class FileHierarchySetTest extends Specification {
         !s6.contains(dir2)
         !s6.contains(tooFew)
         !s6.contains(parent)
-        s6.flatten() == [parent.path, "1:dir1", "1:dir12"]
+        flatten(s6) == [parent.path, "1:dir1", "1:dir12"]
     }
 
     def "can add dir to multi set"() {
@@ -265,7 +265,7 @@ class FileHierarchySetTest extends Specification {
         s1.contains(dir3)
         !s1.contains(other)
         !s1.contains(parent)
-        s1.flatten() == [parent.path, "1:dir1", "1:dir2", "1:dir3"]
+        flatten(s1) == [parent.path, "1:dir1", "1:dir2", "1:dir3"]
 
         def s2 = multi.plus(dir2)
         s2.contains(dir1)
@@ -274,7 +274,7 @@ class FileHierarchySetTest extends Specification {
         !s2.contains(dir3)
         !s2.contains(other)
         !s2.contains(parent)
-        s2.flatten() == [parent.path, "1:dir1", "1:dir2"]
+        flatten(s2) == [parent.path, "1:dir1", "1:dir2"]
 
         def s3 = multi.plus(child)
         s3.contains(dir1)
@@ -283,7 +283,7 @@ class FileHierarchySetTest extends Specification {
         !s3.contains(dir3)
         !s3.contains(other)
         !s3.contains(parent)
-        s3.flatten() == [parent.path, "1:dir1", "1:dir2"]
+        flatten(s3) == [parent.path, "1:dir1", "1:dir2"]
 
         def s4 = multi.plus(parent)
         s4.contains(dir1)
@@ -291,7 +291,7 @@ class FileHierarchySetTest extends Specification {
         s4.contains(dir2)
         s4.contains(other)
         s4.contains(parent)
-        s4.flatten() == [parent.path]
+        flatten(s4) == [parent.path]
     }
 
     def "splits and merges prefixes as directories are added"() {
@@ -305,25 +305,25 @@ class FileHierarchySetTest extends Specification {
 
         expect:
         def s1 = from(dir1dir2dir3, dir1dir5)
-        s1.flatten() == [dir1.path, "1:dir2/dir3", "1:dir5/and/more"]
+        flatten(s1) == [dir1.path, "1:dir2/dir3", "1:dir5/and/more"]
 
         def s2 = s1.plus(dir1dir2dir4)
-        s2.flatten() == [dir1.path, "1:dir2", "2:dir3", "2:dir4", "1:dir5/and/more"]
+        flatten(s2) == [dir1.path, "1:dir2", "2:dir3", "2:dir4", "1:dir5/and/more"]
 
         def s3 = s2.plus(dir6)
-        s3.flatten() == [parent.path, "1:dir1", "2:dir2", "3:dir3", "3:dir4", "2:dir5/and/more", "1:dir6"]
+        flatten(s3) == [parent.path, "1:dir1", "2:dir2", "3:dir3", "3:dir4", "2:dir5/and/more", "1:dir6"]
 
         def s4 = s3.plus(dir1dir2)
-        s4.flatten() == [parent.path, "1:dir1", "2:dir2", "2:dir5/and/more", "1:dir6"]
+        flatten(s4) == [parent.path, "1:dir1", "2:dir2", "2:dir5/and/more", "1:dir6"]
 
         def s5 = s4.plus(dir1)
-        s5.flatten() == [parent.path, "1:dir1", "1:dir6"]
+        flatten(s5) == [parent.path, "1:dir1", "1:dir6"]
 
         def s6 = s3.plus(dir1)
-        s6.flatten() == [parent.path, "1:dir1", "1:dir6"]
+        flatten(s6) == [parent.path, "1:dir1", "1:dir6"]
 
         def s7 = s3.plus(parent)
-        s7.flatten() == [parent.path]
+        flatten(s7) == [parent.path]
     }
 
     def "has a nice toString representation"() {
@@ -368,6 +368,10 @@ class FileHierarchySetTest extends Specification {
             set = set.plus(root)
         }
         return set
+    }
+
+    private static List<String> flatten(FileHierarchySet set) {
+        (set as FileHierarchySet.PrefixFileSet).flatten()
     }
 
     private static List<String> rootsOf(FileHierarchySet set) {

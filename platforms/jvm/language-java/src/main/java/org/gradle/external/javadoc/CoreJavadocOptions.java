@@ -22,6 +22,7 @@ import org.gradle.external.javadoc.internal.JavadocOptionFile;
 import org.gradle.external.javadoc.internal.JavadocOptionFileOptionInternal;
 import org.gradle.external.javadoc.internal.JavadocOptionFileOptionInternalAdapter;
 import org.gradle.internal.Cast;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.process.ExecSpec;
 import org.gradle.util.internal.GFileUtils;
 import org.gradle.util.internal.GUtil;
@@ -163,6 +164,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      * The title on the overview page is set by -doctitle.
      */
     @Override
+    @ToBeReplacedByLazyProperty
     public String getOverview() {
         return overview.getValue();
     }
@@ -187,6 +189,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      * Switch to set the members that should be included in the Javadoc. (-public, -protected, -package, -private)
      */
     @Override
+    @ToBeReplacedByLazyProperty
     public JavadocMemberLevel getMemberLevel() {
         return memberLevel.getValue();
     }
@@ -241,6 +244,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      * For full, working examples of running a particular doclet, see Running the MIF Doclet.
      */
     @Override
+    @ToBeReplacedByLazyProperty
     public String getDoclet() {
         return doclet.getValue();
     }
@@ -276,6 +280,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      * For full, working examples of running a particular doclet, see Running the MIF Doclet.
      */
     @Override
+    @ToBeReplacedByLazyProperty
     public List<File> getDocletpath() {
         return docletpath.getValue();
     }
@@ -304,6 +309,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      * Use the value of release corresponding to that used when compiling the code with javac.
      */
     @Override
+    @ToBeReplacedByLazyProperty
     public String getSource() {
         return source.getValue();
     }
@@ -344,6 +350,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      * bootstrap classes, see How Classes Are Found.
      */
     @Override
+    @ToBeReplacedByLazyProperty
     public List<File> getClasspath() {
         return classpath.getValue();
     }
@@ -354,6 +361,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
     }
 
     @Override
+    @ToBeReplacedByLazyProperty
     public List<File> getModulePath() {
         return modulePath.getValue();
     }
@@ -388,6 +396,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      * See How Classes Are Found. for more details. Separate directories in classpathlist with semicolons (;).
      */
     @Override
+    @ToBeReplacedByLazyProperty
     public List<File> getBootClasspath() {
         return bootClasspath.getValue();
     }
@@ -412,6 +421,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      * See -classpath (above) for more details. Separate directories in dirlist with semicolons (;).
      */
     @Override
+    @ToBeReplacedByLazyProperty
     public List<File> getExtDirs() {
         return extDirs.getValue();
     }
@@ -431,6 +441,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      * Control the Javadoc output level (-verbose or -quiet).
      */
     @Override
+    @ToBeReplacedByLazyProperty
     public JavadocOutputLevel getOutputLevel() {
         return outputLevel.getValue();
     }
@@ -447,6 +458,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
     }
 
     @Override
+    @ToBeReplacedByLazyProperty
     public boolean isVerbose() {
         return outputLevel.getValue() == JavadocOutputLevel.VERBOSE;
     }
@@ -487,6 +499,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      *           We regret any extra work and confusion this has caused.
      */
     @Override
+    @ToBeReplacedByLazyProperty
     public boolean isBreakIterator() {
         return breakIterator.getValue();
     }
@@ -527,6 +540,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      * It does not determine the locale of the doc comment text specified in the source files of the documented classes.
      */
     @Override
+    @ToBeReplacedByLazyProperty
     public String getLocale() {
         return locale.getValue();
     }
@@ -550,6 +564,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      * Also see -docencoding and -charset.
      */
     @Override
+    @ToBeReplacedByLazyProperty
     public String getEncoding() {
         return encoding.getValue();
     }
@@ -566,6 +581,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
     }
 
     @Override
+    @ToBeReplacedByLazyProperty
     public List<String> getSourceNames() {
         return sourceNames.getValue();
     }
@@ -601,6 +617,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      * (The version number of the standard doclet appears in its output stream.)
      */
     @Override
+    @ToBeReplacedByLazyProperty
     public List<String> getJFlags() {
         return jFlags;
     }
@@ -624,6 +641,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
     }
 
     @Override
+    @ToBeReplacedByLazyProperty
     public List<File> getOptionFiles() {
         return optionFiles;
     }

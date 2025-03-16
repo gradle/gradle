@@ -16,9 +16,10 @@
 package org.gradle.api.internal.plugins;
 
 import org.gradle.util.internal.VersionNumber;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
+import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -61,6 +62,14 @@ public class GroovyJarFile {
 
     @Nullable
     public static GroovyJarFile parse(File file) {
+        try {
+            if (file.getName().contains("groovy")) {
+                // Resolve a symlink file to the real location
+                file = file.toPath().toRealPath().toFile();
+            }
+        } catch (IOException e) {
+            // Let the code use the original File otherwise
+        }
         Matcher matcher = FILE_NAME_PATTERN.matcher(file.getName());
         return matcher.matches() ? new GroovyJarFile(file, matcher) : null;
     }

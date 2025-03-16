@@ -19,7 +19,6 @@ package org.gradle.internal.component.external.model;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
@@ -52,7 +51,7 @@ public class LazyToRealisedModuleComponentResolveMetadataHelper {
         if (variants.isEmpty()) {
             return ImmutableList.of();
         }
-        List<AbstractRealisedModuleComponentResolveMetadata.ImmutableRealisedVariantImpl> realisedVariants = Lists.newArrayListWithExpectedSize(variants.size());
+        List<AbstractRealisedModuleComponentResolveMetadata.ImmutableRealisedVariantImpl> realisedVariants = new ArrayList<>(variants.size());
         for (ComponentVariant variant : variants) {
             realisedVariants.add(applyRules(variant, variantMetadataRules, mutableMetadata.getId()));
         }
@@ -120,13 +119,13 @@ public class LazyToRealisedModuleComponentResolveMetadataHelper {
     private static List<GradleDependencyMetadata> convertDependencies(List<? extends ComponentVariant.Dependency> dependencies, List<? extends ComponentVariant.DependencyConstraint> dependencyConstraints, boolean force) {
         List<GradleDependencyMetadata> result = new ArrayList<>(dependencies.size());
         for (ComponentVariant.Dependency dependency : dependencies) {
-            ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(dependency.getGroup(), dependency.getModule()), dependency.getVersionConstraint(), dependency.getAttributes(), dependency.getRequestedCapabilities());
+            ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(dependency.getGroup(), dependency.getModule()), dependency.getVersionConstraint(), dependency.getAttributes(), dependency.getCapabilitySelectors());
             List<ExcludeMetadata> excludes = dependency.getExcludes();
             result.add(new GradleDependencyMetadata(selector, excludes, false, dependency.isEndorsingStrictVersions(), dependency.getReason(), force, dependency.getDependencyArtifact()));
         }
         for (ComponentVariant.DependencyConstraint dependencyConstraint : dependencyConstraints) {
             result.add(new GradleDependencyMetadata(
-                DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(dependencyConstraint.getGroup(), dependencyConstraint.getModule()), dependencyConstraint.getVersionConstraint(), dependencyConstraint.getAttributes(), ImmutableList.of()),
+                DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(dependencyConstraint.getGroup(), dependencyConstraint.getModule()), dependencyConstraint.getVersionConstraint(), dependencyConstraint.getAttributes(), ImmutableSet.of()),
                 Collections.emptyList(),
                 true,
                 false,

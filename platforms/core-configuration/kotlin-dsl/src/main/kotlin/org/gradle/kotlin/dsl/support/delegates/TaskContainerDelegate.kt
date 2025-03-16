@@ -76,27 +76,43 @@ abstract class TaskContainerDelegate : TaskContainer {
     override fun addAllLater(provider: Provider<out Iterable<Task>>) =
         delegate.addAllLater(provider)
 
+    @Deprecated("Use register instead. There is no matching method taking a map notation, so you will have replace the map with proper arguments. See https://docs.gradle.org/current/userguide/task_configuration_avoidance.html for more information.")
+    @Suppress("DEPRECATION")
     override fun create(options: Map<String, *>): Task =
         delegate.create(options)
 
+    @Deprecated("Use register instead. There is no matching method taking a map notation, so you will have replace the map with proper arguments. See https://docs.gradle.org/current/userguide/task_configuration_avoidance.html for more information.")
+    @Suppress("DEPRECATION")
     override fun create(options: Map<String, *>, configureClosure: Closure<Any>): Task =
         delegate.create(options, configureClosure)
 
+    @Deprecated("Use register instead. See https://docs.gradle.org/current/userguide/task_configuration_avoidance.html for more information.", ReplaceWith("register(name, configureClosure)"))
+    @Suppress("DEPRECATION")
     override fun create(name: String, configureClosure: Closure<Any>): Task =
         delegate.create(name, configureClosure)
 
+    @Deprecated("Use register instead. See https://docs.gradle.org/current/userguide/task_configuration_avoidance.html for more information.", ReplaceWith("register(name)"))
+    @Suppress("DEPRECATION")
     override fun create(name: String): Task =
         delegate.create(name)
 
+    @Deprecated("Use register instead. See https://docs.gradle.org/current/userguide/task_configuration_avoidance.html for more information.", ReplaceWith("register(name, type)"))
+    @Suppress("DEPRECATION")
     override fun <T : Task> create(name: String, type: Class<T>): T =
         delegate.create(name, type)
 
-    override fun <T : Task> create(name: String, type: Class<T>, vararg constructorArgs: Any?): T =
+    @Deprecated("Use register instead. See https://docs.gradle.org/current/userguide/task_configuration_avoidance.html for more information.", ReplaceWith("register(name, type, *constructorArgs)"))
+    @Suppress("DEPRECATION")
+    override fun <T : Task> create(name: String, type: Class<T>, vararg constructorArgs: Any): T =
         delegate.create(name, type, *constructorArgs)
 
+    @Deprecated("Use register instead. See https://docs.gradle.org/current/userguide/task_configuration_avoidance.html for more information.", ReplaceWith("register(name, type, configuration)"))
+    @Suppress("DEPRECATION")
     override fun <T : Task> create(name: String, type: Class<T>, configuration: Action<in T>): T =
         delegate.create(name, type, configuration)
 
+    @Deprecated("Use register instead. See https://docs.gradle.org/current/userguide/task_configuration_avoidance.html for more information.", ReplaceWith("register(name, configureAction)"))
+    @Suppress("DEPRECATION")
     override fun create(name: String, configureAction: Action<in Task>): Task =
         delegate.create(name, configureAction)
 
@@ -130,7 +146,7 @@ abstract class TaskContainerDelegate : TaskContainer {
     override fun <T : Task> register(name: String, type: Class<T>): TaskProvider<T> =
         delegate.register(name, type)
 
-    override fun <T : Task> register(name: String, type: Class<T>, vararg constructorArgs: Any?): TaskProvider<T> =
+    override fun <T : Task> register(name: String, type: Class<T>, vararg constructorArgs: Any): TaskProvider<T> =
         delegate.register(name, type, *constructorArgs)
 
     override fun register(name: String): TaskProvider<Task> =

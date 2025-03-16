@@ -15,9 +15,8 @@
  */
 package org.gradle.internal.scripts;
 
-import org.gradle.scripts.ScriptingLanguage;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,7 +26,7 @@ import static org.gradle.internal.FileUtils.hasExtension;
 
 public class DefaultScriptFileResolver implements ScriptFileResolver {
 
-    private static final String[] EXTENSIONS = scriptingLanguageExtensions();
+    private static final String[] EXTENSIONS = ScriptFileUtil.getValidExtensions();
 
     @Nullable
     private final ScriptFileResolvedListener scriptFileResolvedListener;
@@ -85,14 +84,5 @@ public class DefaultScriptFileResolver implements ScriptFileResolver {
             }
         }
         return false;
-    }
-
-    private static String[] scriptingLanguageExtensions() {
-        List<ScriptingLanguage> scriptingLanguages = ScriptingLanguages.all();
-        String[] extensions = new String[scriptingLanguages.size()];
-        for (int i = 0; i < extensions.length; i++) {
-            extensions[i] = scriptingLanguages.get(i).getExtension();
-        }
-        return extensions;
     }
 }

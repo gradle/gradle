@@ -3,11 +3,20 @@ plugins {
 }
 
 repositories { // <1>
-    google() // <2>
+    google()
     mavenCentral()
 }
 
-dependencies { // <3>
-    implementation 'com.google.guava:guava:32.1.2-jre' // <4>
+configurations { // <3>
+    customConfiguration
+}
+
+dependencies { // <2>
+    implementation 'com.google.guava:guava:32.1.2-jre'
     testImplementation 'junit:junit:4.13.2'
+    customConfiguration 'org.eclipse.jgit:org.eclipse.jgit:4.9.2.201712150930-r'
+
+    constraints { // <4>
+        api 'org.apache.juneau:juneau-marshall:8.2.0'
+    }
 }

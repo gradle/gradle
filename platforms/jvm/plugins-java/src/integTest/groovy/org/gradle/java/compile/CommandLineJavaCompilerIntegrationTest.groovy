@@ -20,14 +20,14 @@ package org.gradle.java.compile
 import org.gradle.internal.jvm.Jvm
 import org.gradle.util.internal.TextUtil
 
-class CommandLineJavaCompilerIntegrationTest extends JavaCompilerIntegrationSpec {
+class CommandLineJavaCompilerIntegrationTest extends AbstractJavaCompilerIntegrationSpec {
 
     @Override
     String compilerConfiguration() {
         """
             compileJava.options.with {
                 fork = true
-                forkOptions.javaHome = file("${TextUtil.normaliseFileSeparators(Jvm.current().javaHome.toString())}")
+                forkOptions.executable = file("${TextUtil.normaliseFileSeparators(Jvm.current().getJavacExecutable().toPath().toString())}")
             }
         """
     }

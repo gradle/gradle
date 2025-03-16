@@ -22,6 +22,8 @@ import org.gradle.internal.build.event.BuildEventSubscriptions
 import org.gradle.internal.buildtree.BuildTreeLifecycleController
 import org.gradle.internal.buildtree.BuildTreeModelAction
 import org.gradle.internal.buildtree.BuildTreeModelController
+import org.gradle.internal.buildtree.BuildTreeModelSideEffect
+import org.gradle.internal.buildtree.BuildTreeModelSideEffectExecutor
 import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException
 import org.gradle.tooling.internal.protocol.InternalBuildActionVersion2
 import org.gradle.tooling.internal.protocol.InternalPhasedAction
@@ -47,13 +49,16 @@ class ClientProvidedPhasedActionRunnerTest extends Specification {
     }
 
     def buildEventConsumer = Mock(BuildEventConsumer)
+    def sideEffectExecutor = Mock(BuildTreeModelSideEffectExecutor) {
+        runIsolatableSideEffect(_) >> { BuildTreeModelSideEffect se -> se.runSideEffect() }
+    }
     def payloadSerializer = Mock(PayloadSerializer) {
         deserialize(serializedAction) >> phasedAction
     }
     def buildController = Mock(BuildTreeLifecycleController)
     def modelController = Stub(BuildTreeModelController)
 
-    def runner = new ClientProvidedPhasedActionRunner(Stub(BuildControllerFactory), payloadSerializer, buildEventConsumer)
+    def runner = new ClientProvidedPhasedActionRunner(Stub(BuildControllerFactory), payloadSerializer, buildEventConsumer, sideEffectExecutor)
 
     def "can run actions and results are sent to event consumer"() {
         def result1 = 'result1'

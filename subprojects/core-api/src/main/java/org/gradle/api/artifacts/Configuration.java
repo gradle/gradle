@@ -20,14 +20,17 @@ import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
+import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.dsl.DependencyCollector;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.HasInternalProtocol;
+import org.gradle.internal.deprecation.DeprecationLogger;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Map;
 import java.util.Set;
@@ -103,12 +106,25 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
     State getState();
 
     /**
-     * A {@link org.gradle.api.Namer} namer for configurations that returns {@link #getName()}.
+     * An implementation of the namer interface for configurations that returns {@link #getName()}.
+     *
+     * @deprecated Use {@link Named.Namer#INSTANCE} instead (since {@link Configuration} now extends {@link Named}).
      */
+    @Deprecated
     class Namer implements org.gradle.api.Namer<Configuration> {
+
+        public Namer() {
+            DeprecationLogger.deprecateType(Namer.class)
+                .replaceWith("Named.Namer.INSTANCE")
+                .withContext("Configuration implements Named, so you can use Named.Namer.INSTANCE instead of Configuration.Namer")
+                .willBeRemovedInGradle9()
+                .withUpgradeGuideSection(8, "deprecated_namers")
+                .nagUser();
+        }
+
         @Override
-        public String determineName(Configuration c) {
-            return c.getName();
+        public String determineName(Configuration configuration) {
+            return Named.Namer.INSTANCE.determineName(configuration);
         }
     }
 
@@ -141,6 +157,8 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
 
     /**
      * Sets the configurations which this configuration extends from.
+     * <p>
+     * Configurations are only allowed to extend from other configurations in the same project.
      *
      * @param superConfigs The super configuration. Should not be null.
      * @return this configuration
@@ -149,6 +167,8 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
 
     /**
      * Adds the given configurations to the set of configuration which this configuration extends from.
+     * <p>
+     * Configurations are only allowed to extend from other configurations in the same project.
      *
      * @param superConfigs The super configurations.
      * @return this configuration
@@ -217,7 +237,10 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      *
      * @param dependencySpecClosure The closure describing a filter applied to the all the dependencies of this configuration (including dependencies from extended configurations).
      * @return The files of a subset of dependencies of this configuration.
+     *
+     * @deprecated Use {@code getIncoming().artifactView(Action)} with a {@code componentFilter} instead.
      */
+    @Deprecated
     Set<File> files(Closure dependencySpecClosure);
 
     /**
@@ -231,7 +254,10 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      *
      * @param dependencySpec The spec describing a filter applied to the all the dependencies of this configuration (including dependencies from extended configurations).
      * @return The files of a subset of dependencies of this configuration.
+     *
+     * @deprecated Use {@code getIncoming().artifactView(Action)} with a {@code componentFilter} instead.
      */
+    @Deprecated
     Set<File> files(Spec<? super Dependency> dependencySpec);
 
     /**
@@ -245,7 +271,10 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      *
      * @param dependencies The dependencies to be resolved
      * @return The files of a subset of dependencies of this configuration.
+     *
+     * @deprecated Use {@code getIncoming().artifactView(Action)} with a {@code componentFilter} instead.
      */
+    @Deprecated
     Set<File> files(Dependency... dependencies);
 
     /**
@@ -259,7 +288,10 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      *
      * @param dependencySpec The spec describing a filter applied to the all the dependencies of this configuration (including dependencies from extended configurations).
      * @return The FileCollection with a subset of dependencies of this configuration.
+     *
+     * @deprecated Use {@code getIncoming().artifactView(Action)} with a {@code componentFilter} instead.
      */
+    @Deprecated
     FileCollection fileCollection(Spec<? super Dependency> dependencySpec);
 
     /**
@@ -272,7 +304,10 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      *
      * @param dependencySpecClosure The closure describing a filter applied to the all the dependencies of this configuration (including dependencies from extended configurations).
      * @return The FileCollection with a subset of dependencies of this configuration.
+     *
+     * @deprecated Use {@code getIncoming().artifactView(Action)} with a {@code componentFilter} instead.
      */
+    @Deprecated
     FileCollection fileCollection(Closure dependencySpecClosure);
 
     /**
@@ -286,12 +321,18 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      *
      * @param dependencies The dependencies for which the FileCollection should contain the files.
      * @return The FileCollection with a subset of dependencies of this configuration.
+     *
+     * @deprecated Use {@code getIncoming().artifactView(Action)} with a {@code componentFilter} instead.
      */
+    @Deprecated
     FileCollection fileCollection(Dependency... dependencies);
 
     /**
-     * Resolves this configuration. This locates and downloads the files which make up this configuration, and returns
-     * a {@link ResolvedConfiguration} that may be used to determine information about the resolve (including errors).
+     * Returns a {@link ResolvedConfiguration}, a legacy view of the results of dependency resolution.
+     * <strong>Avoid this method for new code</strong>. Prefer accessing resolution outputs via
+     * {@link #getIncoming()}. This API will be deprecated and removed in future Gradle versions.
+     * <p>
+     * See {@link ResolvedConfiguration} for details on why this API should not be used.
      *
      * @implSpec Usage: This method should only be called on resolvable configurations and should fail if
      * called on a configuration that does not permit this usage.  It should warn if called on a configuration that has
@@ -302,13 +343,14 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
     ResolvedConfiguration getResolvedConfiguration();
 
     /**
-     * Returns the name of the task that upload the artifacts of this configuration to repositories
-     * declared by the user.
+     * Returns a string. The returned value should not be interpreted as a task name,
+     * as no task with this name is created by default.
      *
-     * @return The name of the associated upload task
-     * @see org.gradle.api.tasks.Upload
+     * @return A string.
+     *
+     * @deprecated This method will be removed in Gradle 9.0
      */
-    @Deprecated // TODO:Finalize Upload Removal - Issue #21439
+    @Deprecated
     String getUploadTaskName();
 
     /**
@@ -451,7 +493,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * If multiple actions are supplied, each action will be executed until the set of dependencies is no longer empty.
      * Remaining actions will be ignored.
      *
-     * @implSpec Usage: This method should only be called on resolvable configurations and will emit a deprecation warning if
+     * @implSpec Usage: This method should only be called on declarable configurations and will emit a deprecation warning if
      * called on a configuration that does not permit this usage, or has allowed this usage but marked it as deprecated.
      *
      * @param action the action to execute when the configuration has no defined dependencies.
@@ -461,27 +503,65 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
 
     /**
      * Execute the given action before the configuration first participates in
-     * dependency resolution. A {@code Configuration} will participate in dependency resolution
-     * when:
+     * dependency resolution. Actions will be executed in the order provided.
+     * A configuration will participate in dependency resolution when:
+     *
      * <ul>
      *     <li>The {@link Configuration} itself is resolved</li>
-     *     <li>Another {@link Configuration} that extends this one is resolved</li>
-     *     <li>Another {@link Configuration} that references this one as a project dependency is resolved</li>
+     *     <li>The {@link Configuration} is published to a repository</li>
+     *     <li>The {@link Configuration} is consumed as a variant by another project</li>
+     *     <li>Another {@link Configuration} that extends this one is resolved, published, or consumed</li>
      * </ul>
+     * <p>
+     * In general, this method should be avoided in favor of other lazy APIs. However, in some cases where
+     * lazy APIs are not yet available, this method can be used to perform actions before the configuration
+     * is used.
+     * <p>
+     * Despite the method's name, callbacks registered on this method should not add dependencies to the
+     * configuration or mutate the dependencies already present on the configuration. Instead, use the
+     * {@link Provider}-accepting methods on {@link DependencySet} and {@link DependencyConstraintSet}.
+     * <p>
+     * Consider the following example that lazily adds a dependency to a configuration:
      *
-     * This method is useful for mutating the dependencies for a configuration:
      * <pre class='autoTested'>
      * configurations { conf }
-     * configurations['conf'].withDependencies { dependencies -&gt;
-     *      dependencies.each { dependency -&gt;
-     *          if (dependency.version == null) {
-     *              dependency.version { require '1.0' }
-     *          }
-     *      }
+     * configurations['conf'].dependencies.addLater(provider {
+     *     project.dependencies.create("com:example:1.0")
+     * })
+     * </pre>
+     *
+     * Similarly, instead of mutating an existing dependency, use dependency constraints instead. Consider the following
+     * example that uses a dependency constraint to prefer a specific version of a dependency if the
+     * dependency has not declared a preferred version itself. If the dependency has declared a version, the preferred
+     * version constraint will be ignored:
+     *
+     * <pre class='autoTested'>
+     * configurations { conf }
+     * dependencies {
+     *     conf("com:example")
+     *
+     *     constraints {
+     *         conf("com:example") {
+     *             version {
+     *                 prefer("2.0")
+     *             }
+     *         }
+     *     }
      * }
      * </pre>
      *
-     * Actions will be executed in the order provided.
+     * In some cases, using this method may still be necessary:
+     *
+     * <ul>
+     *     <li>
+     *         <strong>Adding excludes</strong>: This method may be used to lazily add excludes to a Configuration.
+     *         Adding excludes to declared dependencies should be handled with {@link ComponentMetadataHandler component metadata rules}
+     *     </li>
+     *     <li>
+     *         <strong>Mutating configuration hierarchy</strong>: Mutating a configuration's hierarchy ({@link #extendsFrom(Configuration...)})
+     *         after declaration is highly discouraged. However, doing so is possible with this method.
+     *     </li>
+     * </ul>
      *
      * @since 4.4
      * @param action a dependency action to execute before the configuration is used.
@@ -499,11 +579,12 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
     Set<Configuration> getAll();
 
     /**
-     * Returns the incoming dependencies of this configuration.
+     * Returns a {@link ResolvableDependencies} instance, exposing the results of dependency resolution.
+     * This method is the primary way to consume dependency resolution outputs.
      *
      * @implSpec Usage: This method should only be called on consumable and resolvable configurations, but will not warn if used otherwise.
      *
-     * @return The incoming dependencies of this configuration. Never {@code null}.
+     * @return An object that exposes the results of dependency resolution.
      */
     ResolvableDependencies getIncoming();
 

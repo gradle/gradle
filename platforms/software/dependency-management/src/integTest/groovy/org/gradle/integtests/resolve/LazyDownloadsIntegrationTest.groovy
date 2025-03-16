@@ -23,29 +23,35 @@ class LazyDownloadsIntegrationTest extends AbstractHttpDependencyResolutionTest 
     def module2 = mavenHttpRepo.module("test", "test2", "1.0").publish()
 
     def setup() {
-        createDirs("child")
-        settingsFile << "include 'child'"
-        buildFile << """
-            allprojects {
+        settingsFile << """
+            include 'child'
+            dependencyResolutionManagement {
                 repositories {
-                    maven { url '$mavenHttpRepo.uri' }
+                    maven { url = '$mavenHttpRepo.uri' }
                 }
-                configurations {
-                    compile
-                    create('default').extendsFrom compile
-                }
+            }
+        """
+        buildFile << """
+            configurations {
+                compile
+                create('default').extendsFrom compile
             }
 
             dependencies {
                 compile project(':child')
             }
-            project(':child') {
-                dependencies {
-                    compile 'test:test:1.0'
-                    compile 'test:test2:1.0'
-                }
+        """
+
+        file("child/build.gradle") << """
+            configurations {
+                compile
+                create('default').extendsFrom compile
             }
-"""
+            dependencies {
+                compile 'test:test:1.0'
+                compile 'test:test2:1.0'
+            }
+        """
     }
 
     def "downloads only the metadata when dependency graph is queried"() {
@@ -57,7 +63,7 @@ class LazyDownloadsIntegrationTest extends AbstractHttpDependencyResolutionTest 
                     root.get()
                 }
             }
-"""
+        """
 
         when:
         module.pom.expectGet()
@@ -96,7 +102,7 @@ class LazyDownloadsIntegrationTest extends AbstractHttpDependencyResolutionTest 
                     compile.files*.name
                 }
             }
-"""
+        """
 
         when:
         module.pom.expectGetUnauthorized()
@@ -118,7 +124,7 @@ class LazyDownloadsIntegrationTest extends AbstractHttpDependencyResolutionTest 
                     result*.id
                 }
             }
-"""
+        """
 
         when:
         module.pom.expectGetUnauthorized()

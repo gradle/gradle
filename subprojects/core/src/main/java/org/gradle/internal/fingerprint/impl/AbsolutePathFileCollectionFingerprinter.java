@@ -21,10 +21,10 @@ import org.gradle.internal.execution.model.InputNormalizer;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileNormalizer;
 import org.gradle.internal.fingerprint.hashing.FileSystemLocationSnapshotHasher;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-@ServiceScope(Scopes.BuildSession.class)
+@ServiceScope(Scope.BuildSession.class)
 public class AbsolutePathFileCollectionFingerprinter extends AbstractFileCollectionFingerprinter {
 
     public AbsolutePathFileCollectionFingerprinter(DirectorySensitivity directorySensitivity, FileCollectionSnapshotter fileCollectionSnapshotter, FileSystemLocationSnapshotHasher normalizedContentHasher) {

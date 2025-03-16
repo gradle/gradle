@@ -19,8 +19,11 @@ package org.gradle.internal.logging.console;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.PromptOutputEvent;
+import org.gradle.internal.logging.events.ReadStdInEvent;
+import org.gradle.internal.logging.events.RenderableOutputEvent;
 import org.gradle.internal.logging.events.UserInputRequestEvent;
 import org.gradle.internal.logging.events.UserInputResumeEvent;
+import org.gradle.internal.logging.events.UserInputValidationProblemEvent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,11 +31,11 @@ import java.util.ListIterator;
 
 public abstract class AbstractUserInputRenderer implements OutputEventListener {
     protected final OutputEventListener delegate;
-    private final UserInputReceiver userInput;
+    private final GlobalUserInputReceiver userInput;
     private final List<OutputEvent> eventQueue = new ArrayList<OutputEvent>();
     private boolean paused;
 
-    public AbstractUserInputRenderer(OutputEventListener delegate, UserInputReceiver userInput) {
+    public AbstractUserInputRenderer(OutputEventListener delegate, GlobalUserInputReceiver userInput) {
         this.delegate = delegate;
         this.userInput = userInput;
     }
@@ -46,8 +49,13 @@ public abstract class AbstractUserInputRenderer implements OutputEventListener {
             handleUserInputResumeEvent((UserInputResumeEvent) event);
             return;
         } else if (event instanceof PromptOutputEvent) {
-            handlePrompt((PromptOutputEvent) event);
-            userInput.readAndForwardText();
+            handlePromptOutputEvent((PromptOutputEvent) event);
+            return;
+        } else if (event instanceof UserInputValidationProblemEvent) {
+            handleValidationProblemEvent((UserInputValidationProblemEvent) event);
+            return;
+        } else if (event instanceof ReadStdInEvent) {
+            userInput.readAndForwardStdin((ReadStdInEvent) event);
             return;
         }
 
@@ -57,6 +65,19 @@ public abstract class AbstractUserInputRenderer implements OutputEventListener {
         }
 
         delegate.onOutput(event);
+    }
+
+    private void handleValidationProblemEvent(UserInputValidationProblemEvent event) {
+        handlePrompt(event);
+    }
+
+    private void handlePromptOutputEvent(PromptOutputEvent event) {
+        // Start capturing input prior to displaying the prompt so that the input received after the prompt is displayed will be captured.
+        // This does leave a small window where some text may be captured prior to the prompt being fully displayed, however this is
+        // better than doing things in the other order, where there will be a small window where text may not be captured after prompt is fully displayed.
+        // This is only a problem for tooling; for a human (the audience for this feature) this makes no difference.
+        userInput.readAndForwardText(event);
+        handlePrompt(event);
     }
 
     private void handleUserInputRequestEvent() {
@@ -89,7 +110,7 @@ public abstract class AbstractUserInputRenderer implements OutputEventListener {
 
     abstract void startInput();
 
-    abstract void handlePrompt(PromptOutputEvent event);
+    abstract void handlePrompt(RenderableOutputEvent event);
 
-    abstract void finishInput(UserInputResumeEvent event);
+    abstract void finishInput(RenderableOutputEvent event);
 }

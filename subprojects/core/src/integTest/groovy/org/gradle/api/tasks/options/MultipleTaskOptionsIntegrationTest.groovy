@@ -17,11 +17,13 @@
 package org.gradle.api.tasks.options
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 
 import static org.gradle.api.tasks.options.TaskOptionFixture.taskWithMultipleOptions
 
 class MultipleTaskOptionsIntegrationTest extends AbstractIntegrationSpec {
 
+    @ToBeFixedForIsolatedProjects(because = "allprojects")
     def "can configure tasks from command line in multiple projects"() {
         given:
         createDirs("project2")
@@ -50,6 +52,7 @@ class MultipleTaskOptionsIntegrationTest extends AbstractIntegrationSpec {
         result.assertTasksExecuted(":task1", ":someTask", ":project2:someTask", ":task2")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "allprojects")
     def "tasks can be configured with different options"() {
         given:
         createDirs("project2")
@@ -71,6 +74,7 @@ class MultipleTaskOptionsIntegrationTest extends AbstractIntegrationSpec {
         output.count('second=two') == 1
     }
 
+    @ToBeFixedForIsolatedProjects(because = "allprojects")
     def "tasks are configured exclusively with their options"() {
         given:
         createDirs("project2")

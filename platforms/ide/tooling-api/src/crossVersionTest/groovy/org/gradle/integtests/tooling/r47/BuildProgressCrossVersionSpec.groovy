@@ -19,6 +19,7 @@ package org.gradle.integtests.tooling.r47
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
@@ -29,6 +30,7 @@ import spock.lang.Timeout
 import java.util.concurrent.TimeUnit
 
 @TargetGradleVersion(">=4.7")
+@Flaky(because = 'https://github.com/gradle/gradle-private/issues/3638')
 class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 
     public RepositoryHttpServer server
@@ -85,7 +87,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 
             publishing {
                 repositories {
-                    maven { url "${mavenHttpRepo.uri}" }
+                    maven { url = "${mavenHttpRepo.uri}" }
                 }
                 publications {
                     maven(MavenPublication) {

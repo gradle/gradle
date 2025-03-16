@@ -27,8 +27,8 @@ import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.type.ModelTypes;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -100,7 +100,7 @@ public class BaseInstanceFactory<PUBLIC> implements InstanceFactory<PUBLIC> {
                     return;
                 }
                 ImplementationInfoImpl<S> currentImplementationInfo = implementationInfo.get();
-                if (currentImplementationInfo == null || currentImplementationInfo.implementationRegistration.implementationType.isAssignableFrom(registration.implementationRegistration.implementationType)) {
+                if (currentImplementationInfo == null || currentImplementationInfo.implementationRegistration.getImplementationType().isAssignableFrom(registration.implementationRegistration.getImplementationType())) {
                     implementationInfo.set(new ImplementationInfoImpl<S>(publicType, registration.implementationRegistration, getInternalViews(publicType)));
                 }
             }
@@ -368,13 +368,13 @@ public class BaseInstanceFactory<PUBLIC> implements InstanceFactory<PUBLIC> {
 
         @Override
         public Object create(MutableModelNode modelNode) {
-            ImplementationFactory<PUBLIC, Object> implementationFactory = Cast.uncheckedCast(implementationRegistration.factory);
-            return implementationFactory.create(publicType, implementationRegistration.implementationType, modelNode.getPath().getName(), modelNode);
+            ImplementationFactory<PUBLIC, Object> implementationFactory = Cast.uncheckedNonnullCast(implementationRegistration.getFactory());
+            return implementationFactory.create(publicType, implementationRegistration.getImplementationType(), modelNode.getPath().getName(), modelNode);
         }
 
         @Override
         public ModelType<?> getDelegateType() {
-            return implementationRegistration.implementationType;
+            return implementationRegistration.getImplementationType();
         }
 
         @Override

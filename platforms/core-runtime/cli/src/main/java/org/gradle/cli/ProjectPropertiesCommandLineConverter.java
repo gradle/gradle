@@ -16,7 +16,7 @@
 
 package org.gradle.cli;
 
-public class ProjectPropertiesCommandLineConverter extends AbstractPropertiesCommandLineConverter{
+public class ProjectPropertiesCommandLineConverter extends AbstractPropertiesCommandLineConverter {
 
     @Override
     protected String getPropertyOption() {

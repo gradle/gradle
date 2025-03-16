@@ -19,9 +19,10 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.capabilities.ImmutableCapability;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.Iterator;
 
 /**
  * A deeply immutable implementation of {@link CapabilitiesMetadata}.
@@ -33,7 +34,7 @@ import java.util.Collection;
  * Note that while this class is not itself {@code final}, all fields are private, so
  * subclassing should not break the immutability contract.
  */
-public class ImmutableCapabilities {
+public class ImmutableCapabilities implements Iterable<ImmutableCapability> {
     public static final ImmutableCapabilities EMPTY = new ImmutableCapabilities(ImmutableSet.of());
 
     private final ImmutableSet<ImmutableCapability> capabilities;
@@ -75,6 +76,30 @@ public class ImmutableCapabilities {
 
     public ImmutableSet<ImmutableCapability> asSet() {
         return capabilities;
+    }
+
+    @Override
+    public Iterator<ImmutableCapability> iterator() {
+        return capabilities.iterator();
+    }
+
+    public boolean isEmpty() {
+        return capabilities.isEmpty();
+    }
+
+    /**
+     * Returns this instance if it contains any capabilities, or returns a new instance containing the default capability
+     * if this is empty.
+     *
+     * @param defaultCapability the default capability to include in the result if the given capabilities set is empty
+     * @return {@code this} if it contains any capabilities; otherwise a new instance containing the given capability
+     */
+    public ImmutableCapabilities orElse(ImmutableCapability defaultCapability) {
+        if (capabilities.isEmpty()) {
+            return ImmutableCapabilities.of(defaultCapability);
+        } else {
+            return this;
+        }
     }
 
     @Override

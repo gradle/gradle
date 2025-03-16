@@ -16,7 +16,11 @@
 
 package org.gradle.internal.component.local.model;
 
+import com.google.common.collect.ImmutableSet;
+import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.util.Path;
 
 /**
@@ -24,8 +28,19 @@ import org.gradle.util.Path;
  */
 public interface ProjectComponentSelectorInternal extends ProjectComponentSelector {
 
+    @Override
+    ImmutableAttributes getAttributes();
+
+    @Override
+    ImmutableSet<CapabilitySelector> getCapabilitySelectors();
+
     /**
      * Returns a unique path for the target project within the current build tree.
      */
     Path getIdentityPath();
+
+    /**
+     * Returns the identity of the target project.
+     */
+    ProjectIdentity getProjectIdentity();
 }

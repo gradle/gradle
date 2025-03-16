@@ -1,0 +1,24 @@
+rootProject.name = 'services'
+
+// tag::build-layout[]
+println "Root Directory: ${settings.layout.rootDirectory}"
+println "Settings Directory: ${settings.layout.settingsDirectory}"
+// end::build-layout[]
+
+// tag::build-layout-inject[]
+abstract class MyBuildLayoutPlugin implements Plugin<Settings> {
+    private BuildLayout buildLayout
+
+    @Inject //@javax.inject.Inject
+    MyBuildLayoutPlugin(BuildLayout buildLayout) {
+        this.buildLayout = buildLayout
+    }
+
+    @Override void apply(Settings settings) {
+        // the meat and potatoes of the plugin
+        println buildLayout.rootDirectory
+    }
+}
+
+apply plugin: MyBuildLayoutPlugin
+// end::build-layout-inject[]

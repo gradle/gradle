@@ -16,24 +16,16 @@
 
 package org.gradle.kotlin.dsl.cache
 
-import org.gradle.api.internal.cache.CacheConfigurationsInternal
-import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
-import org.gradle.internal.file.FileAccessTimeJournal
+import org.gradle.internal.service.Provides
+import org.gradle.internal.service.ServiceRegistration
+import org.gradle.internal.service.ServiceRegistrationProvider
 
 
 internal
-object GradleUserHomeServices {
+object GradleUserHomeServices : ServiceRegistrationProvider {
 
-    @Suppress("unused")
-    fun createKotlinDslWorkspaceProvider(
-        cacheBuilderFactory: GlobalScopedCacheBuilderFactory,
-        fileAccessTimeJournal: FileAccessTimeJournal,
-        cacheConfigurations: CacheConfigurationsInternal
-    ): KotlinDslWorkspaceProvider {
-        return KotlinDslWorkspaceProvider(
-            cacheBuilderFactory,
-            fileAccessTimeJournal,
-            cacheConfigurations
-        )
+    @Provides
+    fun configure(registration: ServiceRegistration) {
+        registration.add(KotlinDslWorkspaceProvider::class.java)
     }
 }

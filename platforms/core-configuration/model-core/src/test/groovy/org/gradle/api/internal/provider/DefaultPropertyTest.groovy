@@ -363,84 +363,107 @@ class DefaultPropertyTest extends AbstractPropertySpec<String> {
         !provider.isPresent()
     }
 
-    def "update can modify property"() {
+    def "replace can modify property"() {
         given:
         def property = property().value(someValue())
 
         when:
-        property.update { it.map { someOtherValue() } }
+        property.replace { it.map { someOtherValue() } }
 
         then:
         property.get() == someOtherValue()
     }
 
-    def "update can modify property with convention"() {
+    def "replace can modify property with convention"() {
         given:
         def property = property().convention(someValue())
 
         when:
-        property.update { it.map { someOtherValue() } }
+        property.replace { it.map { someOtherValue() } }
 
         then:
         property.get() == someOtherValue()
     }
 
-    def "update is not applied to later property modifications"() {
+    def "replace is not applied to later property modifications"() {
         given:
         def property = property().value(someValue())
 
         when:
-        property.update { it.map { v -> v.reverse() } }
+        property.replace { it.map { v -> v.reverse() } }
         property.set(someOtherValue())
 
         then:
         property.get() == someOtherValue()
     }
 
-    def "update argument is live"() {
+    def "replace argument is live"() {
         given:
         def upstream = property().value(someValue())
         def property = property().value(upstream)
 
         when:
-        property.update { it.map { v -> v.reverse() }}
+        property.replace { it.map { v -> v.reverse() } }
         upstream.set(someOtherValue())
 
         then:
         property.get() == someOtherValue().reverse()
     }
 
-    def "returning null from update unsets the property"() {
+    def "returning null from replace unsets the property"() {
         given:
         def property = property().value(someValue())
 
         when:
-        property.update { null }
+        property.replace { null }
 
         then:
         !property.isPresent()
     }
 
-    def "returning null from update unsets the property falling back to convention"() {
+    def "returning null from replace unsets the property falling back to convention"() {
         given:
         def property = property().value(someValue()).convention(someOtherValue())
 
         when:
-        property.update { null }
+        property.replace { null }
 
         then:
         property.get() == someOtherValue()
     }
 
-    def "update transformation runs eagerly"() {
+    def "replace transformation runs eagerly"() {
         given:
         Transformer<Provider<String>, Provider<String>> transform = Mock()
         def property = property().value(someValue())
 
         when:
-        property.update(transform)
+        property.replace(transform)
 
         then:
         1 * transform.transform(_)
+    }
+
+    def "value coercion is applied to #description after configuration cache round-trip"() {
+        given:
+        GString gstring = "${'value'}"
+
+        def value = property().with {
+            it.set(valueProducer(gstring))
+            return it.calculateExecutionTimeValue()
+        }
+
+        when:
+        def restoredProperty = property()
+        restoredProperty.provider(value.toProvider())
+
+        then:
+        assert restoredProperty.get() instanceof String
+
+        where:
+        description               | valueProducer
+        "fixed value"             | { GString s -> s }
+        "fixed value provider"    | { GString s -> Providers.of(s).map { it } } // map {} here hides the fact that provider returns a GString
+        "changing value provider" | { GString s -> Providers.changing { s } }
     }
 }

@@ -46,7 +46,6 @@ class VariantsDependencySubstitutionRulesIntegrationTest extends AbstractIntegra
             }
         """
 
-        createDirs("platform")
         settingsFile << """
             include 'platform'
         """
@@ -93,7 +92,7 @@ class VariantsDependencySubstitutionRulesIntegrationTest extends AbstractIntegra
         buildFile << """
 
             repositories {
-               maven { url "${mavenRepo.uri}" }
+               maven { url = "${mavenRepo.uri}" }
             }
 
             configurations {
@@ -143,7 +142,7 @@ class VariantsDependencySubstitutionRulesIntegrationTest extends AbstractIntegra
         buildFile << """
 
             repositories {
-               maven { url "${mavenRepo.uri}" }
+               maven { url = "${mavenRepo.uri}" }
             }
 
             configurations {
@@ -167,7 +166,7 @@ class VariantsDependencySubstitutionRulesIntegrationTest extends AbstractIntegra
         fails ':checkDeps'
 
         then:
-        failure.assertHasCause "Unable to find a variant of org:lib:1.0 providing the requested capability org:lib-test-fixtures:"
+        failure.assertHasCause "Unable to find a variant with the requested capability: coordinates 'org:lib-test-fixtures':"
     }
 
     def "can substitute a project dependency without capabilities with a dependency with capabilities"() {
@@ -176,7 +175,7 @@ class VariantsDependencySubstitutionRulesIntegrationTest extends AbstractIntegra
         buildFile << """
 
             repositories {
-               maven { url "${mavenRepo.uri}" }
+               maven { url = "${mavenRepo.uri}" }
             }
 
             configurations {
@@ -196,16 +195,16 @@ class VariantsDependencySubstitutionRulesIntegrationTest extends AbstractIntegra
             }
         """
 
-        createDirs("other")
         settingsFile << """
             include 'other'
         """
+        file("other/build.gradle") << ""
 
         when:
         fails ':checkDeps'
 
         then:
-        failure.assertHasCause "Unable to find a variant of org:lib:1.0 providing the requested capability org:lib-test-fixtures:"
+        failure.assertHasCause "Unable to find a variant with the requested capability: coordinates 'org:lib-test-fixtures':"
     }
 
     def "can substitute a dependency with capabilities with a dependency without capabilities"() {
@@ -214,7 +213,7 @@ class VariantsDependencySubstitutionRulesIntegrationTest extends AbstractIntegra
         buildFile << """
 
             repositories {
-               maven { url "${mavenRepo.uri}" }
+               maven { url = "${mavenRepo.uri}" }
             }
 
             configurations {
@@ -261,7 +260,7 @@ class VariantsDependencySubstitutionRulesIntegrationTest extends AbstractIntegra
         buildFile << """
 
             repositories {
-               maven { url "${mavenRepo.uri}" }
+               maven { url = "${mavenRepo.uri}" }
             }
 
             configurations {
@@ -285,7 +284,6 @@ class VariantsDependencySubstitutionRulesIntegrationTest extends AbstractIntegra
             }
         """
 
-        createDirs("other")
         settingsFile << """
             include 'other'
         """

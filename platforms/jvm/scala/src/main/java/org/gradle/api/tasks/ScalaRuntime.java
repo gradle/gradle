@@ -30,8 +30,8 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.plugins.scala.ScalaPluginExtension;
 import org.gradle.api.tasks.scala.internal.ScalaRuntimeHelper;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 
 /**
@@ -59,6 +59,8 @@ import java.io.File;
  * </pre>
  */
 public abstract class ScalaRuntime {
+
+    // TODO: Deprecate this class in 9.x when we de-incubate ScalaPluginExtension#getScalaVersion()
 
     private final Project project;
     private final JvmPluginServices jvmPluginServices;
@@ -197,7 +199,6 @@ public abstract class ScalaRuntime {
     /**
      * Determines Scala compiler jar to download.
      *
-     * @param scalaVersion version of scala to download the compiler for
      * @param scalaVersion version of scala to download the compiler for
      * @return compiler dependency to download
      */

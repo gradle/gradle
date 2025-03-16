@@ -17,32 +17,21 @@
 package org.gradle.api.problems.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemReporter;
 import org.gradle.internal.operations.OperationIdentifier;
 
 public interface InternalProblemReporter extends ProblemReporter {
 
     /**
-     * Creates a new problem without reporting it immediately.
-     * The created problem can be later reported with {@link #report(ProblemReport)}.
-     *
-     * @param action The problem configuration.
-     * @return The new problem.
-     */
-    ProblemReport create(Action<InternalProblemSpec> action);
-
-    /**
-     * Reports the target problem.
-     *
-     * @param problem The problem to report.
-     */
-    void report(ProblemReport problem);
-
-    /**
      * Reports the target problem with an explicit operation identifier.
+     * <p>
+     * This method is used to report problems from workers, where the operation identifier is not available.
      *
      * @param problem The problem to report.
-     * @param id      The operation identifier.
+     * @param id The operation identifier.
      */
-    void report(ProblemReport problem, OperationIdentifier id);
+    void report(Problem problem, OperationIdentifier id);
+
+    InternalProblem internalCreate(Action<? super InternalProblemSpec> action);
 }

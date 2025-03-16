@@ -19,35 +19,34 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.StartParameter;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParser;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingAccessCoordinator;
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
 import org.gradle.api.internal.artifacts.transform.TransformStepNodeDependencyResolver;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.filestore.DefaultArtifactIdentifierFileStore;
 import org.gradle.api.internal.notations.ClientModuleNotationParserFactory;
 import org.gradle.api.internal.notations.DependencyNotationParser;
 import org.gradle.api.internal.notations.ProjectDependencyFactory;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.resource.cached.ByUrlCachedExternalResourceIndex;
 import org.gradle.internal.resource.cached.DefaultExternalResourceFileStore;
-import org.gradle.internal.resource.cached.ExternalResourceFileStore;
+import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.util.internal.BuildCommencedTimeProvider;
 import org.gradle.util.internal.SimpleMapInterner;
 
 /**
  * The set of dependency management services that are created per project.
  */
-class DependencyManagementProjectScopeServices {
+class DependencyManagementProjectScopeServices implements ServiceRegistrationProvider {
     void configure(ServiceRegistration registration) {
         registration.add(DefaultExternalResourceFileStore.Factory.class);
         registration.add(DefaultArtifactIdentifierFileStore.Factory.class);
@@ -55,25 +54,27 @@ class DependencyManagementProjectScopeServices {
     }
 
     /** This is needed in order to get the {@code taskDependencyFactory} from the current project. */
+    @Provides
     DefaultProjectDependencyFactory createProjectDependencyFactory(
         Instantiator instantiator,
         StartParameter startParameter,
-        ImmutableAttributesFactory attributesFactory,
+        AttributesFactory attributesFactory,
         TaskDependencyFactory taskDependencyFactory,
-        ObjectFactory objectFactory
+        ObjectFactory objectFactory,
+        ProjectStateRegistry projectStateRegistry
     ) {
         NotationParser<Object, Capability> capabilityNotationParser = new CapabilityNotationParserFactory(false).create();
-        return new DefaultProjectDependencyFactory(instantiator, startParameter.isBuildProjectDependencies(), capabilityNotationParser, objectFactory, attributesFactory, taskDependencyFactory);
+        return new DefaultProjectDependencyFactory(instantiator, startParameter.isBuildProjectDependencies(), capabilityNotationParser, objectFactory, attributesFactory, taskDependencyFactory, projectStateRegistry);
     }
 
+    @Provides
     DependencyFactoryInternal createDependencyFactory(
         Instantiator instantiator,
         DefaultProjectDependencyFactory factory,
         ClassPathRegistry classPathRegistry,
-        CurrentGradleInstallation currentGradleInstallation,
         FileCollectionFactory fileCollectionFactory,
         RuntimeShadedJarFactory runtimeShadedJarFactory,
-        ImmutableAttributesFactory attributesFactory,
+        AttributesFactory attributesFactory,
         SimpleMapInterner stringInterner,
         CapabilityNotationParser capabilityNotationParser,
         ObjectFactory objectFactory
@@ -82,7 +83,7 @@ class DependencyManagementProjectScopeServices {
 
         return new DefaultDependencyFactory(
                 instantiator,
-                DependencyNotationParser.create(instantiator, factory, classPathRegistry, fileCollectionFactory, runtimeShadedJarFactory, currentGradleInstallation, stringInterner),
+                DependencyNotationParser.create(instantiator, factory, classPathRegistry, fileCollectionFactory, runtimeShadedJarFactory, stringInterner),
                 new ClientModuleNotationParserFactory(instantiator, stringInterner).create(),
                 capabilityNotationParser,
                 objectFactory,
@@ -90,13 +91,22 @@ class DependencyManagementProjectScopeServices {
                 attributesFactory);
     }
 
-    private ByUrlCachedExternalResourceIndex prepareArtifactUrlCachedResolutionIndex(BuildCommencedTimeProvider timeProvider, ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator, ExternalResourceFileStore externalResourceFileStore, ArtifactCacheMetadata artifactCacheMetadata) {
-        return new ByUrlCachedExternalResourceIndex(
-            "resource-at-url",
-            timeProvider,
-            cacheAccessCoordinator,
-            externalResourceFileStore.getFileAccessTracker(),
-            artifactCacheMetadata.getCacheDir().toPath()
-        );
+    @Provides
+    protected DependencyMetaDataProvider createDependencyMetaDataProvider(ProjectInternal project) {
+        return new ProjectBackedModuleMetaDataProvider(project);
+    }
+
+    private static class ProjectBackedModuleMetaDataProvider implements DependencyMetaDataProvider {
+
+        private final ProjectInternal project;
+
+        public ProjectBackedModuleMetaDataProvider(ProjectInternal project) {
+            this.project = project;
+        }
+
+        @Override
+        public Module getModule() {
+            return new ProjectBackedModule(project);
+        }
     }
 }

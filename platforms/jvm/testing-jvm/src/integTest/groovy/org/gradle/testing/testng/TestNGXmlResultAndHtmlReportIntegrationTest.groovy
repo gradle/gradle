@@ -17,12 +17,22 @@
 
 package org.gradle.testing.testng
 
-import org.gradle.integtests.fixtures.*
+
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.HtmlTestExecutionResult
+import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
+import org.gradle.integtests.fixtures.TestExecutionResult
+import org.gradle.integtests.fixtures.TestResultOutputAssociation
 import spock.lang.Shared
 
 import static org.gradle.integtests.fixtures.TestResultOutputAssociation.WITH_SUITE
 import static org.gradle.integtests.fixtures.TestResultOutputAssociation.WITH_TESTCASE
-import static org.hamcrest.CoreMatchers.*
+import static org.hamcrest.CoreMatchers.allOf
+import static org.hamcrest.CoreMatchers.anyOf
+import static org.hamcrest.CoreMatchers.anything
+import static org.hamcrest.CoreMatchers.containsString
+import static org.hamcrest.CoreMatchers.equalTo
+import static org.hamcrest.CoreMatchers.not
 
 class TestNGXmlResultAndHtmlReportIntegrationTest extends
         AbstractIntegrationSpec {
@@ -33,8 +43,10 @@ class TestNGXmlResultAndHtmlReportIntegrationTest extends
         String config
     }
 
-    @Shared Mode outputPerTestCase = new Mode(name: "output-per-testcase", outputAssociation: WITH_TESTCASE, config: "reports.junitXml.outputPerTestCase true")
-    @Shared Mode outputAtSuite = new Mode(name: "output-at-suite", outputAssociation: WITH_SUITE, config: "reports.junitXml.outputPerTestCase false")
+    @Shared
+    Mode outputPerTestCase = new Mode(name: "output-per-testcase", outputAssociation: WITH_TESTCASE, config: "reports.junitXml.outputPerTestCase = true")
+    @Shared
+    Mode outputAtSuite = new Mode(name: "output-at-suite", outputAssociation: WITH_SUITE, config: "reports.junitXml.outputPerTestCase = false")
 
     @Shared List<Mode> modes = [outputAtSuite, outputPerTestCase]
 
@@ -56,7 +68,7 @@ class TestNGXmlResultAndHtmlReportIntegrationTest extends
 
     def "produces JUnit xml results when running tests in parallel - #mode.name"() {
         when:
-        runWithTestConfig("useTestNG(); maxParallelForks 2; $mode.config")
+        runWithTestConfig("useTestNG(); maxParallelForks = 2; $mode.config")
 
         then:
         verify(mode)
@@ -67,7 +79,7 @@ class TestNGXmlResultAndHtmlReportIntegrationTest extends
 
     def "produces JUnit xml results with aggressive forking - #mode.name"() {
         when:
-        runWithTestConfig("useTestNG(); forkEvery 1; $mode.config")
+        runWithTestConfig("useTestNG(); forkEvery = 1; $mode.config")
 
         then:
         verify(mode)

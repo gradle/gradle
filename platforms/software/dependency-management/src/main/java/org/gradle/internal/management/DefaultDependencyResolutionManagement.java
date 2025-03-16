@@ -21,7 +21,6 @@ import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.NamedDomainObjectList;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.artifacts.ComponentMetadataDetails;
 import org.gradle.api.artifacts.ComponentMetadataRule;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
@@ -35,13 +34,8 @@ import org.gradle.api.initialization.resolve.RulesMode;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
-import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.ComponentMetadataHandlerInternal;
-import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
-import org.gradle.api.internal.artifacts.dsl.dependencies.UnknownProjectFinder;
-import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.initialization.RootScriptDomainObjectContext;
+import org.gradle.api.internal.initialization.StandaloneDomainObjectContext;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -51,11 +45,13 @@ import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.lazy.Lazy;
+import org.jspecify.annotations.NullMarked;
 
+import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 
-@NonNullApi
+@NullMarked
 public class DefaultDependencyResolutionManagement implements DependencyResolutionManagementInternal {
     private static final DisplayName UNKNOWN_CODE = Describables.of("unknown code");
     private static final Logger LOGGER = Logging.getLogger(DependencyResolutionManagement.class);
@@ -72,19 +68,17 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
 
     private boolean mutable = true;
 
+    @Inject
     public DefaultDependencyResolutionManagement(
         UserCodeApplicationContext context,
         DependencyManagementServices dependencyManagementServices,
-        FileResolver fileResolver,
-        FileCollectionFactory fileCollectionFactory,
-        DependencyMetaDataProvider dependencyMetaDataProvider,
         ObjectFactory objects,
         CollectionCallbackActionDecorator collectionCallbackActionDecorator
     ) {
         this.context = context;
         this.repositoryMode = objects.property(RepositoriesMode.class).convention(RepositoriesMode.PREFER_PROJECT);
         this.rulesMode = objects.property(RulesMode.class).convention(RulesMode.PREFER_PROJECT);
-        this.dependencyResolutionServices = Lazy.locking().of(() -> dependencyManagementServices.create(fileResolver, fileCollectionFactory, dependencyMetaDataProvider, makeUnknownProjectFinder(), RootScriptDomainObjectContext.INSTANCE));
+        this.dependencyResolutionServices = Lazy.locking().of(() -> dependencyManagementServices.newDetachedResolver(StandaloneDomainObjectContext.ANONYMOUS));
         this.librariesExtensionName = objects.property(String.class).convention("libs");
         this.projectsExtensionName = objects.property(String.class).convention("projects");
         this.versionCatalogs = objects.newInstance(DefaultVersionCatalogBuilderContainer.class, collectionCallbackActionDecorator, objects, context, dependencyResolutionServices);
@@ -217,10 +211,6 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
                 LOGGER.warn(message);
                 break;
         }
-    }
-
-    private static ProjectFinder makeUnknownProjectFinder() {
-        return new UnknownProjectFinder("Project dependencies are not allowed in shared dependency resolution services");
     }
 
     @Override

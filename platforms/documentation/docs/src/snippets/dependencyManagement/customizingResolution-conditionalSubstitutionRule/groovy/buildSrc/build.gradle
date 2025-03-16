@@ -1,3 +1,9 @@
 plugins {
     id 'groovy-gradle-plugin'
 }
+
+// tag::plugin-portal[]
+repositories {
+    gradlePluginPortal()
+}
+// end::plugin-portal[]

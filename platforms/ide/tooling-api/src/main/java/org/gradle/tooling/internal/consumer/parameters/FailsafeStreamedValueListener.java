@@ -18,8 +18,8 @@ package org.gradle.tooling.internal.consumer.parameters;
 
 import org.gradle.internal.event.ListenerNotificationException;
 import org.gradle.tooling.StreamedValueListener;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collections;
 
 public class FailsafeStreamedValueListener implements StreamedValueListener {

@@ -43,8 +43,8 @@ import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.resources.SharedResource;
 import org.gradle.internal.resources.SharedResourceLeaseRegistry;
 import org.gradle.internal.service.ServiceRegistry;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -68,7 +68,8 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
     private final ServiceRegistry services;
     private final IsolatableFactory isolatableFactory;
     private final SharedResourceLeaseRegistry leaseRegistry;
-    private final IsolationScheme<BuildService, BuildServiceParameters> isolationScheme = new IsolationScheme<>(BuildService.class, BuildServiceParameters.class, BuildServiceParameters.None.class);
+    private final IsolationScheme<BuildService<?>, BuildServiceParameters> isolationScheme = new IsolationScheme<>(
+        Cast.uncheckedCast(BuildService.class), BuildServiceParameters.class, BuildServiceParameters.None.class);
     private final Instantiator paramsInstantiator;
     private final Instantiator specInstantiator;
     private final BuildServiceProvider.Listener listener;
@@ -91,7 +92,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         this.isolatableFactory = isolatableFactory;
         this.leaseRegistry = leaseRegistry;
         this.paramsInstantiator = instantiatorFactory.decorateScheme().withServices(services).instantiator();
-        this.specInstantiator = instantiatorFactory.decorateLenientScheme().withServices(services).instantiator();
+        this.specInstantiator = instantiatorFactory.decorateLenient(services);
         this.listener = listener;
         listenerManager.addListener(new ServiceCleanupListener());
     }
@@ -139,7 +140,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
     }
 
     @Override
-    public Set<BuildServiceRegistration<?, ?>> findRegistrations(Class<?> type, String name) {
+    public Set<BuildServiceRegistration<?, ?>> findRegistrations(Class<?> type, @Nullable String name) {
         return withRegistrations(registrations ->
             ImmutableSet.<BuildServiceRegistration<?, ?>>builder().addAll(registrations.matching(it ->
                 type.isAssignableFrom(BuildServiceProvider.getProvidedType(it.getService()))

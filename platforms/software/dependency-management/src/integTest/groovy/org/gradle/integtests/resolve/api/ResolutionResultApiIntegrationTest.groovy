@@ -48,7 +48,7 @@ class ResolutionResultApiIntegrationTest extends AbstractDependencyResolutionTes
         file("build.gradle") << """
             version = '5.0'
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 conf
@@ -108,7 +108,7 @@ baz:1.0 requested
             }
 
             repositories {
-               maven { url "${mavenRepo.uri}" }
+               maven { url = "${mavenRepo.uri}" }
             }
 
             dependencies {
@@ -176,7 +176,7 @@ baz:1.0 requested
             }
 
             repositories {
-               maven { url "${mavenRepo.uri}" }
+               maven { url = "${mavenRepo.uri}" }
             }
 
             dependencies {
@@ -239,7 +239,7 @@ baz:1.0 requested
         buildFile << """
 
             repositories {
-               maven { url "${mavenRepo.uri}" }
+               maven { url = "${mavenRepo.uri}" }
             }
 
             configurations {
@@ -303,7 +303,7 @@ baz:1.0 requested
         buildFile << """
 
             repositories {
-               maven { url "${mavenRepo.uri}" }
+               maven { url = "${mavenRepo.uri}" }
             }
 
             configurations {
@@ -359,7 +359,7 @@ baz:1.0 requested
         buildFile << """
 
             repositories {
-               maven { url "${mavenRepo.uri}" }
+               maven { url = "${mavenRepo.uri}" }
             }
 
             configurations {
@@ -424,32 +424,17 @@ baz:1.0 requested
         mavenRepo.module("com", "foo", "1.0").publish()
         mavenRepo.module("com", "bar", "1.0").publish()
         mavenRepo.module("com", "baz", "1.0").publish()
-        createDirs("lib", "tool")
         settingsFile << """
-            include 'lib', 'tool'
+            include 'lib'
+            include 'tool'
+            dependencyResolutionManagement {
+                ${mavenTestRepository()}
+            }
         """
+
         buildFile << """
-            allprojects {
-               repositories {
-                  maven { url "${mavenRepo.uri}" }
-               }
-
-                apply plugin: 'java-library'
-            }
-
-            project(":lib") {
-                dependencies {
-                   api "org:dep:1.0"
-                }
-            }
-
-            project(":tool") {
-                apply plugin: 'java-test-fixtures'
-                dependencies {
-                    api "com:baz:1.0"
-                    testFixturesApi "com:foo:1.0"
-                    testFixturesImplementation "com:bar:1.0"
-                }
+            plugins {
+                id("java-library")
             }
 
             dependencies {
@@ -458,6 +443,31 @@ baz:1.0 requested
                 testImplementation(testFixtures(project(":tool"))) // intentional duplication
             }
         """
+
+        file("lib/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+
+            dependencies {
+               api "org:dep:1.0"
+            }
+        """
+
+        file("tool/build.gradle") << """
+            plugins {
+                id("java-library")
+                id("java-test-fixtures")
+            }
+
+            dependencies {
+                api "com:baz:1.0"
+                testFixturesApi "com:foo:1.0"
+                testFixturesImplementation "com:bar:1.0"
+            }
+
+        """
+
         withResolutionResultDumper("testCompileClasspath", "testRuntimeClasspath")
 
         when:
@@ -488,14 +498,11 @@ testCompileClasspath
 
     @ToBeFixedForConfigurationCache(because = "task exercises the resolution result API")
     def "requested dependency attributes are reported on dependency result as desugared attributes"() {
-        createDirs("platform")
         settingsFile << "include 'platform'"
         buildFile << """
-            project(":platform") {
-                apply plugin: 'java-platform'
+            plugins {
+                id("java-library")
             }
-
-            apply plugin: 'java-library'
 
             dependencies {
                 implementation(platform(project(":platform")))
@@ -512,6 +519,12 @@ testCompileClasspath
             }
         """
 
+        file("platform/build.gradle") << """
+            plugins {
+                id("java-platform")
+            }
+        """
+
         expect:
         succeeds 'checkDependencyAttributes'
     }
@@ -523,39 +536,37 @@ testCompileClasspath
         mavenRepo.module('org', 'baz', '1.0').publish()
         mavenRepo.module('org', 'gaz', '1.0').publish()
 
-        file("producer/build.gradle") << """
-            plugins {
-              id 'java-library'
-              id 'java-test-fixtures'
-            }
-            dependencies {
-              testFixturesApi('org:foo:1.0')
-              testFixturesImplementation('org:bar:1.0')
-              testFixturesImplementation('org:baz:1.0')
-
-              api('org:baz:1.0')
-              implementation('org:gaz:1.0')
-            }
-            """
-                    buildFile << """
-            plugins {
-              id 'java-library'
-            }
-
-            allprojects {
-               repositories {
-                  maven { url "${mavenRepo.uri}" }
-               }
-            }
-
-            dependencies {
-              implementation(project(':producer'))
-              testImplementation(testFixtures(project(':producer')))
-            }
-        """
-        createDirs("producer")
         settingsFile << """
             include 'producer'
+            dependencyResolutionManagement {
+                ${mavenTestRepository()}
+            }
+        """
+
+        file("producer/build.gradle") << """
+            plugins {
+                id("java-library")
+                id("java-test-fixtures")
+            }
+            dependencies {
+                testFixturesApi('org:foo:1.0')
+                testFixturesImplementation('org:bar:1.0')
+                testFixturesImplementation('org:baz:1.0')
+
+                api('org:baz:1.0')
+                implementation('org:gaz:1.0')
+            }
+        """
+
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            dependencies {
+                implementation(project(':producer'))
+                testImplementation(testFixtures(project(':producer')))
+            }
         """
 
         withResolutionResultDumper("testCompileClasspath", "testRuntimeClasspath")
@@ -590,30 +601,30 @@ testRuntimeClasspath
     @ToBeFixedForConfigurationCache(because = "task exercises the resolution result API")
     def "reports if we try to get dependencies from a different variant"() {
         mavenRepo.module('org', 'foo', '1.0').publish()
+        settingsFile << """
+            include 'producer'
+            dependencyResolutionManagement {
+                ${mavenTestRepository()}
+            }
+        """
 
         file("producer/build.gradle") << """
             plugins {
-              id 'java-library'
-              id 'java-test-fixtures'
+                id("java-library")
+                id("java-test-fixtures")
             }
             dependencies {
-              testFixturesApi('org:foo:1.0')
+                testFixturesApi('org:foo:1.0')
             }
             """
         buildFile << """
             plugins {
-              id 'java-library'
-            }
-
-            allprojects {
-               repositories {
-                  maven { url "${mavenRepo.uri}" }
-               }
+                id("java-library")
             }
 
             dependencies {
-              implementation(project(':producer'))
-              testImplementation(testFixtures(project(':producer')))
+                implementation(project(':producer'))
+                testImplementation(testFixtures(project(':producer')))
             }
 
             task resolve {
@@ -628,60 +639,57 @@ testRuntimeClasspath
                 }
             }
         """
-        createDirs("producer")
-        settingsFile << """
-            include 'producer'
-        """
 
         when:
         fails 'resolve'
 
         then:
-        failure.assertHasCause("Variant 'apiElements' doesn't belong to resolved component 'project :'. There's no resolved variant with the same name. Most likely you are using a variant from another component to get the dependencies of this component.")
+        failure.assertHasCause("Variant 'apiElements' doesn't belong to resolved component 'root project :'. There's no resolved variant with the same name. Most likely you are using a variant from another component to get the dependencies of this component.")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/12643")
     @ToBeFixedForConfigurationCache(because = "task exercises the resolution result API")
     def "resolved variant of a selected node shouldn't be null"() {
         buildFile << """
-        apply plugin: 'java-library'
-
-        ${mavenCentralRepository()}
-
-        configurations.all {
-            resolutionStrategy.capabilitiesResolution.withCapability('com.google.collections:google-collections') {
-                selectHighestVersion()
+            plugins {
+                id("java-library")
             }
-        }
-        dependencies {
-            implementation 'com.google.guava:guava:28.1-jre'
-            implementation 'com.google.collections:google-collections:1.0'
-            components {
-                withModule('com.google.guava:guava') {
-                    allVariants {
-                        withCapabilities {
-                           addCapability('com.google.collections', 'google-collections', id.version)
+
+            ${mavenCentralRepository()}
+
+            configurations.all {
+                resolutionStrategy.capabilitiesResolution.withCapability('com.google.collections:google-collections') {
+                    selectHighestVersion()
+                }
+            }
+            dependencies {
+                implementation 'com.google.guava:guava:28.1-jre'
+                implementation 'com.google.collections:google-collections:1.0'
+                components {
+                    withModule('com.google.guava:guava') {
+                        allVariants {
+                            withCapabilities {
+                               addCapability('com.google.collections', 'google-collections', id.version)
+                            }
                         }
                     }
                 }
             }
-        }
 
-        task resolve {
-            def compileClasspath = configurations.compileClasspath
-            doLast {
-                def result = compileClasspath.incoming.resolutionResult
-                result.allDependencies {
-                    assert it instanceof ResolvedDependencyResult
-                    assert it.resolvedVariant != null
+            task resolve {
+                def compileClasspath = configurations.compileClasspath
+                doLast {
+                    def result = compileClasspath.incoming.resolutionResult
+                    result.allDependencies {
+                        assert it instanceof ResolvedDependencyResult
+                        assert it.resolvedVariant != null
+                    }
                 }
             }
-        }
         """
 
         expect:
         succeeds 'resolve'
-
     }
 
     private void withResolutionResultDumper(String... configurations) {
@@ -745,9 +753,9 @@ testRuntimeClasspath
 
     @Issue("https://github.com/gradle/gradle/issues/26334")
     def "resolution result does not report duplicate variants for the same module reachable through different paths"() {
-        createDirs("producer", "transitive")
         settingsFile << """
-            include "producer", "transitive"
+            include "producer"
+            include "transitive"
         """
         file("producer/build.gradle") << """
             configurations {
@@ -802,7 +810,6 @@ testRuntimeClasspath
 
     }
     def "resolution result does not realize artifact tasks"() {
-        createDirs("producer")
         settingsFile << "include 'producer'"
         file("producer/build.gradle") << """
             plugins {
@@ -862,5 +869,211 @@ testRuntimeClasspath
         and:
         fails("selectArtifacts")
         failure.assertHasCause("Realized artifact task")
+    }
+
+    def "exposes root variant"() {
+        mavenRepo.module("org", "foo").publish()
+
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            ${mavenTestRepository()}
+
+            dependencies {
+                ${hasDependencies ? 'implementation("org:foo:1.0")' : "" }
+            }
+
+            task resolve {
+                def rootComponent = configurations.runtimeClasspath.incoming.resolutionResult.rootComponent
+                def rootVariant = configurations.runtimeClasspath.incoming.resolutionResult.rootVariant
+                doLast {
+                    def componentRootVariant = rootComponent.get().variants.find { it.displayName == "runtimeClasspath" }
+                    assert rootVariant.get() == componentRootVariant
+                }
+            }
+        """
+
+        expect:
+        succeeds("resolve")
+
+        where:
+        hasDependencies << [true, false]
+    }
+
+    def "handles graphs with cycles"() {
+        settingsFile << """
+            include 'other'
+        """
+        file("other/build.gradle") << """
+            configurations {
+                dependencyScope("implementation")
+                consumable("runtimeElements") {
+                    extendsFrom(implementation)
+                    attributes {
+                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "cat"))
+                    }
+                }
+            }
+
+            dependencies {
+                implementation(project(":"))
+            }
+        """
+
+        buildFile << """
+            configurations {
+                dependencyScope("implementation")
+                consumable("runtimeElements") {
+                    extendsFrom(implementation)
+                    attributes {
+                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "cat"))
+                    }
+                }
+                resolvable("runtimeClasspath") {
+                    extendsFrom(implementation)
+                    attributes {
+                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "cat"))
+                    }
+                }
+            }
+
+            dependencies {
+                implementation(project(":other"))
+            }
+
+            task resolve {
+                def rootVariantProvider = configurations.runtimeClasspath.incoming.resolutionResult.rootVariant
+                def rootComponentProvider = configurations.runtimeClasspath.incoming.resolutionResult.rootComponent
+                doLast {
+                    def rootVariant = rootVariantProvider.get()
+                    def rootComponent = rootComponentProvider.get()
+
+                    def rootDependencies = rootComponent.getDependenciesForVariant(rootVariant)
+                    assert rootComponent.dependencies.size() == 1
+                    assert rootDependencies.size() == 1
+                    assert rootDependencies[0] == rootComponent.dependencies[0]
+
+                    def rootDependency = rootDependencies[0]
+                    assert rootDependency instanceof ResolvedDependencyResult
+
+                    def otherComponent = rootDependency.selected
+                    def otherVariant = rootDependency.resolvedVariant
+
+                    def otherDependencies = otherComponent.getDependenciesForVariant(otherVariant)
+                    assert otherComponent.dependencies.size() == 1
+                    assert otherDependencies.size() == 1
+                    assert otherDependencies[0] == otherComponent.dependencies[0]
+
+                    def otherDependency = otherDependencies[0]
+                    assert otherDependency instanceof ResolvedDependencyResult
+                    assert otherDependency.selected == rootComponent
+
+                    def runtimeElements = otherDependency.resolvedVariant
+                    def runtimeElementsDependencies = rootComponent.getDependenciesForVariant(runtimeElements)
+
+                    assert runtimeElementsDependencies.size() == 1
+                    assert runtimeElementsDependencies[0].selected == otherComponent
+                    assert runtimeElementsDependencies[0].resolvedVariant == otherVariant
+                }
+            }
+        """
+
+        expect:
+        succeeds("resolve")
+    }
+
+    def "can traverse a graph at the variant level"() {
+        settingsKotlinFile << """
+            rootProject.name = "root"
+            include("other")
+        """
+
+        file("other/build.gradle.kts") << """
+            plugins {
+                id("java-library")
+                id("java-test-fixtures")
+            }
+
+            group = "org"
+            version = "1.0"
+        """
+
+        buildKotlinFile << """
+            plugins {
+                id("java-library")
+                id("java-test-fixtures")
+            }
+
+            group = "org"
+            version = "1.0"
+
+            dependencies {
+                implementation(project(":other"))
+                testImplementation(testFixtures(project(":other")))
+            }
+
+            abstract class TraverseTask : DefaultTask() {
+
+                @get:Input
+                abstract val rootComponent: Property<ResolvedComponentResult>
+
+                @get:Input
+                abstract val rootVariant: Property<ResolvedVariantResult>
+
+                @TaskAction
+                fun traverse() {
+                    val variants = mutableListOf<String>()
+                    traverseGraphVariants(rootComponent.get(), rootVariant.get()) { variant ->
+                        val owner = variant.owner as ProjectComponentIdentifier
+                        variants.add("\${owner.buildTreePath}:\${variant.displayName}")
+                    }
+                    assert(variants == listOf(
+                        "::testRuntimeClasspath",
+                        ":other:runtimeElements",
+                        "::testFixturesRuntimeElements",
+                        ":other:testFixturesRuntimeElements",
+                        "::runtimeElements"
+                    ))
+                }
+
+                fun traverseGraphVariants(
+                    rootComponent: ResolvedComponentResult,
+                    rootVariant: ResolvedVariantResult,
+                    callback: (ResolvedVariantResult) -> Unit
+                ) {
+                    val seen = mutableSetOf(rootVariant)
+                    val queue = ArrayDeque(listOf(rootVariant to rootComponent))
+
+                    while (queue.isNotEmpty()) {
+                        val (variant, component) = queue.removeFirst()
+
+                        callback(variant)
+
+                        // Traverse this variant's dependencies
+                        component.getDependenciesForVariant(variant).forEach { dependency ->
+                            val resolved = when (dependency) {
+                                is ResolvedDependencyResult -> dependency
+                                is UnresolvedDependencyResult -> throw dependency.failure
+                                else -> throw AssertionError("Unknown dependency type: \$dependency")
+                            }
+
+                            if (!resolved.isConstraint && seen.add(resolved.resolvedVariant)) {
+                                queue.add(resolved.resolvedVariant to resolved.selected)
+                            }
+                        }
+                    }
+                }
+            }
+
+            tasks.register<TraverseTask>("traverse") {
+                rootComponent = configurations.testRuntimeClasspath.flatMap { it.incoming.resolutionResult.rootComponent }
+                rootVariant = configurations.testRuntimeClasspath.flatMap { it.incoming.resolutionResult.rootVariant }
+            }
+        """
+
+        expect:
+        succeeds("traverse")
     }
 }

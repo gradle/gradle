@@ -27,6 +27,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.tasks.properties.FileParameterUtils;
+import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileNormalizer;
@@ -35,7 +36,7 @@ import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.properties.InputBehavior;
 import org.gradle.internal.properties.InputFilePropertyType;
 import org.gradle.internal.properties.PropertyValue;
@@ -46,13 +47,13 @@ import org.gradle.internal.properties.annotations.TypeMetadataStore;
 import org.gradle.internal.properties.bean.PropertyWalker;
 import org.gradle.internal.reflect.DefaultTypeValidationContext;
 import org.gradle.internal.service.ServiceLookup;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 
 public class DefaultTransformRegistrationFactory implements TransformRegistrationFactory {
 
-    private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildOperationRunner buildOperationRunner;
     private final IsolatableFactory isolatableFactory;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final TransformInvocationFactory transformInvocationFactory;
@@ -67,7 +68,7 @@ public class DefaultTransformRegistrationFactory implements TransformRegistratio
     private final InstantiationScheme actionInstantiationScheme;
 
     public DefaultTransformRegistrationFactory(
-        BuildOperationExecutor buildOperationExecutor,
+        BuildOperationRunner buildOperationRunner,
         IsolatableFactory isolatableFactory,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         TransformInvocationFactory transformInvocationFactory,
@@ -80,7 +81,7 @@ public class DefaultTransformRegistrationFactory implements TransformRegistratio
         TransformActionScheme actionScheme,
         ServiceLookup internalServices
     ) {
-        this.buildOperationExecutor = buildOperationExecutor;
+        this.buildOperationRunner = buildOperationRunner;
         this.isolatableFactory = isolatableFactory;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.transformInvocationFactory = transformInvocationFactory;
@@ -99,7 +100,8 @@ public class DefaultTransformRegistrationFactory implements TransformRegistratio
     public TransformRegistration create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends TransformAction<?>> implementation, @Nullable TransformParameters parameterObject) {
         TypeMetadata actionMetadata = actionMetadataStore.getTypeMetadata(implementation);
         boolean cacheable = implementation.isAnnotationPresent(CacheableTransform.class);
-        DefaultTypeValidationContext validationContext = DefaultTypeValidationContext.withoutRootType(cacheable);
+        InternalProblems problems = (InternalProblems) internalServices.get(InternalProblems.class);
+        DefaultTypeValidationContext validationContext = DefaultTypeValidationContext.withoutRootType(cacheable, problems);
         actionMetadata.visitValidationFailures(null, validationContext);
 
         // Should retain this on the metadata rather than calculate on each invocation
@@ -140,7 +142,7 @@ public class DefaultTransformRegistrationFactory implements TransformRegistratio
             dependenciesDirectorySensitivity,
             artifactLineEndingSensitivity,
             dependenciesLineEndingSensitivity,
-            buildOperationExecutor,
+            buildOperationRunner,
             classLoaderHierarchyHasher,
             isolatableFactory,
             fileCollectionFactory,

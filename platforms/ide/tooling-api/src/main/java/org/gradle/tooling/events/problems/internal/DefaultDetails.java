@@ -16,17 +16,15 @@
 
 package org.gradle.tooling.events.problems.internal;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.tooling.events.problems.Details;
+import org.jspecify.annotations.NullMarked;
 
-import javax.annotation.Nullable;
-
-@NonNullApi
+@NullMarked
 public class DefaultDetails implements Details {
 
     private final String details;
 
-    public DefaultDetails(@Nullable String details) {
+    public DefaultDetails(String details) {
         this.details = details;
     }
 

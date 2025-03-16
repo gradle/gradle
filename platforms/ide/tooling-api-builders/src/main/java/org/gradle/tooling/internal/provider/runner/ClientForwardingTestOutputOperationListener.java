@@ -15,8 +15,7 @@
  */
 package org.gradle.tooling.internal.provider.runner;
 
-import org.gradle.api.NonNullApi;
-import org.gradle.api.internal.tasks.testing.operations.TestListenerBuildOperationAdapter;
+import org.gradle.api.internal.tasks.testing.operations.ExecuteTestBuildOperationType;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.internal.build.event.types.DefaultTestOutputDescriptor;
 import org.gradle.internal.build.event.types.DefaultTestOutputEvent;
@@ -30,11 +29,12 @@ import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.tooling.events.test.Destination;
 import org.gradle.tooling.internal.protocol.events.InternalTestOutputDescriptor;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * Test listener that forwards the test output events.
  */
-@NonNullApi
+@NullMarked
 class ClientForwardingTestOutputOperationListener implements BuildOperationListener {
     private final ProgressEventConsumer eventConsumer;
     private final BuildOperationIdFactory idFactory;
@@ -51,8 +51,8 @@ class ClientForwardingTestOutputOperationListener implements BuildOperationListe
     @Override
     public void progress(OperationIdentifier buildOperationId, OperationProgressEvent progressEvent) {
         Object details = progressEvent.getDetails();
-        if (details instanceof TestListenerBuildOperationAdapter.OutputProgress) {
-            TestListenerBuildOperationAdapter.OutputProgress progress = (TestListenerBuildOperationAdapter.OutputProgress) details;
+        if (details instanceof ExecuteTestBuildOperationType.Output) {
+            ExecuteTestBuildOperationType.Output progress = (ExecuteTestBuildOperationType.Output) details;
             InternalTestOutputDescriptor descriptor = new DefaultTestOutputDescriptor(new OperationIdentifier(idFactory.nextId()), buildOperationId);
             int destination = getDestination(progress.getOutput().getDestination());
             DefaultTestOutputResult result = new DefaultTestOutputResult(progressEvent.getTime(), progressEvent.getTime(), destination, progress.getOutput().getMessage());

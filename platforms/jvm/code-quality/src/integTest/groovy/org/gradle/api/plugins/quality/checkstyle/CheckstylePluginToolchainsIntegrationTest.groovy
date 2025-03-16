@@ -135,9 +135,9 @@ class CheckstylePluginToolchainsIntegrationTest extends MultiVersionIntegrationS
 
                 doLast {
                     assert services.get(WorkerDaemonClientsManager).idleClients.find {
-                        new File(it.forkOptions.javaForkOptions.executable).canonicalPath == Jvm.current().javaExecutable.canonicalPath &&
-                        it.forkOptions.javaForkOptions.minHeapSize == "128m" &&
-                        it.forkOptions.javaForkOptions.maxHeapSize == "256m"
+                        new File(it.forkOptions.executable).canonicalPath == Jvm.current().javaExecutable.canonicalPath &&
+                        it.forkOptions.jvmOptions.minHeapSize == "128m" &&
+                        it.forkOptions.jvmOptions.maxHeapSize == "256m"
                     }
                 }
             }

@@ -219,6 +219,11 @@ class EmbeddedKotlinPluginIntegTest : AbstractKotlinIntegrationTest() {
 
             $repositoriesBlock
 
+            tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+                // Work around JVM validation issue: https://youtrack.jetbrains.com/issue/KT-66919
+                jvmTargetValidationMode = org.jetbrains.kotlin.gradle.dsl.jvm.JvmTargetValidationMode.WARNING
+            }
+
             """
         )
 

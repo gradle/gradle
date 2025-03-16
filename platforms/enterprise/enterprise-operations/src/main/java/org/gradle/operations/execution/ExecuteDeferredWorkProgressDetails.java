@@ -16,7 +16,7 @@
 
 package org.gradle.operations.execution;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Fired when a deferred work execution finishes.
@@ -27,7 +27,7 @@ public interface ExecuteDeferredWorkProgressDetails {
 
     /**
      * Type of work being executed.
-     * <p>
+     *
      * @since 8.7
      * @see ExecuteWorkBuildOperationType.Details#getWorkType()
      */

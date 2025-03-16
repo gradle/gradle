@@ -16,8 +16,8 @@
 
 package org.gradle.internal.nativeintegration.filesystem.services;
 
-import org.gradle.internal.nativeintegration.filesystem.FileModeAccessor;
-import org.gradle.internal.nativeintegration.filesystem.FileModeMutator;
+import org.gradle.internal.file.FileModeAccessor;
+import org.gradle.internal.file.FileModeMutator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,7 +38,7 @@ public class UnsupportedFilePermissions implements FileModeAccessor, FileModeMut
     }
 
     @Override
-    public void chmod(File file, int mode) throws Exception {
+    public void chmod(File file, int mode) throws IOException {
         maybeWarn();
         chmod.chmod(file, mode);
     }

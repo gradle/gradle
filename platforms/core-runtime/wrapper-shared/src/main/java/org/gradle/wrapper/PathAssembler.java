@@ -54,15 +54,16 @@ public class PathAssembler {
      * <p>
      * The algorithm in use by this method is as follows:
      * <ol>
-     *    <li>Compute the MD5 value of {@code string}.</li>
+     *    <li>Compute the MD5 value of the UTF-8 {@code string}.</li>
      *    <li>Truncate leading zeros (i.e., treat the MD5 value as a number).</li>
      *    <li>Convert to base 36 (the characters {@code 0-9a-z}).</li>
      * </ol>
      */
+    @SuppressWarnings("StringCharset")
     private String getHash(String string) {
         try {
             MessageDigest messageDigest = MessageDigest.getInstance("MD5");
-            byte[] bytes = string.getBytes();
+            byte[] bytes = string.getBytes("UTF-8");
             messageDigest.update(bytes);
             return new BigInteger(1, messageDigest.digest()).toString(36);
         } catch (Exception e) {

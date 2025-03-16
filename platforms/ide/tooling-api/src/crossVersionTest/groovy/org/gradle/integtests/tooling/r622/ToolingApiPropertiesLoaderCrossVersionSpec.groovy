@@ -17,10 +17,8 @@
 package org.gradle.integtests.tooling.r622
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r60.AbstractToolingApiPropertiesLoaderCrossVersionSpec
 
-@ToolingApiVersion('>=3.0')
 @TargetGradleVersion('>=6.2.2')
 class ToolingApiPropertiesLoaderCrossVersionSpec extends AbstractToolingApiPropertiesLoaderCrossVersionSpec {
 

@@ -29,10 +29,13 @@ import org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder;
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Problems;
+import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblemReporter;
 import org.gradle.api.problems.internal.InternalProblemSpec;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.internal.logging.text.TreeFormatter;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 import org.tomlj.Toml;
 import org.tomlj.TomlArray;
 import org.tomlj.TomlInvalidTypeException;
@@ -40,14 +43,13 @@ import org.tomlj.TomlParseError;
 import org.tomlj.TomlParseResult;
 import org.tomlj.TomlTable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -66,7 +68,7 @@ import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.I
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.TOML_SYNTAX_ERROR;
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.UNSUPPORTED_FORMAT_VERSION;
 import static org.gradle.api.problems.Severity.ERROR;
-import static org.gradle.internal.RenderingUtils.oxfordListOf;
+import static org.gradle.internal.RenderingUtils.quotedOxfordListOf;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 import static org.gradle.util.internal.TextUtil.getPluralEnding;
 import static org.gradle.util.internal.TextUtil.screamingSnakeToKebabCase;
@@ -135,7 +137,7 @@ public class TomlCatalogFileParser {
                 throw throwVersionCatalogProblemException(builder ->
                     configureVersionCatalogError(builder, getProblemInVersionCatalog(versionCatalogBuilder) + ", unknown top level elements " + unknownTle, TOML_SYNTAX_ERROR)
                         .details("TOML file contains an unexpected top-level element")
-                        .solution("Make sure the top-level elements of your TOML file is one of " + oxfordListOf(TOP_LEVEL_ELEMENTS, "or")));
+                        .solution("Make sure the top-level elements of your TOML file is one of " + quotedOxfordListOf(TOP_LEVEL_ELEMENTS, "or")));
             }
             parseLibraries(librariesTable, strictVersionParser);
             parsePlugins(pluginsTable, strictVersionParser);
@@ -148,18 +150,18 @@ public class TomlCatalogFileParser {
         return getInternalProblems().getInternalReporter();
     }
 
-    @Nonnull
+    @NullMarked
     private static ProblemSpec configureVersionCatalogError(InternalProblemSpec builder, String message, VersionCatalogProblemId catalogProblemId) {
         return configureVersionCatalogError(builder, message, catalogProblemId, input -> input);
     }
 
     private static InternalProblemSpec configureVersionCatalogError(InternalProblemSpec builder, String label, VersionCatalogProblemId catalogProblemId, Function<InternalProblemSpec, InternalProblemSpec> locationDefiner) {
         InternalProblemSpec definingLocation = builder
-            .label(label)
-            .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase()));
+            .id(screamingSnakeToKebabCase(catalogProblemId.name()), "Dependency version catalog problem", GradleCoreProblemGroup.versionCatalog())
+            .contextualLabel(label)
+            .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase(Locale.ROOT)));
         InternalProblemSpec definingCategory = locationDefiner.apply(definingLocation);
         return definingCategory
-            .category("dependency-version-catalog", screamingSnakeToKebabCase(catalogProblemId.name()))
             .severity(ERROR);
     }
 
@@ -179,7 +181,7 @@ public class TomlCatalogFileParser {
 
     private void reportErrors(List<TomlParseError> errors) {
         InternalProblemReporter internalReporter = getInternalReporter();
-        errors.stream().map(error -> internalReporter.create(builder ->
+        errors.stream().map(error -> internalReporter.internalCreate(builder ->
             configureVersionCatalogError(builder, error.getMessage(), TOML_SYNTAX_ERROR, definingLocation -> {
                 definingLocation.lineInFileLocation(catalogFilePath.toAbsolutePath().toString(), error.position().line(), error.position().column());
                 return definingLocation;
@@ -194,7 +196,7 @@ public class TomlCatalogFileParser {
             getProblemInVersionCatalog(versionCatalogBuilder) + ", parsing failed with " + errors.size() + " error" + getPluralEnding(errors) + ".",
             getErrorText(errors),
             ImmutableList.of("Fix the TOML file according to the syntax described at https://toml.io"),
-            userManual(VERSION_CATALOG_PROBLEMS, TOML_SYNTAX_ERROR.name().toLowerCase()));
+            userManual(VERSION_CATALOG_PROBLEMS, TOML_SYNTAX_ERROR.name().toLowerCase(Locale.ROOT)));
     }
 
     private String getErrorText(List<TomlParseError> errors) {
@@ -311,8 +313,8 @@ public class TomlCatalogFileParser {
         Set<String> actualKeys = table.keySet();
         if (!allowedKeys.containsAll(actualKeys)) {
             Set<String> difference = Sets.difference(actualKeys, allowedKeys);
-            throw new InvalidUserDataException("On " + context + " expected to find any of " + oxfordListOf(allowedKeys, "or")
-                + " but found unexpected key" + getPluralEnding(difference) + " " + oxfordListOf(difference, "and")
+            throw new InvalidUserDataException("On " + context + " expected to find any of " + quotedOxfordListOf(allowedKeys, "or")
+                + " but found unexpected key" + getPluralEnding(difference) + " " + quotedOxfordListOf(difference, "and")
                 + ".");
         }
     }
@@ -322,10 +324,14 @@ public class TomlCatalogFileParser {
         if (gav instanceof String) {
             List<String> split = SPLITTER.splitToList((String) gav);
             if (split.size() != 3) {
-                throw throwVersionCatalogProblemException(builder ->
+                throw throwVersionCatalogProblemException(builder -> {
                     configureVersionCatalogError(builder, getInVersionCatalog(versionCatalogBuilder.getName()) + ", on alias '" + alias + "' notation '" + gav + "' is not a valid dependency notation.", INVALID_DEPENDENCY_NOTATION)
                         .details("When using a string to declare library coordinates, you must use a valid dependency notation")
-                        .solution("Make sure that the coordinates consist of 3 parts separated by colons, eg: my.group:artifact:1.2"));
+                        .solution("Make sure that the coordinates consist of 3 parts separated by colons, e.g.: my.group:artifact:1.2");
+                    if (split.size() == 2) {
+                        builder.solution("To declare without a version, use '" + alias + ".module' instead, i.e.: " + alias + ".module = \"" + gav + "\"");
+                    }
+                });
             }
             String group = notEmpty(split.get(0), "group", alias);
             String name = notEmpty(split.get(1), "name", alias);
@@ -388,7 +394,7 @@ public class TomlCatalogFileParser {
         registerDependency(versionCatalogBuilder, alias, group, name, versionRef, require, strictly, prefer, rejectedVersions, rejectAll);
     }
 
-    @Nonnull
+    @NullMarked
     private RuntimeException throwVersionCatalogAliasException(String alias, String aliasType) {
         throw throwVersionCatalogProblemException(builder ->
             configureVersionCatalogError(builder, "Alias definition '" + alias + "' is invalid", TOML_SYNTAX_ERROR)
@@ -591,6 +597,6 @@ public class TomlCatalogFileParser {
     }
 
     private RuntimeException throwVersionCatalogProblemException(Action<InternalProblemSpec> action) {
-        throw throwError(getInternalProblems(), INVALID_TOML_CATALOG_DEFINITION, ImmutableList.of(getInternalReporter().create(action)));
+        throw throwError(getInternalProblems(), INVALID_TOML_CATALOG_DEFINITION, ImmutableList.of(getInternalReporter().internalCreate(action)));
     }
 }

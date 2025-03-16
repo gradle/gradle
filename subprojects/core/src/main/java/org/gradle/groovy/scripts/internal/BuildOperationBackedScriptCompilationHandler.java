@@ -25,7 +25,7 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.scripts.CompileScriptBuildOperationType;
 
@@ -39,16 +39,16 @@ public class BuildOperationBackedScriptCompilationHandler implements ScriptCompi
     };
 
     private final DefaultScriptCompilationHandler delegate;
-    private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildOperationRunner buildOperationRunner;
 
-    public BuildOperationBackedScriptCompilationHandler(DefaultScriptCompilationHandler delegate, BuildOperationExecutor buildOperationExecutor) {
+    public BuildOperationBackedScriptCompilationHandler(DefaultScriptCompilationHandler delegate, BuildOperationRunner buildOperationRunner) {
         this.delegate = delegate;
-        this.buildOperationExecutor = buildOperationExecutor;
+        this.buildOperationRunner = buildOperationRunner;
     }
 
     @Override
     public void compileToDir(final ScriptSource source, final ClassLoader classLoader, final File classesDir, final File metadataDir, final CompileOperation<?> transformer, final Class<? extends Script> scriptBaseClass, final Action<? super ClassNode> verifier) {
-        buildOperationExecutor.run(new RunnableBuildOperation() {
+        buildOperationRunner.run(new RunnableBuildOperation() {
             @Override
             public void run(BuildOperationContext context) {
                 delegate.compileToDir(source, classLoader, classesDir, metadataDir, transformer, scriptBaseClass, verifier);

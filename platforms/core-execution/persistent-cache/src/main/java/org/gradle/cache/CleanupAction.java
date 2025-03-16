@@ -20,7 +20,7 @@ package org.gradle.cache;
  * An action that cleans up a {@link CleanableStore}.
  *
  * @see org.gradle.cache.internal.CompositeCleanupAction
- * @see CacheBuilder#withCleanup(CleanupAction)
+ * @see CacheBuilder#withCleanupStrategy(CacheCleanupStrategy)
  */
 public interface CleanupAction {
 

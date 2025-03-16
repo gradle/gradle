@@ -18,13 +18,11 @@ package org.gradle.api.internal.changedetection.state
 
 import org.apache.commons.io.IOUtils
 import org.gradle.api.internal.file.archive.ZipEntry
-import org.gradle.internal.fingerprint.hashing.ConfigurableNormalizer
 import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContext
 import org.gradle.internal.fingerprint.hashing.ZipEntryContext
-import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
-import org.gradle.internal.normalization.java.ApiClassExtractor
 import org.gradle.internal.snapshot.RegularFileSnapshot
+import org.gradle.internal.tools.api.ApiClassExtractor
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Issue
@@ -36,24 +34,6 @@ class AbiExtractingClasspathResourceHasherTest extends Specification {
 
     def setup() {
         temporaryDirectory.create()
-    }
-
-    def "api class extractors affect the configuration hash"() {
-        def apiClassExtractor1 = Mock(ApiClassExtractor)
-        def apiClassExtractor2 = Mock(ApiClassExtractor)
-
-        def resourceHasher1 = AbiExtractingClasspathResourceHasher.withFallback(apiClassExtractor1)
-        def resourceHasher2 = AbiExtractingClasspathResourceHasher.withFallback(apiClassExtractor2)
-
-        when:
-        def configurationHash1 = configurationHashOf(resourceHasher1)
-        def configurationHash2 = configurationHashOf(resourceHasher2)
-
-        then:
-        configurationHash1 != configurationHash2
-
-        1 * apiClassExtractor1.appendConfigurationToHasher(_) >> { args -> args[0].putString("first") }
-        1 * apiClassExtractor2.appendConfigurationToHasher(_) >> { args -> args[0].putString("second") }
     }
 
     @Issue("https://github.com/gradle/gradle/issues/20398")
@@ -153,12 +133,6 @@ class AbiExtractingClasspathResourceHasherTest extends Specification {
         and:
         def e = thrown(Exception)
         e.message == "Boom!"
-    }
-
-    private static HashCode configurationHashOf(ConfigurableNormalizer normalizer) {
-        def hasher = Hashing.md5().newHasher()
-        normalizer.appendConfigurationToHasher(hasher)
-        return hasher.hash()
     }
 
     private static byte[] bytesOf(Class<?> clazz) {

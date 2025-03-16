@@ -26,10 +26,10 @@ import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ModuleConfigurationMetadata;
 import org.gradle.internal.component.model.ModuleSources;
-import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 import org.gradle.internal.component.model.VariantResolveMetadata;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -46,7 +46,7 @@ import java.util.Set;
  */
 public abstract class AbstractRealisedModuleComponentResolveMetadata extends AbstractModuleComponentResolveMetadata {
 
-    private Optional<List<? extends VariantGraphResolveMetadata>> graphVariants;
+    private Optional<List<? extends ExternalModuleVariantGraphResolveMetadata>> graphVariants;
     private final ImmutableMap<String, ModuleConfigurationMetadata> configurations;
 
     public AbstractRealisedModuleComponentResolveMetadata(AbstractRealisedModuleComponentResolveMetadata metadata, ModuleSources sources, VariantDerivationStrategy derivationStrategy) {
@@ -80,14 +80,14 @@ public abstract class AbstractRealisedModuleComponentResolveMetadata extends Abs
     }
 
     @Override
-    public Optional<List<? extends VariantGraphResolveMetadata>> getVariantsForGraphTraversal() {
+    public List<? extends ExternalModuleVariantGraphResolveMetadata> getVariantsForGraphTraversal() {
         if (graphVariants == null) {
             graphVariants = buildVariantsForGraphTraversal(getVariants());
         }
-        return graphVariants;
+        return graphVariants.orElse(Collections.emptyList());
     }
 
-    private Optional<List<? extends VariantGraphResolveMetadata>> buildVariantsForGraphTraversal(List<? extends ComponentVariant> variants) {
+    private Optional<List<? extends ExternalModuleVariantGraphResolveMetadata>> buildVariantsForGraphTraversal(List<? extends ComponentVariant> variants) {
         if (variants.isEmpty()) {
             return maybeDeriveVariants();
         }

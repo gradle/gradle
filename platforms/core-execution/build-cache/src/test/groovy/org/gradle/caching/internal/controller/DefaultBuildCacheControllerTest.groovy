@@ -30,7 +30,7 @@ import org.gradle.caching.local.internal.LocalBuildCacheService
 import org.gradle.caching.local.internal.TemporaryFileFactory
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.operations.NoOpBuildOperationProgressEventEmitter
-import org.gradle.internal.operations.TestBuildOperationExecutor
+import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Path
@@ -64,7 +64,7 @@ class DefaultBuildCacheControllerTest extends Specification {
     OriginMetadataFactory originMetadataFactory = Stub(OriginMetadataFactory)
     Interner<String> stringInterner = Stub(Interner)
 
-    def operations = new TestBuildOperationExecutor()
+    def operations = new TestBuildOperationRunner()
     def buildOperationProgressEmitter = new NoOpBuildOperationProgressEventEmitter()
 
     @Rule

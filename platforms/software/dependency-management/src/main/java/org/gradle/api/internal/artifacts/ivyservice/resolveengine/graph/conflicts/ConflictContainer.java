@@ -19,8 +19,8 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflic
 import com.google.common.base.Joiner;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -51,6 +51,7 @@ class ConflictContainer<K, T> {
      * @param candidates candidates for given element
      * @param replacedBy optional element that replaces the target
      */
+    @Nullable
     public Conflict newElement(K target, Collection<? extends T> candidates, @Nullable K replacedBy) {
         if (candidates.isEmpty()) {
             return null;

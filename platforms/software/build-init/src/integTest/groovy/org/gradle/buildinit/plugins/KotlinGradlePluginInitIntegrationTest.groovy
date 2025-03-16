@@ -20,12 +20,14 @@ import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Issue
 
 import static org.gradle.buildinit.plugins.GroovyGradlePluginInitIntegrationTest.NOT_RUNNING_ON_EMBEDDED_EXECUTER_REASON
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLIN
 
 @LeaksFileHandles
+@Requires(value = UnitTestPreconditions.KotlinSupportedJdk)
 class KotlinGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec {
 
     @Override
@@ -100,7 +102,11 @@ class KotlinGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec 
         run('init', '--type', 'kotlin-gradle-plugin', '--dsl', scriptDsl.id, '--incubating')
 
         then:
-        gradlePropertiesGenerated()
+        gradlePropertiesGenerated {
+            assertCachingEnabled()
+            assertParallelEnabled()
+            assertConfigurationCacheEnabled()
+        }
 
         when:
         run("build")

@@ -16,10 +16,12 @@
 
 package org.gradle.internal.logging
 
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.file.TestFile
@@ -167,7 +169,7 @@ class LoggingIntegrationTest extends AbstractIntegrationSpec {
         }
     }}
 
-    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/25483")
+    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/31830")
     def "build emits #level logging"() {
         LogLevel logLevel = logOutput."$level"
         resources.maybeCopy('LoggingIntegrationTest/logging')
@@ -188,7 +190,7 @@ class LoggingIntegrationTest extends AbstractIntegrationSpec {
         level << ['quiet', 'lifecycle', 'info', 'debug']
     }
 
-    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/24182")
+    @UnsupportedWithConfigurationCache(because = "Gradle.useLogger")
     def "custom logger emits #level logging"() {
         LogLevel logLevel = customLoggerOutput."$level"
         resources.maybeCopy('LoggingIntegrationTest/logging')
@@ -210,7 +212,35 @@ class LoggingIntegrationTest extends AbstractIntegrationSpec {
         level << ['quiet', 'lifecycle', 'info', 'debug']
     }
 
-    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/25483", iterationMatchers = 'sample emits (quiet|lifecycle) logging')
+    @UnsupportedWithConfigurationCache(because = "Gradle.useLogger")
+    def "#loggerClass as custom logger is deprecated"() {
+        given:
+        buildFile """
+            class DeprecatedListener extends BuildAdapter {}
+
+            class NonDeprecatedListener implements ProjectEvaluationListener {
+                @Override void beforeEvaluate(Project project) {}
+                @Override void afterEvaluate(Project project, ProjectState state) {}
+            }
+
+            gradle.useLogger(new $loggerClass())
+
+            tasks.register("run") {}
+        """
+
+        executer.expectDocumentedDeprecationWarning("The Gradle.useLogger(Object) method has been deprecated. " +
+            "This is scheduled to be removed in Gradle 9.0. " +
+            "Consult the upgrading guide for further information: " +
+            "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_use_logger")
+
+        expect:
+        run("run")
+
+        where:
+        loggerClass << ["DeprecatedListener", "NonDeprecatedListener"]
+    }
+
+    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/31830", iterationMatchers = 'sample emits (quiet|lifecycle) logging')
     @UsesSample('tutorial/logging/groovy')
     def "sample emits #level logging"() {
         LogLevel logLevel = sample."$level"

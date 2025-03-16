@@ -17,35 +17,44 @@
 package org.gradle.internal.deprecation;
 
 import com.google.common.base.Joiner;
-import org.gradle.api.problems.internal.DocLink;
-import org.gradle.api.problems.internal.ProblemReport;
+import org.gradle.api.problems.DocLink;
+import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.util.GradleVersion;
 
 import javax.annotation.CheckReturnValue;
 import java.util.List;
 
+@SuppressWarnings("SameNameButDifferent")
 @CheckReturnValue
 public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
 
     private static final GradleVersion GRADLE9 = GradleVersion.version("9.0");
+    private static final GradleVersion GRADLE10 = GradleVersion.version("10.0");
 
-    private String summary;
+    protected String summary;
     private DeprecationTimeline deprecationTimeline;
     private String context;
     private String advice;
-    private DocLink documentation = Documentation.NO_DOCUMENTATION;
+    private DocLink documentation = null;
     private DeprecatedFeatureUsage.Type usageType = DeprecatedFeatureUsage.Type.USER_CODE_DIRECT;
+
+    protected String problemIdDisplayName;
+    protected String problemId;
 
     DeprecationMessageBuilder() {
     }
 
-    public static WithDocumentation withDocumentation(ProblemReport warning, WithDeprecationTimeline withDeprecationTimeline) {
+    public static WithDocumentation withDocumentation(InternalProblem warning, WithDeprecationTimeline withDeprecationTimeline) {
         DocLink docLink = warning.getDefinition().getDocumentationLink();
         if (docLink != null) {
             return withDeprecationTimeline
                 .withDocumentation(warning.getDefinition().getDocumentationLink());
         }
         return withDeprecationTimeline.undocumented();
+    }
+
+    protected String createDefaultDeprecationIdDisplayName() {
+        return summary;
     }
 
     @SuppressWarnings("unchecked")
@@ -60,6 +69,18 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         return (T) this;
     }
 
+    @SuppressWarnings("unchecked")
+    public T withProblemIdDisplayName(String problemIdDisplayName) {
+        this.problemIdDisplayName = problemIdDisplayName;
+        return (T) this;
+    }
+
+    @SuppressWarnings("unchecked")
+    public T withProblemId(String problemId) {
+        this.problemId = problemId;
+        return (T) this;
+    }
+
     /**
      * Output: This is scheduled to be removed in Gradle 9.0.
      */
@@ -69,10 +90,26 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
     }
 
     /**
+     * Output: This is scheduled to be removed in Gradle 10.0.
+     */
+    public WithDeprecationTimeline willBeRemovedInGradle10() {
+        this.deprecationTimeline = DeprecationTimeline.willBeRemovedInVersion(GRADLE10);
+        return new WithDeprecationTimeline(this);
+    }
+
+    /**
      * Output: This will fail with an error in Gradle 9.0.
      */
     public WithDeprecationTimeline willBecomeAnErrorInGradle9() {
         this.deprecationTimeline = DeprecationTimeline.willBecomeAnErrorInVersion(GRADLE9);
+        return new WithDeprecationTimeline(this);
+    }
+
+    /**
+     * Output: This will fail with an error in Gradle 10.0.
+     */
+    public WithDeprecationTimeline willBecomeAnErrorInGradle10() {
+        this.deprecationTimeline = DeprecationTimeline.willBecomeAnErrorInVersion(GRADLE10);
         return new WithDeprecationTimeline(this);
     }
 
@@ -108,8 +145,20 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         this.documentation = documentation;
     }
 
+    void setProblemIdDisplayName(String problemIdDisplayName) {
+        this.problemIdDisplayName = problemIdDisplayName;
+    }
+
     DeprecationMessage build() {
-        return new DeprecationMessage(summary, deprecationTimeline.toString(), advice, context, documentation, usageType);
+        if (problemIdDisplayName == null) {
+            setProblemIdDisplayName(createDefaultDeprecationIdDisplayName());
+        }
+
+        return new DeprecationMessage(summary, deprecationTimeline.toString(), advice, context, documentation, usageType, problemIdDisplayName, problemId);
+    }
+
+    public void setProblemId(String problemId) {
+        this.problemId = problemId;
     }
 
     public static class WithDeprecationTimeline extends Documentation.AbstractBuilder<WithDocumentation> {
@@ -142,7 +191,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
     }
 
     public static abstract class WithReplacement<T, SELF extends WithReplacement<T, SELF>> extends DeprecationMessageBuilder<SELF> {
-        private final String subject;
+        protected final String subject;
         private T replacement;
 
         WithReplacement(String subject) {
@@ -180,6 +229,14 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
             if (replacement != null) {
                 setAdvice(formatAdvice(replacement));
             }
+
+            if (problemIdDisplayName == null) {
+                setProblemIdDisplayName(summary);
+            }
+            if (problemId == null) {
+                setProblemId(DeprecationMessageBuilder.createDefaultDeprecationId(createDefaultDeprecationIdDisplayName()));
+            }
+
             return super.build();
         }
     }
@@ -187,6 +244,11 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
     public static class DeprecateAction extends WithReplacement<String, DeprecateAction> {
         DeprecateAction(String subject) {
             super(subject);
+        }
+
+        @Override
+        protected String createDefaultDeprecationIdDisplayName() {
+            return subject;
         }
 
         @Override
@@ -341,6 +403,49 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
             }
             return String.format("Please %s the %s configuration instead.", deprecationType.usage, Joiner.on(" or ").join(replacements));
         }
+    }
+
+    public static final char DASH = '-';
+
+    public static String createDefaultDeprecationId(String... ids) {
+        StringBuilder sb = new StringBuilder();
+        for (String id : ids) {
+            if (id == null) {
+                continue;
+            }
+            CharSequence cleanId = createDashedId(id);
+            if (cleanId.length() > 0) {
+                sb.append(cleanId);
+                sb.append(DASH);
+            }
+        }
+        removeTrailingDashes(sb);
+        return sb.toString();
+    }
+
+    private static void removeTrailingDashes(StringBuilder sb) {
+        while (sb.length() > 0 && sb.charAt(sb.length() - 1) == DASH) {
+            sb.setLength(sb.length() - 1);
+        }
+    }
+
+    private static CharSequence createDashedId(String id) {
+        StringBuilder cleanId = new StringBuilder();
+        boolean previousWasDash = false;
+        for (int i = 0; i < id.length(); i++) {
+            char c = id.charAt(i);
+            if (Character.isLetter(c)) {
+                previousWasDash = false;
+                cleanId.append(Character.toLowerCase(c));
+            } else {
+                if (previousWasDash) {
+                    continue;
+                }
+                cleanId.append(DASH);
+                previousWasDash = true;
+            }
+        }
+        return cleanId;
     }
 
     public static class DeprecateMethod extends WithReplacement<String, DeprecateMethod> {

@@ -18,9 +18,10 @@ package org.gradle.api.publish.ivy;
 
 import org.gradle.api.Action;
 import org.gradle.api.XmlProvider;
+import org.gradle.api.tasks.Nested;
 import org.gradle.internal.HasInternalProtocol;
-
-import javax.annotation.Nullable;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The descriptor of any Ivy publication.
@@ -77,6 +78,7 @@ public interface IvyModuleDescriptorSpec {
      * Returns the status for this publication.
      */
     @Nullable
+    @ToBeReplacedByLazyProperty
     String getStatus();
 
     /**
@@ -88,6 +90,7 @@ public interface IvyModuleDescriptorSpec {
      * Returns the branch for this publication
      */
     @Nullable
+    @ToBeReplacedByLazyProperty
     String getBranch();
 
     /**
@@ -98,6 +101,7 @@ public interface IvyModuleDescriptorSpec {
     /**
      * Returns the extra info element spec for this publication
      */
+    @Nested
     IvyExtraInfoSpec getExtraInfo();
 
     /**

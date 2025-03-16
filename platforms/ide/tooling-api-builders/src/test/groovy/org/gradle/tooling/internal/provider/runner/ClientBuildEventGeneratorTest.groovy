@@ -75,6 +75,7 @@ class ClientBuildEventGeneratorTest extends Specification {
         then:
         1 * mapper2.createProgressEvent(clientDescriptor, progressEvent) >> mappedProgressEvent
         1 * consumer.progress(mappedProgressEvent)
+        1 * fallback.progress(_, _)
         0 * _
 
         when:
@@ -108,6 +109,7 @@ class ClientBuildEventGeneratorTest extends Specification {
         generator.progress(operationId, progressEvent)
 
         then:
+        1 * fallback.progress(_, _)
         0 * _
 
         when:

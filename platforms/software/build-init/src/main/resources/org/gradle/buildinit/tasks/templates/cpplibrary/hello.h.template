@@ -1,11 +1,11 @@
 ${fileComment.multilineComment}
-#ifndef ${namespace.groovyString.toUpperCase()}_H
-#define ${namespace.groovyString.toUpperCase()}_H
+#ifndef ${namespace.groovyString.toUpperCase(Locale.ROOT)}_H
+#define ${namespace.groovyString.toUpperCase(Locale.ROOT)}_H
 
 #ifdef _WIN32
-#define ${namespace.groovyString.toUpperCase()}_EXPORT_FUNC __declspec(dllexport)
+#define ${namespace.groovyString.toUpperCase(Locale.ROOT)}_EXPORT_FUNC __declspec(dllexport)
 #else
-#define ${namespace.groovyString.toUpperCase()}_EXPORT_FUNC
+#define ${namespace.groovyString.toUpperCase(Locale.ROOT)}_EXPORT_FUNC
 #endif
 
 #include <string>
@@ -13,7 +13,7 @@ ${fileComment.multilineComment}
 namespace ${namespace.groovyString} {
     class Greeter {
         public:
-        std::string ${namespace.groovyString.toUpperCase()}_EXPORT_FUNC greeting();
+        std::string ${namespace.groovyString.toUpperCase(Locale.ROOT)}_EXPORT_FUNC greeting();
     };
 }
 

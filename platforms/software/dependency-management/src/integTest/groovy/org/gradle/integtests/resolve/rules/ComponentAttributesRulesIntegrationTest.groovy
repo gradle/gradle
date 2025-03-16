@@ -82,7 +82,11 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
             }
         } else {
             fails ':checkDeps'
-            failure.assertHasCause("No matching variant of org.test:module:1.0 was found. The consumer was configured to find attribute 'quality' with value 'qa' but:")
+            if (useIvy() && !isGradleMetadataPublished()) {
+                failure.assertHasCause("Configuration 'default' in org.test:module:1.0 does not match the consumer attributes")
+            } else {
+                failure.assertHasCause("No matching variant of org.test:module:1.0 was found. The consumer was configured to find attribute 'quality' with value 'qa' but:")
+            }
             failure.assertThatCause(containsNormalizedString("Incompatible because this component declares attribute 'quality' with value 'canary' and the consumer needed attribute 'quality' with value 'qa'"))
         }
 
@@ -151,9 +155,10 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
             }
         } else {
             fails ':checkDeps'
-            failure.assertHasCause("Cannot choose between the following variants of org.test:module:1.0:")
-            failure.assertThatCause(containsNormalizedString("Provides org.gradle.usage 'unknownApiVariant' but the consumer didn't ask for it"))
-            failure.assertThatCause(containsNormalizedString("Provides org.gradle.usage 'unknownRuntimeVariant' but the consumer didn't ask for it"))
+            failure.assertHasCause("Cannot choose between the available variants of org.test:module:1.0")
+            failure.assertThatCause(containsNormalizedString("The only attribute distinguishing these variants is 'org.gradle.usage'. Add this attribute to the consumer's configuration to resolve the ambiguity:"))
+            failure.assertThatCause(containsNormalizedString("- Value: 'unknownApiVariant' selects variant: 'api'"))
+            failure.assertThatCause(containsNormalizedString("- Value: 'unknownRuntimeVariant' selects variant: 'runtime'"))
         }
 
         where:

@@ -17,9 +17,10 @@
 package org.gradle.api.artifacts.result;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.internal.HasInternalProtocol;
 import org.gradle.internal.scan.UsedByScanPlugin;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Set;
 
@@ -27,6 +28,7 @@ import java.util.Set;
  * Represents a component instance in the resolved dependency graph. Provides some basic identity and dependency information about the component.
  */
 @UsedByScanPlugin
+@HasInternalProtocol
 public interface ResolvedComponentResult extends ComponentResult {
 
     /**

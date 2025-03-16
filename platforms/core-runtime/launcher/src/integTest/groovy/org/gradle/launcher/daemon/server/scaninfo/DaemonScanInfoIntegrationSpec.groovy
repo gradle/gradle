@@ -160,8 +160,6 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
     @Requires(IntegTestPreconditions.NotDaemonExecutor)
     def "captures single use daemons"() {
         setup:
-        file('gradle.properties') << "org.gradle.jvmargs=-Xmx64m"
-
         buildFile << """
         ${imports()}
 

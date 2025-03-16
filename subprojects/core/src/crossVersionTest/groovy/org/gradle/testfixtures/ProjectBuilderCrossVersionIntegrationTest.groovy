@@ -104,14 +104,14 @@ class ProjectBuilderCrossVersionIntegrationTest extends MultiVersionIntegrationS
                     }
                     repositories {
                         maven {
-                            url '${repoDir.toURI().toURL()}'
+                            url = '${repoDir.toURI().toURL()}'
                         }
                     }
                 }
             """
         }
 
-        createGradleExecutor(version, helloWorldPluginDir, 'publish').run()
+        createGradleExecutor(version, helloWorldPluginDir, 'publish').noDeprecationChecks().run()
     }
 
     private void writeConsumingProject(File repoDir) {
@@ -153,7 +153,7 @@ class ProjectBuilderCrossVersionIntegrationTest extends MultiVersionIntegrationS
             }
 
             repositories {
-                maven { url '${repoDir.toURI().toURL()}' }
+                maven { url = '${repoDir.toURI().toURL()}' }
                 ${mavenCentralRepositoryDefinition()}
             }
         """

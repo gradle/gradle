@@ -101,6 +101,17 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
                 implementation(kotlin("stdlib"))
             }
 
+            ${if (kotlinVersion >= VersionNumber.parse("1.9.0")) {
+                """
+                // Work around JVM validation issue: https://youtrack.jetbrains.com/issue/KT-66919
+                tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+                    jvmTargetValidationMode = org.jetbrains.kotlin.gradle.dsl.jvm.JvmTargetValidationMode.WARNING
+                }
+                """
+            } else {
+                ""
+            }}
+
             println("root build script classpath kotlin compiler version " + KotlinCompilerVersion.VERSION)
             """
         )
@@ -108,7 +119,7 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
 
 
         if (kotlinVersion >= VersionNumber.parse("1.6") && kotlinVersion < VersionNumber.parse("1.7")) {
-            executer.expectDocumentedDeprecationWarning("The AbstractCompile.destinationDir property has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the destinationDirectory property instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#compile_task_wiring")
+            executer.expectDocumentedDeprecationWarning("The AbstractCompile.destinationDir property has been deprecated. This is scheduled to be removed in Gradle 9.0. Property was automatically upgraded to the lazy version. Please use the destinationDirectory property instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#compile_task_wiring")
             if (GradleContextualExecuter.isConfigCache()) {
                 executer.expectDocumentedDeprecationWarning(
                     "The BasePluginExtension.archivesBaseName property has been deprecated. " +
@@ -131,7 +142,7 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
                 "The org.gradle.util.WrapUtil type has been deprecated. " +
                     "This is scheduled to be removed in Gradle 9.0. " +
                     "Consult the upgrading guide for further information: " +
-                    "https://docs.gradle.org/current/userguide/upgrading_version_7.html#org_gradle_util_reports_deprecations"
+                    "https://docs.gradle.org/current/userguide/upgrading_version_8.html#org_gradle_util_reports_deprecations_80"
             )
             executer.expectDocumentedDeprecationWarning(
                 "The org.gradle.api.plugins.JavaPluginConvention type has been deprecated. " +

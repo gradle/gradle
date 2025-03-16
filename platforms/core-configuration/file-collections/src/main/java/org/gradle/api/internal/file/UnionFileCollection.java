@@ -20,6 +20,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.internal.logging.text.TreeFormatter;
 
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -79,6 +80,35 @@ public class UnionFileCollection extends CompositeFileCollection {
     protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
         for (FileCollectionInternal fileCollection : source) {
             visitor.accept(fileCollection);
+        }
+    }
+
+    @Override
+    public Optional<FileCollectionExecutionTimeValue> calculateExecutionTimeValue() {
+        ImmutableSet.Builder<FileCollectionExecutionTimeValue> builder = new ImmutableSet.Builder<>();
+        for (FileCollectionInternal fileCollection : source) {
+            Optional<FileCollectionExecutionTimeValue> executionTimeValue = fileCollection.calculateExecutionTimeValue();
+            if (!executionTimeValue.isPresent()) {
+                return Optional.empty();
+            }
+            builder.add(executionTimeValue.get());
+        }
+
+        return Optional.of(new UnionExecutionTimeValue(builder.build()));
+    }
+
+    private static class UnionExecutionTimeValue implements FileCollectionExecutionTimeValue {
+        private final ImmutableSet<FileCollectionExecutionTimeValue> source;
+
+        public UnionExecutionTimeValue(ImmutableSet<FileCollectionExecutionTimeValue> source) {
+            this.source = source;
+        }
+
+        @Override
+        public FileCollectionInternal toFileCollection(FileCollectionFactory fileCollectionFactory) {
+            return source.stream()
+                .map(value -> value.toFileCollection(fileCollectionFactory))
+                .reduce(FileCollectionFactory.empty(), (acc, collection) -> (FileCollectionInternal) acc.plus(collection));
         }
     }
 }

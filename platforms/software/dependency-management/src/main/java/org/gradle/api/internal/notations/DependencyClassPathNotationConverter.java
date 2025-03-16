@@ -28,7 +28,6 @@ import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarType;
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
-import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationConvertResult;
 import org.gradle.internal.typeconversion.NotationConverter;
@@ -37,6 +36,7 @@ import org.gradle.internal.typeconversion.TypeConversionException;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -52,20 +52,18 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
     private final Instantiator instantiator;
     private final FileCollectionFactory fileCollectionFactory;
     private final RuntimeShadedJarFactory runtimeShadedJarFactory;
-    private final CurrentGradleInstallation currentGradleInstallation;
     private final ConcurrentMap<DependencyFactoryInternal.ClassPathNotation, FileCollectionDependency> internCache = new ConcurrentHashMap<>();
 
     public DependencyClassPathNotationConverter(
         Instantiator instantiator,
         ClassPathRegistry classPathRegistry,
         FileCollectionFactory fileCollectionFactory,
-        RuntimeShadedJarFactory runtimeShadedJarFactory,
-        CurrentGradleInstallation currentGradleInstallation) {
+        RuntimeShadedJarFactory runtimeShadedJarFactory
+    ) {
         this.instantiator = instantiator;
         this.classPathRegistry = classPathRegistry;
         this.fileCollectionFactory = fileCollectionFactory;
         this.runtimeShadedJarFactory = runtimeShadedJarFactory;
-        this.currentGradleInstallation = currentGradleInstallation;
     }
 
     @Override
@@ -83,16 +81,15 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
     }
 
     private FileCollectionDependency create(final DependencyFactoryInternal.ClassPathNotation notation) {
-        boolean runningFromInstallation = currentGradleInstallation.getInstallation() != null;
         FileCollectionInternal fileCollectionInternal;
-        if (runningFromInstallation && notation.equals(GRADLE_API)) {
+        if (notation.equals(GRADLE_API)) {
             fileCollectionInternal = fileCollectionFactory.create(new GeneratedFileCollection(notation.displayName) {
                 @Override
                 Set<File> generateFileCollection() {
                     return gradleApiFileCollection(getClassPath(notation));
                 }
             });
-        } else if (runningFromInstallation && notation.equals(GRADLE_TEST_KIT)) {
+        } else if (notation.equals(GRADLE_TEST_KIT)) {
             fileCollectionInternal = fileCollectionFactory.create(new GeneratedFileCollection(notation.displayName) {
                 @Override
                 Set<File> generateFileCollection() {
@@ -112,7 +109,7 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
     }
 
     private Set<File> gradleApiFileCollection(Collection<File> apiClasspath) {
-        // Don't inline the Groovy jar as the Groovy “tools locator” searches for it by name
+        // Don't inline the Groovy jar as the Groovy "tools locator" searches for it by name
         List<File> groovyImpl = classPathRegistry.getClassPath(LOCAL_GROOVY.name()).getAsFiles();
         List<File> kotlinImpl = kotlinImplFrom(apiClasspath);
         List<File> installationBeacon = classPathRegistry.getClassPath("GRADLE_INSTALLATION_BEACON").getAsFiles();
@@ -130,10 +127,11 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
     }
 
     private void removeKotlin(Collection<File> apiClasspath) {
-        for (File file : new ArrayList<>(apiClasspath)) {
-            String name = file.getName();
-            if (name.contains("kotlin")) {
-                apiClasspath.remove(file);
+        Iterator<File> iterator = apiClasspath.iterator();
+        while (iterator.hasNext()) {
+            String name = iterator.next().getName();
+            if (name.startsWith("kotlin-") || name.startsWith("gradle-kotlin-")) {
+                iterator.remove();
             }
         }
     }

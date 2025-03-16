@@ -58,7 +58,7 @@ class TestReportTaskIntegrationTest extends AbstractIntegrationSpec {
             $junitSetup
             def test = tasks.named('test', Test)
             test.configure {
-                ignoreFailures true
+                ignoreFailures = true
                 useJUnit {
                     excludeCategories 'org.gradle.testing.SuperClassTests'
                     excludeCategories 'org.gradle.testing.SubClassTests'
@@ -72,8 +72,8 @@ class TestReportTaskIntegrationTest extends AbstractIntegrationSpec {
                         sources.java.srcDirs(testing.suites.test.sources.allJava.srcDirs)
                         targets.all {
                             testTask.configure {
-                                ignoreFailures true
-                                systemProperty 'category', 'super'
+                                ignoreFailures = true
+                                systemProperty('category', 'super')
                                 testFramework {
                                     includeCategories 'org.gradle.testing.SuperClassTests'
                                 }
@@ -85,8 +85,8 @@ class TestReportTaskIntegrationTest extends AbstractIntegrationSpec {
                         sources.java.srcDirs(testing.suites.test.sources.allJava.srcDirs)
                         targets.all {
                             testTask.configure {
-                                ignoreFailures true
-                                systemProperty 'category', 'sub'
+                                ignoreFailures = true
+                                systemProperty('category', 'sub')
                                 testFramework {
                                     includeCategories 'org.gradle.testing.SubClassTests'
                                 }
@@ -215,7 +215,7 @@ class TestReportTaskIntegrationTest extends AbstractIntegrationSpec {
     // TODO: remove in Gradle 9.0
     def "nag with deprecation warnings when using legacy TestReport APIs"() {
         given:
-        buildScript """
+        buildFile """
             apply plugin: 'java'
             $junitSetup
             tasks.register('otherTests', Test) {
@@ -225,7 +225,7 @@ class TestReportTaskIntegrationTest extends AbstractIntegrationSpec {
             }
             tasks.register('testReport', TestReport) {
                 reportOn test, otherTests
-                destinationDir reporting.file("tr")
+                destinationDir = reporting.file("tr")
             }
         """
 
@@ -250,7 +250,7 @@ class TestReportTaskIntegrationTest extends AbstractIntegrationSpec {
     @Issue("https://issues.gradle.org//browse/GRADLE-2915")
     def "test report task can handle tests tasks not having been executed"() {
         when:
-        buildScript """
+        buildFile """
             apply plugin: 'java'
 
             $junitSetup
@@ -292,7 +292,7 @@ class TestReportTaskIntegrationTest extends AbstractIntegrationSpec {
 
     def "#type report files are considered outputs"() {
         given:
-        buildScript """
+        buildFile """
             $junitSetup
         """
 
@@ -329,7 +329,7 @@ class TestReportTaskIntegrationTest extends AbstractIntegrationSpec {
 
     def "merge rerun defaults to false"() {
         when:
-        buildScript """
+        buildFile """
             $junitSetup
         """
         rerunningTest("SomeTest")
@@ -344,7 +344,7 @@ class TestReportTaskIntegrationTest extends AbstractIntegrationSpec {
 
     def "can enable merge rerun in xml report"() {
         when:
-        buildScript """
+        buildFile """
             $junitSetup
             test.reports.junitXml.mergeReruns = true
         """
@@ -363,7 +363,7 @@ class TestReportTaskIntegrationTest extends AbstractIntegrationSpec {
     // TODO: remove in Gradle 9.0
     def "using deprecated testReport elements emits deprecation warnings"() {
         when:
-        buildScript """
+        buildFile """
             apply plugin: 'java'
             $junitSetup
             // Need a second test task to reportOn
@@ -374,7 +374,7 @@ class TestReportTaskIntegrationTest extends AbstractIntegrationSpec {
             }
             tasks.register('testReport', TestReport) {
                 reportOn test, otherTests
-                destinationDir reporting.file("myTestReports")
+                destinationDir = reporting.file("myTestReports")
             }
         """
 

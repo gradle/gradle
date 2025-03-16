@@ -17,7 +17,6 @@ package org.gradle.cache.internal;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
-import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.cache.AsyncCacheAccess;
 import org.gradle.cache.CacheDecorator;
@@ -34,14 +33,10 @@ import org.gradle.cache.MultiProcessSafeIndexedCache;
 import org.gradle.cache.internal.btree.BTreePersistentIndexedCache;
 import org.gradle.cache.internal.cacheops.CacheAccessOperationsStack;
 import org.gradle.internal.Cast;
-import org.gradle.internal.Factories;
-import org.gradle.internal.Factory;
-import org.gradle.internal.SystemProperties;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.serialize.Serializer;
-import org.gradle.util.internal.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,22 +51,21 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import static org.gradle.cache.FileLockManager.LockMode.Exclusive;
 
 @ThreadSafe
 public class DefaultCacheCoordinator implements CacheCreationCoordinator, ExclusiveCacheAccessCoordinator {
     private final static Logger LOG = LoggerFactory.getLogger(DefaultCacheCoordinator.class);
-    private final static Runnable NO_OP = () -> {
-        // Empty initial operation to trigger onStartWork calls
-    };
 
     private final String cacheDisplayName;
     private final File baseDir;
     private final CacheCleanupExecutor cleanupAction;
     private final ExecutorFactory executorFactory;
     private final FileAccess fileAccess;
-    private final Map<String, IndexedCacheEntry<?, ?>> caches = new HashMap<String, IndexedCacheEntry<?, ?>>();
+    private final Map<String, IndexedCacheEntry<?, ?>> caches = new HashMap<>();
     private final AbstractCrossProcessCacheAccess crossProcessCacheAccess;
     private final CacheAccessOperationsStack operations;
 
@@ -95,8 +89,8 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
         this.executorFactory = executorFactory;
         this.operations = new CacheAccessOperationsStack();
 
-        Action<FileLock> onFileLockAcquireAction = this::afterLockAcquire;
-        Action<FileLock> onFileLockReleaseAction = this::beforeLockRelease;
+        Consumer<FileLock> onFileLockAcquireAction = this::afterLockAcquire;
+        Consumer<FileLock> onFileLockReleaseAction = this::beforeLockRelease;
 
         switch (lockOptions.getMode()) {
             case Shared:
@@ -215,50 +209,57 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
     }
 
     @Override
-    public <T> T withFileLock(Factory<? extends T> action) {
+    public <T> T withFileLock(Supplier<? extends T> action) {
         return crossProcessCacheAccess.withFileLock(action);
     }
 
     @Override
     public void withFileLock(Runnable action) {
-        crossProcessCacheAccess.withFileLock(Factories.toFactory(action));
+        crossProcessCacheAccess.withFileLock(toSupplier(action));
     }
 
     @Override
     public void useCache(Runnable action) {
-        useCache(Factories.toFactory(action));
+        useCache(toSupplier(action));
+    }
+
+    private static <T> Supplier<T> toSupplier(Runnable action) {
+        return () -> {
+            action.run();
+            return null;
+        };
     }
 
     @Override
-    public <T> T useCache(Factory<? extends T> factory) {
-            boolean wasStarted;
+    public <T> T useCache(Supplier<? extends T> factory) {
+        boolean wasStarted;
+        stateLock.lock();
+        try {
+            takeOwnership();
+            try {
+                wasStarted = onStartWork();
+            } catch (Throwable t) {
+                releaseOwnership();
+                throw UncheckedException.throwAsUncheckedException(t);
+            }
+        } finally {
+            stateLock.unlock();
+        }
+        try {
+            return factory.get();
+        } finally {
             stateLock.lock();
             try {
-                takeOwnership();
                 try {
-                    wasStarted = onStartWork();
-                } catch (Throwable t) {
+                    if (wasStarted) {
+                        onEndWork();
+                    }
+                } finally {
                     releaseOwnership();
-                    throw UncheckedException.throwAsUncheckedException(t);
                 }
             } finally {
                 stateLock.unlock();
             }
-            try {
-                return factory.create();
-            } finally {
-                stateLock.lock();
-                try {
-                    try {
-                        if (wasStarted) {
-                            onEndWork();
-                        }
-                    } finally {
-                        releaseOwnership();
-                    }
-                } finally {
-                    stateLock.unlock();
-                }
         }
     }
 
@@ -305,19 +306,21 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
     @Override
     public <K, V> MultiProcessSafeIndexedCache<K, V> newCache(final IndexedCacheParameters<K, V> parameters) {
         stateLock.lock();
-        IndexedCacheEntry<K, V> entry = Cast.uncheckedCast(caches.get(parameters.getCacheName()));
         try {
+            IndexedCacheEntry<K, V> entry = Cast.uncheckedCast(caches.get(parameters.getCacheName()));
             if (entry == null) {
                 File cacheFile = findCacheFile(parameters);
                 LOG.debug("Creating new cache for {}, path {}, access {}", parameters.getCacheName(), cacheFile, this);
-                Factory<BTreePersistentIndexedCache<K, V>> indexedCacheFactory = () -> doCreateCache(cacheFile, parameters.getKeySerializer(), parameters.getValueSerializer());
+                Supplier<BTreePersistentIndexedCache<K, V>> indexedCacheFactory = () -> doCreateCache(cacheFile, parameters.getKeySerializer(), parameters.getValueSerializer());
 
-                MultiProcessSafeIndexedCache<K, V> indexedCache = new DefaultMultiProcessSafeIndexedCache<K, V>(indexedCacheFactory, fileAccess);
+                MultiProcessSafeIndexedCache<K, V> indexedCache = new DefaultMultiProcessSafeIndexedCache<>(indexedCacheFactory, fileAccess);
                 CacheDecorator decorator = parameters.getCacheDecorator();
                 if (decorator != null) {
                     indexedCache = decorator.decorate(cacheFile.getAbsolutePath(), parameters.getCacheName(), indexedCache, crossProcessCacheAccess, getCacheAccessWorker());
                     if (fileLock == null) {
-                        useCache(NO_OP);
+                        useCache(() -> {
+                            // Empty initial operation to trigger onStartWork calls
+                        });
                     }
                 }
                 entry = new IndexedCacheEntry<>(parameters, indexedCache);
@@ -436,8 +439,8 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
         }
 
         @Override
-        public <T> T readFile(Factory<? extends T> action) throws LockTimeoutException, FileIntegrityViolationException, InsufficientLockModeException {
-            return action.create();
+        public <T> T readFile(Supplier<? extends T> action) throws LockTimeoutException, FileIntegrityViolationException, InsufficientLockModeException {
+            return action.get();
         }
 
         @Override
@@ -458,7 +461,7 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
         }
 
         @Override
-        public <T> T readFile(Factory<? extends T> action) throws LockTimeoutException {
+        public <T> T readFile(Supplier<? extends T> action) throws LockTimeoutException {
             return getFileLock().readFile(action);
         }
 
@@ -494,10 +497,6 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
             return cache;
         }
 
-        public IndexedCacheParameters<K, V> getParameters() {
-            return parameters;
-        }
-
         void assertCompatibleCacheParameters(IndexedCacheParameters<K, V> parameters) {
             List<String> faultMessages = new ArrayList<>();
 
@@ -507,8 +506,8 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
             checkCompatibleCacheDecorator(faultMessages, parameters.getCacheDecorator());
 
             if (!faultMessages.isEmpty()) {
-                String lineSeparator = SystemProperties.getInstance().getLineSeparator();
-                String faultMessage = CollectionUtils.join(lineSeparator, faultMessages);
+                String lineSeparator = System.lineSeparator();
+                String faultMessage = String.join(lineSeparator, faultMessages);
                 throw new InvalidCacheReuseException(
                     "Cache '" + parameters.getCacheName() + "' couldn't be reused because of the following mismatch:" + lineSeparator + faultMessage);
             }

@@ -20,10 +20,12 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.TestResultHandler
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.ProjectConnection
+import spock.lang.Timeout
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
 @TargetGradleVersion(">=8.7")
+@Timeout(120)
 class CapturingMultipleUserInputCrossVersionSpec extends ToolingApiSpecification {
     private static final String DUMMY_TASK_NAME = 'doSomething'
 
@@ -60,7 +62,7 @@ class CapturingMultipleUserInputCrossVersionSpec extends ToolingApiSpecification
 
     def "can capture multiple user input if standard input was provided"() {
         when:
-        withConnection { ProjectConnection connection ->
+        withConnection { connection ->
             runBuildWithStandardInput(connection, 'something one', 'something two')
         }
 
@@ -73,7 +75,7 @@ class CapturingMultipleUserInputCrossVersionSpec extends ToolingApiSpecification
 
     def "can capture multiple user input if standard input was provided using default values"() {
         when:
-        withConnection { ProjectConnection connection ->
+        withConnection { connection ->
             runBuildWithStandardInput(connection, '', '')
         }
 
@@ -86,7 +88,7 @@ class CapturingMultipleUserInputCrossVersionSpec extends ToolingApiSpecification
 
     def "can default subsequent user input as default values if standard input was provided"() {
         when:
-        withConnection { ProjectConnection connection ->
+        withConnection { connection ->
             runBuildWithStandardInput(connection, 'something', '')
         }
 
@@ -98,17 +100,14 @@ class CapturingMultipleUserInputCrossVersionSpec extends ToolingApiSpecification
     }
 
     private void runBuildWithStandardInput(ProjectConnection connection, String answer1, String answer2) {
-        def build = connection.newBuild()
-        collectOutputs(build)
-        build.forTasks(DUMMY_TASK_NAME)
-
         def stdin = new PipedInputStream()
         def stdinWriter = new PipedOutputStream(stdin)
-
-        build.standardInput = stdin
-
         def resultHandler = new TestResultHandler()
-        build.run(resultHandler)
+
+        connection.newBuild()
+            .forTasks(DUMMY_TASK_NAME)
+            .setStandardInput(stdin)
+            .run(resultHandler)
 
         poll(60) {
             assert getOutput().contains(FOO.prompt)

@@ -17,9 +17,10 @@
 package org.gradle.api.problems.internal;
 
 
+import org.gradle.api.problems.ProblemLocation;
+
 /**
  * Plugin ID location.
- *
  */
 public interface PluginIdLocation extends ProblemLocation {
 

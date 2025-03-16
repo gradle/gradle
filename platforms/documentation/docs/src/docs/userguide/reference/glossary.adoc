@@ -1,0 +1,374 @@
+= Glossary
+
+[[dependency_management_terminology]]
+The following glossary helps you understand Gradle terminology.
+
+== A
+
+[[sub:terminology_artifact]]
+Artifact::
+A file or directory produced by a build, such as a JAR, a ZIP distribution, or a native executable.
++
+Artifacts are typically designed to be used or consumed by users and other projects or deployed to hosting systems.
+In such cases, the artifact is a single file.
+Directories are common in the case of inter-project dependencies to avoid the cost of producing the publishable artifact.
+
+== B
+
+[[sub:terminology_build]]
+Build::
+A build is the aggregate of the atomic pieces of work performed by Gradle.
+It is made up of <<sub:terminology_project,projects>> and those projects have a collection of <<sub:terminology_task, tasks>>.
++
+A build usually has an outcome of SUCCESS or FAILURE.
++
+You can run a build using the `gradle` or `gradlew` commands.
+
+[[sub:terminology_build_scan]]
+Build Scan::
+A link:https://gradle.com/develocity/product/build-scan[Build Scan] is a service provided by Gradle which is used to identify build issues and build performance.
+
+[[sub:terminology_build_script]]
+Build Script::
+A `build.gradle` script.
++
+The existence of a build script, along with an entry in the <<sub:terminology_settings_script,settings script>> (other than for the root build script, which requires no entry), is what defines a Gradle <<sub:terminology_module,module>>.
+
+== C
+
+[[sub:terminology_capability]]
+Capability::
+A capability identifies a feature offered by one or multiple components.
+A capability is identified by coordinates similar to the coordinates used for <<sub:terminology_module_version, module versions>>.
+By default, each module version offers a capability that matches its coordinates, such as `com.google:guava:18.0`.
+Capabilities can be used to express that a component provides multiple <<sub:terminology_feature_variant, feature variants>> or that two different components implement the same feature (and thus cannot be used together).
+For more details, see the section on <<component_capabilities.adoc#sec:declaring-component-capabilities, capabilities>>.
+
+[[sub:terminology_component]]
+Component::
+Any single version of a <<glossary.adoc#sub:terminology_module,module>>.
++
+For external libraries, the term component refers to one published library version.
++
+In a build, components are defined by plugins (e.g., the Java Library plugin) and provide a simple way to define a publication for publishing.
+They comprise <<#sub:terminology_artifact,artifacts>> as well as the appropriate <<#sub:terminology_artifact,metadata>> that describes a component's <<#sub:terminology_variant,variants>> in detail.
+For example, the `java` component in its default setup consists of a JAR — produced by the `jar` task — and the dependency information of the Java _api_ and _runtime_ variants.
+It may also define additional variants, for example, _sources_ and _Javadoc_, with the corresponding artifacts.
+
+Component Metadata Rule::
+A component metadata rule is a rule that modifies a component's metadata after it is fetched from a repository, e.g., to add missing information or correct incorrect information.
+In contrast to <<#sub:terminology_resolution_rule, resolution rules>>, component metadata rules are applied *before* resolution starts.
+Component metadata rules are defined as part of the build logic and can be shared through plugins.
+For more information, see the section on <<component_metadata_rules.adoc#component-metadata-rules,fixing metadata with component metadata rules>>.
+
+[[sub:terminology_configuration]]
+Configuration::
+A configuration is a named set of <<#sub:terminology_dependency, dependencies>> grouped together for a specific goal.
+Configurations provide access to the underlying, resolved <<#sub:terminology_module, modules>> and their artifacts.
+For more information, see the sections on <<dependency_configurations.adoc#sub:what-are-dependency-configurations,dependency configurations>> as well as <<declaring_configurations.adoc#sec:resolvable-consumable-configs,resolvable and consumable configurations>>.
++
+NOTE: The word "configuration" is an overloaded term that has a different meaning outside of dependency management.
+
+[[sub:terminology_configuration_phase]]
+Configuration Phase::
+A Gradle build is composed of two primary phases, the configuration phase (not to be confused with <<sub:terminology_configuration>> instances) and the <<sub:terminology_execution_phase,execution phase>>.
++
+The configuration phase happens first and is single-threaded.
+
+[[sub:terminology_convention_plugin]]
+Convention Plugin::
+A <<sub:terminology_plugin>> built on top of an <<sub:terminology_ecosystem_plugin,ecosystem plugin>>, which applies common _conventions_ to the build script that uses the plugin.
+
+[[sub:terminology_cross_configuration]]
+Cross-Configuration::
+See <<sub:terminology_cross_project_configuration,Cross-Project Configuration>>.
+
+[[sub:terminology_cross_project_configuration]]
+Cross-Project Configuration::
+Cross-project configuration refers to managing and customizing multiple subprojects within a multi-project build.
++
+It allows you to define common settings, dependencies, and tasks in a shared `build.gradle(.kts)` or `settings.gradle.(kts)` file, typically located in the root project:
++
+[source,groovy]
+.build.gradle
+----
+subprojects {
+    apply plugin: 'java'
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        testImplementation 'junit:junit:4.13.2'
+    }
+}
+----
++
+Cross-project configuration usually breaks Project Isolation, and Parallel Project Execution, so you should use convention plugins or the proper APIs whenever possible:
++
+[source,groovy]
+.build.gradle
+----
+gradle.lifecycle.beforeProject {
+    repositories {
+        mavenCentral()
+    }
+}
+----
++
+The following example of cross-project configuration should *always* be avoided:
++
+[source,groovy]
+.subprojectA/build.gradle
+----
+tasks.register("customTask") {
+    // Avoid this! Directly accessing outputs from another subproject's task
+    def outputFile = project(":subprojectB").tasks.named("someTask").get().outputs.files.singleFile
+    inputs.file(outputFile)
+    doLast {
+        println("Processing file from subprojectB: ${outputFile}")
+    }
+}
+----
++
+[source,groovy]
+.subprojectB/build.gradle
+----
+tasks.register("someTask") {
+    def outputFile = layout.buildDirectory.file("output.txt")
+    outputs.file(outputFile)
+    doLast {
+        outputFile.get().asFile.text = "Output from subprojectB"
+        println("Generated output file in subprojectB: ${outputFile.get().asFile}")
+    }
+}
+----
++
+This tightly couples `subprojectA` to `subprojectB`, breaking modularity and creating potential issues during parallel builds or configuration caching.
+
+== D
+
+[[sub:terminology_dependency]]
+Dependency::
+A dependency is a pointer to another piece of software required to build, test, or run a <<#sub:terminology_module, module>>.
+For more information, see the section on <<declaring_dependencies.adoc#one-declaring-dependencies,declaring dependencies>>.
+
+[[sub:terminology_dependency_constraint]]
+Dependency Constraint::
+A dependency constraint defines requirements that need to be met by a module to make it a valid resolution result for the dependency.
+For example, a dependency constraint can narrow down the set of supported module versions.
+Dependency constraints can be used to express such requirements for transitive dependencies.
+For more information, see the sections on <<dependency_constraints.adoc#dependency-constraints,upgrading and downgrading>> transitive dependencies.
+
+== E
+
+[[sub:terminology_ecosystem_plugin]]
+Ecosystem Plugin::
+A <<sub:terminology_plugin>> responsible for building a language, such as Java (`java` and `java-library`), Groovy, Scala, Android, Kotlin, etc.
+Many plugins are maintained by Gradle and are part of the Gradle distribution.
+
+[[sub:terminology_execution_phase]]
+Execution phase::
+The second primary phase of a Gradle build, the execution phase happens after the
+<<sub:terminology_configuration_phase,configuration phase>> is complete.
+This is where all <<sub:terminology_task,tasks>> actions are executed.
++
+This phase has multiple levels of parallelism.
+
+== F
+
+[[sub:terminology_feature_variant]]
+Feature Variant::
+A feature variant is a <<#sub:terminology_variant, variant>> representing a feature of a component that can be individually selected or not.
+A feature variant is identified by one or more <<#sub:terminology_capability, capabilities>>.
+For more information, see the sections on <<how_to_create_feature_variants_of_a_library#feature_variants, modeling feature variants, and optional dependencies>>.
+
+== G
+
+[[sub:terminology_gradle_build]]
+Gradle Build::
+A Gradle build can consist of one or more Gradle projects and is _typically_ configured using a `settings.gradle(.kts)` file at the root.
++
+When invoked, the Gradle build executes a set of tasks based on the defined build logic, often using the Gradle Wrapper (`./gradlew`).
+
+== H
+
+== I
+
+[[sub:terminology_incremental_builds]]
+Incremental Builds::
+An incremental build executes only the <<sub:terminology_task,tasks>> that are necessary.
+If we run any source code, Gradle first checks if that source code has gone through any previous execution.
+If the code has some changes, it will then be executed, but if there are no changes, then it will skip the execution of that code.
+
+[[sub:terminology_init_script]]
+Init Script::
+An init or initialization script, is backed by an instance of the `Gradle` type.
+
+== J
+
+== K
+
+== L
+
+== M
+
+[[sub:terminology_maven_central]]
+MavenCentral::
+https://search.maven.org/[MavenCentral] is the main repository that hosts Maven publications.
+It is operated by a company named https://www.sonatype.com/[Sonatype] and is the default repository for a lot of the ecosystem.
++
+Many other repositories exists like (the now defunct) https://jfrog.com/blog/into-the-sunset-bintray-jcenter-gocenter-and-chartcenter/[jcenter] or the https://maven.google.com/web/index.html[Google Maven repository].
+
+[[sub:terminology_module]]
+Module::
+A piece of software that evolves over time e.g., link:https://github.com/google/guava[Google Guava].
+Every module has a name. Each module release is optimally represented by a <<sub:terminology_module_version, module version>>.
+For convenient consumption, modules can be hosted in a <<sub:terminology_repository, repository>>.
+
+[[sub:terminology_module_metadata]]
+Module Metadata::
+Releases of a <<#sub:terminology_module,module>> provide metadata.
+Metadata is the data that describes the module in more detail, e.g., information about the location of artifacts or required <<#sub:terminology_transitive_dependency, transitive dependencies>>.
+Gradle offers its own metadata format called link:https://github.com/gradle/gradle/blob/master/platforms/documentation/docs/src/docs/design/gradle-module-metadata-latest-specification.md[Gradle Module Metadata] (`.module` file) but also supports Maven (`.pom`) and Ivy (`ivy.xml`) metadata.
+See the section on <<publishing_gradle_module_metadata.adoc#sec:understanding-gradle-module-md,understanding Gradle Module Metadata>> for more information on the supported metadata formats.
+
+[[sub:terminology_module_version]]
+Module version ::
+A module version represents a distinct set of changes of a released <<#sub:terminology_module, module>>.
+For example, `18.0` represents the module version with the coordinates `com.google:guava:18.0`.
+In practice, there are no limitations to the scheme of the module version.
+Timestamps, numbers, and special suffixes like `-GA` are all allowed identifiers.
+The most widely-used versioning strategy is link:https://semver.org/[semantic versioning].
+
+== N
+
+== O
+
+== P
+
+[[sub:terminology_platform]]
+Platform ::
+A platform is a set of modules aimed to be used together. There are different categories of platforms corresponding to different use cases:
++
+- module set: often a set of modules published together as a whole. Using one module of the set often means we want to use the same version for all modules of the set. For example, if using `groovy` 1.2, also use `groovy-json` 1.2.
+- runtime environment: a set of libraries known to work well together, such as the Spring Platform, which recommends versions for both Spring and components that work well with Spring.
+- deployment environment: Java runtime, application server, etc ...
++
+In addition, Gradle defines <<how_to_align_dependency_versions.adoc#sec:virtual_platform,virtual platforms>>.
++
+NOTE: Maven's BOM (bill-of-material) is a popular platform that <<platforms.adoc#sec:bom-import, Gradle supports>>.
+
+[[sub:terminology_plugin]]
+Plugin::
+Gradle is built on a plugin system.
+Gradle itself is primarily composed of infrastructure, such as a sophisticated dependency resolution engine, common to all project types.
+The rest of its functionality comes from plugins, including "core" plugins distributed with Gradle itself, third-party plugins, and <<sub:terminology_script_plugin,script plugins>> in a given build.
+
+There are three _kinds_ of plugin, based on the context in which they are applied:
+
+. Project plugins that implement `Plugin<Project>`, applied in <<sub:terminology_build_script,build scripts>>.
+. Settings plugins that implement `Plugin<Settings>`, applied in <<sub:terminology_settings_script,settings scripts>>.
+. Init (Gradle) plugins that implement `Plugin<Gradle>`, applied in <<sub:terminology_init_script,init scripts>>.
+
+Plugins may be _implemented_ as so-called binary plugins (that is, by explicitly implementing one of the specific generic interfaces described above), or as <<sub:terminology_precompiled_script_plugin,precompiled script plugins>>.
+This distinction is merely an implementation detail.
+
+[[sub:terminology_precompiled_script_plugin]]
+Precompiled Script Plugin::
+Equivalent to a <<sub:terminology_plugin,plugin>>, but written such that it looks like a build script, precompiled script plugins can be written in Groovy or Kotlin by applying the `groovy-gradle-plugin` or `kotlin-dsl` plugin, respectively.
+
+[[sub:terminology_project]]
+Project::
+Often referred to as a "module", every Gradle project is backed by a `Project` instance, hence the name.
++
+Most Gradle projects are composed of many projects (usually called "subprojects").
+
+[[sub:terminology_publication]]
+Publication::
+A description of the files and metadata that should be published to a repository as a single entity for use by consumers.
++
+A publication has a name and consists of one or more artifacts plus information about those artifacts (the <<#sub:terminology_module_metadata, metadata>>).
+
+== Q
+
+== R
+
+[[sub:terminology_repository]]
+Repository::
+A repository hosts a set of <<#sub:terminology_module, modules>>, each of which may provide one or many releases (components) indicated by a <<#sub:terminology_module_version, module version>>.
+The repository can be based on a binary repository product (e.g., Artifactory or Nexus) or a directory structure in the filesystem.
+For more information, see <<declaring_repositories.adoc#three-declaring-repositories,Declaring Repositories>>.
+
+[[sub:terminology_resolution_rule]]
+Resolution rule::
+A resolution rule influences the behavior of how a <<#sub:terminology_dependency,dependency>> is resolved directly.
+Resolution rules are defined as part of the build logic.
+For more information, see the section on <<resolution_rules.adoc#using-resolution-rules, customizing resolution of a dependency directly>>.
+
+== S
+
+[[sub:terminology_script_plugin]]
+Script Plugin::
+A Gradle script that can be applied to other Gradle scripts, including <<sub:terminology_build_script,build scripts>>,
+<<sub:terminology_settings_script,settings scripts>>, and <<sub:terminology_init_script,init scripts>>.
+It can be written in Groovy or Kotlin, and applied to other scripts via the `apply` method.
+Depending on the type of script they are applied to, they're backed by either a <<sub:terminology_project,`Project`>> instance, a <<sub:terminology_settings_script,`Settings`>> instance, or a <<sub:terminology_init_script,`Gradle`>> instance.
+
+[[sub:terminology_settings_script]]
+Settings Script::
+A `settings.gradle(.kts)` script.
+A settings script has a large number of responsibilities, but one of the most important is declaring the set of <<sub:terminology_project,projects>> that are part of the build, via `include :project`.
+
+== T
+
+[[sub:terminology_task]]
+Task::
+Each <<sub:terminology_project,projects>> is made up of one or more tasks.
+Each task ought to be atomic (but often isn't), with inputs and outputs.
+Gradle executes tasks to perform its work.
++
+Task examples include: compiling source code, creating artifacts (such as jars or apks), generating Javadoc, running static analysis (e.g. lint), deleting temporary files, or publishing to a repository, etc.
++
+When a Gradle task is asked to run, we can see the outcome of the task.
+This will be one of `EXECUTED`, `SKIPPED`, `FAILED`, `FROM-CACHE`, `UP-TO-DATE`, `NO-SOURCE` or _blank_ (meaning executed).
+
+[[sub:terminology_transitive_dependency]]
+Transitive dependency::
+A variant of a <<#sub:terminology_component, component>> can have dependencies on other modules to work properly, so-called transitive dependencies.
+Releases of a module hosted on a <<#sub:terminology_repository, repository>> can provide <<#sub:terminology_module_metadata, metadata>> to declare those transitive dependencies.
+By default, Gradle resolves transitive dependencies automatically.
+The version selection for transitive dependencies can be influenced by declaring <<dependency_constraints.adoc#dependency-constraints,dependency constraints>>.
+
+== U
+
+== V
+
+[[sub:terminology_variant]]
+Variant (of a component)::
+Each <<#sub:terminology_component, component>> consists of one or more variants.
+A variant consists of a set of artifacts and defines a set of dependencies.
+It is identified by a set of <<sub:terminology_attribute,attributes>> and <<sub:terminology_capability,capabilities>>.
++
+Gradle's dependency resolution is variant-aware and selects one or more variants of each component after a component (i.e., one version of a module) has been selected.
+It may also fail if the variant selection result is ambiguous, meaning that Gradle does not have enough information to select one of multiple mutual exclusive variants.
+In that case, more information can be provided through <<#sub:terminology_attribute, variant attributes>>.
+Examples of variants each Java components typically offers are _api_ and _runtime_ variants.
+Other examples are JDK8 and JDK11 variants.
+For more information, see the section on <<variant_aware_resolution.adoc#sec:understanding-variant-selection, variant selection>>.
+
+[[sub:terminology_attribute]]
+Variant Attribute::
+Attributes are used to identify and select <<#sub:terminology_variant, variants>>.
+A variant has one or more attributes defined, for example `org.gradle.usage=java-api`, `org.gradle.jvm.version=11`.
+When dependencies are resolved, a set of attributes are requested and Gradle finds the best fitting variant(s) for each component in the dependency graph.
+Compatibility and disambiguation rules can be implemented for an attribute to express compatibility between values (e.g., Java 8 is compatible with Java 11, but Java 11 should be preferred if the requested version is 11 or higher).
+Such rules are typically provided by plugins.
+For more information, see the sections on <<variant_aware_resolution.adoc#sec:understanding-variant-selection,variant selection>> and <<variant_attributes.adoc#variant-attributes,declaring attributes>>.
+
+== W
+
+== X
+
+== Y
+
+== Z

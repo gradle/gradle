@@ -51,7 +51,7 @@ class PublicationsBuilder implements ToolingModelBuilder {
     private List<DefaultGradlePublication> publications(ProjectInternal project, DefaultProjectIdentifier projectIdentifier) {
         List<DefaultGradlePublication> gradlePublications = new ArrayList<>();
 
-        for (ProjectComponentPublication projectPublication : publicationRegistry.getPublications(ProjectComponentPublication.class, project.getIdentityPath())) {
+        for (ProjectComponentPublication projectPublication : publicationRegistry.getPublicationsForProject(ProjectComponentPublication.class, project.getIdentityPath())) {
             ModuleVersionIdentifier id = projectPublication.getCoordinates(ModuleVersionIdentifier.class);
             if (id != null) {
                 gradlePublications.add(new DefaultGradlePublication()

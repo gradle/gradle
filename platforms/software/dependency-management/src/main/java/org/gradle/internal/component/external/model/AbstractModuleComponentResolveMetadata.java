@@ -21,22 +21,21 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.ImmutableModuleSources;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleSources;
-import org.gradle.internal.component.model.VariantGraphResolveMetadata;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
 
 abstract class AbstractModuleComponentResolveMetadata implements ModuleComponentResolveMetadata {
-    private final ImmutableAttributesFactory attributesFactory;
+    private final AttributesFactory attributesFactory;
     private final ModuleVersionIdentifier moduleVersionIdentifier;
     private final ModuleComponentIdentifier componentIdentifier;
     private final boolean changing;
@@ -46,7 +45,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     private final ImmutableList<? extends ComponentVariant> variants;
     private final ImmutableAttributes attributes;
     private final ImmutableList<? extends VirtualComponentIdentifier> platformOwners;
-    private final AttributesSchemaInternal schema;
+    private final ImmutableAttributesSchema schema;
     private final VariantDerivationStrategy variantDerivationStrategy;
     private final boolean externalVariant;
     private final boolean isComponentMetadataRuleCachingEnabled;
@@ -107,7 +106,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     }
 
     @Override
-    public ImmutableAttributesFactory getAttributesFactory() {
+    public AttributesFactory getAttributesFactory() {
         return attributesFactory;
     }
 
@@ -147,7 +146,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     }
 
     @Override
-    public AttributesSchemaInternal getAttributesSchema() {
+    public ImmutableAttributesSchema getAttributesSchema() {
         return schema;
     }
 
@@ -182,7 +181,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
      * If there are no variants defined in the metadata, but the implementation knows how to provide variants it can do that here.
      * If it can not provide variants, absent must be returned to fall back to traditional configuration selection.
      */
-    protected Optional<List<? extends VariantGraphResolveMetadata>> maybeDeriveVariants() {
+    protected Optional<List<? extends ExternalModuleVariantGraphResolveMetadata>> maybeDeriveVariants() {
         return Optional.empty();
     }
 

@@ -16,6 +16,8 @@
 
 package org.gradle.integtests.tooling
 
+import groovy.transform.stc.ClosureParams
+import groovy.transform.stc.SimpleType
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleDistribution
@@ -23,6 +25,7 @@ import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistributio
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.integtests.tooling.fixture.ConfigurableOperation
 import org.gradle.integtests.tooling.fixture.ToolingApi
+import org.gradle.integtests.tooling.fixture.ToolingApiConnector
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
@@ -373,8 +376,8 @@ logger.lifecycle 'this is lifecycle: $idx'
         concurrent.finished()
     }
 
-    def withConnectionInDir(String dir, Closure cl) {
-        def connector = toolingApi.connector(file(dir))
+    <T> T withConnectionInDir(String dir, @DelegatesTo(ProjectConnection) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.ProjectConnection"]) Closure<T> cl) {
+        ToolingApiConnector connector = toolingApi.connector(file(dir))
         toolingApi.withConnection(connector, cl)
     }
 }

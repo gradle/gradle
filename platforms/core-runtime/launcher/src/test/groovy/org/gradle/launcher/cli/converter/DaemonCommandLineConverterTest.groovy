@@ -18,7 +18,6 @@ package org.gradle.launcher.cli.converter
 
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.cli.CommandLineParser
-import org.gradle.launcher.configuration.BuildLayoutResult
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions
 import org.gradle.launcher.daemon.configuration.DaemonParameters
 import spock.lang.Specification
@@ -86,9 +85,6 @@ class DaemonCommandLineConverterTest extends Specification {
         CommandLineParser parser = new CommandLineParser()
         def converter = new DaemonBuildOptions().commandLineConverter()
         converter.configure(parser)
-        def buildLayoutResult = Stub(BuildLayoutResult) {
-            getGradleUserHomeDir() >> new File("gradle-user-home")
-        }
-        converter.convert(args, new DaemonParameters(buildLayoutResult, TestFiles.fileCollectionFactory()))
+        converter.convert(args, new DaemonParameters(new File("gradle-user-home"), TestFiles.fileCollectionFactory()))
     }
 }

@@ -18,11 +18,9 @@ package org.gradle.integtests.tooling.r33
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.gradle.GradleBuild
 import spock.lang.Issue
 
-@ToolingApiVersion(">=3.3")
 class GradleBuildModelCrossVersionSpec extends ToolingApiSpecification {
 
     @TargetGradleVersion(">=3.3")

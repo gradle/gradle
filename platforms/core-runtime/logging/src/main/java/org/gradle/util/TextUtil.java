@@ -22,8 +22,8 @@ import com.google.common.collect.Iterables;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Locale;
@@ -49,10 +49,11 @@ public class TextUtil {
     private static final Pattern WHITESPACE = Pattern.compile("\\s*");
     private static final Pattern UPPER_CASE = Pattern.compile("(?=\\p{Upper})");
     private static final Joiner KEBAB_JOINER = Joiner.on("-");
+
     private static final Function<String, String> TO_LOWERCASE = new Function<String, String>() {
         @Override
         public String apply(String input) {
-            return input.toLowerCase();
+            return input.toLowerCase(Locale.ROOT);
         }
     };
     private static final Pattern NON_UNIX_LINE_SEPARATORS = Pattern.compile("\r\n|\r");

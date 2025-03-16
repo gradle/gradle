@@ -16,11 +16,12 @@
 
 package org.gradle.tooling.internal.protocol;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;
 
-import java.util.List;
-
-@NonNullApi
+/**
+ * <p>DO NOT CHANGE THIS INTERFACE - it is part of the cross-version protocol.
+ */
+@NullMarked
 public interface InternalProblemAggregationDetails extends InternalProblemDetails {
-    List<InternalProblemAggregation> getSummaries();
+
 }
