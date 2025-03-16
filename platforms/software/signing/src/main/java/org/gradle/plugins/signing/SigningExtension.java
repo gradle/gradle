@@ -30,6 +30,7 @@ import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
@@ -280,13 +281,13 @@ public abstract class SigningExtension {
      * }
      * </code></pre>
      *
-     * @since 8.8
+     * @since 9.0
      */
     @Incubating
     @SuppressWarnings("unused")
     public void useInMemoryPgpKeys(Provider<String> defaultSecretKey, Provider<String> defaultPassword) {
         setSignatories(new InMemoryPgpSignatoryProvider(
-            providerFactory.provider(() -> ""),
+            Providers.of(""),
             defaultSecretKey,
             defaultPassword)
         );
@@ -311,9 +312,9 @@ public abstract class SigningExtension {
     @SuppressWarnings("unused")
     public void useInMemoryPgpKeys(@Nullable String defaultKeyId, @Nullable String defaultSecretKey, @Nullable String defaultPassword) {
         useInMemoryPgpKeys(
-            providerFactory.provider(() -> defaultKeyId),
-            providerFactory.provider(() -> defaultSecretKey),
-            providerFactory.provider(() -> defaultPassword)
+            Providers.ofNullable(defaultKeyId),
+            Providers.ofNullable(defaultSecretKey),
+            Providers.ofNullable(defaultPassword)
         );
     }
 
@@ -331,12 +332,12 @@ public abstract class SigningExtension {
      * }
      * </code></pre>
      *
-     * @since 8.8
+     * @since 9.0
      */
     @Incubating
     @SuppressWarnings("unused")
     public void useInMemoryPgpKeys(Provider<String> defaultKeyId, Provider<String> defaultSecretKey, Provider<String> defaultPassword) {
-        setSignatories(new InMemoryPgpSignatoryProvider(defaultKeyId, defaultSecretKey, defaultPassword));
+        setSignatories(new InMemoryPgpSignatoryProvider(defaultKeyId.orElse(""), defaultSecretKey.orElse(""), defaultPassword.orElse("")));
     }
 
     /**

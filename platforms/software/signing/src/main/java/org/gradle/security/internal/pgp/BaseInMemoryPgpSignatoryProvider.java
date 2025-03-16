@@ -52,7 +52,7 @@ public class BaseInMemoryPgpSignatoryProvider implements BaseSignatoryProvider<P
             String secretKey = secretKeyPasswordPair.left();
             String password = secretKeyPasswordPair.right();
 
-            if (secretKey != null && password != null) {
+            if (!secretKey.isEmpty() && !password.isEmpty()) {
                 return createSignatory("default", keyId, secretKey, password);
             }
             return null;
