@@ -22,7 +22,7 @@ import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.util.GradleVersion;
 
 import javax.annotation.CheckReturnValue;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import java.util.List;
 
 @SuppressWarnings("SameNameButDifferent")
