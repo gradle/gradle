@@ -182,8 +182,8 @@ public class GccMetadataProvider extends AbstractMetadataProvider<GccMetadata> {
         execAction.commandLine(cygpathExe.getAbsolutePath(), "-w", cygwinPath);
         StreamByteBuffer buffer = new StreamByteBuffer();
         StreamByteBuffer errorBuffer = new StreamByteBuffer();
-        execAction.setStandardOutput(buffer.getOutputStream());
-        execAction.setErrorOutput(errorBuffer.getOutputStream());
+        execAction.getStandardOutput().set(buffer.getOutputStream());
+        execAction.getErrorOutput().set(errorBuffer.getOutputStream());
         execAction.execute().assertNormalExitValue();
         return buffer.readAsString().trim();
     }
