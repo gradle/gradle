@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.function.Function;
 
 public final class DefaultMutableAttributeContainer extends AbstractAttributeContainer {
 
@@ -61,14 +62,16 @@ public final class DefaultMutableAttributeContainer extends AbstractAttributeCon
 
     @Override
     public String toString() {
-        final Map<Attribute<?>, Object> sorted = new TreeMap<>(Comparator.comparing(Attribute::getName));
-        sorted.putAll(getRealizedAttributes());
+        Map<Attribute<?>, Object> sorted = new TreeMap<>(Comparator.comparing(Attribute::getName));
+        sorted.putAll(getRealizedEntries());
         return sorted.toString();
     }
 
     @Override
     public Set<Attribute<?>> keySet() {
-        return getRealizedAttributes().keySet();
+        Set<Attribute<?>> realizedKeys = doRealize(s -> s.keySet().get());
+        assertNoDuplicateNames(realizedKeys);
+        return realizedKeys;
     }
 
     @Override
@@ -108,18 +111,20 @@ public final class DefaultMutableAttributeContainer extends AbstractAttributeCon
     }
 
     private <T> void checkInsertionAllowed(Attribute<T> key) {
-        // TODO: This check should be handled by the provider API infrastructure
         if (realizingLazyState) {
             throw new IllegalStateException("Cannot add new attribute '" + key.getName() + "' while realizing all attributes of the container.");
         }
     }
 
-    private Map<Attribute<?>, Isolatable<?>> getRealizedAttributes() {
-        Map<Attribute<?>, Isolatable<?>> realizedState = realizedDeclaredState();
+    private Map<Attribute<?>, Isolatable<?>> getRealizedEntries() {
+        Map<Attribute<?>, Isolatable<?>> realizedState = doRealize(Provider::get);
+        assertNoDuplicateNames(realizedState.keySet());
+        return realizedState;
+    }
 
+    private static void assertNoDuplicateNames(Set<Attribute<?>> attributes) {
         Map<String, Attribute<?>> attributesByName = new HashMap<>();
-        for (Map.Entry<Attribute<?>, Isolatable<?>> entry : realizedState.entrySet()) {
-            Attribute<?> attribute = entry.getKey();
+        for (Attribute<?> attribute : attributes) {
             String name = attribute.getName();
             Attribute<?> existing = attributesByName.put(name, attribute);
             if (existing != null) {
@@ -128,14 +133,19 @@ public final class DefaultMutableAttributeContainer extends AbstractAttributeCon
                     + "' and another attribute of type '" + attribute.getType().getName() + "'");
             }
         }
-
-        return realizedState;
     }
 
-    private Map<Attribute<?>, Isolatable<?>> realizedDeclaredState() {
+    /**
+     * Perform some action against the mutable state of this container, tracking the execution of the action
+     * while it is running. The additional tracked state is used to ensure the mutable state of the container
+     * is not modified while the action is running.
+     * <p>
+     * TODO: This sort of tracking should be handled by the provider API infrastructure
+     */
+    private <T> T doRealize(Function<MapProperty<Attribute<?>, Isolatable<?>>, T> realizeAction) {
         realizingLazyState = true;
         try {
-            return state.get();
+            return realizeAction.apply(state);
         } finally {
             realizingLazyState = false;
         }
@@ -170,7 +180,7 @@ public final class DefaultMutableAttributeContainer extends AbstractAttributeCon
 
     @Override
     public ImmutableAttributes asImmutable() {
-        return attributesFactory.fromMap(getRealizedAttributes());
+        return attributesFactory.fromMap(getRealizedEntries());
     }
 
     @Override
