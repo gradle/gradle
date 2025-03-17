@@ -16,13 +16,12 @@
 
 package org.gradle.process.internal;
 
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.streams.StreamsHandler;
 
 import java.io.File;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
 
@@ -35,8 +34,8 @@ import java.util.Map;
 @Deprecated
 public class DefaultExecHandleBuilder extends AbstractExecHandleBuilder implements ExecHandleBuilder, ProcessArgumentsSpec.HasExecutable {
 
-    public DefaultExecHandleBuilder(ClientExecHandleBuilder delegate) {
-        super(delegate);
+    public DefaultExecHandleBuilder(ObjectFactory objectFactory, ClientExecHandleBuilder delegate) {
+        super(objectFactory, delegate);
     }
 
     @Override
@@ -142,12 +141,6 @@ public class DefaultExecHandleBuilder extends AbstractExecHandleBuilder implemen
     }
 
     @Override
-    public DefaultExecHandleBuilder setIgnoreExitValue(boolean ignoreExitValue) {
-        super.setIgnoreExitValue(ignoreExitValue);
-        return this;
-    }
-
-    @Override
     public DefaultExecHandleBuilder workingDir(Object dir) {
         delegate.setWorkingDir(dir);
         return this;
@@ -184,18 +177,6 @@ public class DefaultExecHandleBuilder extends AbstractExecHandleBuilder implemen
     @Override
     public DefaultExecHandleBuilder redirectErrorStream() {
         super.redirectErrorStream();
-        return this;
-    }
-
-    @Override
-    public DefaultExecHandleBuilder setStandardOutput(OutputStream outputStream) {
-        super.setStandardOutput(outputStream);
-        return this;
-    }
-
-    @Override
-    public DefaultExecHandleBuilder setStandardInput(InputStream inputStream) {
-        super.setStandardInput(inputStream);
         return this;
     }
 

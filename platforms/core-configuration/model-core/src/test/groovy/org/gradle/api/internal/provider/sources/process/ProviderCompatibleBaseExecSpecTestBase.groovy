@@ -117,7 +117,7 @@ abstract class ProviderCompatibleBaseExecSpecTestBase extends Specification {
         def parameters = newParameters()
 
         when:
-        specUnderTest.setIgnoreExitValue(ignoreExitValue)
+        specUnderTest.ignoreExitValue.set(ignoreExitValue)
         specUnderTest.copyToParameters(parameters)
 
         then:
@@ -129,21 +129,21 @@ abstract class ProviderCompatibleBaseExecSpecTestBase extends Specification {
 
     def "setting input stream is forbidden"() {
         when:
-        specUnderTest.setStandardInput(new ByteArrayInputStream())
+        specUnderTest.standardInput.set(new ByteArrayInputStream())
         then:
         thrown UnsupportedOperationException
     }
 
     def "setting output stream is forbidden"() {
         when:
-        specUnderTest.setStandardOutput(new ByteArrayOutputStream())
+        specUnderTest.standardOutput.set(new ByteArrayOutputStream())
         then:
         thrown UnsupportedOperationException
     }
 
     def "setting error stream is forbidden"() {
         when:
-        specUnderTest.setErrorOutput(new ByteArrayOutputStream())
+        specUnderTest.errorOutput.set(new ByteArrayOutputStream())
         then:
         thrown UnsupportedOperationException
     }
