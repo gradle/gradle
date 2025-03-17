@@ -30,6 +30,8 @@ class DefaultCommandLineToolInvocationWorkerTest extends Specification {
         def execActionFactory = Stub(ExecActionFactory) {
             newExecAction() >> execAction
         }
+        execAction.getErrorOutput() >> _
+        execAction.getStandardOutput() >> _
 
         def context = new DefaultMutableCommandLineToolContext()
         def executable = Mock(File)
