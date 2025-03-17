@@ -55,7 +55,6 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.metaobject.MethodAccess;
 import org.gradle.internal.metaobject.MethodMixIn;
 import org.gradle.util.internal.ConfigureUtil;
@@ -227,29 +226,9 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
         };
     }
 
-    @Deprecated
-    @Override
-    public Dependency module(Object notation) {
-        return module(notation, null);
-    }
-
     @Override
     public Dependency project(Map<String, ?> notation) {
         return dependencyFactory.createProjectDependencyFromMap(projectFinder, notation);
-    }
-
-    @Deprecated
-    @Override
-    @SuppressWarnings("rawtypes")
-    public Dependency module(Object notation, @Nullable Closure configureClosure) {
-
-        DeprecationLogger.deprecateAction("Declaring client module dependencies")
-            .replaceWith("component metadata rules")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "declaring_client_module_dependencies")
-            .nagUser();
-
-        return dependencyFactory.createModule(notation, configureClosure);
     }
 
     @Override

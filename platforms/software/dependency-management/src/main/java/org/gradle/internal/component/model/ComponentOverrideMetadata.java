@@ -32,12 +32,6 @@ public interface ComponentOverrideMetadata {
     IvyArtifactName getArtifact();
 
     /**
-     * If the request originated from a ClientModule, return it. Null otherwise.
-     */
-    @Deprecated
-    org.gradle.api.artifacts.@Nullable ClientModule getClientModule();
-
-    /**
      * Return true if the dependency declaration defines this component as changing.
      */
     boolean isChanging();

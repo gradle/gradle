@@ -27,7 +27,6 @@ import org.gradle.api.internal.artifacts.transform.TransformStepNodeDependencyRe
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.filestore.DefaultArtifactIdentifierFileStore;
-import org.gradle.api.internal.notations.ClientModuleNotationParserFactory;
 import org.gradle.api.internal.notations.DependencyNotationParser;
 import org.gradle.api.internal.notations.ProjectDependencyFactory;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -81,14 +80,23 @@ class DependencyManagementProjectScopeServices implements ServiceRegistrationPro
     ) {
         ProjectDependencyFactory projectDependencyFactory = new ProjectDependencyFactory(factory);
 
+        DependencyNotationParser dependencyNotationParser = DependencyNotationParser.create(
+            instantiator,
+            factory,
+            classPathRegistry,
+            fileCollectionFactory,
+            runtimeShadedJarFactory,
+            stringInterner
+        );
+
         return new DefaultDependencyFactory(
-                instantiator,
-                DependencyNotationParser.create(instantiator, factory, classPathRegistry, fileCollectionFactory, runtimeShadedJarFactory, stringInterner),
-                new ClientModuleNotationParserFactory(instantiator, stringInterner).create(),
-                capabilityNotationParser,
-                objectFactory,
-                projectDependencyFactory,
-                attributesFactory);
+            instantiator,
+            dependencyNotationParser,
+            capabilityNotationParser,
+            objectFactory,
+            projectDependencyFactory,
+            attributesFactory
+        );
     }
 
     @Provides
