@@ -124,7 +124,7 @@ class BasePluginIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeeds("assemble")
 
-        executedAndNotSkipped(":jar1", ":jar2")
+        executedAndNotSkipped(":jar2")
     }
 
     def "artifacts on role-locked configurations are not built by the assemble task by default"() {
@@ -156,7 +156,7 @@ class BasePluginIntegrationTest extends AbstractIntegrationSpec {
         notExecuted(":jar1", ":jar2", ":jar3")
     }
 
-    def "artifacts on legacy configurations are built by default if visible"() {
+    def "artifacts on legacy configurations are not built by default even if visible is set"() {
         buildFile << """
             plugins {
                 id("base")
@@ -180,7 +180,7 @@ class BasePluginIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeeds("assemble")
 
-        executedAndNotSkipped(":jar1")
-        notExecuted(":jar2")
+        and:
+        notExecuted(":jar1", ":jar2")
     }
 }

@@ -35,6 +35,7 @@ class WarPluginIntegrationTest extends AbstractIntegrationSpec {
         succeeds "assemble"
 
         then:
+        executed(":war")
         file("build/libs/test.war").exists();
     }
 
