@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain.internal.swift.metadata
 
+import org.gradle.api.provider.Property
 import org.gradle.internal.logging.text.TreeFormatter
 import org.gradle.platform.base.internal.toolchain.SearchResult
 import org.gradle.process.ExecResult
@@ -28,11 +29,11 @@ class SwiftcMetadataProviderTest extends Specification {
     def execActionFactory = Mock(ExecActionFactory)
 
     private static final String SWIFTC_OUTPUT_MAC_OS = """Apple Swift version 4.0.2 (swiftlang-900.0.69.2 clang-900.0.38)
-Target: x86_64-apple-macosx10.9        
+Target: x86_64-apple-macosx10.9
     """
 
     private static final String SWIFTC_OUTPUT_LINUX = """Swift version 3.1.1 (swift-3.1.1-RELEASE)
-Target: x86_64-unknown-linux-gnu       
+Target: x86_64-unknown-linux-gnu
     """
 
     def "can scrape version from output of swiftc"() {
@@ -80,6 +81,9 @@ Target: x86_64-unknown-linux-gnu
         then:
         1 * execActionFactory.newExecAction() >> action
         1 * action.execute() >> execResult
+        1 * action.getStandardOutput() >> _
+        1 * action.getErrorOutput() >> _
+        1 * action.getIgnoreExitValue() >> _
         1 * execResult.getExitValue() >> 1
 
         and:
@@ -94,9 +98,13 @@ Target: x86_64-unknown-linux-gnu
 
     SearchResult<SwiftcMetadata> output(String output) {
         def action = Mock(ExecAction)
+        def standardOutput = Mock(Property)
         def result = Mock(ExecResult)
         1 * execActionFactory.newExecAction() >> action
-        1 * action.setStandardOutput(_) >> { OutputStream outstr -> outstr << output; action }
+        1 * action.getStandardOutput() >> standardOutput
+        1 * action.getErrorOutput() >> _
+        1 * action.getIgnoreExitValue() >> _
+        1 * standardOutput.set(_) >> { OutputStream outstr -> outstr << output }
         1 * action.execute() >> result
         def provider = new SwiftcMetadataProvider(execActionFactory)
         provider.getCompilerMetaData([]) { it.executable(new File("swiftc")) }
