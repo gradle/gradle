@@ -101,6 +101,8 @@ abstract class DetermineBaselines @Inject constructor(@get:Internal val distribu
         val masterForkPointCommit = commandExecutor.execAndGetStdout("git", "merge-base", "$source/master", "HEAD")
         val releaseForkPointCommit = commandExecutor.execAndGetStdout("git", "merge-base", "$source/release", "HEAD")
         val forkPointCommit =
+            // TODO: Fix for Gradle 10, use ignoreExitValue instead
+            @Suppress("DEPRECATION")
             if (execOperations.exec { isIgnoreExitValue = true; commandLine("git", "merge-base", "--is-ancestor", masterForkPointCommit, releaseForkPointCommit) }.exitValue == 0)
                 releaseForkPointCommit
             else

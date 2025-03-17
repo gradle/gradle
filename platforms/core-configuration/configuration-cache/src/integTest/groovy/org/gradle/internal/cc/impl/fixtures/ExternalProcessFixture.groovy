@@ -97,23 +97,23 @@ class ExternalProcessFixture {
     private String getGroovyKotlinExecSpec() {
         return """
                 commandLine($commandLineAsVarargLiterals)
-                setStandardOutput(baos)
+                standardOutput = baos
             """
     }
 
     private String getGroovyKotlinJavaexecSpec() {
         return """
-                mainClass.set("${TestJavaMain.class.name}")
+                mainClass = "${TestJavaMain.class.name}"
                 classpath("${TextUtil.escapeString(TestJavaMain.classLocation)}")
                 args("Hello", "from", "Java")
-                setStandardOutput(baos)
+                standardOutput = baos
             """
     }
 
     private String getJavaExecSpec() {
         return """
                 it.commandLine($commandLineAsVarargLiterals);
-                it.setStandardOutput(baos);
+                it.getStandardOutput().set(baos);
             """
     }
 
@@ -122,7 +122,7 @@ class ExternalProcessFixture {
                 it.getMainClass().set("${TestJavaMain.class.name}");
                 it.classpath("${TextUtil.escapeString(TestJavaMain.classLocation)}");
                 it.args("Hello", "from", "Java");
-                it.setStandardOutput(baos);
+                it.getStandardOutput().set(baos);
             """
     }
 

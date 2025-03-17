@@ -15,11 +15,14 @@
  */
 package org.gradle.process.internal;
 
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.process.BaseExecSpec;
 import org.gradle.process.internal.streams.StreamsHandler;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -28,63 +31,53 @@ import java.util.List;
 @Deprecated
 public abstract class AbstractExecHandleBuilder implements BaseExecSpec {
 
-    protected final ExecAction delegate;
+    protected final ClientExecHandleBuilder delegate;
+    private final Property<InputStream> standardInput;
+    private final Property<OutputStream> standardOutput;
+    private final Property<OutputStream> errorOutput;
+    private final Property<Boolean> ignoreExitValue;
 
-    AbstractExecHandleBuilder(ExecAction execAction) {
-        this.delegate = execAction;
+    AbstractExecHandleBuilder(ObjectFactory objectFactory, ClientExecHandleBuilder delegate) {
+        this.delegate = delegate;
+        this.ignoreExitValue = objectFactory.property(Boolean.class).convention(false);
+        this.standardInput = objectFactory.property(InputStream.class);
+        this.standardOutput = objectFactory.property(OutputStream.class);
+        this.errorOutput = objectFactory.property(OutputStream.class);
     }
+
+    public abstract List<String> getAllArguments();
 
     @Override
     public List<String> getCommandLine() {
-        return delegate.getCommandLine();
+        List<String> commandLine = new ArrayList<>();
+        commandLine.add(getExecutable());
+        commandLine.addAll(getAllArguments());
+        return commandLine;
     }
 
     @Override
-    public AbstractExecHandleBuilder setStandardInput(InputStream inputStream) {
-        delegate.setStandardInput(inputStream);
-        return this;
+    public Property<InputStream> getStandardInput() {
+        return standardInput;
     }
 
     @Override
-    public InputStream getStandardInput() {
-        return delegate.getStandardInput();
+    public Property<OutputStream> getStandardOutput() {
+        return standardOutput;
     }
 
     @Override
-    public AbstractExecHandleBuilder setStandardOutput(OutputStream outputStream) {
-        delegate.setStandardOutput(outputStream);
-        return this;
+    public Property<OutputStream> getErrorOutput() {
+        return errorOutput;
     }
 
     @Override
-    public OutputStream getStandardOutput() {
-        return delegate.getStandardOutput();
-    }
-
-    @Override
-    public AbstractExecHandleBuilder setErrorOutput(OutputStream outputStream) {
-        delegate.setErrorOutput(outputStream);
-        return this;
-    }
-
-    @Override
-    public OutputStream getErrorOutput() {
-        return delegate.getErrorOutput();
-    }
-
-    @Override
-    public boolean isIgnoreExitValue() {
-        return delegate.isIgnoreExitValue();
-    }
-
-    @Override
-    public AbstractExecHandleBuilder setIgnoreExitValue(boolean ignoreExitValue) {
-        delegate.setIgnoreExitValue(ignoreExitValue);
-        return this;
+    public Property<Boolean> getIgnoreExitValue() {
+        return ignoreExitValue;
     }
 
     public AbstractExecHandleBuilder setDisplayName(String displayName) {
-        throw new UnsupportedOperationException("setDisplayName() is not supported");
+        delegate.setDisplayName(displayName);
+        return this;
     }
 
     public AbstractExecHandleBuilder listener(ExecHandleListener listener) {
@@ -93,21 +86,33 @@ public abstract class AbstractExecHandleBuilder implements BaseExecSpec {
     }
 
     public AbstractExecHandleBuilder streamsHandler(StreamsHandler streamsHandler) {
-        throw new UnsupportedOperationException("streamsHandler() is not supported");
+        delegate.streamsHandler(streamsHandler);
+        return this;
     }
 
     /**
      * Merge the process' error stream into its output stream
      */
     public AbstractExecHandleBuilder redirectErrorStream() {
-        throw new UnsupportedOperationException("redirectErrorStream() is not supported");
+        delegate.redirectErrorStream();
+        return this;
     }
 
     public AbstractExecHandleBuilder setTimeout(int timeoutMillis) {
-        throw new UnsupportedOperationException("setTimeout() is not supported");
+        delegate.setTimeout(timeoutMillis);
+        return this;
     }
 
     public ExecHandle build() {
-        return delegate.buildHandle();
+        if (standardInput.isPresent()) {
+            delegate.setStandardInput(standardInput.get());
+        }
+        if (standardOutput.isPresent()) {
+            delegate.setStandardOutput(standardOutput.get());
+        }
+        if (errorOutput.isPresent()) {
+            delegate.setErrorOutput(errorOutput.get());
+        }
+        return delegate.build();
     }
 }
