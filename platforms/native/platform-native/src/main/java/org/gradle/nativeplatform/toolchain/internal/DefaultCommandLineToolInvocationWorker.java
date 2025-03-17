@@ -80,8 +80,8 @@ public class DefaultCommandLineToolInvocationWorker implements CommandLineToolIn
 
         StreamByteBuffer errOutput = new StreamByteBuffer();
         StreamByteBuffer stdOutput = new StreamByteBuffer();
-        toolExec.setErrorOutput(errOutput.getOutputStream());
-        toolExec.setStandardOutput(stdOutput.getOutputStream());
+        toolExec.getErrorOutput().set(errOutput.getOutputStream());
+        toolExec.getStandardOutput().set(stdOutput.getOutputStream());
 
         try {
             toolExec.execute();
