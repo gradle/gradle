@@ -21,7 +21,6 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDepen
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory
 import org.gradle.api.plugins.jvm.TestFixturesDependencyModifiers
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -50,7 +49,7 @@ class TestFixturesDependencyModifiersTest extends Specification {
             name >> "name"
             version >> "1.0"
         }
-        def dependency = new DefaultProjectDependency(projectInternal, false, DefaultTaskDependencyFactory.withNoAssociatedProject())
+        def dependency = new DefaultProjectDependency(projectInternal)
         dependency.setCapabilityNotationParser(new CapabilityNotationParserFactory(true).create())
         dependency.setObjectFactory(TestUtil.objectFactory())
 
@@ -85,7 +84,7 @@ class TestFixturesDependencyModifiersTest extends Specification {
             name >> "name"
             version >> "1.0"
         }
-        def dependency = new DefaultProjectDependency(projectInternal, false, DefaultTaskDependencyFactory.withNoAssociatedProject())
+        def dependency = new DefaultProjectDependency(projectInternal)
         dependency.setCapabilityNotationParser(new CapabilityNotationParserFactory(true).create())
         dependency.setObjectFactory(TestUtil.objectFactory())
 

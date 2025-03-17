@@ -19,7 +19,6 @@ import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.FileCollectionDependency
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.file.FileCollectionInternal
-import org.gradle.api.tasks.TaskDependency
 import spock.lang.Specification
 
 class DefaultFileCollectionDependencyTest extends Specification {
@@ -32,28 +31,6 @@ class DefaultFileCollectionDependencyTest extends Specification {
         dependency.group == null
         dependency.name == "unspecified"
         dependency.version == null
-    }
-
-    def resolvesToTheSourceFileCollection() {
-        final org.gradle.api.internal.artifacts.CachingDependencyResolveContext resolveContext = Mock()
-
-        when:
-        dependency.resolve(resolveContext)
-
-        then:
-        1 * resolveContext.add(source)
-    }
-
-    def usesSourceFileCollectionToResolveFiles() {
-        final File file = new File("file")
-
-        when:
-        _ * source.files >> ([file] as Set)
-
-        then:
-        dependency.resolve() == [file] as Set
-        dependency.resolve(true) == [file] as Set
-        dependency.resolve(false) == [file] as Set
     }
 
     def createsCopy() {
@@ -80,13 +57,4 @@ class DefaultFileCollectionDependencyTest extends Specification {
         !dependency.contentEquals(differentType)
     }
 
-    def usesSourceFileCollectionToDetermineBuildDependencies() {
-        final TaskDependency taskDependency = Mock()
-
-        when:
-        1 * source.buildDependencies >> taskDependency
-
-        then:
-        dependency.buildDependencies == taskDependency
-    }
 }
