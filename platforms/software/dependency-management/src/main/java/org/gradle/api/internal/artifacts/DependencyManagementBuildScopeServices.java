@@ -68,7 +68,6 @@ import org.gradle.api.internal.catalog.DependenciesAccessorsWorkspaceProvider;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
-import org.gradle.api.internal.notations.ClientModuleNotationParserFactory;
 import org.gradle.api.internal.notations.DependencyConstraintNotationParser;
 import org.gradle.api.internal.notations.DependencyNotationParser;
 import org.gradle.api.internal.notations.ProjectDependencyFactory;
@@ -209,12 +208,23 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
     ) {
         ProjectDependencyFactory projectDependencyFactory = new ProjectDependencyFactory(factory);
 
+        DependencyNotationParser dependencyNotationParser = DependencyNotationParser.create(
+            instantiator,
+            factory,
+            classPathRegistry,
+            fileCollectionFactory,
+            runtimeShadedJarFactory,
+            stringInterner
+        );
+
         return new DefaultDependencyFactory(
             instantiator,
-            DependencyNotationParser.create(instantiator, factory, classPathRegistry, fileCollectionFactory, runtimeShadedJarFactory, stringInterner),
-            new ClientModuleNotationParserFactory(instantiator, stringInterner).create(),
-            capabilityNotationParser, objectFactory, projectDependencyFactory,
-            attributesFactory);
+            dependencyNotationParser,
+            capabilityNotationParser,
+            objectFactory,
+            projectDependencyFactory,
+            attributesFactory
+        );
     }
 
     @Provides

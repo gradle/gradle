@@ -130,52 +130,6 @@ task test {
         succeeds 'test'
     }
 
-
-    /**
-     * Dependency graph:
-     *
-     * org.gradle:test:1.0
-     * +--- org.foo:foo:2.0
-     *      \--- org.bar:bar:3.0
-     */
-    @Issue("gradle/gradle#951")
-    def "can declare fine-grained transitive dependency #condition"() {
-        given:
-        def testModule = mavenRepo().module('org.gradle', 'test', '1.0')
-        def fooModule = mavenRepo().module('org.foo', 'foo', '2.0')
-        def barModule = mavenRepo().module('org.bar', 'bar', '3.0')
-        barModule.publish()
-        fooModule.dependsOn(barModule).publish()
-        testModule.dependsOn(fooModule).publish()
-
-        buildFile << """
-repositories { maven { url = "${mavenRepo().uri}" } }
-
-configurations { compile }
-
-dependencies {
-    compile module('${testModule.groupId}:${testModule.artifactId}:${testModule.version}') {
-        dependency('${fooModule.groupId}:${fooModule.artifactId}:${fooModule.version}') ${includeBar ? "" : "{ exclude module: '${barModule.artifactId}'}"}
-    }
-}
-
-task check {
-    def files = configurations.compile
-    doLast {
-        assert files.collect { it.name } == [${expectedJars.collect { "'${it}.jar'" }.join(", ")}]
-    }
-}
-"""
-        expect:
-        executer.expectDocumentedDeprecationWarning("Declaring client module dependencies has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use component metadata rules instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#declaring_client_module_dependencies")
-        succeeds "check"
-
-        where:
-        condition                | includeBar | expectedJars
-        'include bar dependency' | true       | ['test-1.0', 'foo-2.0', 'bar-3.0']
-        'exclude bar dependency' | false      | ['test-1.0', 'foo-2.0']
-    }
-
     def "configuration excludes are supported for project dependency"() {
         given:
         mavenRepo.module('org.gradle.test', 'direct', '1.0').publish()
