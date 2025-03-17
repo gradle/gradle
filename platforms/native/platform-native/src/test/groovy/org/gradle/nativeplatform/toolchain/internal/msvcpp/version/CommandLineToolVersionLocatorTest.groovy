@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp.version
 
+import org.gradle.api.provider.Property
 import org.gradle.process.ExecResult
 import org.gradle.process.internal.ExecAction
 import org.gradle.process.internal.ExecActionFactory
@@ -29,6 +30,7 @@ class CommandLineToolVersionLocatorTest extends VswhereSpec {
     def visualCppMetadataProvider = Mock(VisualCppMetadataProvider)
     def execActionFactory = Mock(ExecActionFactory)
     def execAction = Mock(ExecAction)
+    def standardOutput = Mock(Property)
     def vswhereLocator = Mock(VswhereVersionLocator)
     def locator = new CommandLineToolVersionLocator(execActionFactory, visualCppMetadataProvider, vswhereLocator)
 
@@ -171,9 +173,11 @@ class CommandLineToolVersionLocatorTest extends VswhereSpec {
         OutputStream outputStream
 
         1 * execActionFactory.newExecAction() >> execAction
-        1 * execAction.setStandardOutput(_ as OutputStream) >> { args ->
+        1 * execAction.getStandardOutput() >> standardOutput
+        1 * execAction.getErrorOutput() >> _
+        1 * execAction.getIgnoreExitValue() >> _
+        1 * standardOutput.set(_ as OutputStream) >> { args ->
             outputStream = args[0]
-            return null
         }
         1 * execAction.execute() >> {
             outputStream.write(jsonResult.bytes)

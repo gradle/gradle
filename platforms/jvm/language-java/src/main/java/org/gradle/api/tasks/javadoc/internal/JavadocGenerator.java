@@ -44,7 +44,7 @@ public class JavadocGenerator {
 
         ExecAction execAction = javadocExecHandleBuilder.getExecHandle();
         if (spec.isIgnoreFailures()) {
-            execAction.setIgnoreExitValue(true);
+            execAction.getIgnoreExitValue().set(true);
         }
 
         try {
