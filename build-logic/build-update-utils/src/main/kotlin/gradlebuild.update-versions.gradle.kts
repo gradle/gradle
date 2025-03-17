@@ -36,14 +36,14 @@ tasks.register<UpdateReleasedVersions>("updateReleasedVersionsToLatestNightly") 
 
 tasks.register<UpdateAgpVersions>("updateAgpVersions") {
     comment = " Generated - Update by running `./gradlew updateAgpVersions`"
-    minimumSupported = "7.3.0"
+    minimumSupported = "7.4.0"
     propertiesFile = layout.projectDirectory.file("gradle/dependency-management/agp-versions.properties")
     compatibilityDocFile = layout.projectDirectory.file("platforms/documentation/docs/src/docs/userguide/releases/compatibility.adoc")
 }
 
 tasks.register<UpdateKotlinVersions>("updateKotlinVersions") {
     comment = " Generated - Update by running `./gradlew updateKotlinVersions`"
-    minimumSupported = "1.6.10"
+    minimumSupported = "1.9.21"
     propertiesFile = layout.projectDirectory.file("gradle/dependency-management/kotlin-versions.properties")
     compatibilityDocFile = layout.projectDirectory.file("platforms/documentation/docs/src/docs/userguide/releases/compatibility.adoc")
 }
