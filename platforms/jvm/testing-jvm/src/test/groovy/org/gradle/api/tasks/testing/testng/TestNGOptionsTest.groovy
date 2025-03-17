@@ -33,20 +33,18 @@ class TestNGOptionsTest extends Specification {
 
     def verifyDefaults() {
         expect:
-        with(testngOptions) {
-            includeGroups.empty
-            excludeGroups.empty
-            listeners.empty
-            parallel == null
-            threadCount == -1
-            suiteThreadPoolSize.get() == 1
-            suiteName == 'Gradle suite'
-            testName == 'Gradle test'
-            configFailurePolicy == DEFAULT_CONFIG_FAILURE_POLICY
-            !preserveOrder
-            !groupByInstances
-            !threadPoolFactoryClass
-        }
+        testngOptions.includeGroups.get().empty
+        testngOptions.excludeGroups.get().empty
+        testngOptions.listeners.get().empty
+        testngOptions.parallel.getOrNull() == null
+        testngOptions.threadCount.get() == -1
+        testngOptions.suiteThreadPoolSize.get() == 1
+        testngOptions.suiteName.get() == 'Gradle suite'
+        testngOptions.testName.get() == 'Gradle test'
+        testngOptions.configFailurePolicy.get() == TestNGOptions.DEFAULT_CONFIG_FAILURE_POLICY
+        !testngOptions.preserveOrder.get()
+        !testngOptions.groupByInstances.get()
+        testngOptions.threadPoolFactoryClass.getOrNull() == null
     }
 
     def testIncludeGroups() {
@@ -54,8 +52,8 @@ class TestNGOptionsTest extends Specification {
         testngOptions.includeGroups(groups)
 
         then:
-        testngOptions.includeGroups == groups as Set
-        testngOptions.excludeGroups.empty
+        testngOptions.includeGroups.get() == groups as Set
+        testngOptions.excludeGroups.get().empty
     }
 
     def testExcludeGroups() {
@@ -63,8 +61,8 @@ class TestNGOptionsTest extends Specification {
         testngOptions.excludeGroups(groups)
 
         then:
-        testngOptions.excludeGroups == groups as Set
-        testngOptions.includeGroups.empty
+        testngOptions.excludeGroups.get() == groups as Set
+        testngOptions.includeGroups.get().empty
     }
 
     def copyFromOverridesOldOptions() {
@@ -76,43 +74,40 @@ class TestNGOptionsTest extends Specification {
         target.copyFrom(source)
 
         then:
-        with(target) {
-            outputDirectory == source.outputDirectory
-            includeGroups == source.includeGroups
-            excludeGroups == source.excludeGroups
-            configFailurePolicy == source.configFailurePolicy
-            listeners == source.listeners
-            parallel == source.parallel
-            threadCount == source.threadCount
-            suiteThreadPoolSize.get() == source.suiteThreadPoolSize.get()
-            useDefaultListeners == source.useDefaultListeners
-            threadPoolFactoryClass == source.threadPoolFactoryClass
-            suiteName == source.suiteName
-            testName == source.testName
-            suiteXmlFiles == source.suiteXmlFiles
-            preserveOrder == source.preserveOrder
-            groupByInstances == source.groupByInstances
-        }
+        target.outputDirectory.get() == source.outputDirectory.get()
+        target.includeGroups.get() == source.includeGroups.get()
+        target.excludeGroups.get() == source.excludeGroups.get()
+        target.configFailurePolicy.get() == source.configFailurePolicy.get()
+        target.listeners.get() == source.listeners.get()
+        target.parallel.get() == source.parallel.get()
+        target.threadCount.get() == source.threadCount.get()
+        target.suiteThreadPoolSize.get() == source.suiteThreadPoolSize.get()
+        target.useDefaultListeners.get() == source.useDefaultListeners.get()
+        target.threadPoolFactoryClass.get() == source.threadPoolFactoryClass.get()
+        target.suiteName.get() == source.suiteName.get()
+        target.testName.get() == source.testName.get()
+        target.suiteXmlFiles.files == source.suiteXmlFiles.files
+        target.preserveOrder.get() == source.preserveOrder.get()
+        target.groupByInstances.get() == source.groupByInstances.get()
     }
 
     private TestNGOptions testNGOptionsWithPrefix(String prefix, boolean booleanValue, int intValue) {
-        return TestUtil.newInstance(TestNGOptions, layout)
-        .tap {
-            setOutputDirectory(new File(prefix + "OutputDirectory"))
-            setIncludeGroups([prefix + "IncludedGroup"] as Set)
-            setExcludeGroups([prefix + "ExcludedGroup"] as Set)
-            setConfigFailurePolicy(prefix + "ConfigFailurePolicy")
-            setListeners([prefix + "Listener"] as Set)
-            setParallel(prefix + "Parallel")
-            setThreadCount(intValue)
-            getSuiteThreadPoolSize().set(intValue)
-            setUseDefaultListeners(booleanValue)
-            setThreadPoolFactoryClass(prefix + "ThreadPoolFactoryClass")
-            setSuiteName(prefix + "SuiteName")
-            setTestName(prefix + "TestName")
-            setSuiteXmlFiles([new File(prefix + "SuiteXmlFile")])
-            setPreserveOrder(booleanValue)
-            setGroupByInstances(booleanValue)
-        }
+        TestNGOptions options = TestUtil.newInstance(TestNGOptions, layout)
+        options.outputDirectory = new File(prefix + "OutputDirectory")
+        options.includeGroups = [prefix + "IncludedGroup"] as Set
+        options.excludeGroups = [prefix + "ExcludedGroup"] as Set
+        options.configFailurePolicy = prefix + "ConfigFailurePolicy"
+        options.listeners = [prefix + "Listener"] as Set
+        options.parallel = prefix + "Parallel"
+        options.threadCount = intValue
+        options.suiteThreadPoolSize = intValue
+        options.useDefaultListeners = booleanValue
+        options.threadPoolFactoryClass = prefix + "ThreadPoolFactoryClass"
+        options.suiteName = prefix + "SuiteName"
+        options.testName = prefix + "TestName"
+        options.suiteXmlFiles.setFrom(new File(prefix + "SuiteXmlFile").absoluteFile)
+        options.preserveOrder = booleanValue
+        options.groupByInstances = booleanValue
+        return options
     }
 }
