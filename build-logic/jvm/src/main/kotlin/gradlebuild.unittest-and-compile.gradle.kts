@@ -265,6 +265,7 @@ fun addDependencies() {
         testImplementation(libs.develocityTestAnnotation)
         testRuntimeOnly(libs.bytebuddy)
         testRuntimeOnly(libs.objenesis)
+        testRuntimeOnly(libs.junitPlatform)
 
         // use a separate configuration for the platform dependency that does not get published as part of 'apiElements' or 'runtimeElements'
         val platformImplementation by configurations.creating
