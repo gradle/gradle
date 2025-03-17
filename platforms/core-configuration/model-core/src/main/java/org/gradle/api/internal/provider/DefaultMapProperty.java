@@ -379,6 +379,12 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
 
         @Override
+        public ValueProducer getProducer() {
+            MapCollector<K, V> collectorForKey = DefaultMapProperty.this.getExplicitValue(defaultValue).getCollectorForKey(key);
+            return collectorForKey != null ? collectorForKey.getProducer() : ValueProducer.NO_PRODUCER;
+        }
+
+        @Override
         protected Value<? extends V> calculateOwnValue(ValueConsumer consumer) {
             Value<? extends Map<K, V>> result = DefaultMapProperty.this.calculateOwnValue(consumer);
             if (result.isMissing()) {
@@ -440,6 +446,12 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
             return ExecutionTimeValue.missing();
         }
 
+        @Nullable
+        @Override
+        public MapCollector<K, V> getCollectorForKey(K key) {
+            return null;
+        }
+
         @Override
         public ValueProducer getProducer() {
             return ValueProducer.unknown();
@@ -476,6 +488,12 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         @Override
         public ExecutionTimeValue<? extends Map<K, V>> calculateExecutionTimeValue() {
             return ExecutionTimeValue.fixedValue(ImmutableMap.of());
+        }
+
+        @Nullable
+        @Override
+        public MapCollector<K, V> getCollectorForKey(K key) {
+            return null;
         }
 
         @Override
@@ -521,6 +539,12 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         @Override
         public ExecutionTimeValue<? extends Map<K, V>> calculateExecutionTimeValue() {
             return ExecutionTimeValue.fixedValue(entries).withSideEffect(sideEffect);
+        }
+
+        @Nullable
+        @Override
+        public MapCollector<K, V> getCollectorForKey(K key) {
+            return entries.containsKey(key) ? new FixedValueCollector<>(entries, sideEffect) : null;
         }
 
         @Override
@@ -603,6 +627,34 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
                 this::calculateFixedExecutionTimeValue,
                 this::calculateChangingExecutionTimeValue
             );
+        }
+
+        @Override
+        @Nullable
+        public MapCollector<K, V> getCollectorForKey(K key) {
+            for (MapCollector<K, V> collector : collectors) {
+                ImmutableSet.Builder<K> keysBuilder = ImmutableSet.builder();
+                // We are intentionally ignoring returned Value's side-effects here
+                collector.collectKeys(
+                    ValueConsumer.IgnoreUnsafeRead,
+                    new ValueCollector<K>() {
+                        @Override
+                        public void add(@Nullable K value, ImmutableCollection.Builder<K> dest) {
+                            dest.add(value);
+                        }
+
+                        @Override
+                        public void addAll(Iterable<? extends K> values, ImmutableCollection.Builder<K> dest) {
+                            dest.addAll(values);
+                        }
+                    },
+                    keysBuilder
+                );
+                if (keysBuilder.build().contains(key)) {
+                    return collector;
+                }
+            }
+            return null;
         }
 
         private ExecutionTimeValue<? extends Map<K, V>> calculateFixedExecutionTimeValue(
