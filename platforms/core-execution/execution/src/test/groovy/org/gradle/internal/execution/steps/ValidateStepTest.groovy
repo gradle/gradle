@@ -16,8 +16,8 @@
 
 package org.gradle.internal.execution.steps
 
-import org.gradle.api.problems.ProblemId
 import org.gradle.api.problems.Problem
+import org.gradle.api.problems.ProblemId
 import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import org.gradle.api.problems.internal.ProblemsProgressEventEmitterHolder
@@ -43,9 +43,10 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
     def buildOperationProgressEventEmitter = Mock(BuildOperationProgressEventEmitter)
     def step = new ValidateStep<>(virtualFileSystem, warningReporter, delegate)
     def delegateResult = Mock(Result)
+    def problems = TestUtil.problemsService()
 
     def setup() {
-        def validationContext = new DefaultWorkValidationContext(WorkValidationContext.TypeOriginInspector.NO_OP)
+        def validationContext = new DefaultWorkValidationContext(WorkValidationContext.TypeOriginInspector.NO_OP, problems)
         context.getValidationContext() >> validationContext
         ProblemsProgressEventEmitterHolder.init(TestUtil.problemsService())
     }

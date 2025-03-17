@@ -109,6 +109,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
     def changeDetector = new DefaultExecutionStateChangeDetector()
     def overlappingOutputDetector = new DefaultOverlappingOutputDetector()
     def deleter = TestFiles.deleter()
+    def problems = TestUtil.problemsService()
 
     ExecutionEngine createExecutor() {
         TestExecutionEngineFactory.createExecutionEngine(
@@ -122,7 +123,8 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
             outputSnapshotter,
             overlappingOutputDetector,
             validationWarningReporter,
-            virtualFileSystem
+            virtualFileSystem,
+            problems
         )
     }
 

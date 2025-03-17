@@ -67,6 +67,7 @@ abstract class AbstractProjectBuilderSpec extends Specification {
 
     private ProjectInternal rootProject
     ServiceRegistry executionServices
+    def problems = TestUtil.problemsService()
 
     def setup() {
         System.setProperty("user.dir", temporaryFolder.testDirectory.absolutePath)
@@ -89,7 +90,7 @@ abstract class AbstractProjectBuilderSpec extends Specification {
     }
 
     void execute(Task task) {
-        def workValidationContext = new DefaultWorkValidationContext(WorkValidationContext.TypeOriginInspector.NO_OP)
+        def workValidationContext = new DefaultWorkValidationContext(WorkValidationContext.TypeOriginInspector.NO_OP, problems)
         def taskExecutionContext = new DefaultTaskExecutionContext(
             new LocalTaskNode(task as TaskInternal, workValidationContext, { null }),
             DefaultTaskProperties.resolve(executionServices.get(PropertyWalker), executionServices.get(FileCollectionFactory), task as TaskInternal),
