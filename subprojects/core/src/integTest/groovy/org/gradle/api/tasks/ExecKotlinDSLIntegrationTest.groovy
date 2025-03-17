@@ -57,7 +57,7 @@ class ExecKotlinDSLIntegrationTest extends AbstractIntegrationSpec {
 
             tasks.register<Exec>("execTask") {
                 executable = Jvm.current().getJavaExecutable().absolutePath
-                setIgnoreExitValue(true)
+                ignoreExitValue = true
             }
         """
 

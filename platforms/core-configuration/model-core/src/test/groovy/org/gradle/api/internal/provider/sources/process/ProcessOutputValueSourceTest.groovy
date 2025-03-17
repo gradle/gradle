@@ -113,7 +113,7 @@ class ProcessOutputValueSourceTest extends ValueSourceBasedSpec {
 
         then:
         1 * execOperations.exec(_) >> { Action<? super ExecSpec> action -> action.execute(spec) }
-        !spec.isIgnoreExitValue()
+        !spec.ignoreExitValue.get()
     }
 
     def "ignoreReturnValue is propagated to execOperations"() {
@@ -131,7 +131,7 @@ class ProcessOutputValueSourceTest extends ValueSourceBasedSpec {
 
         then:
         1 * execOperations.exec(_) >> { Action<? super ExecSpec> action -> action.execute(spec) }
-        spec.isIgnoreExitValue()
+        spec.ignoreExitValue.get()
     }
 
     def "execution result is available from the provider"() {
@@ -139,10 +139,10 @@ class ProcessOutputValueSourceTest extends ValueSourceBasedSpec {
         execOperations.exec(_ as Action<? super ExecSpec>) >> { Action<? super ExecSpec> action ->
             def spec = specFactory.newExecAction()
             action.execute(spec)
-            spec.standardOutput.write("output".getBytes(Charset.defaultCharset()))
-            spec.standardOutput.close()
-            spec.errorOutput.write("error".getBytes(Charset.defaultCharset()))
-            spec.errorOutput.close()
+            spec.standardOutput.get().write("output".getBytes(Charset.defaultCharset()))
+            spec.standardOutput.get().close()
+            spec.errorOutput.get().write("error".getBytes(Charset.defaultCharset()))
+            spec.errorOutput.get().close()
             return Stub(ExecResult) {
                 getExitValue() >> 0
             }
