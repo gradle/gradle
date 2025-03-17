@@ -17,6 +17,7 @@
 package org.gradle.nativeplatform.toolchain.internal.gcc.metadata
 
 import org.gradle.api.Transformer
+import org.gradle.api.provider.Property
 import org.gradle.internal.logging.text.DiagnosticsVisitor
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.platform.base.internal.toolchain.SearchResult
@@ -277,6 +278,9 @@ End of search list."""
 
         then:
         1 * execActionFactory.newExecAction() >> action
+        1 * action.getStandardOutput() >> _
+        1 * action.getErrorOutput() >> _
+        1 * action.getIgnoreExitValue() >> _
         1 * action.execute() >> execResult
         1 * execResult.getExitValue() >> 1
 
@@ -403,19 +407,27 @@ End of search list."""
 
     void runsCompiler(String output, String error) {
         def action = Mock(ExecAction)
+        def errorOutput = Mock(Property)
+        def standardOutput = Mock(Property)
         def result = Mock(ExecResult)
         1 * execActionFactory.newExecAction() >> action
-        1 * action.setStandardOutput(_) >> { OutputStream outstr -> outstr << output; action }
-        1 * action.setErrorOutput(_) >> { OutputStream errorstr -> errorstr << error; action }
+        1 * action.getStandardOutput() >> standardOutput
+        1 * action.getErrorOutput() >> errorOutput
+        1 * action.getIgnoreExitValue() >> _
+        1 * standardOutput.set(_) >> { OutputStream outstr -> outstr << output }
+        1 * errorOutput.set(_) >> { OutputStream errorstr -> errorstr << error }
         1 * action.execute() >> result
     }
 
     void mapsPath(TestFile cygpath, String from, String to) {
         def action = Mock(ExecAction)
         def execResult = Mock(ExecResult)
+        def standardOutput = Mock(Property)
         1 * execActionFactory.newExecAction() >> action
         1 * action.commandLine(cygpath.absolutePath, '-w', from)
-        1 * action.setStandardOutput(_) >> { OutputStream outputStream -> outputStream.write(to.bytes) }
+        1 * action.getStandardOutput() >> standardOutput
+        1 * action.getErrorOutput() >> _
+        1 * standardOutput.set(_) >> { OutputStream outputStream -> outputStream.write(to.bytes) }
         1 * action.execute() >> execResult
         _ * execResult.assertNormalExitValue()
     }

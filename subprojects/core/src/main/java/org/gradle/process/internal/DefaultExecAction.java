@@ -16,11 +16,13 @@
 
 package org.gradle.process.internal;
 
-import org.gradle.process.BaseExecSpec;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ProcessForkOptions;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -35,17 +37,35 @@ import java.util.Map;
 public class DefaultExecAction implements ExecAction {
 
     private final ClientExecHandleBuilder execHandleBuilder;
-    private boolean ignoreExitValue;
+    private final Property<Boolean> ignoreExitValue;
+    private final Property<InputStream> standardInput;
+    private final Property<OutputStream> standardOutput;
+    private final Property<OutputStream> errorOutput;
 
-    public DefaultExecAction(ClientExecHandleBuilder execHandleBuilder) {
+    @Inject
+    public DefaultExecAction(ObjectFactory objectFactory, ClientExecHandleBuilder execHandleBuilder) {
         this.execHandleBuilder = execHandleBuilder;
+        this.ignoreExitValue = objectFactory.property(Boolean.class).convention(false);
+        this.standardInput = objectFactory.property(InputStream.class);
+        this.standardOutput = objectFactory.property(OutputStream.class);
+        this.errorOutput = objectFactory.property(OutputStream.class);
     }
 
     @Override
     public ExecResult execute() {
+        if (getStandardInput().isPresent()) {
+            execHandleBuilder.setStandardInput(getStandardInput().get());
+        }
+        if (getStandardOutput().isPresent()) {
+            execHandleBuilder.setStandardOutput(getStandardOutput().get());
+        }
+        if (getErrorOutput().isPresent()) {
+            execHandleBuilder.setErrorOutput(getErrorOutput().get());
+        }
+
         ExecHandle execHandle = execHandleBuilder.build();
         ExecResult execResult = execHandle.start().waitForFinish();
-        if (!isIgnoreExitValue()) {
+        if (!getIgnoreExitValue().get()) {
             execResult.assertNormalExitValue();
         }
         return execResult;
@@ -149,23 +169,6 @@ public class DefaultExecAction implements ExecAction {
     }
 
     @Override
-    public ExecAction setIgnoreExitValue(boolean ignoreExitValue) {
-        this.ignoreExitValue = ignoreExitValue;
-        return this;
-    }
-
-    @Override
-    public boolean isIgnoreExitValue() {
-        return ignoreExitValue;
-    }
-
-    @Override
-    public ExecAction setStandardInput(InputStream inputStream) {
-        execHandleBuilder.setStandardInput(inputStream);
-        return this;
-    }
-
-    @Override
     public ExecAction workingDir(Object dir) {
         execHandleBuilder.setWorkingDir(dir);
         return this;
@@ -194,35 +197,28 @@ public class DefaultExecAction implements ExecAction {
     }
 
     @Override
-    public OutputStream getStandardOutput() {
-        return execHandleBuilder.getStandardOutput();
+    public Property<Boolean> getIgnoreExitValue() {
+        return ignoreExitValue;
     }
 
     @Override
-    public BaseExecSpec setErrorOutput(OutputStream outputStream) {
-        execHandleBuilder.setErrorOutput(outputStream);
-        return this;
+    public Property<InputStream> getStandardInput() {
+        return standardInput;
     }
 
     @Override
-    public OutputStream getErrorOutput() {
-        return execHandleBuilder.getErrorOutput();
+    public Property<OutputStream> getStandardOutput() {
+        return standardOutput;
+    }
+
+    @Override
+    public Property<OutputStream> getErrorOutput() {
+        return errorOutput;
     }
 
     @Override
     public List<String> getCommandLine() {
         return execHandleBuilder.getCommandLine();
-    }
-
-    @Override
-    public InputStream getStandardInput() {
-        return execHandleBuilder.getStandardInput();
-    }
-
-    @Override
-    public ExecAction setStandardOutput(OutputStream outputStream) {
-        execHandleBuilder.setStandardOutput(outputStream);
-        return this;
     }
 
     @Override

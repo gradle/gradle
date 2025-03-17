@@ -93,8 +93,8 @@ public abstract class GitClone extends DefaultTask {
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         ExecResult result = getExecOperations().exec(spec -> {
             spec.commandLine("git", "remote", "get-url", "origin");
-            spec.setIgnoreExitValue(true);
-            spec.setStandardOutput(output);
+            spec.getIgnoreExitValue().set(true);
+            spec.getStandardOutput().set(output);
             spec.setWorkingDir(directory);
         });
         String outputString = output.toString().trim();
