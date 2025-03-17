@@ -56,7 +56,7 @@ public class TestNGTestFrameworkTest extends Specification {
         }
 
         then:
-        testTask.options.suiteName == 'Custom Suite'
+        testTask.options.suiteName.get() == 'Custom Suite'
     }
 
     TestNGTestFramework createFramework() {
