@@ -77,6 +77,22 @@ The extension should only be created by the Gradle Plugin Development plugin. Th
 
 These methods will be removed in Gradle 9.0.
 
+[[validate_plugins_without_stricter_validation]]
+==== Not enabling `ValidatePlugins.enableStricterValidation` is deprecated
+
+It is now required to enable stricter validation of plugin types.
+
+This needs to be done in your local build logic (`buildSrc` or included plugins builds). This is also required if you are simply building Gradle plugins.
+
+[source,kotlin]
+----
+tasks.validatePlugins {
+    enableStricterValidation = true
+}
+----
+
+Starting with Gradle 9.0, stricter validation of plugin types will be enabled by default.
+
 [[changes_8.13]]
 == Upgrading from 8.12 and earlier
 
