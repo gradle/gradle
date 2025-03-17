@@ -16,6 +16,7 @@
 
 package gradlebuild.docs;
 
+import gradlebuild.basics.Gradle10PropertyUpgradeSupport;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.DirectoryProperty;
@@ -69,8 +70,8 @@ public abstract class ServeDocs extends DefaultTask {
             JavaExecHandleBuilder builder = getExecActionFactory().newJavaExec();
             builder.setExecutable(getJavaLauncher().get().getExecutablePath().getAsFile());
             builder.getMainModule().set("jdk.httpserver");
-            builder.setStandardOutput(System.out);
-            builder.setErrorOutput(System.err);
+            Gradle10PropertyUpgradeSupport.setProperty(builder, "setStandardOutput", System.out);
+            Gradle10PropertyUpgradeSupport.setProperty(builder, "setErrorOutput", System.err);
             builder.setArgs(Arrays.asList("-p", port, "-d", getDocsDirectory().get().getAsFile().getAbsolutePath()));
             registry.start(getPath(), DeploymentRegistry.ChangeBehavior.RESTART, JavaApplicationHandle.class, builder);
         }

@@ -75,9 +75,9 @@ public abstract class AbstractMetadataProvider<T extends CompilerMetadata> imple
         exec.environment(environmentVariables);
         StreamByteBuffer buffer = new StreamByteBuffer();
         StreamByteBuffer errorBuffer = new StreamByteBuffer();
-        exec.setStandardOutput(buffer.getOutputStream());
-        exec.setErrorOutput(errorBuffer.getOutputStream());
-        exec.setIgnoreExitValue(true);
+        exec.getStandardOutput().set(buffer.getOutputStream());
+        exec.getErrorOutput().set(errorBuffer.getOutputStream());
+        exec.getIgnoreExitValue().set(true);
         ExecResult result = exec.execute();
 
         int exitValue = result.getExitValue();
