@@ -137,11 +137,19 @@ class ReceivedProblem implements InternalProblem {
         contextualLocations
     }
 
-    <T extends ProblemLocation> T getSingleLocation(Class<T> locationType) {
-        def location = originLocations.find {
+    <T extends ProblemLocation> T getSingleOriginLocation(Class<T> locationType) {
+        return getSingleLocation(locationType, originLocations)
+    }
+
+    <T extends ProblemLocation> T getSingleContextualLocation(Class<T> locationType) {
+        return getSingleLocation(locationType, contextualLocations)
+    }
+
+    private static <T extends ProblemLocation> T getSingleLocation(Class<T> locationType, List<ProblemLocation> locations) {
+        def location = locations.find {
             locationType.isInstance(it)
         }
-        assert location != null : "Expected a location of type $locationType, but found none."
+        assert location != null : "Expected a location of type $locationType, but found none. Available locations: ${locations.collect { it.getClass().name }}"
         return locationType.cast(location)
     }
 
