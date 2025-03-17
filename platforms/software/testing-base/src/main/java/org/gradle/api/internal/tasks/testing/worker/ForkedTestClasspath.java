@@ -37,18 +37,15 @@ public class ForkedTestClasspath {
     private final ImmutableList<File> applicationClasspath;
     private final ImmutableList<File> applicationModulepath;
     private final ImmutableList<URL> implementationClasspath;
-    public final ImmutableList<URL> implementationModulepath;
 
     public ForkedTestClasspath(
         ImmutableList<File> applicationClasspath,
         ImmutableList<File> applicationModulepath,
-        ImmutableList<URL> implementationClasspath,
-        ImmutableList<URL> implementationModulepath
+        ImmutableList<URL> implementationClasspath
     ) {
         this.applicationClasspath = applicationClasspath;
         this.applicationModulepath = applicationModulepath;
         this.implementationClasspath = implementationClasspath;
-        this.implementationModulepath = implementationModulepath;
     }
 
     public ImmutableList<File> getApplicationClasspath() {
@@ -61,9 +58,5 @@ public class ForkedTestClasspath {
 
     public ImmutableList<URL> getImplementationClasspath() {
         return implementationClasspath;
-    }
-
-    public ImmutableList<URL> getImplementationModulepath() {
-        return implementationModulepath;
     }
 }

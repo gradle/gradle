@@ -107,7 +107,6 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
         WorkerProcessBuilder builder = workerFactory.create(new TestWorker(processorFactory));
         builder.setBaseName("Gradle Test Executor");
         builder.setImplementationClasspath(classpath.getImplementationClasspath());
-        builder.setImplementationModulePath(classpath.getImplementationModulepath());
         builder.applicationClasspath(classpath.getApplicationClasspath());
         builder.applicationModulePath(classpath.getApplicationModulepath());
         // Disabled for faster startup, see https://github.com/gradle/gradle/pull/1883
