@@ -21,6 +21,7 @@ dependencies {
     api(libs.junitPlatform)
     api(libs.junitPlatformEngine)
 
+    implementation(projects.logging)
     implementation(projects.stdlibJavaExtensions)
 
     implementation(libs.jsr305)

@@ -116,14 +116,6 @@ public class TestNGTestFramework implements TestFramework {
     }
 
     @Override
-    public boolean getUseDistributionDependencies() {
-        // We have no (default) implementation dependencies (see above).
-        // The user must add their TestNG dependency to the test's runtimeClasspath themselves
-        // or preferably use test suites where the dependencies are automatically managed.
-        return false;
-    }
-
-    @Override
     public TestNGOptions getOptions() {
         return options;
     }
