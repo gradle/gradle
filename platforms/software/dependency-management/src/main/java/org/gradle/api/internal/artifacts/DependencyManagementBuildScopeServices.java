@@ -71,11 +71,9 @@ import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.notations.DependencyConstraintNotationParser;
 import org.gradle.api.internal.notations.DependencyNotationParser;
 import org.gradle.api.internal.notations.ProjectDependencyFactory;
-import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
-import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.cache.internal.CleaningInMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.GeneratedGradleJarCache;
@@ -136,6 +134,7 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
         registration.add(ResolvedArtifactSetResolver.class);
         registration.add(ExternalModuleComponentResolverFactory.class);
         registration.add(ResolverProviderFactories.class);
+        registration.add(DefaultProjectDependencyFactory.class);
     }
 
     @Provides
@@ -179,19 +178,6 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
     @Provides
     CapabilityNotationParser createCapabilityNotationParser() {
         return new CapabilityNotationParserFactory(false).create();
-    }
-
-    @Provides
-    DefaultProjectDependencyFactory createProjectDependencyFactory(
-        Instantiator instantiator,
-        StartParameter startParameter,
-        AttributesFactory attributesFactory,
-        TaskDependencyFactory taskDependencyFactory,
-        CapabilityNotationParser capabilityNotationParser,
-        ObjectFactory objectFactory,
-        ProjectStateRegistry projectStateRegistry
-    ) {
-        return new DefaultProjectDependencyFactory(instantiator, startParameter.isBuildProjectDependencies(), capabilityNotationParser, objectFactory, attributesFactory, taskDependencyFactory, projectStateRegistry);
     }
 
     @Provides

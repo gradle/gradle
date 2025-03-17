@@ -153,6 +153,30 @@
             ]
         },
         {
+            "type": "org.gradle.api.artifacts.SelfResolvingDependency",
+            "member": "Class org.gradle.api.artifacts.SelfResolvingDependency",
+            "acceptation": "Deprecated class removed",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.SelfResolvingDependency",
+            "member": "Method org.gradle.api.artifacts.SelfResolvingDependency.resolve()",
+            "acceptation": "Deprecated method removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.SelfResolvingDependency",
+            "member": "Method org.gradle.api.artifacts.SelfResolvingDependency.resolve(boolean)",
+            "acceptation": "Deprecated method removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.artifacts.component.ProjectComponentSelector",
             "member": "Method org.gradle.api.artifacts.component.ProjectComponentSelector.getBuildName()",
             "acceptation": "Deprecated in 8.x",
