@@ -146,9 +146,9 @@ class GroovyPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         task instanceof Groovydoc
-        task.destinationDir == project.java.docsDir.file('groovydoc').get().asFile
+        task.destinationDir.asFile.get() == project.java.docsDir.file('groovydoc').get().asFile
         task.source.files == project.sourceSets.main.groovy.files
-        task.docTitle == project.extensions.getByType(ReportingExtension).apiDocTitle
-        task.windowTitle == project.extensions.getByType(ReportingExtension).apiDocTitle
+        task.docTitle.get() == project.extensions.getByType(ReportingExtension).apiDocTitle
+        task.windowTitle.get() == project.extensions.getByType(ReportingExtension).apiDocTitle
     }
 }
