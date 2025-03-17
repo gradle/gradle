@@ -237,6 +237,33 @@ Because there are no semantics associated with this combination, Gradle cannot d
 
 To fix this, you most likely need to remove the conflicting modifier annotation or check that the actual property type is what you intended.
 
+[[property_accessor_must_not_be_overridden]]
+== Property accessor must not be overridden
+
+This error indicates that a getter or a setter for a property annotated with `@ToBeReplacedByLazyProperty` has been overridden by user code.
+Gradle is moving away from using JavaBean properties towards rich properties.
+Properties marked with the annotation will be replaced by their rich counterparts with a getter returning `Property` or `ConfigurableFileCollection` etc.
+When that happens, the overriding method in the user code would stop working.
+
+For example, you wrote:
+
+```groovy
+import org.gradle.api.tasks.JavaExec
+
+class CustomJavaExec extends JavaExec {
+
+    @Override
+    JavaExec setArgs(List<String> args) {
+        println "args set: $args"
+        super.setArgs(args)
+    }
+}
+```
+
+To fix this problem, avoid overriding the getter or setter for the property.
+
+[[property_must_not_be_overridden]]
+
 [[incorrect_use_of_input_annotation]]
 == Incorrect use of the `@Input` annotation
 

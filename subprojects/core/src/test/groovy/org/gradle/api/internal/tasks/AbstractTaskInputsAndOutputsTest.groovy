@@ -53,6 +53,7 @@ abstract class AbstractTaskInputsAndOutputsTest extends AbstractProjectBuilderSp
         [],
         [:],
         [:],
+        [],
         ["java", "groovy"],
         [],
         [Object, GroovyObject],

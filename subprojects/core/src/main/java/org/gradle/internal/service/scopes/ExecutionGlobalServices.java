@@ -85,6 +85,7 @@ import org.gradle.internal.execution.model.annotations.TaskActionAnnotationHandl
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.operations.BuildOperationAncestryTracker;
 import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.properties.annotations.FunctionAnnotationHandler;
@@ -145,7 +146,8 @@ public class ExecutionGlobalServices implements ServiceRegistrationProvider {
 
     @VisibleForTesting
     public static final ImmutableSet<Class<? extends Annotation>> IGNORED_METHOD_ANNOTATIONS_ALLOWED_MODIFIERS = ImmutableSet.of(
-        ReplacesEagerProperty.class
+        ReplacesEagerProperty.class,
+        ToBeReplacedByLazyProperty.class
     );
 
     @Provides
@@ -173,6 +175,10 @@ public class ExecutionGlobalServices implements ServiceRegistrationProvider {
             ),
             ModifierAnnotationCategory.asMap(builder.build()),
             FUNCTION_TYPE_ANNOTATIONS.stream().collect(Collectors.toMap(annotation -> annotation, annotation -> ModifierAnnotationCategory.TYPE)),
+            ImmutableSet.of(
+                ReplacesEagerProperty.class,
+                ToBeReplacedByLazyProperty.class
+            ),
             ImmutableSet.of(
                 "java",
                 "groovy",
@@ -248,7 +254,8 @@ public class ExecutionGlobalServices implements ServiceRegistrationProvider {
                 SkipWhenEmpty.class,
                 IgnoreEmptyDirectories.class,
                 NormalizeLineEndings.class,
-                ReplacesEagerProperty.class
+                ReplacesEagerProperty.class,
+                ToBeReplacedByLazyProperty.class
             ),
             ImmutableSet.of(),
             instantiationScheme);
