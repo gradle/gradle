@@ -57,7 +57,9 @@ Method <org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.getShowingA
 Method <org.gradle.api.tasks.diagnostics.PropertyReportTask.getProperty()> is not abstract
 Method <org.gradle.api.tasks.diagnostics.TaskReportTask.getShowTypes()> is not abstract
 Method <org.gradle.api.tasks.javadoc.Groovydoc.getClasspath()> is not abstract
-Method <org.gradle.api.tasks.javadoc.Groovydoc.getGroovyClasspath()> is not abstract
+Method <org.gradle.api.tasks.javadoc.Groovydoc.getIsNoTimestamp()> is not abstract
+Method <org.gradle.api.tasks.javadoc.Groovydoc.getIsNoVersionStamp()> is not abstract
+Method <org.gradle.api.tasks.javadoc.Groovydoc.getIsUse()> is not abstract
 Method <org.gradle.api.tasks.javadoc.Groovydoc.getSource()> is not abstract
 Method <org.gradle.api.tasks.javadoc.Javadoc.getClasspath()> is not abstract
 Method <org.gradle.api.tasks.javadoc.Javadoc.getJavadocTool()> is not abstract
