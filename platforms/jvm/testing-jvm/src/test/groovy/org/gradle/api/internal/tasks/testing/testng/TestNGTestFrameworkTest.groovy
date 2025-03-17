@@ -16,8 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.testng
 
-
-import org.gradle.api.model.ObjectFactory
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.tasks.testing.Test
 import org.gradle.api.tasks.testing.testng.TestNGOptions
 import org.gradle.internal.actor.ActorFactory
@@ -25,15 +24,11 @@ import org.gradle.internal.id.IdGenerator
 import org.gradle.internal.time.FixedClock
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.TestUtil
-import spock.lang.Shared
 import spock.lang.Specification
 
-public class TestNGTestFrameworkTest extends Specification {
-
-    @Shared ObjectFactory objects = TestUtil.objectFactory()
-
-    private project = ProjectBuilder.builder().build()
-    Test testTask = TestUtil.createTask(Test, project)
+class TestNGTestFrameworkTest extends Specification {
+    private ProjectInternal project = ProjectBuilder.builder().build() as ProjectInternal
+    private Test testTask = TestUtil.createTask(Test, project)
 
     void setup() {
         project.ext.sourceCompatibility = "1.7"
@@ -56,10 +51,12 @@ public class TestNGTestFrameworkTest extends Specification {
         }
 
         then:
-        testTask.options.suiteName == 'Custom Suite'
+        testTask.options.suiteName.get() == 'Custom Suite'
     }
 
-    TestNGTestFramework createFramework() {
-        TestUtil.objectFactory().newInstance(TestNGTestFramework.class, testTask.getFilter(), testTask.getTemporaryDirFactory(), testTask.getDryRun(), testTask.getReports().getHtml())
+    private TestNGTestFramework createFramework() {
+        TestUtil.objectFactory().newInstance(TestNGTestFramework.class, testTask.getFilter(), testTask.getTemporaryDirFactory(), testTask.getDryRun(), testTask.getReports().getHtml()).tap {
+            it.getOptions().getOutputDirectory().set(project.getLayout().getBuildDirectory().dir("testng-reports"))
+        }
     }
 }

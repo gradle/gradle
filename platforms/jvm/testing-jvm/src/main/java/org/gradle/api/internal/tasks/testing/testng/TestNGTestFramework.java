@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.testing.testng;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.WorkerTestDefinitionProcessorFactory;
 import org.gradle.api.internal.tasks.testing.detection.ClassFileExtractionManager;
@@ -35,6 +34,7 @@ import org.gradle.process.internal.worker.WorkerProcessBuilder;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 @UsedByScanPlugin("test-retry")
@@ -56,7 +56,7 @@ public abstract class TestNGTestFramework implements TestFramework {
     }
 
     private static void conventionMapOutputDirectory(TestNGOptions options, final DirectoryReport html) {
-        new DslObject(options).getConventionMapping().map("outputDirectory", () -> html.getOutputLocation().getAsFile().getOrNull());
+        options.getOutputDirectory().convention(html.getOutputLocation().getLocationOnly());
     }
 
     @Inject
@@ -75,15 +75,27 @@ public abstract class TestNGTestFramework implements TestFramework {
     public WorkerTestDefinitionProcessorFactory<?> getProcessorFactory() {
         List<File> suiteFiles = getOptions().getSuites(testTaskTemporaryDir.create());
         TestNGSpec spec = toSpec(getOptions(), filter);
-        return new TestNgTestDefinitionProcessorFactory(this.getOptions().getOutputDirectory(), spec, suiteFiles);
+        return new TestNgTestDefinitionProcessorFactory(this.getOptions().getOutputDirectory().getAsFile().get(), spec, suiteFiles);
     }
 
     private TestNGSpec toSpec(TestNGOptions options, DefaultTestFilter filter) {
         return new TestNGSpec(filter.toSpec(),
-            options.getSuiteName(), options.getTestName(), options.getParallel(), options.getThreadCount(), options.getSuiteThreadPoolSize().get(),
-            options.getUseDefaultListeners(), options.getThreadPoolFactoryClass(),
-            options.getIncludeGroups(), options.getExcludeGroups(), options.getListeners(),
-            options.getConfigFailurePolicy(), options.getPreserveOrder(), options.getGroupByInstances(), dryRun.get()
+            options.getSuiteName().get(),
+            options.getTestName().get(),
+            options.getParallel().getOrNull(),
+            options.getThreadCount().get(),
+            options.getSuiteThreadPoolSize().get(),
+            options.getUseDefaultListeners().get(),
+            options.getThreadPoolFactoryClass().getOrNull(),
+            // TestNGSpec get serialized to worker, so we create a copy of original sets,
+            // to avoid serialization issues on worker for ImmutableSet that SetProperty returns
+            new LinkedHashSet<>(options.getIncludeGroups().get()),
+            new LinkedHashSet<>(options.getExcludeGroups().get()),
+            new LinkedHashSet<>(options.getListeners().get()),
+            options.getConfigFailurePolicy().get(),
+            options.getPreserveOrder().get(),
+            options.getGroupByInstances().get(),
+            dryRun.get()
         );
     }
 
