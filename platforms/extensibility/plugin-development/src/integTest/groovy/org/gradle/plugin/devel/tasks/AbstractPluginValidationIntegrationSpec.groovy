@@ -916,6 +916,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
             public class MyTask extends DefaultTask {
                 @Optional
                 @InputFile
+                @PathSensitive(PathSensitivity.RELATIVE)
                 @OutputFile
                 public File getFile() {
                     return null;

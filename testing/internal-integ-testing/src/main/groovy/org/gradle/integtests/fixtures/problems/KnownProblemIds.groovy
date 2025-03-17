@@ -159,6 +159,9 @@ class KnownProblemIds {
 
         'dependency-variant-resolution:unknown-resolution-failure' : 'Unknown resolution failure',
 
+        // java-gradle-plugin problems
+        'deprecation:validate-plugins-without-stricter-validation' : 'Using task ValidatePlugins without enabling stricter validation.',
+
         // integration test problems
         'deprecation:some-indirect-deprecation' : 'Some indirect deprecation has been deprecated.',
         'deprecation:some-invocation-feature' : 'Some invocation feature has been deprecated.',

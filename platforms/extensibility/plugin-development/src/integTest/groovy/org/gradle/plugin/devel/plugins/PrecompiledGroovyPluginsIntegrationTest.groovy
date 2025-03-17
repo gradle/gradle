@@ -833,6 +833,10 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
                     }
                 }
             }
+
+            tasks.validatePlugins {
+                enableStricterValidation = true
+            }
         """
 
         when:

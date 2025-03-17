@@ -57,6 +57,10 @@ trait CommonPluginValidationTrait {
             repositories {
                 mavenCentral()
             }
+
+            tasks.validatePlugins {
+                enableStricterValidation = true
+            }
         """
         source("src/main/kotlin/MyTask.kt")
     }

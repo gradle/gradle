@@ -770,6 +770,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
             import org.gradle.work.*;
             import kotlin.*;
 
+            @UntrackedTask(because = "irrelevant")
             abstract class MyTask : DefaultTask() {
                 @get:Nested
                 var my$typeName: $typeName = $producer
@@ -844,6 +845,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
         source("consumer/settings.gradle") << ""
         source("consumer/build.gradle") << """
             tasks.register("validatePlugins", ValidatePlugins) {
+                enableStricterValidation = true
                 classes.from("../producer/build/classes/java/main")
                 outputFile.set(project.file("\$buildDir/report.txt"))
             }
