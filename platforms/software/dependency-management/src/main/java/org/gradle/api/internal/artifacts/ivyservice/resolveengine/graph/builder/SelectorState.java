@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 
 import com.google.common.base.Joiner;
 import org.gradle.api.Describable;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
@@ -82,9 +81,6 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     private boolean fromLock;
     private boolean reusable;
     private boolean markedReusableAlready;
-
-    @SuppressWarnings("deprecation")
-    private org.gradle.api.artifacts.ClientModule clientModule;
     private boolean changing;
 
     // An internal counter used to track the number of outgoing edges
@@ -188,7 +184,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
                 idResolveResult.failed(dependencyState.failure);
             } else {
                 IvyArtifactName firstArtifact = getFirstDependencyArtifact();
-                ComponentOverrideMetadata overrideMetadata = DefaultComponentOverrideMetadata.forDependency(changing, firstArtifact, clientModule);
+                ComponentOverrideMetadata overrideMetadata = DefaultComponentOverrideMetadata.forDependency(changing, firstArtifact);
                 resolver.resolve(dependencyState.getDependency().getSelector(), overrideMetadata, selector, rejector, idResolveResult);
             }
 
@@ -333,12 +329,6 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     }
 
     @Override
-    @Deprecated
-    public org.gradle.api.artifacts.ClientModule getClientModule() {
-        return clientModule;
-    }
-
-    @Override
     public boolean isChanging() {
         return changing;
     }
@@ -388,21 +378,9 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
                 resolved = false; // when a selector changes from non lock to lock, we must reselect
             }
             dependencyState.addSelectionReasons(dependencyReasons);
-            trackDetailsForOverrideMetadata(dependencyState);
-        }
-    }
 
-    @SuppressWarnings("deprecation")
-    private void trackDetailsForOverrideMetadata(DependencyState dependencyState) {
-        org.gradle.api.artifacts.ClientModule nextClientModule = DefaultComponentOverrideMetadata.extractClientModule(dependencyState.getDependency());
-        if (nextClientModule != null && !nextClientModule.equals(clientModule)) {
-            if (clientModule == null) {
-                clientModule = nextClientModule;
-            } else {
-                throw new InvalidUserDataException(dependencyState.getDependency().getSelector().getDisplayName() + " has more than one client module definitions.");
-            }
+            changing = changing || dependencyState.getDependency().isChanging();
         }
-        changing = changing || dependencyState.getDependency().isChanging();
     }
 
     private static class UnmatchedVersionsReason implements Describable {
