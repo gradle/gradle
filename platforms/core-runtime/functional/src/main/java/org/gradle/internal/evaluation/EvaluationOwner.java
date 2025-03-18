@@ -19,4 +19,8 @@ package org.gradle.internal.evaluation;
 /**
  * A marker interface for types that can be evaluating.
  */
-public interface EvaluationOwner {}
+public interface EvaluationOwner {
+
+    String toDebugString();
+
+}
