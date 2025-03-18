@@ -22,16 +22,16 @@ abstract class BadCalculatorTask : DefaultTask() { // <1>
 }
 
 tasks.register<BadCalculatorTask>("addBad1") {
-    first.set(10)
-    second.set(25)
-    outputFile.set(layout.buildDirectory.file("badOutput.txt"))
+    first = 10
+    second = 25
+    outputFile = layout.buildDirectory.file("badOutput.txt")
     outputs.cacheIf { true } // <2>
 }
 
 tasks.register<BadCalculatorTask>("addBad2") { // <3>
-    first.set(3)
-    second.set(7)
-    outputFile.set(layout.buildDirectory.file("badOutput2.txt"))
+    first = 3
+    second = 7
+    outputFile = layout.buildDirectory.file("badOutput2.txt")
 }
 // end::avoid-this[]
 
@@ -56,14 +56,14 @@ abstract class GoodCalculatorTask : DefaultTask() {
 }
 
 tasks.register<GoodCalculatorTask>("addGood1") { // <2>
-    first.set(10)
-    second.set(25)
-    outputFile.set(layout.buildDirectory.file("goodOutput.txt"))
+    first = 10
+    second = 25
+    outputFile = layout.buildDirectory.file("goodOutput.txt")
 }
 
 tasks.register<GoodCalculatorTask>("addGood2") {
-    first.set(3)
-    second.set(7)
-    outputFile.set(layout.buildDirectory.file("goodOutput2.txt"))
+    first = 3
+    second = 7
+    outputFile = layout.buildDirectory.file("goodOutput2.txt")
 }
 // end::do-this[]
