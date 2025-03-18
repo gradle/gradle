@@ -16,6 +16,7 @@
 
 package org.gradle.test.fixtures.server.http
 
+import org.gradle.api.JavaVersion
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.precondition.Requires
@@ -1288,20 +1289,29 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         server.start()
 
         when:
-        async {
-            start {
-                succeeds("a")
+        def thrownException = null
+        try {
+            async {
+                start {
+                    succeeds("a")
+                }
+                start {
+                    handle.waitForAllPendingCalls()
+                    handle.releaseAll()
+                    // Should release the request here
+                }
             }
-            start {
-                handle.waitForAllPendingCalls()
-                handle.releaseAll()
-                // Should release the request here
-            }
+        } catch (IOException ex) {
+            thrownException = ex
         }
 
         then:
-        // TODO - reading from the URL should fail
-        noExceptionThrown()
+        // On Java 24, the URL connection will properly throw an IOException when trying to read the response
+        if (JavaVersion.current() >= JavaVersion.VERSION_24) {
+            assert thrownException != null : "Expected IOException to be thrown"
+        } else {
+            assert thrownException == null : "Expected no exception to be thrown"
+        }
 
         when:
         server.stop()
