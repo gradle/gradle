@@ -257,17 +257,3 @@ abstract class ReplaceCglibNodepWithCglibRule : ComponentMetadataRule {
         }
     }
 }
-
-// https://youtrack.jetbrains.com/issue/IDEA-261387
-abstract class UnifyTrove4jVersionRule : ComponentMetadataRule {
-    override fun execute(context: ComponentMetadataContext) {
-        context.details.allVariants {
-            withDependencies {
-                if (any { it.name == "trove4j" }) {
-                    removeAll { it.name == "trove4j" }
-                    add("org.jetbrains.intellij.deps:trove4j:trove4j")
-                }
-            }
-        }
-    }
-}
