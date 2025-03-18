@@ -63,6 +63,7 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
     private final TaskDependencyFactory taskDependencyFactory;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
     private final AttributesFactory attributesFactory;
+    private final AttributeDesugaring attributeDesugaring;
     private final Instantiator instantiator;
 
     public DefaultResolutionOutputs(
@@ -70,12 +71,14 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
         TaskDependencyFactory taskDependencyFactory,
         CalculatedValueContainerFactory calculatedValueContainerFactory,
         AttributesFactory attributesFactory,
+        AttributeDesugaring attributeDesugaring,
         Instantiator instantiator
     ) {
         this.resolutionAccess = resolutionAccess;
         this.taskDependencyFactory = taskDependencyFactory;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
         this.attributesFactory = attributesFactory;
+        this.attributeDesugaring = attributeDesugaring;
         this.instantiator = instantiator;
     }
 
@@ -125,7 +128,8 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
             resolutionAccess,
             taskDependencyFactory,
             calculatedValueContainerFactory,
-            attributesFactory
+            attributesFactory,
+            attributeDesugaring
         );
     }
 
@@ -143,6 +147,7 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
         private final TaskDependencyFactory taskDependencyFactory;
         private final CalculatedValueContainerFactory calculatedValueContainerFactory;
         private final AttributesFactory attributesFactory;
+        private final AttributeDesugaring attributeDesugaring;
 
         public DefaultArtifactView(
             boolean lenient,
@@ -153,7 +158,8 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
             ResolutionAccess resolutionAccess,
             TaskDependencyFactory taskDependencyFactory,
             CalculatedValueContainerFactory calculatedValueContainerFactory,
-            AttributesFactory attributesFactory
+            AttributesFactory attributesFactory,
+            AttributeDesugaring attributeDesugaring
         ) {
             this.lenient = lenient;
             this.componentFilter = componentFilter;
@@ -164,6 +170,7 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
             this.taskDependencyFactory = taskDependencyFactory;
             this.calculatedValueContainerFactory = calculatedValueContainerFactory;
             this.attributesFactory = attributesFactory;
+            this.attributeDesugaring = attributeDesugaring;
         }
 
         @Override
@@ -173,7 +180,7 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
                 lenient,
                 resolutionAccess.getHost(),
                 calculatedValueContainerFactory,
-                new AttributeDesugaring(attributesFactory)
+                attributeDesugaring
             );
         }
 

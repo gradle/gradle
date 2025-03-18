@@ -164,6 +164,7 @@ class Codecs(
     parameterScheme: TransformParameterScheme,
     actionScheme: TransformActionScheme,
     attributesFactory: AttributesFactory,
+    attributeDesugaring: AttributeDesugaring,
     valueSourceProviderFactory: ValueSourceProviderFactory,
     calculatedValueContainerFactory: CalculatedValueContainerFactory,
     patternSetFactory: Factory<PatternSet>,
@@ -208,7 +209,7 @@ class Codecs(
             bind(SerializedLambdaParametersCheckingCodec)
 
             // Dependency management types
-            bind(ArtifactCollectionCodec(calculatedValueContainerFactory, artifactSetConverter, AttributeDesugaring(attributesFactory)))
+            bind(ArtifactCollectionCodec(calculatedValueContainerFactory, artifactSetConverter, attributeDesugaring))
             bind(ImmutableAttributesCodec(attributesFactory, managedFactoryRegistry))
             bind(AttributeContainerCodec(attributesFactory, managedFactoryRegistry))
             bind(ComponentVariantIdentifierCodec)
