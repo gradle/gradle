@@ -66,8 +66,11 @@ In previous versions of Gradle, the `assemble` task would implicitly build artif
 ==== Gradle no longer implicitly adds certain artifacts to the archives configuration
 In previous versions of Gradle, the `archives` configuration would implicitly include artifacts of any configuration where the `visible` flag was not set to `false`.  This behavior has been removed in Gradle 9.0.  If you have a custom configuration whose artifacts should be included in the `archives` configuration, you should add the artifact directly to the `archives` configuration.
 
-==== Ear and War plugins may build additional artifacts when running assemble
+==== The Ear and War plugins may build additional artifacts when running assemble
 In previous versions of Gradle, special handling would apply when the `ear`, `war` and `java` plugins were applied to a project in any combination. For example, if the `ear` plugin was applied, the war and jar artifacts would not be built when the `assemble` task executed.  Similarly, if the `war` plugin were applied, the jar artifact would not be built.  This special handling has been removed in Gradle 9.0.  This means that the artifacts for all plugins applied will be built when the `assemble` task is executed.  For example, if the `ear`, `war`, and `jar` plugins are applied to a project, the ear, war and jar artifacts will all be built when the `assemble` task is executed.
+
+==== The Ear and War plugins may add additional artifacts to the archives configuration
+In previous versions of Gradle, special handling would apply when the `ear`, `war` and `java` plugins were applied to a project in any combination. For example, if the `ear` plugin was applied, the war and jar artifacts would not be included in the `archives` configuration.  Similarly, if the `war` plugin were applied, the jar artifact would not be included in the `archives` configuration.  This special handling has been removed in Gradle 9.0.  This means that the artifacts for all plugins applied will be included in the `archives` configuration.  For example, if the `ear`, `war`, and `jar` plugins are applied to a project, the ear, war and jar artifacts will all be included in the `archives` configuration.
 
 [[changes_8.14]]
 == Upgrading from 8.13 and earlier
