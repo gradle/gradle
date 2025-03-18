@@ -38,13 +38,13 @@ trait SnapshotterFixture {
                     ? it as File
                     : temporaryFolder.file(it)
             }
-            def snapshot = snapshotter.snapshot(TestFiles.fixed(files)).snapshot
+            def snapshot = snapshotter.snapshot(TestFiles.fixed(files))
             builder.put(propertyName, snapshot)
         }
         return builder.build()
     }
 
     FileSystemLocationSnapshot snapshot(File file) {
-        snapshotter.snapshot(TestFiles.fixed(file)).snapshot as FileSystemLocationSnapshot
+        snapshotter.snapshot(TestFiles.fixed(file)) as FileSystemLocationSnapshot
     }
 }
