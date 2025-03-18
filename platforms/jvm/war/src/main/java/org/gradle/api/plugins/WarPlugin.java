@@ -19,7 +19,6 @@ package org.gradle.api.plugins;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.AttributeContainer;
@@ -36,7 +35,6 @@ import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.War;
-import org.gradle.internal.deprecation.DeprecationLogger;
 
 import javax.inject.Inject;
 import java.util.concurrent.Callable;
@@ -97,21 +95,6 @@ public abstract class WarPlugin implements Plugin<Project> {
         project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).getArtifacts().add(warArtifact);
         configureConfigurations(((ProjectInternal) project).getConfigurations(), mainFeature);
         configureComponent(project, warArtifact);
-    }
-
-    /**
-     * This method is intended for internal use and should not be called.
-     *
-     * @deprecated This method will be removed in Gradle 9.0.
-     */
-    @Deprecated
-    public void configureConfigurations(ConfigurationContainer configurationContainer) {
-        DeprecationLogger.deprecateMethod(WarPlugin.class, "configureConfigurations(ConfigurationContainer)")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "war_plugin_configure_configurations")
-            .nagUser();
-
-        configureConfigurations((RoleBasedConfigurationContainerInternal) configurationContainer, mainFeature);
     }
 
     @SuppressWarnings("deprecation")

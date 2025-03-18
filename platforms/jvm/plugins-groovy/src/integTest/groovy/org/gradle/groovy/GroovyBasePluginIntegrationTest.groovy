@@ -157,37 +157,4 @@ class GroovyBasePluginIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'assertDirectoriesAreEquals'
     }
 
-    def "Map-accepting methods are deprecated"() {
-        buildFile << """
-            plugins {
-                id("groovy-base")
-            }
-
-            sourceSets {
-                main
-            }
-
-            tasks.compileGroovy {
-                options.define([:])
-                options.fork([:])
-                options.debug([:])
-                options.forkOptions.define([:])
-                options.debugOptions.define([:])
-                groovyOptions.define([:])
-                groovyOptions.fork([:])
-                groovyOptions.forkOptions.define([:])
-            }
-        """
-
-        expect:
-        executer.expectDocumentedDeprecationWarning("The AbstractOptions.define(Map) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_abstract_options")
-        executer.expectDocumentedDeprecationWarning("The CompileOptions.fork(Map) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Set properties directly on the 'forkOptions' property instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_abstract_options")
-        executer.expectDocumentedDeprecationWarning("The CompileOptions.debug(Map) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Set properties directly on the 'debugOptions' property instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_abstract_options")
-        executer.expectDocumentedDeprecationWarning("The AbstractOptions.define(Map) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_abstract_options")
-        executer.expectDocumentedDeprecationWarning("The AbstractOptions.define(Map) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_abstract_options")
-        executer.expectDocumentedDeprecationWarning("The AbstractOptions.define(Map) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_abstract_options")
-        executer.expectDocumentedDeprecationWarning("The GroovyCompileOptions.fork(Map) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Set properties directly on the 'forkOptions' property instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_abstract_options")
-        executer.expectDocumentedDeprecationWarning("The AbstractOptions.define(Map) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_abstract_options")
-        succeeds("compileGroovy")
-    }
 }

@@ -23,19 +23,14 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.internal.CollectionCallbackActionDecorator;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.reporting.internal.BuildDashboardGenerator;
 import org.gradle.api.reporting.internal.DefaultBuildDashboardReports;
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Describables;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.util.internal.CollectionUtils;
 import org.gradle.work.DisableCachingByDefault;
@@ -59,28 +54,6 @@ public abstract class GenerateBuildDashboard extends DefaultTask implements Repo
     public GenerateBuildDashboard() {
         reports = getProject().getObjects().newInstance(DefaultBuildDashboardReports.class, Describables.quoted("Task", getIdentityPath()));
         reports.getHtml().getRequired().set(true);
-    }
-
-    @Internal
-    @Deprecated
-    protected Instantiator getInstantiator() {
-        DeprecationLogger.deprecateMethod(GenerateBuildDashboard.class, "getInstantiator()")
-            .willBeRemovedInGradle9()
-            .undocumented()
-            .nagUser();
-
-        return ((ProjectInternal) getProject()).getServices().get(Instantiator.class);
-    }
-
-    @Internal
-    @Deprecated
-    protected CollectionCallbackActionDecorator getCollectionCallbackActionDecorator() {
-        DeprecationLogger.deprecateMethod(GenerateBuildDashboard.class, "getCollectionCallbackActionDecorator()")
-            .willBeRemovedInGradle9()
-            .undocumented()
-            .nagUser();
-
-        return ((ProjectInternal) getProject()).getServices().get(CollectionCallbackActionDecorator.class);
     }
 
     @Input

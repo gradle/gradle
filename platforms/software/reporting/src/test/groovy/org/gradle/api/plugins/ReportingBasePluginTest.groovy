@@ -18,7 +18,7 @@ package org.gradle.api.plugins
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
-public class ReportingBasePluginTest extends AbstractProjectBuilderSpec {
+class ReportingBasePluginTest extends AbstractProjectBuilderSpec {
 
     def "can apply plugin by id"() {
         given:
@@ -37,8 +37,9 @@ public class ReportingBasePluginTest extends AbstractProjectBuilderSpec {
 
         project.configure(project) {
             reporting {
-                baseDir = "somewhere"
+                baseDirectory = project.layout.buildDirectory.dir("somewhere")
             }
         }
     }
+
 }

@@ -12,7 +12,6 @@ Class <org.gradle.api.tasks.GradleBuild> extends/implements org.gradle.api.inter
 Class <org.gradle.api.tasks.JavaExec> extends/implements org.gradle.api.internal.ConventionTask that is Gradle Internal API in (JavaExec.java:0)
 Class <org.gradle.api.tasks.SourceTask> extends/implements org.gradle.api.internal.ConventionTask that is Gradle Internal API in (SourceTask.java:0)
 Class <org.gradle.api.tasks.TaskExecutionException> extends/implements org.gradle.internal.exceptions.DefaultMultiCauseException that is Gradle Internal API in (TaskExecutionException.java:0)
-Class <org.gradle.api.tasks.Upload> extends/implements org.gradle.api.internal.ConventionTask that is Gradle Internal API in (Upload.java:0)
 Class <org.gradle.api.tasks.ant.AntTarget> extends/implements org.gradle.api.internal.ConventionTask that is Gradle Internal API in (AntTarget.java:0)
 Class <org.gradle.api.tasks.compile.GroovyCompile> extends/implements org.gradle.api.internal.tasks.compile.HasCompileOptions that is Gradle Internal API in (GroovyCompile.java:0)
 Class <org.gradle.api.tasks.compile.JavaCompile> extends/implements org.gradle.api.internal.tasks.compile.HasCompileOptions that is Gradle Internal API in (JavaCompile.java:0)

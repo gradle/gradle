@@ -21,12 +21,12 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.jspecify.annotations.Nullable;
 
+import java.io.Serializable;
+
 /**
- * Debug options for Java compilation. Only take effect if {@link CompileOptions#debug}
- * is set to {@code true}.
+ * Debug options for Java compilation.
  */
-@SuppressWarnings("deprecation")
-public class DebugOptions extends AbstractOptions {
+public class DebugOptions implements Serializable {
     private static final long serialVersionUID = 0;
 
     private String debugLevel;

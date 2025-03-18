@@ -33,7 +33,6 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
@@ -253,34 +252,6 @@ public abstract class CreateStartScripts extends ConventionTask {
     @Input
     public Property<String> getMainClass() {
         return mainClass;
-    }
-
-    /**
-     * The main class name used to start the Java application.
-     */
-    @Input
-    @Optional
-    @Nullable
-    @Deprecated
-    public String getMainClassName() {
-        DeprecationLogger.deprecateProperty(CreateStartScripts.class, "mainClassName")
-            .replaceWith("mainClass")
-            .willBeRemovedInGradle9()
-            .withDslReference()
-            .nagUser();
-
-        return mainClass.getOrNull();
-    }
-
-    @Deprecated
-    public void setMainClassName(@Nullable String mainClassName) {
-        DeprecationLogger.deprecateProperty(CreateStartScripts.class, "mainClassName")
-            .replaceWith("mainClass")
-            .willBeRemovedInGradle9()
-            .withDslReference()
-            .nagUser();
-
-        this.mainClass.set(mainClassName);
     }
 
     /**
