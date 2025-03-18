@@ -35,10 +35,16 @@ java {
 }
 
 tasks {
+    // Expected output of this example is a:
+    //  - Successful execution
+    //  - A single, non-critical problem
     val runHelpExample by registering(JavaExec::class) {
         this.configureExample("help")
     }
 
+    // Expected output of this example is a:
+    //  - Failed build
+    //  - One non-critical problem (the same problem as above), one critical problem
     val runTasksExample by registering(JavaExec::class) {
         this.configureExample("tasks")
     }
