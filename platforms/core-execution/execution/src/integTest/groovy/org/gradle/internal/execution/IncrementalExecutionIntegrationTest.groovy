@@ -22,7 +22,6 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.problems.ProblemId
 import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
-import org.gradle.api.problems.internal.ProblemsProgressEventEmitterHolder
 import org.gradle.cache.Cache
 import org.gradle.cache.ManualEvictionInMemoryCache
 import org.gradle.caching.internal.controller.BuildCacheController
@@ -126,10 +125,6 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
             virtualFileSystem,
             problems
         )
-    }
-
-    def setup() {
-        ProblemsProgressEventEmitterHolder.init(TestUtil.problemsService())
     }
 
     def "outputs are created"() {

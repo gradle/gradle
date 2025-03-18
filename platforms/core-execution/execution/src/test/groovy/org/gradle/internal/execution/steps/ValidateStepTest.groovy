@@ -20,7 +20,6 @@ import org.gradle.api.problems.Problem
 import org.gradle.api.problems.ProblemId
 import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
-import org.gradle.api.problems.internal.ProblemsProgressEventEmitterHolder
 import org.gradle.internal.execution.WorkValidationContext
 import org.gradle.internal.execution.WorkValidationException
 import org.gradle.internal.execution.WorkValidationExceptionChecker
@@ -48,7 +47,6 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
     def setup() {
         def validationContext = new DefaultWorkValidationContext(WorkValidationContext.TypeOriginInspector.NO_OP, problems)
         context.getValidationContext() >> validationContext
-        ProblemsProgressEventEmitterHolder.init(TestUtil.problemsService())
     }
 
     def "executes work when there are no violations"() {

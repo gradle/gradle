@@ -37,8 +37,8 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.impl.DefaultIsolatableFactory;
 import org.gradle.internal.state.ManagedFactoryRegistry;
 import org.gradle.process.internal.worker.problem.WorkerProblemEmitter;
+import org.gradle.process.internal.worker.problem.WorkerProblemProtocol;
 import org.gradle.process.internal.worker.request.IsolatableSerializerRegistry;
-import org.gradle.process.internal.worker.request.ResponseProtocol;
 import org.gradle.process.internal.worker.request.WorkerAction;
 import org.gradle.tooling.internal.provider.serialization.ClassLoaderCache;
 import org.gradle.tooling.internal.provider.serialization.DefaultPayloadClassLoaderRegistry;
@@ -111,7 +111,7 @@ public class WorkerProcessIsolationProblemsServiceProvider implements ServiceReg
         IsolatableFactory isolatableFactory,
         IsolatableSerializerRegistry isolatableSerializerRegistry,
         InstantiatorFactory instantiatorFactory,
-        ResponseProtocol responder
+        WorkerProblemProtocol responder
     ) {
         return new DefaultProblems(
             new WorkerProblemEmitter(responder),

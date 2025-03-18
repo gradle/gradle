@@ -25,7 +25,6 @@ import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.internal.tasks.execution.DefaultTaskExecutionContext
 import org.gradle.api.internal.tasks.properties.DefaultTaskProperties
-import org.gradle.api.problems.internal.ProblemsProgressEventEmitterHolder
 import org.gradle.execution.ProjectExecutionServices
 import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.internal.execution.BuildOutputCleanupRegistry
@@ -76,7 +75,6 @@ abstract class AbstractProjectBuilderSpec extends Specification {
         new File(temporaryFolder.testDirectory, "settings.gradle") << ""
         rootProject = TestUtil.createRootProject(temporaryFolder.testDirectory)
         executionServices = ProjectExecutionServices.create(rootProject)
-        ProblemsProgressEventEmitterHolder.init(TestUtil.problemsService())
     }
 
     final ProjectInternal getProject() {
