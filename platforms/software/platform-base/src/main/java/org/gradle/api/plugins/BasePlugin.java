@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.plugins.BuildConfigurationRule;
-import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.plugins.NaggingBasePluginConvention;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.internal.DefaultBasePluginExtension;
@@ -91,14 +90,6 @@ public abstract class BasePlugin implements Plugin<Project> {
 
         configurations.maybeCreateConsumableUnlocked(Dependency.DEFAULT_CONFIGURATION)
             .setDescription("Configuration for default artifacts.");
-
-        // TODO #15639: Deprecate DefaultArtifactPublicationSet and the `archives` configuration
-        project.getExtensions().create(
-            "defaultArtifacts",
-            DefaultArtifactPublicationSet.class,
-            configurations,
-            Dependency.ARCHIVES_CONFIGURATION
-        );
 
         project.getTasks().named(ASSEMBLE_TASK_NAME, task ->
             task.dependsOn(archivesConfiguration.getAllArtifacts().getBuildDependencies())
