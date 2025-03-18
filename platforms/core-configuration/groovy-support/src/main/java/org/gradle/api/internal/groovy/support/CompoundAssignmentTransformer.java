@@ -127,7 +127,7 @@ public class CompoundAssignmentTransformer extends AbstractScriptTransformer {
 
             // Rewriting `foo <OP>= bar` into `foo = foo.forCompoundAssignment() <OP> (bar)`.
             BinaryExpression assignment = withSourceLocationOf(original, new BinaryExpression(
-                lhs,
+                ExpressionUtils.copyExpression(lhs), // Sharing the same node in different branches may cause other transforms to overwrite their metadata.
                 rewriteToken(original.getOperation(), Types.ASSIGN),
                 withSourceLocationOf(original, new BinaryExpression(
                     applyForCompoundAssignment(lhs),
