@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Maps;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 
@@ -35,7 +36,8 @@ public class DefaultIncrementalInputProperties implements IncrementalInputProper
     public String getPropertyNameFor(Object propertyValue) {
         String propertyName = incrementalInputProperties.inverse().get(propertyValue);
         if (propertyName == null) {
-            throw new InvalidUserDataException("Cannot query incremental changes: No property found for value " + propertyValue + ". Incremental properties: " + Joiner.on(", ").join(incrementalInputProperties.keySet()) + ".");
+            String description = propertyValue instanceof Provider ? ((Provider<?>) propertyValue).toDebugString() : propertyValue.toString();
+            throw new InvalidUserDataException("Cannot query incremental changes: No property found for value " + description + ". Incremental properties: " + Joiner.on(", ").join(incrementalInputProperties.keySet()) + ".");
         }
         return propertyName;
     }
