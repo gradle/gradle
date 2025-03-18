@@ -37,7 +37,7 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
             }
 
             tasks.create("thing", MyTask) {
-                println("property = \$count")
+                println("property = \${count.toDebugString()}")
                 count = 12
             }
         """
@@ -88,7 +88,7 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
             }
 
             tasks.create("thing", MyTask) {
-                println("property = \$count")
+                println("property = \${count.toDebugString()}")
             }
         """
 
@@ -125,7 +125,7 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
         buildFile << """
             tasks.create("thing", MyTask) {
-                println("property = \$count")
+                println("property = \${count.toDebugString()}")
             }
         """
 
@@ -278,7 +278,7 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
             tasks.create("thing", MyTask) {
                 println("params = \$params")
-                println("params.count = \$params.count")
+                println("params.count = \${params.count.toDebugString()}")
                 params.count = 12
             }
         """
@@ -313,7 +313,7 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
             tasks.create("thing", MyTask) {
                 println("params = \$params")
-                println("params.count = \$params.count")
+                println("params.count = \${params.count.toDebugString()}")
                 params.count = 12
             }
         """

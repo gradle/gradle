@@ -112,7 +112,7 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
             }
 
             def t = objects.newInstance(Thing)
-            assert t.value.toString() == "property 'value'"
+            assert t.value.toDebugString() == "property 'value'"
             assert !t.value.present
             t.value = 'abc'
             assert t.value.get() == 'abc'
