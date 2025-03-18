@@ -83,7 +83,7 @@ Remember that only tasks that produce reproducible and relocatable output should
 === Explanation
 
 Annotating a task type will ensure that _each task instance_ of that type is properly understood by Gradle to be cacheable (or not cacheable).
-This removes the need to remember to configure each of the task instances separately in buildscripts.
+This removes the need to remember to configure each of the task instances separately in build scripts.
 Using the annotations also _documents_ the intended cacheability of the task type within its own source, appearing in Javadoc and making the task's behavior clear to other developers without requiring them to inspect each task instance's configuration.
 It is also slightly more efficient than running a test at configuration time to determine cacheability.
 
