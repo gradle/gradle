@@ -258,9 +258,8 @@ public class EclipseDependenciesCreator {
 
     @SuppressWarnings("ConstantValue")
     private static boolean isNotJar(ResolvedArtifactResult artifact) {
-        Object libraryElements = artifact.getVariant().getAttributes().getAttribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE);
+        LibraryElements libraryElements = artifact.getVariant().getAttributes().getAttribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE);
         return libraryElements == null
-            || (libraryElements instanceof String && !libraryElements.equals(LibraryElements.JAR))
-            || (libraryElements instanceof LibraryElements && !((LibraryElements) libraryElements).getName().equals(LibraryElements.JAR));
+            || !libraryElements.getName().equals(LibraryElements.JAR);
     }
 }
