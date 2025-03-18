@@ -19,6 +19,7 @@ package org.gradle.launcher.daemon
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.Java24UnsafeWarningFixture
 import org.gradle.integtests.fixtures.executer.DocumentationUtils
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.buildconfiguration.fixture.DaemonJvmPropertiesFixture
@@ -33,7 +34,7 @@ import static org.gradle.integtests.fixtures.SuggestionsMessages.INFO_DEBUG
 import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
 import static org.gradle.integtests.fixtures.SuggestionsMessages.STACKTRACE_MESSAGE
 
-class DaemonToolchainDownloadIntegrationTest extends AbstractIntegrationSpec implements DaemonJvmPropertiesFixture, JavaToolchainFixture {
+class DaemonToolchainDownloadIntegrationTest extends AbstractIntegrationSpec implements DaemonJvmPropertiesFixture, JavaToolchainFixture, Java24UnsafeWarningFixture {
 
     // Run the test by specifying a different version than the one used to execute, using two LTS alternatives
     def javaVersion = Jvm.current().javaVersion == JavaVersion.VERSION_21 ? JavaVersion.VERSION_17 : JavaVersion.VERSION_21
@@ -98,6 +99,7 @@ class DaemonToolchainDownloadIntegrationTest extends AbstractIntegrationSpec imp
         writeToolchainDownloadUrls("invalid-url")
 
         when:
+        maybeExpectUnsuppressableUnsafeDeprecationWarning(usesLoadingCache("DefaultSslContextFactory"))
         failure = executer
             .withTasks("help")
             .withToolchainDownloadEnabled()
@@ -119,6 +121,7 @@ class DaemonToolchainDownloadIntegrationTest extends AbstractIntegrationSpec imp
         writeToolchainDownloadUrls(uri.toString())
 
         when:
+        maybeExpectUnsuppressableUnsafeDeprecationWarning(usesLoadingCache("DefaultSslContextFactory"))
         failure = executer
             .withTasks("help", "-s")
             .requireOwnGradleUserHomeDir("Needs to download a JDK")
@@ -148,6 +151,7 @@ class DaemonToolchainDownloadIntegrationTest extends AbstractIntegrationSpec imp
         captureJavaHome()
 
         when:
+        maybeExpectUnsuppressableUnsafeDeprecationWarning(usesLoadingCache("DefaultSslContextFactory"))
         executer.withTasks("help")
             .requireOwnGradleUserHomeDir("Needs to download a JDK")
             .requireIsolatedDaemons()
@@ -178,6 +182,7 @@ class DaemonToolchainDownloadIntegrationTest extends AbstractIntegrationSpec imp
         captureJavaHome()
 
         when:
+        maybeExpectUnsuppressableUnsafeDeprecationWarning(usesLoadingCache("DefaultSslContextFactory"))
         executer.withTasks("help")
             .requireOwnGradleUserHomeDir("Needs to download a JDK")
             .requireIsolatedDaemons()
@@ -237,6 +242,7 @@ class DaemonToolchainDownloadIntegrationTest extends AbstractIntegrationSpec imp
         captureJavaHome()
 
         when:
+        maybeExpectUnsuppressableUnsafeDeprecationWarning(usesLoadingCache("DefaultSslContextFactory"))
         executer.withTasks("help")
             .requireOwnGradleUserHomeDir("Needs to download a JDK")
             .requireIsolatedDaemons()
@@ -263,6 +269,7 @@ class DaemonToolchainDownloadIntegrationTest extends AbstractIntegrationSpec imp
         executer.stop()
 
         and:
+        maybeExpectUnsuppressableUnsafeDeprecationWarning(usesLoadingCache("DefaultSslContextFactory"))
         def result = executer.withTasks("help", "--info")
             .requireOwnGradleUserHomeDir("Needs to download a JDK")
             .requireIsolatedDaemons()
