@@ -78,7 +78,7 @@ The link:{javadocPath}/org/gradle/api/tasks/TaskOutputs.html#cacheIf(org.gradle.
 You should instead favor annotating the task class itself with the link:{javadocPath}/org/gradle/api/tasks/CacheableTask.html[`@CacheableTask`] annotation for any task that is meant to _always_ be cacheable.
 Likewise, the link:{javadocPath}/org/gradle/work/DisableCachingByDefault.html[`@DisableCachingByDefault`] should be used to always disable caching for all instances of a task type.
 
-Remember that only tasks that produce reproducible and relocatable output should be marked as `@Cacheable`.
+Remember that only tasks that produce reproducible and relocatable output should be marked as `@CacheableTask`.
 
 === Explanation
 
