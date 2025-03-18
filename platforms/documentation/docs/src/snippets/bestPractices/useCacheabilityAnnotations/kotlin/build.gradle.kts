@@ -15,9 +15,9 @@ abstract class BadCalculatorTask : DefaultTask() { // <1>
 
     @TaskAction
     fun run() {
-        val result = (first.get() + second.get()).toString()
-        logger.lifecycle("Result: " + result)
-        outputFile.get().asFile.writeText(result)
+        val result = first.get() + second.get()
+        logger.lifecycle("Result: $result")
+        outputFile.get().asFile.writeText(result.toString())
     }
 }
 
@@ -49,9 +49,9 @@ abstract class GoodCalculatorTask : DefaultTask() {
 
     @TaskAction
     fun run() {
-        val result = (first.get() + second.get()).toString()
-        logger.lifecycle("Result: " + result)
-        outputFile.get().asFile.writeText(result)
+        val result = first.get() + second.get()
+        logger.lifecycle("Result: $result")
+        outputFile.get().asFile.writeText(result.toString())
     }
 }
 
