@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.transform.TransformActionScheme
 import org.gradle.api.internal.artifacts.transform.TransformParameterScheme
 import org.gradle.api.internal.artifacts.transform.TransformStepNode
 import org.gradle.api.internal.artifacts.transform.TransformStepNodeFactory
+import org.gradle.api.internal.attributes.AttributeDesugaring
 import org.gradle.api.internal.attributes.AttributesFactory
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileFactory
@@ -207,7 +208,7 @@ class Codecs(
             bind(SerializedLambdaParametersCheckingCodec)
 
             // Dependency management types
-            bind(ArtifactCollectionCodec(calculatedValueContainerFactory, artifactSetConverter))
+            bind(ArtifactCollectionCodec(calculatedValueContainerFactory, artifactSetConverter, AttributeDesugaring(attributesFactory)))
             bind(ImmutableAttributesCodec(attributesFactory, managedFactoryRegistry))
             bind(AttributeContainerCodec(attributesFactory, managedFactoryRegistry))
             bind(ComponentVariantIdentifierCodec)

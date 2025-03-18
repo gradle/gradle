@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactBackedResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
-import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.immutable.artifact.ImmutableArtifactTypeRegistry;
 import org.gradle.internal.Describables;
@@ -37,18 +36,15 @@ public class DefaultVariantArtifactResolver implements VariantArtifactResolver {
     private final ImmutableArtifactTypeRegistry artifactTypeRegistry;
     private final ArtifactResolver artifactResolver;
     private final ResolvedVariantCache resolvedVariantCache;
-    private final AttributeDesugaring attributeDesugaring;
 
     public DefaultVariantArtifactResolver(
         ArtifactResolver artifactResolver,
         ImmutableArtifactTypeRegistry artifactTypeRegistry,
-        ResolvedVariantCache resolvedVariantCache,
-        AttributeDesugaring attributeDesugaring
+        ResolvedVariantCache resolvedVariantCache
     ) {
         this.artifactTypeRegistry = artifactTypeRegistry;
         this.artifactResolver = artifactResolver;
         this.resolvedVariantCache = resolvedVariantCache;
-        this.attributeDesugaring = attributeDesugaring;
     }
 
     @Override
@@ -108,7 +104,8 @@ public class DefaultVariantArtifactResolver implements VariantArtifactResolver {
         ImmutableArtifactTypeRegistry artifactTypeRegistry,
         ImmutableList<? extends ComponentArtifactMetadata> artifacts
     ) {
-        ImmutableAttributes attributes = attributeDesugaring.desugar(artifactTypeRegistry.mapAttributesFor(artifactVariant.getAttributes(), artifacts));
+
+        ImmutableAttributes attributes = artifactTypeRegistry.mapAttributesFor(artifactVariant.getAttributes(), artifacts);
         ImmutableCapabilities capabilities = withImplicitCapability(artifactVariant.getCapabilities(), component);
 
         // TODO: This value gets cached in a build-tree-scoped cache. It captures a project-scoped `artifactResolver`, which

@@ -84,7 +84,6 @@ import org.gradle.api.internal.artifacts.transform.ConsumerProvidedVariantFinder
 import org.gradle.api.internal.artifacts.transform.DefaultTransformUpstreamDependenciesResolver;
 import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependenciesResolver;
 import org.gradle.api.internal.artifacts.transform.TransformedVariantFactory;
-import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributeSchemaServices;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -166,7 +165,6 @@ public class ResolutionExecutor {
     private final VariantArtifactSetCache variantArtifactSetCache;
     private final VariantTransformRegistry transformRegistry;
     private final ComponentMetadataProcessorFactory componentMetadataProcessorFactory;
-    private final AttributeDesugaring attributeDesugaring;
 
     @Inject
     public ResolutionExecutor(
@@ -200,8 +198,7 @@ public class ResolutionExecutor {
         ResolutionFailureHandler resolutionFailureHandler,
         VariantArtifactSetCache variantArtifactSetCache,
         VariantTransformRegistry transformRegistry,
-        ComponentMetadataProcessorFactory componentMetadataProcessorFactory,
-        AttributeDesugaring attributeDesugaring
+        ComponentMetadataProcessorFactory componentMetadataProcessorFactory
     ) {
         this.dependencyGraphResolver = dependencyGraphResolver;
         this.storeFactory = storeFactory;
@@ -234,7 +231,6 @@ public class ResolutionExecutor {
         this.variantArtifactSetCache = variantArtifactSetCache;
         this.transformRegistry = transformRegistry;
         this.componentMetadataProcessorFactory = componentMetadataProcessorFactory;
-        this.attributeDesugaring = attributeDesugaring;
     }
 
     /**
@@ -440,8 +436,7 @@ public class ResolutionExecutor {
             params.getArtifactTypeRegistry(),
             resolvedVariantCache,
             graphVariantSelector,
-            transformRegistry,
-            attributeDesugaring
+            transformRegistry
         );
     }
 

@@ -1077,7 +1077,7 @@ testRuntimeClasspath
         succeeds("traverse")
     }
 
-    def "attributes on resolved variants can be requested using strongly-typed values"() {
+    def "attributes on root variant can be requested using Stringly or strongly-typed values"() {
         settingsFile << """
             include("producer")
         """
@@ -1104,6 +1104,9 @@ testRuntimeClasspath
                     def usage = root.get().attributes.getAttribute(Usage.USAGE_ATTRIBUTE)
                     assert Usage.class.isAssignableFrom(usage.class)
                     assert usage.name == "java-runtime"
+
+                    def usageAsString = root.get().attributes.getAttribute(Attribute.of(Usage.USAGE_ATTRIBUTE.name, String.class))
+                    assert usageAsString == "java-runtime"
                 }
             }
         """

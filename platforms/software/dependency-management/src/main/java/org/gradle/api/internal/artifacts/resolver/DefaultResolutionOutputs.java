@@ -32,6 +32,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Artif
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionInternal;
@@ -171,7 +172,8 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
                 getFiles(),
                 lenient,
                 resolutionAccess.getHost(),
-                calculatedValueContainerFactory
+                calculatedValueContainerFactory,
+                new AttributeDesugaring(attributesFactory)
             );
         }
 
