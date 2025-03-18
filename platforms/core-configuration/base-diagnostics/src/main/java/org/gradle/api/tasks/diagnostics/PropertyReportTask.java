@@ -18,6 +18,7 @@ package org.gradle.api.tasks.diagnostics;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
@@ -128,7 +129,8 @@ public abstract class PropertyReportTask extends AbstractProjectBasedReportTask<
         private void putProperty(String name, @Nullable Object value) {
             String strValue;
             try {
-                strValue = String.valueOf(value);
+                // TODO: should we actually fix this to unwrap providers, when collecting values?
+                strValue = value instanceof Provider ? ((Provider<?>) value).toDebugString() : String.valueOf(value);
             } catch (Exception e) {
                 String valueClass = value != null ? String.valueOf(value.getClass()) : "null";
                 warnings.add(new PropertyWarning(name, valueClass, e));
