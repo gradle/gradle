@@ -30,7 +30,6 @@ import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.local.DirectoryBuildCache;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.file.FileAccessTracker;
-import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.file.impl.SingleDepthFileAccessTracker;
 
 import javax.inject.Inject;
@@ -49,7 +48,6 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
 
     private final UnscopedCacheBuilderFactory unscopedCacheBuilderFactory;
     private final GlobalScopedCacheBuilderFactory cacheBuilderFactory;
-    private final PathToFileResolver resolver;
     private final FileAccessTimeJournal fileAccessTimeJournal;
     private final CacheConfigurationsInternal cacheConfigurations;
     private final CacheCleanupStrategyFactory cacheCleanupStrategyFactory;
@@ -58,14 +56,12 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
     public DirectoryBuildCacheServiceFactory(
         UnscopedCacheBuilderFactory unscopedCacheBuilderFactory,
         GlobalScopedCacheBuilderFactory cacheBuilderFactory,
-        PathToFileResolver resolver,
         FileAccessTimeJournal fileAccessTimeJournal,
         CacheConfigurationsInternal cacheConfigurations,
         CacheCleanupStrategyFactory cacheCleanupStrategyFactory
     ) {
         this.unscopedCacheBuilderFactory = unscopedCacheBuilderFactory;
         this.cacheBuilderFactory = cacheBuilderFactory;
-        this.resolver = resolver;
         this.fileAccessTimeJournal = fileAccessTimeJournal;
         this.cacheConfigurations = cacheConfigurations;
         this.cacheCleanupStrategyFactory = cacheCleanupStrategyFactory;
@@ -73,11 +69,8 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
 
     @Override
     public BuildCacheService createBuildCacheService(DirectoryBuildCache buildCacheConfig, Describer describer) {
-        Object cacheDirectory = buildCacheConfig.getDirectory();
-        File target;
-        if (cacheDirectory != null) {
-            target = resolver.resolve(cacheDirectory);
-        } else {
+        File target = buildCacheConfig.getDirectory().getAsFile().getOrNull();
+        if (target == null) {
             target = cacheBuilderFactory.baseDirForCrossVersionCache(BUILD_CACHE_KEY);
         }
         checkDirectory(target);

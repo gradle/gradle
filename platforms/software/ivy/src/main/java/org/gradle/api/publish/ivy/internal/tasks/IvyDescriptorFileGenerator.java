@@ -30,11 +30,11 @@ import org.gradle.api.publish.ivy.IvyModuleDescriptorAuthor;
 import org.gradle.api.publish.ivy.IvyModuleDescriptorDescription;
 import org.gradle.api.publish.ivy.IvyModuleDescriptorLicense;
 import org.gradle.api.publish.ivy.internal.artifact.IvyArtifactInternal;
-import org.gradle.api.publish.ivy.internal.artifact.NormalizedIvyArtifact;
 import org.gradle.api.publish.ivy.internal.dependency.IvyDependency;
 import org.gradle.api.publish.ivy.internal.dependency.IvyExcludeRule;
 import org.gradle.api.publish.ivy.internal.publication.IvyModuleDescriptorSpecInternal;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationCoordinates;
+import org.gradle.api.publish.ivy.internal.publisher.NormalizedIvyArtifact;
 import org.gradle.internal.xml.SimpleXmlWriter;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.util.internal.CollectionUtils;
@@ -84,8 +84,8 @@ public final class IvyDescriptorFileGenerator {
         model.module = coordinates.getModule().get();
         model.revision = coordinates.getRevision().get();
 
-        model.status = descriptor.getStatus();
-        model.branch = descriptor.getBranch();
+        model.status = descriptor.getStatus().getOrNull();
+        model.branch = descriptor.getBranch().getOrNull();
         model.extraInfo = descriptor.getExtraInfo().asMap();
         model.description = descriptor.getDescription();
 
@@ -195,7 +195,7 @@ public final class IvyDescriptorFileGenerator {
 
         private void writePublications(OptionalAttributeXmlWriter xmlWriter) throws IOException {
             xmlWriter.startElement("publications");
-            for (IvyArtifact artifact : model.artifacts) {
+            for (NormalizedIvyArtifact artifact : model.artifacts) {
                 xmlWriter.startElement("artifact")
                     .attribute("name", artifact.getName())
                     .attribute("type", artifact.getType())
@@ -264,7 +264,7 @@ public final class IvyDescriptorFileGenerator {
         }
 
         private static boolean usesClassifier(Model model) {
-            for (IvyArtifact artifact : model.artifacts) {
+            for (NormalizedIvyArtifact artifact : model.artifacts) {
                 if (artifact.getClassifier() != null) {
                     return true;
                 }

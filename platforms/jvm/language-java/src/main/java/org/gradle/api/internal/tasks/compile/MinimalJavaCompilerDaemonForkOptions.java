@@ -31,12 +31,12 @@ public class MinimalJavaCompilerDaemonForkOptions extends MinimalCompilerDaemonF
 
     public MinimalJavaCompilerDaemonForkOptions(ForkOptions forkOptions) {
         super(forkOptions);
-        this.executable = forkOptions.getExecutable();
-        this.tempDir = forkOptions.getTempDir();
         @SuppressWarnings("deprecation")
         File customJavaHome = DeprecationLogger.whileDisabled(forkOptions::getJavaHome);
         this.javaHome = customJavaHome;
-        setJvmArgs(forkOptions.getAllJvmArgs());
+        this.executable = forkOptions.getExecutable().getOrNull();
+        this.tempDir = forkOptions.getTempDir().getOrNull();
+        setJvmArgs(forkOptions.getAllJvmArgs().get());
     }
 
     @Nullable
