@@ -104,7 +104,7 @@ include::sample[dir="snippets/bestPractices/useCacheabilityAnnotations/groovy",f
 
 ==== Do This Instead
 
-As this task meets the criteria from cacheability (we can imagine doing a much more complex calculation in the `@TaskAction` would benefit from automatic work avoidance via caching), we should mark the _task type itself_ as cacheable like this:
+As this task meets the criteria for cacheability (we can imagine a more complex calculation in the `@TaskAction` that would benefit from automatic work avoidance via caching), we should mark the _task type itself_ as cacheable like this:
 
 ====
 include::sample[dir="snippets/bestPractices/useCacheabilityAnnotations/kotlin",files="build.gradle.kts[tags=do-this]"]
