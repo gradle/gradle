@@ -78,7 +78,7 @@ fun findSoftwareType(objectOrigin: ObjectOrigin): ObjectOrigin.AccessAndConfigur
         is ObjectOrigin.ImplicitThisReceiver -> findSoftwareType(objectOrigin.resolvedTo)
         is ObjectOrigin.AccessAndConfigureReceiver ->
             if (isSoftwareType(objectOrigin)) objectOrigin else findSoftwareType(objectOrigin.receiver)
-
+        is ObjectOrigin.NewObjectFromMemberFunction -> findSoftwareType(objectOrigin.receiver)
         is ObjectOrigin.TopLevelReceiver -> null
         else -> null
     }
