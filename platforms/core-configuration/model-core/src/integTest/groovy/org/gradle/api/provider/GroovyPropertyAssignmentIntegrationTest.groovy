@@ -366,7 +366,7 @@ class GroovyPropertyAssignmentIntegrationTest extends AbstractProviderOperatorIn
             } else if (input instanceof FileCollection) {
                 println("$RESULT_PREFIX" + input.files.collect { it.name })
             } else if (input instanceof Iterable) {
-                println("$RESULT_PREFIX" + input.collect { it instanceof File ? it.name : it })
+                println("$RESULT_PREFIX" + input.collect { it instanceof File ? it.name : it instanceof Provider ? it.toDebugString() : it })
             } else {
                 println("$RESULT_PREFIX" + input.toString())
             }

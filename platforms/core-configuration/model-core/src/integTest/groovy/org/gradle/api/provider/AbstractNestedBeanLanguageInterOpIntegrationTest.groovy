@@ -27,7 +27,7 @@ abstract class AbstractNestedBeanLanguageInterOpIntegrationTest extends Abstract
         buildFile << """
             apply plugin: SomePlugin
 
-            println "flag = " + tasks.someTask.params.flag
+            println "flag = " + tasks.someTask.params.flag.toDebugString()
         """
 
         when:
