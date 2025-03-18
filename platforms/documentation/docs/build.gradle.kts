@@ -659,7 +659,7 @@ tasks.named<Test>("docsTest") {
 
         if (!javaVersion.isCompatibleWith(JavaVersion.VERSION_17)) {
             // Spring Boot requires Java 17+
-            excludeTestsMatching "org.gradle.docs.samples.*.structuring-software-projects_*_build-server-application.sample"
+            excludeTestsMatching("org.gradle.docs.samples.*.structuring-software-projects_*_build-server-application.sample")
         }
 
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_12)) {

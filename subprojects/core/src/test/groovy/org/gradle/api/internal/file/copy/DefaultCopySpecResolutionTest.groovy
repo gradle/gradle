@@ -31,7 +31,6 @@ class DefaultCopySpecResolutionTest extends Specification {
 
     @Rule
     public TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider(getClass())
-    def fileResolver = TestFiles.resolver(testDir.testDirectory)
     def fileCollectionFactory = TestFiles.fileCollectionFactory(testDir.testDirectory)
     def propertyFactory = TestUtil.propertyFactory()
     def instantiator = TestUtil.instantiatorFactory().decorateLenient()

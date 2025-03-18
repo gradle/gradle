@@ -233,6 +233,54 @@
             ]
         },
         {
+            "type": "org.gradle.api.file.CopyProcessingSpec",
+            "member": "Method org.gradle.api.file.CopyProcessingSpec.getDirMode()",
+            "acceptation": "API is being remove in Gradle 9.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.file.CopyProcessingSpec",
+            "member": "Method org.gradle.api.file.CopyProcessingSpec.getFileMode()",
+            "acceptation": "[API is being remove in Gradle 9.0]",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.file.CopyProcessingSpec",
+            "member": "Method org.gradle.api.file.CopyProcessingSpec.setDirMode(java.lang.Integer)",
+            "acceptation": "[API is being remove in Gradle 9.0]",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.file.CopyProcessingSpec",
+            "member": "Method org.gradle.api.file.CopyProcessingSpec.setFileMode(java.lang.Integer)",
+            "acceptation": "[API is being remove in Gradle 9.0]",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.file.FileCopyDetails",
+            "member": "Method org.gradle.api.file.FileCopyDetails.setMode(int)",
+            "acceptation": "[API is being remove in Gradle 9.0]",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.file.FileTreeElement",
+            "member": "Method org.gradle.api.file.FileTreeElement.getMode()",
+            "acceptation": "[API is being remove in Gradle 9.0]",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.artifacts.dsl.DependencyHandler",
             "member": "Method org.gradle.api.artifacts.dsl.DependencyHandler.module(java.lang.Object)",
             "acceptation": "Remove deprecated method",
@@ -516,6 +564,22 @@
             "type": "org.gradle.api.plugins.WarPluginConvention",
             "member": "Method org.gradle.api.plugins.WarPluginConvention.setWebAppDirName(java.lang.String)",
             "acceptation": "war plugin convention was deprecated",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.AbstractCopyTask",
+            "member": "Method org.gradle.api.tasks.AbstractCopyTask.setDirMode(java.lang.Integer)",
+            "acceptation": "[API is being remove in Gradle 9.0]",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.AbstractCopyTask",
+            "member": "Method org.gradle.api.tasks.AbstractCopyTask.setFileMode(java.lang.Integer)",
+            "acceptation": "[API is being remove in Gradle 9.0]",
             "changes": [
                 "Method has been removed"
             ]
@@ -2383,102 +2447,6 @@
             "acceptation": "Deprecated in 8.x",
             "changes": [
                 "Method has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.api.file.CopyProcessingSpec",
-            "member": "Method org.gradle.api.file.CopyProcessingSpec.getDirMode()",
-            "acceptation": "API is being remove in Gradle 9.0",
-            "changes": [
-                "Method has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.api.file.CopyProcessingSpec",
-            "member": "Method org.gradle.api.file.CopyProcessingSpec.getFileMode()",
-            "acceptation": "[API is being remove in Gradle 9.0]",
-            "changes": [
-                "Method has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.api.file.CopyProcessingSpec",
-            "member": "Method org.gradle.api.file.CopyProcessingSpec.setDirMode(java.lang.Integer)",
-            "acceptation": "[API is being remove in Gradle 9.0]",
-            "changes": [
-                "Method has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.api.file.CopyProcessingSpec",
-            "member": "Method org.gradle.api.file.CopyProcessingSpec.setFileMode(java.lang.Integer)",
-            "acceptation": "[API is being remove in Gradle 9.0]",
-            "changes": [
-                "Method has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.api.file.FileCopyDetails",
-            "member": "Method org.gradle.api.file.FileCopyDetails.setMode(int)",
-            "acceptation": "[API is being remove in Gradle 9.0]",
-            "changes": [
-                "Method has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.api.file.FileTreeElement",
-            "member": "Method org.gradle.api.file.FileTreeElement.getMode()",
-            "acceptation": "[API is being remove in Gradle 9.0]",
-            "changes": [
-                "Method has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.AbstractCopyTask",
-            "member": "Method org.gradle.api.tasks.AbstractCopyTask.setDirMode(java.lang.Integer)",
-            "acceptation": "[API is being remove in Gradle 9.0]",
-            "changes": [
-                "Method has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.AbstractCopyTask",
-            "member": "Method org.gradle.api.tasks.AbstractCopyTask.setFileMode(java.lang.Integer)",
-            "acceptation": "[API is being remove in Gradle 9.0]",
-            "changes": [
-                "Method has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.tooling.events.problems.ProblemDefinition",
-            "member": "Method org.gradle.tooling.events.problems.ProblemDefinition.getDocumentationLink()",
-            "acceptation": "Change in incubating API",
-            "changes": [
-                "From non-null returning to null returning breaking change"
-            ]
-        },
-        {
-            "type": "org.gradle.tooling.events.problems.SingleProblemEvent",
-            "member": "Method org.gradle.tooling.events.problems.SingleProblemEvent.getAdditionalData()",
-            "acceptation": "Change in incubating API",
-            "changes": [
-                "From non-null returning to null returning breaking change"
-            ]
-        },
-        {
-            "type": "org.gradle.tooling.events.problems.SingleProblemEvent",
-            "member": "Method org.gradle.tooling.events.problems.SingleProblemEvent.getContextualLabel()",
-            "acceptation": "Change in incubating API",
-            "changes": [
-                "From non-null returning to null returning breaking change"
-            ]
-        },
-        {
-            "type": "org.gradle.tooling.events.problems.SingleProblemEvent",
-            "member": "Method org.gradle.tooling.events.problems.SingleProblemEvent.getDetails()",
-            "acceptation": "Change in incubating API",
-            "changes": [
-                "From non-null returning to null returning breaking change"
             ]
         }
     ]

@@ -26,7 +26,6 @@ import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
-import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
