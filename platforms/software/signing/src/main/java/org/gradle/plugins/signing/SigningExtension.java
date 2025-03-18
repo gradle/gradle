@@ -24,7 +24,6 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
@@ -431,9 +430,7 @@ public abstract class SigningExtension {
         }
         @SuppressWarnings("deprecation")
         final Sign signTask = project.getTasks().create(signTaskName, Sign.class, taskConfiguration);
-        Configuration archivesConfiguration = project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION);
         addSignaturesToConfiguration(signTask, getConfiguration());
-        addSignaturesToConfiguration(signTask, archivesConfiguration);
         return signTask;
     }
 
