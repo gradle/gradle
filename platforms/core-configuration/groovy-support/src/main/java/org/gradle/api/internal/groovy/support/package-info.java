@@ -93,6 +93,10 @@
  *
  * <h3>Testing notes</h3>
  * You may need to clean {@code intTestHomeDir/} in the root project for your integration tests to pick up new type definitions.
+ * <p>
+ * Extension methods and stand-ins are not covered by existing public API checks.
+ * So far we're using manual tests that verify class names and method signatures through Reflection API.
+ * See {@code CompoundAssignmentBinaryCompatibilityFixture} for extra information.
  */
 @org.jspecify.annotations.NullMarked
 package org.gradle.api.internal.groovy.support;
