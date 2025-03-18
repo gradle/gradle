@@ -80,6 +80,6 @@ public class MappingProvider<OUT, IN> extends TransformBackedProvider<OUT, IN> {
 
     @Override
     protected String toStringNoReentrance() {
-        return "map(" + (type == null ? "" : type.getName() + " ") + provider + " " + transformer + ")";
+        return "map(" + (type == null ? "" : type.getName() + " ") + provider.toDebugString() + " " + transformer + ")";
     }
 }
