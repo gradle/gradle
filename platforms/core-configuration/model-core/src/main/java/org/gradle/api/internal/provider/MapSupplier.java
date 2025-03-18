@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.provider;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.Set;
 
@@ -34,7 +33,4 @@ interface MapSupplier<K, V> extends ValueSupplier {
     MapSupplier<K, V> plus(MapCollector<K, V> collector);
 
     ExecutionTimeValue<? extends Map<K, V>> calculateExecutionTimeValue();
-
-    @Nullable
-    MapCollector<K, V> getCollectorForKey(K key);
 }

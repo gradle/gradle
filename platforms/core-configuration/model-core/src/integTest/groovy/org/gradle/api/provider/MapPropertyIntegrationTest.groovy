@@ -819,9 +819,8 @@ task thing {
         when:
         run "foo"
 
-        then:
+        then: "all MapProperty's dependencies are evaluated"
         outputContains("Entry is bar")
-        result.assertTaskNotExecuted(":baz")
-        result.assertTasksExecutedInOrder(":bar", ":foo")
+        result.assertTasksExecuted(":bar", ":baz", ":foo")
     }
 }
