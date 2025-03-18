@@ -86,7 +86,7 @@ public class ExceptionProblemRegistry {
         private static String messageOf(Throwable t) {
             String result = "";
             try {
-                String message = t.getMessage();
+                String message = t.getMessage(); // TODO: Groovy's MissingMethodException
                 result = message == null ? "" : message;
             } catch (RuntimeException ignore) {
                 // ignore exceptions with faulty getMessage() implementation
