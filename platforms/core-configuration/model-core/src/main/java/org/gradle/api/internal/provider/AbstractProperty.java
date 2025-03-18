@@ -148,6 +148,10 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
     }
 
     protected final String describeValue() {
+        // TODO: it's probably better to make ValueSupplier have `toDebugString()` method
+        if (value instanceof ProviderInternal) {
+            return ((ProviderInternal<?>) value).toDebugString();
+        }
         return value.toString();
     }
 
