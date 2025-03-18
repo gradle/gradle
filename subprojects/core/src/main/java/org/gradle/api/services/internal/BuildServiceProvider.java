@@ -20,11 +20,13 @@ import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.provider.AbstractMinimalProvider;
 import org.gradle.api.internal.provider.DefaultProperty;
 import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.api.internal.provider.ValueSanitizer;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
 import org.gradle.api.services.BuildServiceRegistry;
 import org.gradle.internal.Cast;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.state.Managed;
 import org.jspecify.annotations.NonNull;
@@ -123,5 +125,26 @@ public abstract class BuildServiceProvider<T extends BuildService<P>, P extends 
         Class<?> otherType = otherBuildServiceProvider.getType();
         Class<?> thisType = thisBuildServiceProvider.getType();
         return otherType.isAssignableFrom(Cast.uncheckedCast(thisType));
+    }
+
+    @Override
+    public ProviderInternal<T> asSupplier(DisplayName owner, Class<? super T> targetType, ValueSanitizer<? super T> sanitizer) {
+        Class<T> selfType = getType();
+        if (selfType != null && !targetType.isAssignableFrom(selfType)) {
+            String targetTypeName = targetType.getName();
+            String selfTypeName = selfType.getName();
+            if (targetTypeName.equals(selfTypeName)) {
+                // This may happen when the same type is loaded by different classloaders.
+                targetTypeName = targetTypeName + " loaded with " + targetType.getClassLoader();
+                selfTypeName = selfTypeName + " loaded with " + selfType.getClassLoader();
+                // TODO: use problems API to have fancier report
+                throw new IllegalArgumentException(String.format("Cannot set the value of %s of type %s using a provider of type %s.\n" +
+                        "This can be caused by a plugin being applied to two sibling projects and then using a shared build service. " +
+                        "To fix this, use `@ServiceReference` or add the problematic plugin with `apply false` to the root build script.",
+                    owner.getDisplayName(), targetTypeName, selfTypeName
+                ));
+            }
+        }
+        return super.asSupplier(owner, targetType, sanitizer);
     }
 }
