@@ -660,19 +660,20 @@ tasks.named<Test>("docsTest") {
         }
 
         if (!javaVersion.isJava11Compatible) {
-            // Android requires Java 11+
-            excludeTestsMatching("org.gradle.docs.samples.*.building-android-*.sample")
-            excludeTestsMatching("org.gradle.docs.samples.*.snippet-kotlin-dsl-android-build_*.sample")
-            excludeTestsMatching("org.gradle.docs.samples.*.snippet-kotlin-dsl-android-single-build_*.sample")
-            excludeTestsMatching("org.gradle.docs.samples.*.structuring-software-projects*android-app.sample")
-            // Umbrella build project contains also Android projects so it requires Java 11+
-            excludeTestsMatching("org.gradle.docs.samples.*.structuring-software-projects_*_umbrella-build.sample")
             // This test sets source and target compatibility to 11
             excludeTestsMatching("org.gradle.docs.samples.*.snippet-kotlin-dsl-accessors_*.sample")
         }
 
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_12)) {
             excludeTestsMatching("org.gradle.docs.samples.*.snippet-test-kit-gradle-version_*_testKitFunctionalTestSpockGradleDistribution.sample")
+        }
+
+        if (!javaVersion.isCompatibleWith(JavaVersion.VERSION_17)) {
+            // Android requires Java 17+
+            excludeTestsMatching("org.gradle.docs.samples.*.building-android-*.sample")
+            excludeTestsMatching("org.gradle.docs.samples.*.structuring-software-projects*android-app.sample")
+            // Umbrella build project also contains Android projects
+            excludeTestsMatching("org.gradle.docs.samples.*.structuring-software-projects_*_umbrella-build.sample")
         }
 
         if (!javaVersion.isCompatibleWith(JavaVersion.VERSION_21)) {
