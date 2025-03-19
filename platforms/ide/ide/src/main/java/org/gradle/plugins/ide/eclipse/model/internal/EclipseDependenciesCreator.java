@@ -256,7 +256,6 @@ public class EclipseDependenciesCreator {
         }
     }
 
-    @SuppressWarnings("ConstantValue")
     private static boolean isNotJar(ResolvedArtifactResult artifact) {
         LibraryElements libraryElements = artifact.getVariant().getAttributes().getAttribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE);
         return libraryElements == null
