@@ -27,6 +27,8 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CallableBuildOperation;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -36,6 +38,7 @@ import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+@ServiceScope(Scope.BuildSession.class)
 public class DefaultDeploymentRegistry implements DeploymentRegistryInternal, PendingChangesListener, Stoppable {
     private static final Logger LOGGER = Logging.getLogger(DefaultDeploymentRegistry.class);
 

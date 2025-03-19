@@ -19,8 +19,7 @@ package org.gradle.api.internal.provider;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.state.ModelObject;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 @ServiceScope({Scope.Global.class, Scope.Project.class})
 public interface PropertyHost {

@@ -295,7 +295,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
 
     private BuildWorkGraphController buildWorkGraphController(String displayName, BuildServices services) {
         def builder = Mock(BuildLifecycleController.WorkGraphBuilder)
-        def nodeFactory = new TaskNodeFactory(services.gradle, Stub(BuildTreeWorkGraphController), Stub(NodeValidator), new TestBuildOperationRunner(), new ExecutionNodeAccessHierarchies(CaseSensitivity.CASE_INSENSITIVE, Stub(Stat)))
+        def nodeFactory = new TaskNodeFactory(services.gradle, Stub(BuildTreeWorkGraphController), Stub(NodeValidator), new TestBuildOperationRunner(), new ExecutionNodeAccessHierarchies(CaseSensitivity.CASE_INSENSITIVE, Stub(Stat)), TestUtil.problemsService())
         def hierarchies = new ExecutionNodeAccessHierarchies(CaseSensitivity.CASE_SENSITIVE, TestFiles.fileSystem())
         def dependencyResolver = Stub(TaskDependencyResolver)
         _ * dependencyResolver.resolveDependenciesFor(_, _) >> { TaskInternal task, Object dependencies ->

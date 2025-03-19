@@ -147,7 +147,7 @@ object BuildServices : ServiceRegistrationProvider {
         stringInterner: StringInterner,
         fileCollectionFactory: FileCollectionFactory,
         classpathFingerprinter: ClasspathFingerprinter
-    ) =
+    ): ClasspathHasher =
         DefaultClasspathHasher(
             if (isKotlinScriptCompilationAvoidanceEnabled) {
                 KotlinCompileClasspathFingerprinter(

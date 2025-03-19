@@ -93,7 +93,7 @@ abstract class AbstractProjectDependencyConflictResolutionIntegrationSpec extend
             ${checkHelper(buildId, projectPath)}
 """
         moduleDefinition('ModuleC', """
-            group "myorg"
+            group = "myorg"
             version = $projectDep
 
             configurations { conf }
@@ -101,7 +101,7 @@ abstract class AbstractProjectDependencyConflictResolutionIntegrationSpec extend
 """)
 
         moduleDefinition('ProjectA', """
-            repositories { maven { url "${mavenRepo.uri}" } }
+            repositories { maven { url = "${mavenRepo.uri}" } }
 
             configurations { conf }
 

@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Gradle, Inc.
+// Copyright (C) 2024 Gradle, Inc.
 //
 // Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
@@ -39,6 +39,9 @@ Gradle offers multiple notations for declaring module dependencies, including st
 
 - **String Notation:** Simplifies dependency declaration by combining the group, name, and version into a single string.
 - **Map Notation:** Allows for specifying each part of the coordinates separately.
+
+Module dependencies use the link:{javadocPath}/org/gradle/api/artifacts/ExternalModuleDependency.html[`ExternalModuleDependency`] and link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyHandler.html[`DependencyHandler`] APIs.
+These APIs provide various properties and configuration methods for defining dependencies.
 
 For advanced configurations, such as enforcing strict versions, you can also provide a closure when alongside these notations.
 
@@ -130,7 +133,7 @@ Ideally, you should use Maven or Ivy repository with a local URL:
 ----
 repositories {
     maven {
-        url 'file:///path/to/local/files' // Replace with your actual path
+        url = 'file:///path/to/local/files' // Replace with your actual path
     }
 }
 ----

@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Gradle, Inc.
+// Copyright (C) 2024 Gradle, Inc.
 //
 // Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
@@ -66,10 +66,10 @@ _Training time_: **65 minutes**
 
 The tutorial covers:
 
-<<partr1_gradle_init#part1_begin,Part 1.>> Initializing the Project +
-<<partr2_build_lifecycle#part2_begin,Part 2.>> Understanding the Build Lifecycle +
-<<partr3_multi_project_builds#part3_begin,Part 3.>> Multi-Project Builds +
-<<partr4_settings_file#part4_begin,Part 6.>> Writing the Settings File +
-<<partr5_build_scripts#part5_begin,Part 5.>> Writing Build Script +
-<<partr6_writing_tasks#part6_begin,Part 6.>> Writing Tasks +
-<<partr7_writing_plugins#part7_begin,Part 7.>> Writing Plugins +
+<<part1_gradle_init_project#part1_begin,Part 1.>> Initializing the Project +
+<<part2_build_lifecycle#part2_begin,Part 2.>> Understanding the Build Lifecycle +
+<<part3_multi_project_builds#part3_begin,Part 3.>> Multi-Project Builds +
+<<part4_settings_file#part4_begin,Part 6.>> Writing the Settings File +
+<<part5_build_scripts#part5_begin,Part 5.>> Writing Build Script +
+<<part6_writing_tasks#part6_begin,Part 6.>> Writing Tasks +
+<<part7_writing_plugins#part7_begin,Part 7.>> Writing Plugins +

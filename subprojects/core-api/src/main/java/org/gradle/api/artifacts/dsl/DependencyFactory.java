@@ -16,7 +16,6 @@
 
 package org.gradle.api.artifacts.dsl;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Dependency;
@@ -25,8 +24,7 @@ import org.gradle.api.artifacts.FileCollectionDependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.file.FileCollection;
 import org.gradle.internal.HasInternalProtocol;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Factory class for creating {@link Dependency} instances, with strong typing.
@@ -44,7 +42,6 @@ import javax.annotation.Nullable;
  */
 @HasInternalProtocol
 @NonExtensible
-@Incubating
 public interface DependencyFactory {
     /**
      * Create an {@link ExternalModuleDependency} from the <code>"<i>group</i>:<i>name</i>:<i>version</i>:<i>classifier</i>@<i>extension</i>"</code> notation.

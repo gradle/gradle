@@ -319,6 +319,7 @@ class TaskContainerDslIntegrationTest : AbstractKotlinIntegrationTest() {
         )
     }
 
+    @Suppress("DEPRECATION")
     private
     val beforeDelegatedProperties: Project.() -> Unit = {
         // For cases not exercised by delegated properties

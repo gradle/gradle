@@ -189,7 +189,7 @@ apply plugin: "java"
 apply plugin: "idea"
 
 repositories {
-    maven { url "${repoDir.toURI()}" }
+    maven { url = "${repoDir.toURI()}" }
 }
 
 dependencies {
@@ -214,7 +214,7 @@ dependencies {
     apply plugin: "idea"
 
     repositories {
-        maven { url "${repoDir.toURI()}" }
+        maven { url = "${repoDir.toURI()}" }
     }
 
     idea {
@@ -293,7 +293,7 @@ apply plugin: 'java'
 apply plugin: 'idea'
 
 repositories {
-    maven { url "${repoDir.toURI()}" }
+    maven { url = "${repoDir.toURI()}" }
 }
 
 configurations {
@@ -322,7 +322,7 @@ apply plugin: 'java'
 apply plugin: 'idea'
 
 repositories {
-    maven { url "${repoDir.toURI()}" }
+    maven { url = "${repoDir.toURI()}" }
 }
 
 dependencies {

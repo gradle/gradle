@@ -33,7 +33,7 @@ class MavenPublishSnapshotIntegTest extends AbstractMavenPublishIntegTest {
 
     publishing {
         repositories {
-            maven { url "${mavenRepo.uri}" }
+            maven { url = "${mavenRepo.uri}" }
         }
         publications {
             pub(MavenPublication) {
@@ -209,7 +209,7 @@ class MavenPublishSnapshotIntegTest extends AbstractMavenPublishIntegTest {
 
     publishing {
         repositories {
-            maven { url "${mavenRepo.uri}" }
+            maven { url = "${mavenRepo.uri}" }
         }
         publications {
             pub(MavenPublication) {

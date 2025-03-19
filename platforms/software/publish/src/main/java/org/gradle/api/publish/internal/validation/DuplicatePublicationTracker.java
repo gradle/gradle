@@ -21,10 +21,13 @@ import com.google.common.collect.Multimap;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.net.URI;
 
+@ServiceScope(Scope.Build.class)
 public class DuplicatePublicationTracker {
     private final static Logger LOG = Logging.getLogger(DuplicatePublicationTracker.class);
     private final Multimap<String, PublicationWithProject> published = LinkedHashMultimap.create();

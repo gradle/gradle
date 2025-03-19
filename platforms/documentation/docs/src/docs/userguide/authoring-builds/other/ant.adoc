@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Gradle, Inc.
+// Copyright (C) 2024 Gradle, Inc.
 //
 // Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
@@ -201,7 +201,7 @@ $ gradle hello
 include::{snippetsPath}/ant/dependsOnTask/tests/dependsOnTask.out[]
 ----
 
-Sometimes, it may be necessary to “rename” the task generated for an Ant target to avoid a naming collision with existing Gradle tasks.
+Sometimes, it may be necessary to "rename" the task generated for an Ant target to avoid a naming collision with existing Gradle tasks.
 To do this, use the link:{javadocPath}/org/gradle/api/AntBuilder.html#importBuild-java.lang.Object-org.gradle.api.Transformer-[AntBuilder.importBuild(java.lang.Object, org.gradle.api.Transformer)] method:
 
 ====

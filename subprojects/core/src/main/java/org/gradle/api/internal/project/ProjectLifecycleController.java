@@ -56,6 +56,10 @@ public class ProjectLifecycleController implements Closeable {
         return project != null;
     }
 
+    public void assertConfigured() {
+        controller.assertInStateOrLater(State.Configured);
+    }
+
     public void createMutableModel(
         DefaultProjectDescriptor descriptor,
         BuildState build,

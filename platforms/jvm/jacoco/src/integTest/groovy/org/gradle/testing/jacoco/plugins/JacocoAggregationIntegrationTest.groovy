@@ -277,7 +277,6 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
             testing {
                 suites {
                     integTest(JvmTestSuite) {
-                        testType = TestSuiteType.INTEGRATION_TEST
                         useJUnit()
                         dependencies {
                           implementation project()
@@ -292,7 +291,6 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
             testing {
                 suites {
                     integTest(JvmTestSuite) {
-                        testType = TestSuiteType.INTEGRATION_TEST
                         useJUnit()
                         dependencies {
                             implementation project(':transitive') // necessary to access Divisor when compiling test
@@ -385,7 +383,7 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
             reporting {
                 reports {
                     testCodeCoverageReport(JacocoCoverageReport) {
-                        testType = TestSuiteType.UNIT_TEST
+                        testSuiteName = "test"
                     }
                 }
             }
@@ -421,7 +419,7 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
             reporting {
                 reports {
                     testCodeCoverageReport(JacocoCoverageReport) {
-                        testType = TestSuiteType.UNIT_TEST
+                        testSuiteName = "test"
                     }
                 }
             }
@@ -468,7 +466,7 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
             reporting {
                 reports {
                     testCodeCoverageReport(JacocoCoverageReport) {
-                        testType = TestSuiteType.UNIT_TEST
+                        testSuiteName = "test"
                     }
                 }
             }
@@ -515,7 +513,7 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
             reporting {
                 reports {
                     testCodeCoverageReport(JacocoCoverageReport) {
-                        testType = TestSuiteType.UNIT_TEST
+                        testSuiteName = "test"
                     }
                 }
             }
@@ -665,7 +663,7 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
                             suites {
                                 test {
                                     useJUnit()
-                                    jvmArgs '-XX:UnknownArgument'
+                                    jvmArgs('-XX:UnknownArgument')
                                 }
                             }
                         }
@@ -706,9 +704,7 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
 
             reporting {
                 reports {
-                    create("testCodeCoverageReport", JacocoCoverageReport) {
-                        testType.set(TestSuiteType.UNIT_TEST)
-                    }
+                    create("testCodeCoverageReport", JacocoCoverageReport)
                 }
             }
         """

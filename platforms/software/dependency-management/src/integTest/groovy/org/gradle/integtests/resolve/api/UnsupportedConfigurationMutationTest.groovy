@@ -129,69 +129,74 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
     def "does not allow changing dependencies of a configuration that has been resolved for task dependencies"() {
         mavenRepo.module("org.utils", "extra", '1.5').publish()
 
-        createDirs("api", "impl")
-        settingsFile << "include 'api', 'impl'"
-        buildFile << """
-            allprojects {
-                repositories {
-                    maven { url "${mavenRepo.uri}" }
-                }
-                configurations {
-                    compile
-                    testCompile { extendsFrom compile }
-                    'default' { extendsFrom compile }
-                }
-                configurations.all {
-                    resolutionStrategy.assumeFluidDependencies()
-                }
+        settingsFile << """
+            include 'api'
+            include 'impl'
+            dependencyResolutionManagement {
+                ${mavenTestRepository()}
             }
+        """
 
-            project(":api") {
-                task addDependency {
-                    doLast {
-                        dependencies {
-                            compile "org.utils:extra:1.5"
-                        }
-                    }
-                }
+        def common = """
+            configurations {
+                compile
+                testCompile { extendsFrom compile }
+                'default' { extendsFrom compile }
             }
+            configurations.all {
+                resolutionStrategy.assumeFluidDependencies()
+            }
+        """
 
-            project(":impl") {
-                dependencies {
-                    compile project(":api")
-                }
+        file("api/build.gradle") << """
+            $common
 
-                task addDependency {
-                    doLast {
-                        dependencies {
-                            compile "org.utils:extra:1.5"
-                        }
-                    }
-                }
-
-                task modifyConfigDuringTaskExecution(dependsOn: [':impl:addDependency', configurations.compile]) {
-                    doLast {
-                        def files = configurations.compile.files
-                        assert files*.name.sort() == ["api.jar", "extra-1.5.jar"]
-                        assert files*.exists() == [ true, true ]
-                    }
-                }
-                task modifyParentConfigDuringTaskExecution(dependsOn: [':impl:addDependency', configurations.testCompile]) {
-                    doLast {
-                        def files = configurations.testCompile.files
-                        assert files*.name.sort() == ["api.jar", "extra-1.5.jar"]
-                        assert files*.exists() == [ true, true ]
-                    }
-                }
-                task modifyDependentConfigDuringTaskExecution(dependsOn: [':api:addDependency', configurations.compile]) {
-                    doLast {
-                        def files = configurations.compile.files
-                        assert files*.name.sort() == ["api.jar"] // Late dependency is not honoured
-                        assert files*.exists() == [ true ]
+            task addDependency {
+                doLast {
+                    dependencies {
+                        compile "org.utils:extra:1.5"
                     }
                 }
             }
-"""
+        """
+
+        file("impl/build.gradle") << """
+            $common
+
+            dependencies {
+                compile project(":api")
+            }
+
+            task addDependency {
+                doLast {
+                    dependencies {
+                        compile "org.utils:extra:1.5"
+                    }
+                }
+            }
+
+            task modifyConfigDuringTaskExecution(dependsOn: [':impl:addDependency', configurations.compile]) {
+                doLast {
+                    def files = configurations.compile.files
+                    assert files*.name.sort() == ["api.jar", "extra-1.5.jar"]
+                    assert files*.exists() == [ true, true ]
+                }
+            }
+            task modifyParentConfigDuringTaskExecution(dependsOn: [':impl:addDependency', configurations.testCompile]) {
+                doLast {
+                    def files = configurations.testCompile.files
+                    assert files*.name.sort() == ["api.jar", "extra-1.5.jar"]
+                    assert files*.exists() == [ true, true ]
+                }
+            }
+            task modifyDependentConfigDuringTaskExecution(dependsOn: [':api:addDependency', configurations.compile]) {
+                doLast {
+                    def files = configurations.compile.files
+                    assert files*.name.sort() == ["api.jar"] // Late dependency is not honoured
+                    assert files*.exists() == [ true ]
+                }
+            }
+        """
 
         when:
         fails("impl:modifyConfigDuringTaskExecution")
@@ -216,46 +221,51 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
     def "does not allow changing artifacts of a configuration that has been resolved for task dependencies"() {
         mavenRepo.module("org.utils", "extra", '1.5').publish()
 
-        createDirs("api", "impl")
-        settingsFile << "include 'api', 'impl'"
-        buildFile << """
-            allprojects {
-                repositories {
-                    maven { url "${mavenRepo.uri}" }
+        settingsFile << """
+            include 'api'
+            include 'impl'
+            dependencyResolutionManagement {
+                ${mavenTestRepository()}
+            }
+        """
+
+        def common = """
+            configurations {
+                compile
+                testCompile { extendsFrom compile }
+                'default' { extendsFrom compile }
+            }
+            configurations.all {
+                resolutionStrategy.assumeFluidDependencies()
+            }
+        """
+
+        file("api/build.gradle") << """
+            $common
+
+            task addArtifact {
+                doLast {
+                    artifacts { compile file("some.jar") }
                 }
-                configurations {
-                    compile
-                    testCompile { extendsFrom compile }
-                    'default' { extendsFrom compile }
-                }
-                configurations.all {
-                    resolutionStrategy.assumeFluidDependencies()
+            }
+        """
+
+        file("impl/build.gradle") << """
+            $common
+
+            dependencies {
+                compile project(":api")
+            }
+            task addArtifact {
+                doLast {
+                    artifacts { compile file("some.jar") }
                 }
             }
 
-            project(":api") {
-                task addArtifact {
-                    doLast {
-                        artifacts { compile file("some.jar") }
-                    }
-                }
-            }
-
-            project(":impl") {
-                dependencies {
-                    compile project(":api")
-                }
-                task addArtifact {
-                    doLast {
-                        artifacts { compile file("some.jar") }
-                    }
-                }
-
-                task addArtifactToConfigDuringTaskExecution(dependsOn: [':impl:addArtifact', configurations.compile])
-                task addArtifactToParentConfigDuringTaskExecution(dependsOn: [':impl:addArtifact', configurations.testCompile])
-                task addArtifactToDependentConfigDuringTaskExecution(dependsOn: [':api:addArtifact', configurations.compile])
-            }
-"""
+            task addArtifactToConfigDuringTaskExecution(dependsOn: [':impl:addArtifact', configurations.compile])
+            task addArtifactToParentConfigDuringTaskExecution(dependsOn: [':impl:addArtifact', configurations.testCompile])
+            task addArtifactToDependentConfigDuringTaskExecution(dependsOn: [':api:addArtifact', configurations.compile])
+        """
 
         when:
         fails("impl:addArtifactToConfigDuringTaskExecution")
@@ -405,31 +415,40 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
     }
 
     def "does not allow changing a dependency project's dependencies after included in resolution"() {
-        createDirs("api", "impl")
-        settingsFile << "include 'api', 'impl'"
-        buildFile << """
-            allprojects {
+        settingsFile << """
+            include 'api'
+            gradle.lifecycle.beforeProject {
                 configurations {
-                    compile
-                    'default' { extendsFrom compile }
+                    create("compile")
+                    create("default") {
+                        extendsFrom compile
+                    }
                 }
             }
+        """
+
+        buildFile << """
             dependencies {
-                compile project(":impl")
-            }
-            project(":impl") {
-                dependencies {
-                    compile project(":api")
-                }
+                compile project(":api")
             }
             configurations.compile.resolve()
-            project(":api") {
+        """
+
+        file("api/build.gradle") << """
+            tasks.register("jar", Jar) {
+                archiveFileName = "jar.jar"
+                destinationDirectory = buildDir
                 dependencies {
                     compile files("some.jar")
                 }
             }
-"""
 
+            configurations {
+                compile {
+                    outgoing.artifact(tasks.named("jar"))
+                }
+            }
+        """
 
         when: fails()
         then: failure.assertHasCause("Cannot change dependencies of dependency configuration ':api:compile' after it has been included in dependency resolution.")
@@ -451,7 +470,7 @@ dependencies {
   parentConfig "org.test:moduleA:1.0"
 }
 repositories {
-    maven { url '$repo.uri' }
+    maven { url = '$repo.uri' }
 }
 
 task resolveChildFirst {

@@ -19,8 +19,8 @@ package org.gradle.internal.service;
 import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.util.ArrayDeque;
 import java.util.Collections;
@@ -37,6 +37,7 @@ import static org.gradle.util.internal.CollectionUtils.join;
  * Checks that services are being declared in the correct scope.
  * <p>
  * Only services that are annotated with {@link ServiceScope} are validated.
+ * In {@link #strict}-mode all services must be annotated.
  */
 class ServiceScopeValidator implements AnnotatedServiceLifecycleHandler {
 

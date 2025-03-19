@@ -27,7 +27,7 @@ class ToolingApiResolveIntegrationTest extends AbstractIntegrationSpec {
                 id 'java-library'
             }
             repositories {
-                maven { url '${buildContext.localRepository.toURI().toURL()}' }
+                maven { url = '${buildContext.localRepository.toURI()}' }
                 ${mavenCentralRepository()}
             }
 
@@ -70,7 +70,7 @@ class ToolingApiResolveIntegrationTest extends AbstractIntegrationSpec {
                 id 'java-library'
             }
             repositories {
-                maven { url '${buildContext.localRepository.toURI().toURL()}' }
+                maven { url = '${buildContext.localRepository.toURI()}' }
                 ${mavenCentralRepository()}
             }
 

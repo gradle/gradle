@@ -14,7 +14,10 @@
             </tr>
             <tr>
                 <td>reportsDir</td>
-                <td><literal><replaceable>${project.reporting.baseDir}</replaceable>/pmd</literal></td>
+                <td>
+                    <literal><replaceable>${project.reporting.baseDirectory}</replaceable>/pmd
+                    </literal>
+                </td>
             </tr>
             <tr>
                 <td>ruleSets</td>

@@ -19,12 +19,13 @@ package org.gradle.api.internal.artifacts.configurations;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.DependencyResolutionListener;
 import org.gradle.api.capabilities.Capability;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory;
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesFactory;
@@ -40,8 +41,9 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.model.CalculatedValueFactory;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.internal.work.WorkerThreadRegistry;
 
 import javax.annotation.concurrent.ThreadSafe;
 import javax.inject.Inject;
@@ -49,13 +51,13 @@ import javax.inject.Inject;
 /**
  * Factory for creating {@link org.gradle.api.artifacts.Configuration} instances.
  */
+@ServiceScope(Scope.Project.class)
 @ThreadSafe
 public class DefaultConfigurationFactory {
 
     private final Instantiator instantiator;
     private final ConfigurationResolver resolver;
     private final ListenerManager listenerManager;
-    private final DependencyLockingProvider dependencyLockingProvider;
     private final DomainObjectContext domainObjectContext;
     private final FileCollectionFactory fileCollectionFactory;
     private final BuildOperationRunner buildOperationRunner;
@@ -65,19 +67,19 @@ public class DefaultConfigurationFactory {
     private final ResolveExceptionMapper exceptionContextualizer;
     private final AttributeDesugaring attributeDesugaring;
     private final UserCodeApplicationContext userCodeApplicationContext;
+    private final CollectionCallbackActionDecorator collectionCallbackActionDecorator;
     private final ProjectStateRegistry projectStateRegistry;
-    private final WorkerThreadRegistry workerThreadRegistry;
     private final DomainObjectCollectionFactory domainObjectCollectionFactory;
     private final CalculatedValueFactory calculatedValueFactory;
     private final TaskDependencyFactory taskDependencyFactory;
     private final InternalProblems problemsService;
+    private final DocumentationRegistry documentationRegistry;
 
     @Inject
     public DefaultConfigurationFactory(
         Instantiator instantiator,
         ConfigurationResolver resolver,
         ListenerManager listenerManager,
-        DependencyLockingProvider dependencyLockingProvider,
         DomainObjectContext domainObjectContext,
         FileCollectionFactory fileCollectionFactory,
         BuildOperationRunner buildOperationRunner,
@@ -86,17 +88,17 @@ public class DefaultConfigurationFactory {
         ResolveExceptionMapper exceptionMapper,
         AttributeDesugaring attributeDesugaring,
         UserCodeApplicationContext userCodeApplicationContext,
+        CollectionCallbackActionDecorator collectionCallbackActionDecorator,
         ProjectStateRegistry projectStateRegistry,
-        WorkerThreadRegistry workerThreadRegistry,
         DomainObjectCollectionFactory domainObjectCollectionFactory,
         CalculatedValueFactory calculatedValueFactory,
         TaskDependencyFactory taskDependencyFactory,
-        InternalProblems problemsService
+        InternalProblems problemsService,
+        DocumentationRegistry documentationRegistry
     ) {
         this.instantiator = instantiator;
         this.resolver = resolver;
         this.listenerManager = listenerManager;
-        this.dependencyLockingProvider = dependencyLockingProvider;
         this.domainObjectContext = domainObjectContext;
         this.fileCollectionFactory = fileCollectionFactory;
         this.buildOperationRunner = buildOperationRunner;
@@ -106,18 +108,19 @@ public class DefaultConfigurationFactory {
         this.exceptionContextualizer = exceptionMapper;
         this.attributeDesugaring = attributeDesugaring;
         this.userCodeApplicationContext = userCodeApplicationContext;
+        this.collectionCallbackActionDecorator = collectionCallbackActionDecorator;
         this.projectStateRegistry = projectStateRegistry;
-        this.workerThreadRegistry = workerThreadRegistry;
         this.domainObjectCollectionFactory = domainObjectCollectionFactory;
         this.calculatedValueFactory = calculatedValueFactory;
         this.taskDependencyFactory = taskDependencyFactory;
         this.problemsService = problemsService;
+        this.documentationRegistry = documentationRegistry;
     }
 
     /**
      * Creates a new unlocked configuration instance.
      */
-    DefaultUnlockedConfiguration create(
+    DefaultLegacyConfiguration create(
         String name,
         ConfigurationsProvider configurationsProvider,
         Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
@@ -126,14 +129,13 @@ public class DefaultConfigurationFactory {
     ) {
         ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners =
             listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
-        DefaultUnlockedConfiguration instance = instantiator.newInstance(
-            DefaultUnlockedConfiguration.class,
+        DefaultLegacyConfiguration instance = instantiator.newInstance(
+            DefaultLegacyConfiguration.class,
             domainObjectContext,
             name,
             configurationsProvider,
             resolver,
             dependencyResolutionListeners,
-            dependencyLockingProvider,
             resolutionStrategyFactory,
             fileCollectionFactory,
             buildOperationRunner,
@@ -145,14 +147,15 @@ public class DefaultConfigurationFactory {
             exceptionContextualizer,
             attributeDesugaring,
             userCodeApplicationContext,
+            collectionCallbackActionDecorator,
             projectStateRegistry,
-            workerThreadRegistry,
             domainObjectCollectionFactory,
             calculatedValueFactory,
             this,
             taskDependencyFactory,
             role,
-            problemsService
+            problemsService,
+            documentationRegistry
         );
         instance.addMutationValidator(rootComponentMetadataBuilder.getValidator());
         return instance;
@@ -176,7 +179,6 @@ public class DefaultConfigurationFactory {
             configurationsProvider,
             resolver,
             dependencyResolutionListeners,
-            dependencyLockingProvider,
             resolutionStrategyFactory,
             fileCollectionFactory,
             buildOperationRunner,
@@ -188,13 +190,14 @@ public class DefaultConfigurationFactory {
             exceptionContextualizer,
             attributeDesugaring,
             userCodeApplicationContext,
+            collectionCallbackActionDecorator,
             projectStateRegistry,
-            workerThreadRegistry,
             domainObjectCollectionFactory,
             calculatedValueFactory,
             this,
             taskDependencyFactory,
-            problemsService
+            problemsService,
+            documentationRegistry
         );
         instance.addMutationValidator(rootComponentMetadataBuilder.getValidator());
         return instance;
@@ -218,7 +221,6 @@ public class DefaultConfigurationFactory {
             configurationsProvider,
             resolver,
             dependencyResolutionListeners,
-            dependencyLockingProvider,
             resolutionStrategyFactory,
             fileCollectionFactory,
             buildOperationRunner,
@@ -230,13 +232,14 @@ public class DefaultConfigurationFactory {
             exceptionContextualizer,
             attributeDesugaring,
             userCodeApplicationContext,
+            collectionCallbackActionDecorator,
             projectStateRegistry,
-            workerThreadRegistry,
             domainObjectCollectionFactory,
             calculatedValueFactory,
             this,
             taskDependencyFactory,
-            problemsService
+            problemsService,
+            documentationRegistry
         );
         instance.addMutationValidator(rootComponentMetadataBuilder.getValidator());
         return instance;
@@ -260,7 +263,6 @@ public class DefaultConfigurationFactory {
             configurationsProvider,
             resolver,
             dependencyResolutionListeners,
-            dependencyLockingProvider,
             resolutionStrategyFactory,
             fileCollectionFactory,
             buildOperationRunner,
@@ -272,13 +274,14 @@ public class DefaultConfigurationFactory {
             exceptionContextualizer,
             attributeDesugaring,
             userCodeApplicationContext,
+            collectionCallbackActionDecorator,
             projectStateRegistry,
-            workerThreadRegistry,
             domainObjectCollectionFactory,
             calculatedValueFactory,
             this,
             taskDependencyFactory,
-            problemsService
+            problemsService,
+            documentationRegistry
         );
         instance.addMutationValidator(rootComponentMetadataBuilder.getValidator());
         return instance;

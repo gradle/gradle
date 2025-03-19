@@ -37,8 +37,8 @@ dependencyLocking {
 
 repositories {
     maven {
-        name 'repo'
-        url '${mavenRepo.uri}'
+        name = 'repo'
+        url = "${mavenRepo.uri}"
     }
 }
 configurations {
@@ -106,8 +106,8 @@ dependencyLocking {
 
 repositories {
     maven {
-        name 'repo'
-        url '${mavenRepo.uri}'
+        name = 'repo'
+        url = "${mavenRepo.uri}"
     }
 }
 configurations {
@@ -152,8 +152,8 @@ dependencyLocking {
 
 repositories {
     maven {
-        name 'repo'
-        url '${mavenRepo.uri}'
+        name = 'repo'
+        url = "${mavenRepo.uri}"
     }
 }
 configurations {
@@ -196,8 +196,8 @@ dependencyLocking {
 
 repositories {
     maven {
-        name 'repo'
-        url '${mavenRepo.uri}'
+        name = 'repo'
+        url = "${mavenRepo.uri}"
     }
 }
 configurations {
@@ -238,8 +238,8 @@ dependencyLocking {
 }
 repositories {
     maven {
-        name 'repo'
-        url '${mavenRepo.uri}'
+        name = 'repo'
+        url = "${mavenRepo.uri}"
     }
 }
 configurations {
@@ -280,8 +280,8 @@ dependencyLocking {
 
 repositories {
     maven {
-        name 'repo'
-        url '${mavenRepo.uri}'
+        name = 'repo'
+        url = "${mavenRepo.uri}"
     }
 }
 
@@ -323,8 +323,8 @@ dependencyLocking {
 
 repositories {
     maven {
-        name 'repo'
-        url '${mavenRepo.uri}'
+        name = 'repo'
+        url = "${mavenRepo.uri}"
     }
 }
 configurations {
@@ -368,8 +368,8 @@ dependencyLocking {
 
 repositories {
     maven {
-        name 'repo'
-        url '${mavenRepo.uri}'
+        name = 'repo'
+        url = "${mavenRepo.uri}"
     }
 }
 configurations {
@@ -413,8 +413,8 @@ dependencyLocking {
 
 repositories {
     maven {
-        name 'repo'
-        url '${mavenRepo.uri}'
+        name = 'repo'
+        url = "${mavenRepo.uri}"
     }
 }
 configurations {
@@ -466,8 +466,8 @@ dependencyLocking {
 
 repositories {
     maven {
-        name 'repo'
-        url '${mavenRepo.uri}'
+        name = 'repo'
+        url = "${mavenRepo.uri}"
     }
 }
 
@@ -505,8 +505,8 @@ dependencyLocking {
 
 repositories {
     maven {
-        name 'repo'
-        url '${mavenHttpRepo.uri}'
+        name = 'repo'
+        url = "${mavenHttpRepo.uri}"
     }
 }
 configurations {

@@ -17,11 +17,10 @@
 package org.gradle.model.managed
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 
 @UnsupportedWithConfigurationCache(because = "software model")
-class ManagedScalarCollectionsIntegrationTest extends AbstractIntegrationSpec implements StableConfigurationCacheDeprecations {
+class ManagedScalarCollectionsIntegrationTest extends AbstractIntegrationSpec {
 
     private final static List<String> MANAGED_SCALAR_COLLECTION_TYPES = ['List', 'Set']
 
@@ -359,7 +358,6 @@ class ManagedScalarCollectionsIntegrationTest extends AbstractIntegrationSpec im
         """
 
         then:
-        expectTaskGetProjectDeprecations()
         fails 'model'
 
         and:
@@ -391,7 +389,6 @@ A valid scalar collection takes the form of List<T> or Set<T> where 'T' is one o
         """
 
         then:
-        expectTaskGetProjectDeprecations()
         fails 'model'
 
         and:

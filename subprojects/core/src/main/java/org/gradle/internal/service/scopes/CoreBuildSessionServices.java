@@ -36,8 +36,6 @@ import org.gradle.cache.internal.scopes.DefaultBuildTreeScopedCacheBuilderFactor
 import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory;
 import org.gradle.deployment.internal.DefaultDeploymentRegistry;
 import org.gradle.deployment.internal.PendingChangesManager;
-import org.gradle.groovy.scripts.internal.DefaultScriptSourceHasher;
-import org.gradle.groovy.scripts.internal.ScriptSourceHasher;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.initialization.GradleUserHomeDirProvider;
@@ -57,6 +55,8 @@ import org.gradle.internal.model.InMemoryCacheFactory;
 import org.gradle.internal.model.StateTransitionControllerFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.problems.DefaultProblemLocationAnalyzer;
+import org.gradle.internal.problems.ProblemLocationAnalyzer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.scopeids.PersistentScopeIdLoader;
 import org.gradle.internal.scopeids.ScopeIdsServices;
@@ -67,6 +67,7 @@ import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.time.Clock;
+import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.internal.work.DefaultAsyncWorkTracker;
 import org.gradle.process.internal.ExecFactory;
 
@@ -75,10 +76,11 @@ import java.io.File;
 public class CoreBuildSessionServices implements ServiceRegistrationProvider {
     void configure(ServiceRegistration registration) {
         registration.add(CalculatedValueContainerFactory.class);
+        registration.add(ProblemLocationAnalyzer.class, DefaultProblemLocationAnalyzer.class);
         registration.add(InMemoryCacheFactory.class);
         registration.add(StateTransitionControllerFactory.class);
         registration.add(BuildLayoutValidator.class);
-        registration.add(DefaultAsyncWorkTracker.class);
+        registration.add(AsyncWorkTracker.class, DefaultAsyncWorkTracker.class);
 
         // Must be no higher than this scope as needs cache repository services.
         registration.addProvider(new ScopeIdsServices());
@@ -138,11 +140,6 @@ public class CoreBuildSessionServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    ScriptSourceHasher createScriptSourceHasher() {
-        return new DefaultScriptSourceHasher();
-    }
-
-    @Provides
     UserScopeId createUserScopeId(PersistentScopeIdLoader persistentScopeIdLoader) {
         return persistentScopeIdLoader.getUser();
     }
@@ -159,7 +156,15 @@ public class CoreBuildSessionServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected ExecFactory decorateExecFactory(ExecFactory execFactory, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, BuildCancellationToken buildCancellationToken, ObjectFactory objectFactory, JavaModuleDetector javaModuleDetector) {
+    protected ExecFactory decorateExecFactory(
+        ExecFactory execFactory,
+        FileResolver fileResolver,
+        FileCollectionFactory fileCollectionFactory,
+        Instantiator instantiator,
+        BuildCancellationToken buildCancellationToken,
+        ObjectFactory objectFactory,
+        JavaModuleDetector javaModuleDetector
+    ) {
         return execFactory.forContext()
             .withFileResolver(fileResolver)
             .withFileCollectionFactory(fileCollectionFactory)

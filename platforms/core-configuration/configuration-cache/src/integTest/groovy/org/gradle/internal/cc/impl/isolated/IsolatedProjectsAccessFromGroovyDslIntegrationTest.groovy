@@ -588,12 +588,14 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         file("sub/sub-sub/build.gradle") << """
             println(bar)
         """
-        executer.expectDocumentedDeprecationWarning(
-            "The org.gradle.api.plugins.Convention type has been deprecated. " +
-                "This is scheduled to be removed in Gradle 9.0. " +
-                "Consult the upgrading guide for further information: " +
-                "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions"
-        )
+        2.times {
+            executer.expectDocumentedDeprecationWarning(
+                "The org.gradle.api.plugins.Convention type has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 9.0. " +
+                    "Consult the upgrading guide for further information: " +
+                    "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions"
+            )
+        }
 
         when:
         isolatedProjectsFails(":sub:sub-sub:help")

@@ -19,7 +19,10 @@ package org.gradle.configuration;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.internal.BuildScriptData;
 import org.gradle.groovy.scripts.internal.CompileOperation;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
+@ServiceScope(Scope.Build.class)
 public interface CompileOperationFactory {
     CompileOperation<?> getPluginsBlockCompileOperation(ScriptTarget initialPassScriptTarget);
 

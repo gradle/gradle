@@ -48,8 +48,8 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.publish.internal.validation.VariantWarningCollector;
 import org.gradle.internal.component.local.model.ProjectComponentSelectorInternal;
 import org.gradle.util.Path;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -284,7 +284,7 @@ public class ResolutionBackedPublicationDependencyResolver implements VariantDep
 
     @Override
     public ResolvedCoordinates resolveVariantCoordinates(ProjectDependency dependency, VariantWarningCollector warnings) {
-        Path identityPath = ((ProjectDependencyInternal) dependency).getIdentityPath();
+        Path identityPath = ((ProjectDependencyInternal) dependency).getTargetProjectIdentity().getBuildTreePath();
         ProjectDependencyKey key = new ProjectDependencyKey(identityPath, ModuleDependencyDetails.from(dependency, attributeDesugaring));
 
         ModuleVersionIdentifier resolved = mappings.resolvedProjectVariants.get(key);
@@ -321,7 +321,7 @@ public class ResolutionBackedPublicationDependencyResolver implements VariantDep
 
     @Override
     public ResolvedCoordinates resolveComponentCoordinates(ProjectDependency dependency) {
-        Path identityPath = ((ProjectDependencyInternal) dependency).getIdentityPath();
+        Path identityPath = ((ProjectDependencyInternal) dependency).getTargetProjectIdentity().getBuildTreePath();
         ModuleVersionIdentifier resolved = mappings.resolvedProjectComponents.get(identityPath);
         if (resolved != null) {
             return ResolvedCoordinates.create(resolved);

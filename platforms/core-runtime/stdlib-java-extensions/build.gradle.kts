@@ -13,7 +13,5 @@ dependencies {
     compileOnly(libs.jetbrainsAnnotations)
 
     api(libs.jsr305)
-}
-tasks.isolatedProjectsIntegTest {
-    enabled = false
+    api(libs.jspecify)
 }

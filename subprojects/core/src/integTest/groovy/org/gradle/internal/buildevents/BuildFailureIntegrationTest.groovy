@@ -19,6 +19,7 @@ package org.gradle.internal.buildevents
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class BuildFailureIntegrationTest extends AbstractIntegrationSpec {
+
     def "still prints errors when exception misbehaves"() {
         // When running in-process, the NPE propagates out of the test fixtures
         executer.requireIsolatedDaemons()

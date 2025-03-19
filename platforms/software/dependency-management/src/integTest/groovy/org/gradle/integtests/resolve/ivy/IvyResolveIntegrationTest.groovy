@@ -43,7 +43,7 @@ class IvyResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
         buildFile << """
 group = 'org.gradle'
 version = '1.0'
-repositories { ivy { url "${ivyRepo.uri}" } }
+repositories { ivy { url = "${ivyRepo.uri}" } }
 configurations { compile }
 dependencies {
     compile "org.gradle:test:1.45"
@@ -83,7 +83,7 @@ dependencies {
 
         and:
         buildFile << """
-repositories { ivy { url "${ivyHttpRepo.uri}" } }
+repositories { ivy { url = "${ivyHttpRepo.uri}" } }
 configurations { compile }
 dependencies {
     compile "org.gradle:test:1.45"
@@ -128,7 +128,7 @@ dependencies {
 
         and:
         buildFile << """
-repositories { ivy { url "${ivyRepo.uri}" } }
+repositories { ivy { url = "${ivyRepo.uri}" } }
 configurations { compile }
 dependencies {
     compile "org.gradle:test:1.45:classifier"
@@ -156,7 +156,7 @@ dependencies {
         buildFile << """
 repositories {
     ivy {
-        url "${ivyRepo.uri}"
+        url = "${ivyRepo.uri}"
         metadataSources {
             ivyDescriptor()
             artifact()
@@ -192,7 +192,7 @@ dependencies {
 
         and:
         buildFile << """
-repositories { ivy { url "${ivyHttpRepo.uri}" } }
+repositories { ivy { url = "${ivyHttpRepo.uri}" } }
 configurations { compile }
 dependencies {
     compile ("org.gradle:test:1.45") {
@@ -234,7 +234,7 @@ dependencies {
         buildFile << """
 repositories {
     ivy {
-        url "${ivyHttpRepo.uri}"
+        url = "${ivyHttpRepo.uri}"
         metadataSources {
             ivyDescriptor()
             artifact()
@@ -281,7 +281,7 @@ dependencies {
 
         and:
         buildFile << """
-repositories { ivy { url "${ivyRepo.uri}" } }
+repositories { ivy { url = "${ivyRepo.uri}" } }
 configurations {
     compile
     runtime.extendsFrom compile
@@ -345,7 +345,7 @@ dependencies {
             group = 'com.acme'
             version = '1.9'
 
-            repositories { ivy { url "${ivyRepo.uri}" } }
+            repositories { ivy { url = "${ivyRepo.uri}" } }
 
             apply plugin: 'java-library'
 

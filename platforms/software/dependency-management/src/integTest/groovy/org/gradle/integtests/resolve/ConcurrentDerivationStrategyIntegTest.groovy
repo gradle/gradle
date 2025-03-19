@@ -32,15 +32,15 @@ class ConcurrentDerivationStrategyIntegTest extends AbstractIntegrationSpec {
         settingsFile << """
             include 'app'
             include 'lib'
+            dependencyResolutionManagement {
+                ${mavenCentralRepository()}
+            }
         """
 
-        buildFile << """
-            subprojects {
-                ${mavenCentralRepository()}
-                dependencies {
-                    components {
-                        $rules
-                    }
+        def common = """
+            dependencies {
+                components {
+                    $rules
                 }
             }
 
@@ -61,6 +61,8 @@ class ConcurrentDerivationStrategyIntegTest extends AbstractIntegrationSpec {
         """
 
         file('app/build.gradle') << """
+            $common
+
             configurations {
                foo
             }
@@ -90,6 +92,8 @@ class ConcurrentDerivationStrategyIntegTest extends AbstractIntegrationSpec {
             plugins {
                id 'java-library'
             }
+
+            $common
 
             dependencies {
                api 'org.apache.commons:commons-lang3:3.3.1'

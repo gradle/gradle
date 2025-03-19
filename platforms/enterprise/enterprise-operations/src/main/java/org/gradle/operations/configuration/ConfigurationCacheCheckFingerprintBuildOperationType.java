@@ -17,6 +17,7 @@
 package org.gradle.operations.configuration;
 
 import org.gradle.internal.operations.BuildOperationType;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 
@@ -91,6 +92,16 @@ public final class ConfigurationCacheCheckFingerprintBuildOperationType implemen
          * @since 8.10
          */
         List<ProjectInvalidationReasons> getProjectInvalidationReasons();
+
+        /**
+         * The ID of the build that produced the configuration cache entry we compared against.
+         *
+         * `null` when unknown, e.g. when there is no previous fingerprint.
+         *
+         * @since 8.13
+         */
+        @Nullable
+        String getOriginBuildInvocationId();
     }
 
     /**

@@ -22,8 +22,7 @@ public class Main {
 
         connector.forProjectDirectory(new File("../sample-build"));
 
-        ProjectConnection connection = connector.connect();
-        try {
+        try (ProjectConnection connection = connector.connect()) {
             // Load the custom model for the project
             CustomModel model = connection.getModel(CustomModel.class);
             System.out.println("Project: " + model.getName());
@@ -31,9 +30,6 @@ public class Main {
             for (String task : model.getTasks()) {
                 System.out.println("   " + task);
             }
-        } finally {
-            // Clean up
-            connection.close();
         }
     }
 }

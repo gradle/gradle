@@ -30,9 +30,9 @@ public class TestNGGroupByInstancesIntegrationTest extends MultiVersionIntegrati
             dependencies { testImplementation 'org.testng:testng:$version' }
             test {
                 useTestNG {
-                    suiteName 'Suite Name'
-                    testName 'Test Name'
-                    groupByInstances true
+                    suiteName = 'Suite Name'
+                    testName = 'Test Name'
+                    groupByInstances = true
                 }
                 onOutput { test, event -> print "\$event.message" }
             }

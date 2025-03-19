@@ -27,6 +27,7 @@ import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
+import org.gradle.api.internal.file.SubtractingFileCollection;
 import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.api.internal.provider.HasConfigurableValueInternal;
 import org.gradle.api.internal.provider.PropertyHost;
@@ -47,8 +48,8 @@ import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.state.Managed;
 import org.gradle.internal.state.ModelObject;
 import org.gradle.internal.state.OwnerAware;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.AbstractSet;
 import java.util.ArrayList;
@@ -204,6 +205,8 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         // Currently we support just FileCollection for Groovy assign, so first try to cast to FileCollection
         FileCollectionInternal fileCollection = Cast.castNullable(FileCollectionInternal.class, Cast.castNullable(FileCollection.class, object));
 
+        throwOnSelfSubtraction(fileCollection);
+
         // Don't allow a += b or a = (a + b), this is not support
         fileCollection.visitStructure(new FileCollectionStructureVisitor() {
             @Override
@@ -235,6 +238,18 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         });
 
         setFrom(Cast.castNullable(FileCollection.class, object));
+    }
+
+    // We don't support 'a -= b' in Groovy DSL due to the inherent self-referencing.
+    // At the same time, Groovy always rewrites that as 'a = a - b'
+    // and at runtime all these options look the same as 'a = a.minus(b)', and we can't distinguish
+    private void throwOnSelfSubtraction(FileCollectionInternal fileCollection) {
+        if (fileCollection instanceof SubtractingFileCollection) {
+            SubtractingFileCollection subtraction = (SubtractingFileCollection) fileCollection;
+            if (DefaultConfigurableFileCollection.this == subtraction.getLeft()) {
+                throw new UnsupportedOperationException("ConfigurableFileCollection does not support '-=' operator or assignment of subtraction via '-' operator or a minus() method");
+            }
+        }
     }
 
     @Override
@@ -480,7 +495,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         return result;
     }
 
-    public void replace(Transformer<? extends @org.jetbrains.annotations.Nullable FileCollection, ? super FileCollection> transformation) {
+    public void replace(Transformer<? extends @Nullable FileCollection, ? super FileCollection> transformation) {
         FileCollection newValue = transformation.transform(shallowCopy());
         if (newValue != null) {
             setFrom(newValue);
@@ -492,6 +507,10 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     @Override
     public void attachOwner(@Nullable ModelObject owner, DisplayName displayName) {
         this.displayName = displayName;
+    }
+
+    public PathToFileResolver getResolver() {
+        return resolver;
     }
 
     private interface ValueCollector {
@@ -671,6 +690,9 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
             ImmutableList.Builder<Object> builder = ImmutableList.builderWithExpectedSize(items.size());
             boolean hasChanges = false;
             for (Object candidate : items) {
+                if (candidate == null) {
+                    continue;
+                }
                 if (candidate instanceof FileCollectionInternal) {
                     FileCollectionInternal newCollection = ((FileCollectionInternal) candidate).replace(original, supplier);
                     hasChanges |= newCollection != candidate;

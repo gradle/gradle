@@ -16,10 +16,10 @@
 
 package org.gradle.internal.operations;
 
+import org.gradle.internal.time.Clock;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.annotation.Nullable;
 
 public class DefaultBuildOperationRunner implements BuildOperationRunner {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildOperationRunner.class);
@@ -30,12 +30,12 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
         }
     };
 
-    private final BuildOperationTimeSupplier clock;
+    private final Clock clock;
     private final BuildOperationIdFactory buildOperationIdFactory;
     private final CurrentBuildOperationRef currentBuildOperationRef;
     private final BuildOperationExecutionListenerFactory listenerFactory;
 
-    public DefaultBuildOperationRunner(CurrentBuildOperationRef currentBuildOperationRef, BuildOperationTimeSupplier clock, BuildOperationIdFactory buildOperationIdFactory, BuildOperationExecutionListenerFactory listenerFactory) {
+    public DefaultBuildOperationRunner(CurrentBuildOperationRef currentBuildOperationRef, Clock clock, BuildOperationIdFactory buildOperationIdFactory, BuildOperationExecutionListenerFactory listenerFactory) {
         this.currentBuildOperationRef = currentBuildOperationRef;
         this.clock = clock;
         this.buildOperationIdFactory = buildOperationIdFactory;

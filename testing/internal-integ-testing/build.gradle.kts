@@ -85,6 +85,7 @@ dependencies {
     implementation(projects.buildEvents)
     implementation(projects.buildOption)
     implementation(projects.buildState)
+    implementation(projects.classloaders)
     implementation(projects.cli)
     implementation(projects.daemonServices)
     implementation(projects.enterpriseOperations)
@@ -96,7 +97,7 @@ dependencies {
     implementation(projects.io)
     implementation(projects.messaging)
     implementation(projects.modelCore)
-    implementation(projects.platformJvm)
+    implementation(projects.modelReflect)
     implementation(projects.serialization)
     implementation(projects.serviceProvider)
     implementation(projects.serviceRegistryBuilder)
@@ -105,6 +106,7 @@ dependencies {
     implementation(projects.gradleCli)
     implementation(projects.launcher)
     implementation(projects.clientServices)
+    implementation(projects.wrapperShared)
 
     implementation(testFixtures(projects.buildOperations))
 

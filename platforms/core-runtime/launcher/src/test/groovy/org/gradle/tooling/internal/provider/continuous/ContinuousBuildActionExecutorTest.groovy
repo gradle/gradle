@@ -98,7 +98,7 @@ class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
 
     def cleanup() {
         println("Build Output:")
-        println(textOutputFactory)
+        println(textOutputFactory.output)
         executorService.shutdownNow()
     }
 
@@ -364,7 +364,7 @@ class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
     }
 
     private List<String> getLogLines() {
-        return textOutputFactory.toString().readLines().findAll { !it.empty }
+        return textOutputFactory.output.readLines().findAll { !it.empty }
     }
 
     private void continuousBuildDisabled() {

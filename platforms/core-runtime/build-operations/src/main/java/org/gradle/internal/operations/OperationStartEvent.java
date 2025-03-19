@@ -19,8 +19,12 @@ package org.gradle.internal.operations;
 public final class OperationStartEvent {
     private final long startTime;
 
-    public OperationStartEvent(long startTime) {
-        this.startTime = startTime;
+    /**
+     * Create a new operation start event.
+     * @param currentTime current time when the operation started
+     */
+    public OperationStartEvent(long currentTime) {
+        this.startTime = currentTime;
     }
 
     public long getStartTime() {

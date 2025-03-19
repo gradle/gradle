@@ -19,6 +19,8 @@ package org.gradle.api.internal.tasks;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.IoActions;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.internal.CollectionUtils;
 
 import java.io.Closeable;
@@ -31,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
+@ServiceScope(Scope.Build.class)
 public class TaskStatistics implements Closeable {
     private final static Logger LOGGER = Logging.getLogger(TaskStatistics.class);
     private final static String TASK_STATISTICS_PROPERTY = "org.gradle.internal.tasks.stats";

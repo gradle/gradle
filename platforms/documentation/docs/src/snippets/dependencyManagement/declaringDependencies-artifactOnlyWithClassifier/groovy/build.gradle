@@ -1,7 +1,7 @@
 // tag::artifact-only-dependency-declaration[]
 repositories {
     ivy {
-        url 'https://ajax.googleapis.com/ajax/libs'
+        url = 'https://ajax.googleapis.com/ajax/libs'
         patternLayout {
             artifact '[organization]/[revision]/[module](.[classifier]).[ext]'
         }

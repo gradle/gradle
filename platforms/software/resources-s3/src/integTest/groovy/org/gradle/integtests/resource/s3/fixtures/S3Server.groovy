@@ -110,8 +110,8 @@ class S3Server extends HttpServer implements RepositoryServer {
     String getValidCredentials() {
         return """
         credentials(AwsCredentials) {
-            accessKey "someKey"
-            secretKey "someSecret"
+            accessKey = "someKey"
+            secretKey = "someSecret"
         }"""
     }
 

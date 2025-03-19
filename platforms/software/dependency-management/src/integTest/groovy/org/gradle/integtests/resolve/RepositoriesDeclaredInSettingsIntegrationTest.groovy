@@ -134,7 +134,7 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
             }
 
             repositories {
-                maven { url 'dummy' }
+                maven { url = 'dummy' }
             }
         """
 
@@ -164,7 +164,7 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
             }
 
             repositories {
-                maven { url 'dummy' }
+                maven { url = 'dummy' }
             }
         """
 
@@ -206,7 +206,7 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
             }
 
             repositories {
-                maven { url 'dummy' }
+                maven { url = 'dummy' }
             }
         """
 
@@ -218,42 +218,37 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
     }
 
     def "can fail the build if repositories are declared in a subproject block"() {
-        createDirs("lib1", "lib2")
         settingsFile << """
-
             dependencyResolutionManagement {
                 repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
             }
 
-            include 'lib1', 'lib2'
-
+            include 'lib1'
+            include 'lib2'
         """
 
-        buildFile << """
-            gradle.beforeProject {
-                println "Before project \$it"
+        def common = """
+            configurations {
+                conf
             }
-            subprojects {
-                configurations {
-                    conf
-                }
 
-                dependencies {
-                    conf 'org:module:1.0'
-                }
+            dependencies {
+                conf 'org:module:1.0'
+            }
 
-                repositories {
-                    maven { url 'dummy' }
-                }
-                println "Repository registered in \$it"
+            repositories {
+                maven { url = 'dummy' }
             }
         """
+
+        file("lib1/build.gradle") << common
+        file("lib2/build.gradle") << common
 
         when:
         fails ':lib1:checkDeps'
 
         then:
-        failure.assertHasCause("Build was configured to prefer settings repositories over project repositories but repository 'maven' was added by build file 'build.gradle'")
+        failure.assertHasCause("Build was configured to prefer settings repositories over project repositories but repository 'maven' was added by build file 'lib1${File.separator}build.gradle'")
 
     }
 
@@ -451,7 +446,7 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
             dependencyResolutionManagement {
                 repositories {
                     maven {
-                        url "this should be ignored"
+                        url = "this-should-be-ignored"
                     }
                 }
             }
@@ -517,7 +512,7 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
             }
 
             repositories {
-                maven { url 'dummy' }
+                maven { url = 'dummy' }
             }
         """
         settingsFile << """
@@ -790,7 +785,7 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
         buildFile << """
             repositories {
                 maven {
-                    url "dummy"
+                    url = "dummy"
                 }
             }
 
@@ -832,7 +827,7 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
 settingsEvaluated {
   it.dependencyResolutionManagement {
     repositories {
-      maven { url '/doesnt/matter'}
+      maven { url = 'doesnt matter' }
     }
   }
 }

@@ -268,7 +268,7 @@ hamcrest-core-1.3.jar
             publishing {
                 repositories {
                     maven {
-                        url "\${buildDir}/repo"
+                        url = layout.buildDirectory.dir("repo")
                     }
                     publications {
                         maven(MavenPublication) {
@@ -327,7 +327,7 @@ hamcrest-core-1.3.jar
             publishing {
                 repositories {
                     maven {
-                        url "\${buildDir}/repo"
+                        url = layout.buildDirectory.dir("repo")
                     }
                     publications {
                         maven(MavenPublication) {
@@ -382,7 +382,7 @@ hamcrest-core-1.3.jar
             }
             repositories {
                 maven {
-                    url "${mavenRepo.uri}"
+                    url = "${mavenRepo.uri}"
                 }
             }
         """

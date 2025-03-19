@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Gradle, Inc.
+// Copyright (C) 2024 Gradle, Inc.
 //
 // Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
@@ -50,8 +50,8 @@ The core concepts cover:
 <<dependency_management_basics.adoc#dependency_management_basics,Part 6.>> Dependency Management +
 <<task_basics.adoc#task_basics,Part 7.>> Tasks +
 <<plugin_basics.adoc#plugin_basics,Part 8.>> Plugins +
-<<build_scans.adoc#build_scans,Part 9.>> Build Scans +
-<<gradle_optimizations.adoc#gradle_optimizations,Part 10.>> Gradle Optimizations +
+<<gradle_optimizations.adoc#gradle_optimizations,Part 9.>> Gradle Optimizations +
+<<build_scans.adoc#build_scans,Part 10.>> Build Scans +
 
 [[getting_started]]
 == 2. Gradle Tutorial

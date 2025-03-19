@@ -39,7 +39,7 @@ apply plugin: 'java'
 apply plugin: 'idea'
 
 repositories {
-    maven { url "${mvnRepo.uri}" }
+    maven { url = "${mvnRepo.uri}" }
 }
 
 configurations {
@@ -76,7 +76,7 @@ apply plugin: 'java'
 apply plugin: 'idea'
 
 repositories {
-    maven { url "${mvnRepo.uri}" }
+    maven { url = "${mvnRepo.uri}" }
 }
 
 configurations {

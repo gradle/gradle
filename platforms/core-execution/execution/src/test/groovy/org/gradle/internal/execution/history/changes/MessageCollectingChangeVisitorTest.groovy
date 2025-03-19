@@ -24,6 +24,8 @@ class MessageCollectingChangeVisitorTest extends Specification {
     def change1 = Mock(Change)
     def change2 = Mock(Change)
     def change3 = Mock(Change)
+    def change4 = Mock(Change)
+    def change5 = Mock(Change)
 
     def "no messages"() {
         when:
@@ -72,10 +74,14 @@ class MessageCollectingChangeVisitorTest extends Specification {
 
         when:
         0 * change3.message >> "third change"
+        0 * change4.message >> "forth change"
+        0 * change5.message >> "fifth change"
 
         then:
         // We stop offering changes to the visitor once it returns false
         !visitor.visitChange(change3)
+        !visitor.visitChange(change4)
+        !visitor.visitChange(change5)
         visitor.getMessages() == ["first change", "second change", "and more..."]
     }
 }

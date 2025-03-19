@@ -197,7 +197,6 @@ model {
 }
 """
         when:
-        expectTaskGetProjectDeprecations()
         run "model"
 
         then:

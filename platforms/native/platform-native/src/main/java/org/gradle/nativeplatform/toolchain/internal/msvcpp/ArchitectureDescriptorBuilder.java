@@ -16,12 +16,12 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
-import com.google.common.collect.Lists;
 import org.gradle.nativeplatform.platform.Architecture;
 import org.gradle.nativeplatform.platform.internal.Architectures;
 import org.gradle.util.internal.VersionNumber;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -147,6 +147,7 @@ public enum ArchitectureDescriptorBuilder {
     private static final String DEFINE_ARMPARTITIONAVAILABLE = "_ARM_WINAPI_PARTITION_DESKTOP_SDK_AVAILABLE";
     private static final String COMPILER_FILENAME = "cl.exe";
 
+    @SuppressWarnings("ImmutableEnumChecker")
     final Architecture architecture;
     final String binPath;
     final String libPath;
@@ -182,7 +183,9 @@ public enum ArchitectureDescriptorBuilder {
     ArchitectureSpecificVisualCpp buildDescriptor(VersionNumber compilerVersion, File basePath, File vsPath) {
         File commonTools = new File(vsPath, PATH_COMMONTOOLS);
         File commonIde = new File(vsPath, PATH_COMMONIDE);
-        List<File> paths = Lists.newArrayList(commonTools, commonIde);
+        List<File> paths = new ArrayList<>(3);
+        paths.add(commonTools);
+        paths.add(commonIde);
         File crossCompilePath = getCrossCompilePath(basePath);
         if (crossCompilePath!=null) {
             paths.add(crossCompilePath);

@@ -17,12 +17,12 @@
 package org.gradle.process.internal.health.memory;
 
 import org.gradle.api.Named;
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * Memory status information, usually either physical or virtual.
  */
-@NonNullApi
+@NullMarked
 public interface OsMemoryStatusAspect extends Named {
     /**
      * Get the name of this category.
@@ -35,7 +35,7 @@ public interface OsMemoryStatusAspect extends Named {
     /**
      * Represents available memory information.
      */
-    @NonNullApi
+    @NullMarked
     interface Available extends OsMemoryStatusAspect {
         /**
          * Get the total memory of this category in bytes.
@@ -60,6 +60,6 @@ public interface OsMemoryStatusAspect extends Named {
      * For example, we do not track virtual memory on Linux.
      * </p>
      */
-    @NonNullApi
+    @NullMarked
     interface Unavailable extends OsMemoryStatusAspect {}
 }

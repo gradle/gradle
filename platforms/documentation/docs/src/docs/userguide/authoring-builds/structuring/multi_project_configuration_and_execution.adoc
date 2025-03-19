@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Gradle, Inc.
+// Copyright (C) 2024 Gradle, Inc.
 //
 // Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
@@ -56,7 +56,7 @@ One common source of coupling is configuration injection, such as using `allproj
 
 To avoid coupling issues, it's recommended to:
 
-- Refrain from referencing other subprojects' build scripts and prefer cross-configuration from the root project.
+- Refrain from referencing other subprojects' build scripts and prefer <<glossary.adoc#sub:terminology_cross_project_configuration,cross-project configuration>> from the root project.
 - Avoid dynamically changing other projects' configurations during execution.
 
 As Gradle evolves, it aims to provide features that leverage decoupled projects while offering solutions for common use cases like configuration injection without introducing coupling.

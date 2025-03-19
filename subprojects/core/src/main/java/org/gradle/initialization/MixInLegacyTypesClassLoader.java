@@ -21,11 +21,12 @@ import groovy.lang.GroovySystem;
 import groovy.lang.MetaClass;
 import groovy.lang.MetaClassRegistry;
 import org.apache.commons.lang.StringUtils;
-import org.gradle.model.internal.asm.AsmConstants;
 import org.gradle.internal.classloader.TransformingClassLoader;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.reflect.PropertyAccessorType;
+import org.gradle.model.internal.asm.AsmConstants;
+import org.jspecify.annotations.Nullable;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
@@ -35,7 +36,6 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
-import javax.annotation.Nullable;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
@@ -94,9 +94,8 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
         this.legacyTypesSupport = legacyTypesSupport;
     }
 
-    @Nullable
     @Override
-    protected byte[] generateMissingClass(String name) {
+    protected byte @Nullable [] generateMissingClass(String name) {
         if (!legacyTypesSupport.getSyntheticClasses().contains(name)) {
             return null;
         }

@@ -1,5 +1,5 @@
 plugins {
-    scala
+    id("scala")
 }
 
 repositories {

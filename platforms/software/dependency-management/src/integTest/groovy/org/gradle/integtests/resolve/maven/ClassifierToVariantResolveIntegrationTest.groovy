@@ -31,7 +31,7 @@ class ClassifierToVariantResolveIntegrationTest extends AbstractHttpDependencyRe
             apply plugin: 'java-library'
 
             repositories {
-                maven { url "${mavenHttpRepo.uri}" }
+                maven { url = "${mavenHttpRepo.uri}" }
             }
 
         """

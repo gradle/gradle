@@ -19,8 +19,8 @@ package org.gradle.util.internal;
 import org.gradle.api.internal.provider.ProviderResolutionStrategy;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Factory;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.concurrent.Callable;
 
 import static org.gradle.internal.UncheckedException.uncheckedCall;

@@ -37,7 +37,7 @@ class IvyDescriptorResolveIntegrationTest extends AbstractHttpDependencyResoluti
 
         and:
         buildFile << """
-repositories { ivy { url "${ivyRepo.uri}" } }
+repositories { ivy { url = "${ivyRepo.uri}" } }
 configurations { compile }
 dependencies {
     compile "org.gradle:test:1.45"
@@ -83,7 +83,7 @@ task check {
         dep.publish()
 
         buildFile << """
-repositories { ivy { url "${ivyHttpRepo.uri}" } }
+repositories { ivy { url = "${ivyHttpRepo.uri}" } }
 configurations { compile }
 dependencies {
     compile "org.gradle:test:1.45"
@@ -141,7 +141,7 @@ task check {
         dep.publish()
 
         buildFile << """
-repositories { ivy { url "${ivyHttpRepo.uri}" } }
+repositories { ivy { url = "${ivyHttpRepo.uri}" } }
 configurations { compile }
 dependencies {
     compile "org.gradle:test:1.45"

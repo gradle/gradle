@@ -17,6 +17,8 @@
 package org.gradle.internal.build;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.PlannedNodeInternal;
 import org.gradle.execution.plan.ToPlannedNodeConverter;
@@ -24,13 +26,12 @@ import org.gradle.execution.plan.ToPlannedNodeConverterRegistry;
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.PlannedNode;
 import org.gradle.internal.taskgraph.NodeIdentity;
 import org.gradle.internal.taskgraph.NodeIdentity.NodeType;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
@@ -108,11 +109,11 @@ public class PlannedNodeGraph {
         LEVEL2_TRANSFORM_STEPS(2, NodeType.TASK, NodeType.TRANSFORM_STEP);
 
         private final int level;
-        private final Set<NodeType> nodeTypes;
+        private final ImmutableSet<NodeType> nodeTypes;
 
         DetailLevel(int level, NodeType... nodeTypes) {
             this.level = level;
-            this.nodeTypes = EnumSet.copyOf(Arrays.asList(nodeTypes));
+            this.nodeTypes = Sets.immutableEnumSet(Arrays.asList(nodeTypes));
         }
 
         public int getLevel() {

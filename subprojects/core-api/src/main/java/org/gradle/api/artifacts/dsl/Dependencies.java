@@ -26,8 +26,8 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
 import org.gradle.declarative.dsl.model.annotations.Restricted;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 
 /**
@@ -43,7 +43,6 @@ import javax.inject.Inject;
  *
  * @since 7.6
  */
-@Incubating
 @SuppressWarnings("JavadocReference")
 public interface Dependencies {
     /**
@@ -145,6 +144,7 @@ public interface Dependencies {
      * @return the new dependency constraint
      * @since 8.7
      */
+    @Incubating
     default Provider<? extends DependencyConstraint> constraint(Provider<? extends MinimalExternalModuleDependency> dependencyConstraint) {
         return dependencyConstraint.map(getDependencyConstraintFactory()::create);
     }
@@ -156,6 +156,7 @@ public interface Dependencies {
      * @return the new dependency constraint
      * @since 8.7
      */
+    @Incubating
     default Provider<? extends DependencyConstraint> constraint(ProviderConvertible<? extends MinimalExternalModuleDependency> dependencyConstraint) {
         return constraint(dependencyConstraint.asProvider());
     }

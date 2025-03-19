@@ -20,8 +20,8 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
@@ -1114,7 +1114,11 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
             super(owner, accessScope, token, serviceTypes);
 
             if (implementationType.isInterface()) {
-                throw new ServiceValidationException("Cannot register an interface for construction.");
+                throw new ServiceValidationException(String.format("Cannot register an interface (%s) for construction.", implementationType.getCanonicalName()));
+            }
+
+            if (Modifier.isAbstract(implementationType.getModifiers())) {
+                throw new ServiceValidationException(String.format("Cannot register an abstract type (%s) for construction.", implementationType.getCanonicalName()));
             }
 
             validateImplementationForServiceTypes(serviceTypes, implementationType);

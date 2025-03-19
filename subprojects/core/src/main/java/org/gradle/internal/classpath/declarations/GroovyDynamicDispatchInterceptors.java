@@ -20,28 +20,27 @@ import groovy.lang.Closure;
 import groovy.lang.GroovyObject;
 import org.codehaus.groovy.runtime.InvokerHelper;
 import org.codehaus.groovy.runtime.ScriptBytecodeAdapter;
-import org.gradle.api.NonNullApi;
 import org.gradle.internal.classpath.InstrumentedClosuresHelper;
-import org.gradle.internal.instrumentation.api.groovybytecode.CallInterceptor;
 import org.gradle.internal.classpath.intercept.CallInterceptorResolver;
 import org.gradle.internal.classpath.intercept.CallInterceptorResolver.ClosureCallInterceptorResolver;
-import org.gradle.internal.instrumentation.api.groovybytecode.InterceptScope;
-import org.gradle.internal.instrumentation.api.groovybytecode.InvocationImpl;
 import org.gradle.internal.instrumentation.api.annotations.CallableKind;
 import org.gradle.internal.instrumentation.api.annotations.InterceptJvmCalls;
 import org.gradle.internal.instrumentation.api.annotations.ParameterKind.CallerClassName;
 import org.gradle.internal.instrumentation.api.annotations.ParameterKind.InjectVisitorContext;
 import org.gradle.internal.instrumentation.api.annotations.SpecificJvmCallInterceptors;
 import org.gradle.internal.instrumentation.api.declarations.InterceptorDeclaration;
+import org.gradle.internal.instrumentation.api.groovybytecode.CallInterceptor;
+import org.gradle.internal.instrumentation.api.groovybytecode.InterceptScope;
+import org.gradle.internal.instrumentation.api.groovybytecode.InvocationImpl;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import static org.gradle.internal.classpath.InstrumentedGroovyCallsHelper.withEntryPoint;
 import static org.gradle.internal.classpath.InstrumentedGroovyCallsTracker.CallKind.SET_PROPERTY;
 
 @SuppressWarnings("NewMethodNamingConvention")
-@NonNullApi
+@NullMarked
 @SpecificJvmCallInterceptors(generatedClassName = InterceptorDeclaration.JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_CONFIG_CACHE)
 public class GroovyDynamicDispatchInterceptors {
     @InterceptJvmCalls

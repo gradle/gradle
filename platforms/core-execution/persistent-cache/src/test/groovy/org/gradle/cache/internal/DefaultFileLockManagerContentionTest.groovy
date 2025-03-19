@@ -46,8 +46,8 @@ class DefaultFileLockManagerContentionTest extends ConcurrentSpec {
         }
 
         @Override
-        Iterable<InetAddress> getCommunicationAddresses() {
-            return addressFactory.communicationAddresses
+        InetAddress getCommunicationAddress() {
+            return addressFactory.localBindingAddress
         }
     }
     FileLockContentionHandler contentionHandler = new DefaultFileLockContentionHandler(executorFactory, addressProvider)

@@ -17,7 +17,10 @@
 package org.gradle.api.problems.internal;
 
 import org.gradle.api.problems.Problems;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
+@ServiceScope(Scope.BuildTree.class)
 public interface InternalProblems extends Problems {
 
     /**
@@ -27,5 +30,7 @@ public interface InternalProblems extends Problems {
      */
     InternalProblemReporter getInternalReporter();
 
-    AdditionalDataBuilderFactory getAdditionalDataBuilderFactory();
+    ProblemsInfrastructure getInfrastructure();
+
+    InternalProblemBuilder getProblemBuilder();
 }

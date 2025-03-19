@@ -80,7 +80,7 @@ public class DefaultGradleUserHomeScopeServiceRegistry implements GradleUserHome
                     }
                 }
                 ServiceRegistry userHomeServices = ServiceRegistryBuilder.builder()
-                    .scope(Scope.UserHome.class)
+                    .scopeStrictly(Scope.UserHome.class)
                     .displayName("services for Gradle user home dir " + gradleUserHomeDir)
                     .parent(sharedServices)
                     .provider(new ServiceRegistrationProvider() {

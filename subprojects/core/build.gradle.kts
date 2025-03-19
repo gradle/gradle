@@ -1,6 +1,5 @@
 plugins {
     id("gradlebuild.distribution.api-java")
-    id("gradlebuild.instrumented-java-project")
 }
 
 description = "Public and internal 'core' Gradle APIs with implementation"
@@ -40,19 +39,14 @@ errorprone {
         "Finally", // 1 occurrences
         "HidingField", // 1 occurrences
         "IdentityHashMapUsage", // 1 occurrences
-        "ImmutableEnumChecker", // 2 occurrences
         "InconsistentCapitalization", // 2 occurrences
         "InlineFormatString", // 2 occurrences
         "InlineMeSuggester", // 1 occurrences
-        "InvalidBlockTag", // 1 occurrences
-        "InvalidInlineTag", // 1 occurrences
-        "MissingCasesInEnumSwitch", // 1 occurrences
         "MixedMutabilityReturnType", // 1 occurrences
         "ModifyCollectionInEnhancedForLoop", // 1 occurrences
         "MutablePublicArray", // 2 occurrences
         "NonApiType", // 1 occurrences
         "NonCanonicalType", // 16 occurrences
-        "NotJavadoc", // 1 occurrences
         "OptionalMapUnusedValue", // 1 occurrences
         "ProtectedMembersInFinalClass", // 1 occurrences
         "ReferenceEquality", // 2 occurrences
@@ -62,21 +56,12 @@ errorprone {
         "TypeParameterShadowing", // 1 occurrences
         "TypeParameterUnusedInFormals", // 2 occurrences
         "UndefinedEquals", // 1 occurrences
-        "UnrecognisedJavadocTag", // 1 occurrences
         "UnusedMethod", // 18 occurrences
-        "UnusedVariable", // 8 occurrences
     )
 }
 
 dependencies {
     api(projects.baseAsm)
-    api(projects.concurrent)
-    api(projects.instrumentationAgentServices)
-    api(projects.serialization)
-    api(projects.serviceLookup)
-    api(projects.serviceProvider)
-    api(projects.stdlibJavaExtensions)
-    api(projects.time)
     api(projects.baseServices)
     api(projects.baseServicesGroovy)
     api(projects.buildCache)
@@ -87,7 +72,10 @@ dependencies {
     api(projects.buildInitSpecs)
     api(projects.buildOperations)
     api(projects.buildOption)
+    api(projects.buildProcessServices)
+    api(projects.classloaders)
     api(projects.cli)
+    api(projects.concurrent)
     api(projects.coreApi)
     api(projects.declarativeDslApi)
     api(projects.enterpriseLogging)
@@ -100,23 +88,32 @@ dependencies {
     api(projects.files)
     api(projects.functional)
     api(projects.hashing)
+    api(projects.instrumentationAgentServices)
+    api(projects.instrumentationReporting)
     api(projects.internalInstrumentationApi)
     api(projects.jvmServices)
     api(projects.logging)
     api(projects.loggingApi)
     api(projects.messaging)
     api(projects.modelCore)
+    api(projects.modelReflect)
     api(projects.native)
     api(projects.normalizationJava)
     api(projects.persistentCache)
     api(projects.problemsApi)
     api(projects.processMemoryServices)
     api(projects.processServices)
+    api(projects.requestHandlerWorker)
     api(projects.resources)
+    api(projects.serialization)
+    api(projects.serviceLookup)
+    api(projects.serviceProvider)
     api(projects.snapshots)
+    api(projects.snapshotsWorker)
+    api(projects.stdlibJavaExtensions)
+    api(projects.time)
+    api(projects.versionedCache)
     api(projects.workerMain)
-    api(projects.buildProcessServices)
-    api(projects.instrumentationReporting)
 
     api(libs.ant)
     api(libs.asm)
@@ -124,15 +121,18 @@ dependencies {
     api(libs.groovy)
     api(libs.guava)
     api(libs.inject)
+    api(libs.jspecify)
     api(libs.jsr305)
+    api(libs.nativePlatform)
 
     implementation(projects.buildOperationsTrace)
     implementation(projects.io)
     implementation(projects.inputTracking)
     implementation(projects.modelGroovy)
+    implementation(projects.problemsRendering)
     implementation(projects.serviceRegistryBuilder)
+    implementation(projects.wrapperShared)
 
-    implementation(libs.nativePlatform)
     implementation(libs.asmCommons)
     implementation(libs.commonsCompress)
     implementation(libs.commonsIo)
@@ -238,6 +238,7 @@ dependencies {
     testFixturesImplementation(projects.normalizationJava)
     testFixturesImplementation(projects.persistentCache)
     testFixturesImplementation(projects.snapshots)
+    testFixturesImplementation(projects.snapshotsWorker)
     testFixturesImplementation(libs.ant)
     testFixturesImplementation(libs.asm)
     testFixturesImplementation(libs.groovyAnt)
@@ -265,11 +266,13 @@ dependencies {
     testImplementation(testFixtures(projects.coreApi))
     testImplementation(testFixtures(projects.messaging))
     testImplementation(testFixtures(projects.modelCore))
+    testImplementation(testFixtures(projects.modelReflect))
     testImplementation(testFixtures(projects.logging))
     testImplementation(testFixtures(projects.baseServices))
-    testImplementation(testFixtures(projects.diagnostics))
+    testImplementation(testFixtures(projects.baseDiagnostics))
     testImplementation(testFixtures(projects.snapshots))
     testImplementation(testFixtures(projects.execution))
+    testImplementation(testFixtures(projects.time))
 
     integTestImplementation(projects.workers)
     integTestImplementation(projects.dependencyManagement)

@@ -16,7 +16,8 @@
 
 package org.gradle.api.internal.tasks.compile.processing;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import javax.lang.model.element.Element;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;

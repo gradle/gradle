@@ -31,8 +31,8 @@ import org.gradle.internal.model.InMemoryCacheFactory;
 import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -213,11 +213,8 @@ public class LocalComponentGraphResolveStateFactory {
         public void visitConsumableVariants(Consumer<LocalVariantGraphResolveState> visitor) {
             model.applyToMutableState(p -> {
                 VariantIdentityUniquenessVerifier.buildReport(configurationsProvider).assertNoConflicts();
-
-                configurationsProvider.visitAll(configuration -> {
-                    if (configuration.isCanBeConsumed()) {
-                        visitor.accept(createVariantState(configuration));
-                    }
+                configurationsProvider.visitConsumable(configuration -> {
+                    visitor.accept(createVariantState(configuration));
                 });
             });
         }
@@ -241,9 +238,8 @@ public class LocalComponentGraphResolveStateFactory {
         }
 
         private LocalVariantGraphResolveState createVariantState(ConfigurationInternal configuration) {
-            return stateBuilder.create(
+            return stateBuilder.createConsumableVariantState(
                 configuration,
-                configurationsProvider,
                 componentId,
                 cache,
                 model,

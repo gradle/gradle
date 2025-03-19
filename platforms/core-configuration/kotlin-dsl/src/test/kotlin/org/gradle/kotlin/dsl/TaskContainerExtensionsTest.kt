@@ -25,6 +25,7 @@ import org.junit.Test
 
 class TaskContainerExtensionsTest {
 
+    @Suppress("DEPRECATION")
     @Test
     fun `can create tasks with injected constructor arguments`() {
 

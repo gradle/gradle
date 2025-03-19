@@ -16,7 +16,7 @@
 
 package org.gradle.internal.scan.eob;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Used by the scan plugin to register a listener to be notified about the build finishing.

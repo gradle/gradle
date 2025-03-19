@@ -65,6 +65,16 @@ public interface WorkerProcessBuilder extends WorkerProcessSettings {
     NativeServicesMode getNativeServicesMode();
 
     /**
+     * Set if Gradle should add JPMS-compatibility flags to the worker process when needed.
+     * These are needed on Java 24+ when using native services because they access native libraries.
+     * There may be other cases in the future where different flags are needed in other scenarios.
+     *
+     * @param addJpmsCompatibilityFlags whether to add the flags
+     * @return this
+     */
+    WorkerProcessBuilder setAddJpmsCompatibilityFlags(boolean addJpmsCompatibilityFlags);
+
+    /**
      * Creates the worker process. The process is not started until {@link WorkerProcess#start()} is called.
      *
      * <p>This method can be called multiple times, to create multiple worker processes.</p>

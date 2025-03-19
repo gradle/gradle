@@ -17,31 +17,32 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import com.google.common.collect.ImmutableMap;
-import org.gradle.api.NonNullApi;
+import org.gradle.api.problems.DocLink;
+import org.gradle.api.problems.FileLocation;
+import org.gradle.api.problems.LineInFileLocation;
+import org.gradle.api.problems.OffsetInFileLocation;
+import org.gradle.api.problems.ProblemDefinition;
 import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.ProblemId;
+import org.gradle.api.problems.ProblemLocation;
 import org.gradle.api.problems.Severity;
-import org.gradle.api.problems.internal.AdditionalData;
 import org.gradle.api.problems.internal.DefaultProblemProgressDetails;
 import org.gradle.api.problems.internal.DefaultProblemsSummaryProgressDetails;
 import org.gradle.api.problems.internal.DeprecationData;
-import org.gradle.api.problems.internal.DocLink;
-import org.gradle.api.problems.internal.FileLocation;
 import org.gradle.api.problems.internal.GeneralData;
-import org.gradle.api.problems.internal.LineInFileLocation;
-import org.gradle.api.problems.internal.OffsetInFileLocation;
+import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.PluginIdLocation;
-import org.gradle.api.problems.internal.Problem;
-import org.gradle.api.problems.internal.ProblemDefinition;
-import org.gradle.api.problems.internal.ProblemLocation;
-import org.gradle.api.problems.internal.TaskPathLocation;
+import org.gradle.api.problems.internal.ProblemSummaryData;
+import org.gradle.api.problems.internal.StackTraceLocation;
+import org.gradle.api.problems.internal.TaskLocation;
 import org.gradle.api.problems.internal.TypeValidationData;
-import org.gradle.internal.Pair;
-import org.gradle.internal.build.event.types.DefaultAdditionalData;
+import org.gradle.api.problems.internal.TypedAdditionalData;
 import org.gradle.internal.build.event.types.DefaultContextualLabel;
 import org.gradle.internal.build.event.types.DefaultDetails;
 import org.gradle.internal.build.event.types.DefaultDocumentationLink;
 import org.gradle.internal.build.event.types.DefaultFailure;
+import org.gradle.internal.build.event.types.DefaultInternalAdditionalData;
+import org.gradle.internal.build.event.types.DefaultInternalPayloadSerializedAdditionalData;
 import org.gradle.internal.build.event.types.DefaultProblemDefinition;
 import org.gradle.internal.build.event.types.DefaultProblemDescriptor;
 import org.gradle.internal.build.event.types.DefaultProblemDetails;
@@ -67,8 +68,9 @@ import org.gradle.tooling.internal.protocol.problem.InternalDocumentationLink;
 import org.gradle.tooling.internal.protocol.problem.InternalLocation;
 import org.gradle.tooling.internal.protocol.problem.InternalSeverity;
 import org.gradle.tooling.internal.protocol.problem.InternalSolution;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -78,34 +80,31 @@ import java.util.function.Supplier;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static java.util.stream.Collectors.toMap;
 
-@NonNullApi
+@NullMarked
 public class ProblemsProgressEventUtils {
 
     private static final InternalSeverity ADVICE = new DefaultSeverity(0);
     private static final InternalSeverity WARNING = new DefaultSeverity(1);
     private static final InternalSeverity ERROR = new DefaultSeverity(2);
 
-    private ProblemsProgressEventUtils() {
+    public ProblemsProgressEventUtils() {
     }
 
     static InternalProblemEventVersion2 createProblemEvent(OperationIdentifier buildOperationId, DefaultProblemProgressDetails details, Supplier<OperationIdentifier> operationIdentifierSupplier) {
-        return createProblemEvent(buildOperationId, details.getProblem(), operationIdentifierSupplier);
-    }
-
-    static InternalProblemEventVersion2 createProblemSummaryEvent(@Nullable OperationIdentifier buildOperationId, DefaultProblemsSummaryProgressDetails details, Supplier<OperationIdentifier> operationIdentifierSupplier) {
-        return createProblemSummaryEvent(buildOperationId, details.getProblemIdCounts(), operationIdentifierSupplier);
-    }
-
-    private static InternalProblemEventVersion2 createProblemEvent(OperationIdentifier buildOperationId, Problem problem, Supplier<OperationIdentifier> operationIdentifierSupplier) {
+        InternalProblem problem = details.getProblem();
         return new DefaultProblemEvent(
             createDefaultProblemDescriptor(buildOperationId, operationIdentifierSupplier),
             createDefaultProblemDetails(problem)
         );
     }
 
-    private static InternalProblemEventVersion2 createProblemSummaryEvent(OperationIdentifier buildOperationId, List<Pair<ProblemId, Integer>> problemIdCounts, Supplier<OperationIdentifier> operationIdentifierSupplier) {
+    static InternalProblemEventVersion2 createProblemSummaryEvent(@Nullable OperationIdentifier buildOperationId, DefaultProblemsSummaryProgressDetails details, Supplier<OperationIdentifier> operationIdentifierSupplier) {
+        return createProblemSummaryEvent(buildOperationId, details.getProblemIdCounts(), operationIdentifierSupplier);
+    }
+
+    private static InternalProblemEventVersion2 createProblemSummaryEvent(OperationIdentifier buildOperationId, List<ProblemSummaryData> problemIdCounts, Supplier<OperationIdentifier> operationIdentifierSupplier) {
         List<InternalProblemSummary> internalIdCounts = problemIdCounts.stream()
-            .map(it -> new DefaultProblemSummary(toInternalId(it.left), it.right))
+            .map(it -> new DefaultProblemSummary(toInternalId(it.getProblemId()), it.getCount()))
             .collect(toImmutableList());
         return new DefaultProblemEvent(
             createDefaultProblemDescriptor(buildOperationId, operationIdentifierSupplier),
@@ -127,14 +126,15 @@ public class ProblemsProgressEventUtils {
             parentBuildOperationId);
     }
 
-    static DefaultProblemDetails createDefaultProblemDetails(Problem problem) {
+    static DefaultProblemDetails createDefaultProblemDetails(InternalProblem problem) {
         return new DefaultProblemDetails(
             toInternalDefinition(problem.getDefinition()),
             toInternalDetails(problem.getDetails()),
             toInternalContextualLabel(problem.getContextualLabel()),
-            toInternalLocations(problem.getLocations()),
+            toInternalLocations(problem.getOriginLocations()),
+            toInternalLocations(problem.getContextualLocations()),
             toInternalSolutions(problem.getSolutions()),
-            toInternalAdditionalData(problem.getAdditionalData()),
+            toInternalAdditionalData(problem),
             toInternalFailure(problem.getException())
         );
     }
@@ -177,26 +177,31 @@ public class ProblemsProgressEventUtils {
     }
 
     private static List<InternalLocation> toInternalLocations(List<ProblemLocation> locations) {
-        return locations.stream().map(location -> {
-            if (location instanceof LineInFileLocation) {
-                LineInFileLocation fileLocation = (LineInFileLocation) location;
-                return new org.gradle.internal.build.event.types.DefaultLineInFileLocation(fileLocation.getPath(), fileLocation.getLine(), fileLocation.getColumn(), fileLocation.getLength());
-            } else if (location instanceof OffsetInFileLocation) {
-                OffsetInFileLocation fileLocation = (OffsetInFileLocation) location;
-                return new org.gradle.internal.build.event.types.DefaultOffsetInFileLocation(fileLocation.getPath(), fileLocation.getOffset(), fileLocation.getLength());
-            } else if (location instanceof FileLocation) { // generic class must be after the subclasses in the if-elseif chain.
-                FileLocation fileLocation = (FileLocation) location;
-                return new org.gradle.internal.build.event.types.DefaultFileLocation(fileLocation.getPath());
-            } else if (location instanceof PluginIdLocation) {
-                PluginIdLocation pluginLocation = (PluginIdLocation) location;
-                return new org.gradle.internal.build.event.types.DefaultPluginIdLocation(pluginLocation.getPluginId());
-            } else if (location instanceof TaskPathLocation) {
-                TaskPathLocation taskLocation = (TaskPathLocation) location;
-                return new org.gradle.internal.build.event.types.DefaultTaskPathLocation(taskLocation.getBuildTreePath());
-            } else {
-                throw new RuntimeException("No mapping defined for " + location.getClass().getName());
-            }
-        }).collect(toImmutableList());
+        return locations.stream()
+            .filter(location -> !(location instanceof StackTraceLocation && ((StackTraceLocation) location).getFileLocation() == null))
+            .map(location -> location instanceof StackTraceLocation
+                ? ((StackTraceLocation) location).getFileLocation()
+                : location)
+            .map(location -> {
+                if (location instanceof LineInFileLocation) {
+                    LineInFileLocation fileLocation = (LineInFileLocation) location;
+                    return new org.gradle.internal.build.event.types.DefaultLineInFileLocation(fileLocation.getPath(), fileLocation.getLine(), fileLocation.getColumn(), fileLocation.getLength());
+                } else if (location instanceof OffsetInFileLocation) {
+                    OffsetInFileLocation fileLocation = (OffsetInFileLocation) location;
+                    return new org.gradle.internal.build.event.types.DefaultOffsetInFileLocation(fileLocation.getPath(), fileLocation.getOffset(), fileLocation.getLength());
+                } else if (location instanceof FileLocation) { // generic class must be after the subclasses in the if-elseif chain.
+                    FileLocation fileLocation = (FileLocation) location;
+                    return new org.gradle.internal.build.event.types.DefaultFileLocation(fileLocation.getPath());
+                } else if (location instanceof PluginIdLocation) {
+                    PluginIdLocation pluginLocation = (PluginIdLocation) location;
+                    return new org.gradle.internal.build.event.types.DefaultPluginIdLocation(pluginLocation.getPluginId());
+                } else if (location instanceof TaskLocation) {
+                    TaskLocation taskLocation = (TaskLocation) location;
+                    return new org.gradle.internal.build.event.types.DefaultTaskPathLocation(taskLocation.getBuildTreePath());
+                } else {
+                    throw new RuntimeException("No mapping defined for " + location.getClass().getName());
+                }
+            }).collect(toImmutableList());
     }
 
     @Nullable
@@ -211,12 +216,12 @@ public class ProblemsProgressEventUtils {
     }
 
 
-    @SuppressWarnings("unchecked")
-    private static InternalAdditionalData toInternalAdditionalData(@Nullable AdditionalData additionalData) {
+    private static InternalAdditionalData toInternalAdditionalData(InternalProblem problem) {
+        Object additionalData = problem.getAdditionalData();
         if (additionalData instanceof DeprecationData) {
             // For now, we only expose deprecation data to the tooling API with generic additional data
             DeprecationData data = (DeprecationData) additionalData;
-            return new DefaultAdditionalData(ImmutableMap.of("type", data.getType().name()));
+            return new DefaultInternalAdditionalData(ImmutableMap.of("type", data.getType().name()));
         } else if (additionalData instanceof TypeValidationData) {
             TypeValidationData data = (TypeValidationData) additionalData;
             ImmutableMap.Builder<String, Object> builder = ImmutableMap.builder();
@@ -224,20 +229,24 @@ public class ProblemsProgressEventUtils {
             Optional.ofNullable(data.getPropertyName()).ifPresent(propertyName -> builder.put("propertyName", propertyName));
             Optional.ofNullable(data.getParentPropertyName()).ifPresent(parentPropertyName -> builder.put("parentPropertyName", parentPropertyName));
             Optional.ofNullable(data.getTypeName()).ifPresent(typeName -> builder.put("typeName", typeName));
-            return new DefaultAdditionalData(builder.build());
+            return new DefaultInternalAdditionalData(builder.build());
         } else if (additionalData instanceof GeneralData) {
             GeneralData data = (GeneralData) additionalData;
-            return new DefaultAdditionalData(
+            return new DefaultInternalAdditionalData(
                 data.getAsMap().entrySet().stream()
                     .filter(entry -> isSupportedType(entry.getValue()))
                     .collect(toMap(Map.Entry::getKey, Map.Entry::getValue))
             );
+        } else if (additionalData instanceof TypedAdditionalData) {
+            TypedAdditionalData typedData = (TypedAdditionalData) additionalData;
+            return new DefaultInternalPayloadSerializedAdditionalData(typedData.getBytesForIsolatedObject(), typedData.getSerializedType());
         } else {
-            return new DefaultAdditionalData(Collections.emptyMap());
+            return new DefaultInternalAdditionalData(Collections.emptyMap());
         }
     }
 
     private static boolean isSupportedType(Object type) {
         return type instanceof String;
     }
+
 }

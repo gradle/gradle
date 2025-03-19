@@ -27,8 +27,8 @@ import org.gradle.composite.internal.TaskIdentifier;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.util.Path;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;

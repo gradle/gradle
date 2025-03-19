@@ -21,39 +21,61 @@ import org.gradle.util.Path
 
 
 sealed class CheckedFingerprint {
-    // No fingerprint, which means no cache entry
-    object NotFound : CheckedFingerprint()
 
-    // Everything is up-to-date
-    object Valid : CheckedFingerprint()
+    /**
+     * No fingerprint, which means no cache entry
+     */
+    object NotFound : CheckedFingerprint() {
+        override fun toString(): String = "NotFound"
+    }
 
-    // The entry cannot be reused at all and should be recreated from scratch
-    class EntryInvalid(val buildPath: Path, val reason: StructuredMessage) : CheckedFingerprint()
+    /**
+     * The entry cannot be reused at all and should be recreated from scratch
+     */
+    data class Invalid(
+        val buildPath: Path,
+        val reason: StructuredMessage
+    ) : CheckedFingerprint()
 
-    // The entry can be reused, however the values for certain projects cannot be reused and should be recreated
-    class ProjectsInvalid(
+    /**
+     * The entry can be reused. However, the state of some projects might be invalid and should be recreated.
+     */
+    // TODO:isolated when keeping multiple entries per key, Gradle should look for the entry with the least number of invalid projects
+    data class Valid(
+        val entryId: String,
+        val invalidProjects: InvalidProjects? = null
+    ) : CheckedFingerprint()
+
+    /**
+     * The entry can be reused, however the values for certain projects cannot be reused and should be recreated
+     */
+    data class InvalidProjects(
         /**
          * Identity path of the first project for which an invalidation was detected.
          */
-        val firstInvalidated: Path,
+        val firstProjectPath: Path,
         /**
-         * All invalidated projects with their invalidation reasons by identity path. Must contain [firstInvalidated].
+         * All invalidated projects with their invalidation reasons by identity path. Must contain [firstProjectPath].
          */
-        val invalidProjects: Map<Path, ProjectInvalidationData>
-    ) : CheckedFingerprint() {
+        val all: Map<Path, InvalidProject>
+    ) {
         init {
-            require(firstInvalidated in invalidProjects)
+            require(firstProjectPath in all)
         }
 
-        /**
-         * The first invalidation reason detected.
-         */
-        val firstReason: StructuredMessage
-            get() = invalidProjects.getValue(firstInvalidated).message
+        val size
+            get() = all.size
+
+        val first: InvalidProject
+            get() = all.getValue(firstProjectPath)
     }
 
     /**
      * Information about an invalidated project.
      */
-    data class ProjectInvalidationData(val buildPath: Path, val projectPath: Path, val message: StructuredMessage)
+    data class InvalidProject(
+        val buildPath: Path,
+        val projectPath: Path,
+        val reason: StructuredMessage
+    )
 }

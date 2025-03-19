@@ -1,0 +1,46 @@
+name: Upgradle to latest wrapper
+
+on:
+  schedule:
+    - cron: '0 4 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  upgradle-latest-wrapper:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: bot/upgradle-to-latest-wrapper
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+      - name: Setup java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - name: Update Gradle to latest nightly and push to bot/upgradle-to-latest-wrapper
+        run: |
+          set -eu
+          git config --global user.email "action@github.com"
+          git config --global user.name "GitHub Action"
+
+          git reset origin/master --hard
+
+          ./gradlew wrapper --gradle-version=nightly
+          ./gradlew wrapper
+
+          if ! git diff --quiet; then
+            ./gradlew -v
+            VERSION=$(./gradlew -v | grep "Gradle" | cut -d' ' -f2)
+            git add .
+            git commit -m "Update Gradle wrapper to $VERSION"
+            git push --force origin bot/upgradle-to-latest-wrapper
+          else
+            echo "No changes to commit"
+          fi

@@ -23,18 +23,12 @@ import org.gradle.util.internal.TextUtil
 
 class PublishAndResolveIntegrationTest extends AbstractDependencyResolutionTest {
     def setup() {
-        settingsFile << "rootProject.name = 'root'"
-        buildFile << """
-            allprojects {
-                apply plugin: 'java'
-                apply plugin: 'ivy-publish'
-
-                group = 'org.gradle.test'
-                version = '1.9'
-
+        settingsFile << """
+            rootProject.name = 'root'
+            dependencyResolutionManagement {
                 repositories {
                     ivy {
-                        url '${ivyRepo.uri}'
+                        url = "${ivyRepo.uri}"
                     }
                 }
             }
@@ -45,6 +39,14 @@ class PublishAndResolveIntegrationTest extends AbstractDependencyResolutionTest 
     def "can resolve static dependency published by a dependent task in the same project"() {
         given:
         buildFile << """
+            plugins {
+                id("java-library")
+                id("ivy-publish")
+            }
+
+            group = 'org.gradle.test'
+            version = '1.9'
+
             ${taskWhichPublishes('api', '1.1')}
             ${taskWhichResolves('api', '1.1')}
         """
@@ -56,17 +58,33 @@ class PublishAndResolveIntegrationTest extends AbstractDependencyResolutionTest 
 
     @ToBeFixedForConfigurationCache
     def "can resolve static dependency published by a dependent task in another project in the same build"() {
-        createDirs("child")
         settingsFile << """
             include ':child'
         """
 
         given:
         buildFile << """
-            ${taskWhichPublishes('api', '1.1')}
-            project(':child') {
-                ${taskWhichResolves('api', '1.1')}
+            plugins {
+                id("java-library")
+                id("ivy-publish")
             }
+
+            group = 'org.gradle.test'
+            version = '1.9'
+
+            ${taskWhichPublishes('api', '1.1')}
+        """
+
+        file('child/build.gradle') << """
+            plugins {
+                id("java-library")
+                id("ivy-publish")
+            }
+
+            group = 'org.gradle.test'
+            version = '1.9'
+
+            ${taskWhichResolves('api', '1.1')}
         """
 
         expect:
@@ -80,6 +98,14 @@ class PublishAndResolveIntegrationTest extends AbstractDependencyResolutionTest 
 
         given:
         buildFile << """
+            plugins {
+                id("java-library")
+                id("ivy-publish")
+            }
+
+            group = 'org.gradle.test'
+            version = '1.9'
+
             ${taskWhichPublishes('api', '1.1')}
             ${taskWhichResolves('api', '1.+')}
         """
@@ -96,6 +122,14 @@ class PublishAndResolveIntegrationTest extends AbstractDependencyResolutionTest 
 
         given:
         buildFile << """
+            plugins {
+                id("java-library")
+                id("ivy-publish")
+            }
+
+            group = 'org.gradle.test'
+            version = '1.9'
+
             task customPublish(type: Copy) {
                 from "${safePath(tmpRepo.moduleDir('org.gradle.test', 'api'), '1.1')}"
                 into "${safePath(ivyRepo.moduleDir('org.gradle.test', 'api'), '1.1')}"
@@ -126,15 +160,15 @@ class PublishAndResolveIntegrationTest extends AbstractDependencyResolutionTest 
             publishing {
                 repositories {
                     ivy {
-                        url '${ivyRepo.uri}'
+                        url = "${ivyRepo.uri}"
                     }
                 }
                 publications {
                     jar(IvyPublication) {
                         from components.java
-                        organisation group
-                        module '${lib}'
-                        revision '${version}'
+                        organisation = group
+                        module = '${lib}'
+                        revision = '${version}'
                     }
                 }
             }

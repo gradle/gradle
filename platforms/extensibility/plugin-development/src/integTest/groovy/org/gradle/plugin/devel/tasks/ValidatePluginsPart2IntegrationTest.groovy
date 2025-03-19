@@ -602,6 +602,9 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
         supportedType | value
         'Integer'     | 'Integer.valueOf(0)'
         'String'      | '"foo"'
+        'Letter'      | 'Letter.A'
+        // This was allowed in older versions of Gradle
+        // Map<Enum, Options>
         'Enum'        | 'Letter.A'
     }
 
@@ -647,8 +650,8 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
         verifyAll(receivedProblem) {
             fqid == 'validation:property-validation:nested-map-unsupported-key-type'
             contextualLabel == "Type 'MyTask' property 'mapWithUnsupportedKey' where key of nested map is of type 'java.lang.Boolean'"
-            details == 'Key of nested map must be one of the following types: \'Enum\', \'Integer\', \'String\''
-            solutions == [ 'Change type of key to one of the following types: \'Enum\', \'Integer\', \'String\'' ]
+            details == "Key of nested map must be an enum or one of the following types: 'java.lang.String', 'java.lang.Integer'"
+            solutions == [ "Change type of key to an enum or one of the following types: 'java.lang.String', 'java.lang.Integer'" ]
             additionalData.asMap == [
                 'typeName' : 'MyTask',
                 'propertyName' : 'mapWithUnsupportedKey',

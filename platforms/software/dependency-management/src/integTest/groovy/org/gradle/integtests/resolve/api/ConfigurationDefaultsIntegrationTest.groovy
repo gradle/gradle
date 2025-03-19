@@ -15,9 +15,13 @@
  */
 package org.gradle.integtests.resolve.api
 
+
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
+import org.gradle.internal.deprecation.DeprecationLogger
+import org.gradle.internal.featurelifecycle.DefaultDeprecatedUsageProgressDetails
 import spock.lang.Issue
 
 class ConfigurationDefaultsIntegrationTest extends AbstractDependencyResolutionTest {
@@ -35,7 +39,7 @@ configurations {
     child.extendsFrom conf
 }
 repositories {
-    maven { url '${mavenRepo.uri}' }
+    maven { url = '${mavenRepo.uri}' }
 }
 
 if (System.getProperty('explicitDeps')) {
@@ -125,42 +129,43 @@ project.status = 'foo'
 
     @Issue("gradle/gradle#812")
     def "can use defaultDependencies in a multi-project build"() {
-        buildFile << """
-subprojects {
-    apply plugin: 'java'
-
-    repositories {
-        maven { url '${mavenRepo.uri}' }
-    }
-}
-
-project(":producer") {
-    configurations {
-        implementation {
-            defaultDependencies {
-                add(project.dependencies.create("org:default-dependency:1.0"))
-            }
-        }
-    }
-    dependencies {
-        if (System.getProperty('explicitDeps')) {
-            implementation "org:explicit-dependency:1.0"
-        }
-    }
-}
-
-project(":consumer") {
-    dependencies {
-        implementation project(":producer")
-    }
-}
-"""
-        resolve.prepare("runtimeClasspath")
-        resolve.expectDefaultConfiguration("runtimeElements")
-        createDirs("consumer", "producer")
         settingsFile << """
-include 'consumer', 'producer'
-"""
+            include 'consumer'
+            include 'producer'
+            dependencyResolutionManagement {
+                ${mavenTestRepository()}
+            }
+        """
+        file("producer/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+
+            configurations {
+                implementation {
+                    defaultDependencies {
+                        add(project.dependencies.create("org:default-dependency:1.0"))
+                    }
+                }
+            }
+            dependencies {
+                if (System.getProperty('explicitDeps')) {
+                    implementation "org:explicit-dependency:1.0"
+                }
+            }
+        """
+
+        file("consumer/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+
+            dependencies {
+                implementation project(":producer")
+            }
+        """
+
+        resolve.prepare("runtimeClasspath")
 
         when:
         executer.withArgument("-DexplicitDeps=yes")
@@ -196,7 +201,7 @@ include 'consumer', 'producer'
     apply plugin: 'java'
 
     repositories {
-        maven { url '${mavenRepo.uri}' }
+        maven { url = '${mavenRepo.uri}' }
     }
     configurations {
         implementation {
@@ -214,18 +219,17 @@ include 'consumer', 'producer'
         buildFile << """
     apply plugin: 'java'
     repositories {
-        maven { url '${mavenRepo.uri}' }
+        maven { url = '${mavenRepo.uri}' }
     }
 
     repositories {
-        maven { url '${mavenRepo.uri}' }
+        maven { url = '${mavenRepo.uri}' }
     }
     dependencies {
         implementation 'org.test:producer:1.0'
     }
 """
         resolve.prepare("runtimeClasspath")
-        resolve.expectDefaultConfiguration("runtimeElements")
 
         when:
         run ":checkDeps"
@@ -241,37 +245,82 @@ include 'consumer', 'producer'
         }
     }
 
-    def "can use beforeResolve to specify default dependencies"() {
-        buildFile << """
-configurations.conf.incoming.beforeResolve {
-    if (configurations.conf.dependencies.empty) {
-        configurations.conf.dependencies.add project.dependencies.create("org:default-dependency:1.0")
-    }
-}
-"""
-        resolve.prepare()
+    def "defaultDependencies deprecations are properly attributed to source plugin"() {
+        BuildOperationsFixture buildOps = new BuildOperationsFixture(executer, temporaryFolder)
+
+        settingsFile << """
+            includeBuild("plugin")
+        """
+
+        file("plugin/build.gradle") << """
+            plugins {
+                id("java-gradle-plugin")
+            }
+
+            gradlePlugin {
+                plugins {
+                    transformPlugin {
+                        id = "com.example.plugin"
+                        implementationClass = "com.example.ExamplePlugin"
+                    }
+                }
+            }
+        """
+
+        file("plugin/src/main/java/com/example/ExamplePlugin.java") << """
+            package com.example;
+
+            import org.gradle.api.Plugin;
+            import org.gradle.api.Project;
+            import ${DeprecationLogger.name};
+
+            public class ExamplePlugin implements Plugin<Project> {
+                public void apply(Project project) {
+                    project.getConfigurations().configureEach(conf -> {
+                        conf.defaultDependencies(deps -> {
+                            DeprecationLogger.deprecate("foo")
+                                .willBecomeAnErrorInGradle10()
+                                .undocumented()
+                                .nagUser();
+                        });
+                    });
+                }
+            }
+        """
+
+        buildFile.text = """
+            plugins {
+                id("com.example.plugin")
+            }
+
+            configurations {
+                create("deps")
+            }
+
+            task resolve {
+                // triggers `defaultDependencies`
+                def root = configurations.deps.incoming.resolutionResult.rootComponent
+                doLast {
+                    root.get()
+                }
+            }
+        """
 
         when:
-        executer.expectDocumentedDeprecationWarning("Mutating the dependencies of configuration ':conf' after it has been resolved or consumed. This behavior has been deprecated. This will fail with an error in Gradle 9.0. After a Configuration has been resolved, consumed as a variant, or used for generating published metadata, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
-        run "checkDeps"
+        executer.noDeprecationChecks()
+        succeeds("resolve")
 
         then:
-        resolve.expectGraph {
-            root(":", ":test:") {
-                module("org:default-dependency:1.0")
+        def deprecationOperations = buildOps.all().findAll { !it.progress(DefaultDeprecatedUsageProgressDetails).isEmpty() }
+        deprecationOperations.findAll { op ->
+            if (!op.details.containsKey("applicationId")) {
+                return false
             }
-        }
-
-        when:
-        executer.withArgument("-DexplicitDeps=yes")
-        run "checkDeps"
-
-        then:
-        resolve.expectGraph {
-            root(":", ":test:") {
-                module("org:explicit-dependency:1.0")
-            }
-        }
+            def pluginId = op.details["applicationId"]
+            def pluginOperations = buildOps.all(org.gradle.api.internal.plugins.ApplyPluginBuildOperationType)
+            def associatedPlugins = pluginOperations.findAll { it.details.applicationId == pluginId }
+            associatedPlugins.size() == 1 && associatedPlugins[0].details.pluginId == "com.example.plugin"
+        }.size() == 1
     }
 
     def "fails if beforeResolve used to add dependencies to observed configuration"() {

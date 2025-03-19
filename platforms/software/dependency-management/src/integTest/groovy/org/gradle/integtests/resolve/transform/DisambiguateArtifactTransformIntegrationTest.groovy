@@ -70,7 +70,7 @@ def artifactType = Attribute.of('artifactType', String)
 
 allprojects {
     repositories {
-        maven { url "${mavenRepo.uri}" }
+        maven { url = "${mavenRepo.uri}" }
     }
 }
 project(':lib') {
@@ -163,7 +163,7 @@ def extraAttribute = Attribute.of('extra', String)
 
 allprojects {
     repositories {
-        maven { url "${mavenRepo.uri}" }
+        maven { url = "${mavenRepo.uri}" }
     }
 }
 project(':lib') {
@@ -229,6 +229,7 @@ ${artifactTransform("TestTransform")}
 """
 
         when:
+        executer.expectDeprecationWarning("There are multiple distinct artifact transformation chains of the same length that would satisfy this request. This behavior has been deprecated. This will fail with an error in Gradle 9.0. ")
         run "resolve"
 
         then:
@@ -240,7 +241,7 @@ ${artifactTransform("TestTransform")}
         fails 'resolve', '-PextraAttribute'
 
         then:
-        failureCauseContains('Found multiple transforms')
+        failureCauseContains('Found multiple transformation chains')
     }
 
     def "transform with two attributes will not confuse"() {
@@ -366,7 +367,7 @@ apply plugin: 'java'
 
 allprojects {
     repositories {
-        maven { url "${mavenRepo.uri}" }
+        maven { url = "${mavenRepo.uri}" }
     }
 }
 
@@ -427,7 +428,7 @@ apply plugin: 'java-library'
 
 allprojects {
     repositories {
-        maven { url "${mavenRepo.uri}" }
+        maven { url = "${mavenRepo.uri}" }
     }
 }
 

@@ -33,7 +33,7 @@ dependencies {
     api(projects.messaging)
     api(projects.testingBaseInfrastructure)
 
-    api(libs.jsr305)
+    api(libs.jspecify)
     api(libs.junit)
     api(libs.testng)
     api(libs.bsh) {
@@ -53,6 +53,7 @@ dependencies {
 
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.messaging))
+    testImplementation(testFixtures(projects.time))
     testImplementation(libs.assertj) {
         because("We test assertion errors coming from AssertJ")
     }
@@ -80,7 +81,4 @@ dependencyAnalysis {
             exclude(libs.bsh)
         }
     }
-}
-tasks.isolatedProjectsIntegTest {
-    enabled = false
 }

@@ -20,13 +20,13 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.configuration.WarningMode;
+import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.internal.DeprecationDataSpec;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblemReporter;
 import org.gradle.api.problems.internal.InternalProblemSpec;
 import org.gradle.api.problems.internal.InternalProblems;
-import org.gradle.api.problems.internal.Problem;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.deprecation.DeprecatedFeatureUsage;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
@@ -36,10 +36,10 @@ import org.gradle.problems.Location;
 import org.gradle.problems.ProblemDiagnostics;
 import org.gradle.problems.buildtree.ProblemStream;
 import org.gradle.util.internal.DefaultGradleVersion;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -95,7 +95,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
 
     private void reportDeprecation(final DeprecatedFeatureUsage usage, final ProblemDiagnostics diagnostics) {
         InternalProblemReporter reporter = ((InternalProblems) problemsService).getInternalReporter();
-        Problem problem = reporter.create(new Action<InternalProblemSpec>() {
+        Problem problem = reporter.internalCreate(new Action<InternalProblemSpec>() {
             @Override
             public void execute(InternalProblemSpec builder) {
                 InternalProblemSpec problemSpec = builder
@@ -104,7 +104,8 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
                     .contextualLabel(usage.getSummary())
                     .details(usage.getRemovalDetails())
                     .documentedAt(usage.getDocumentationUrl())
-                    .additionalData(DeprecationDataSpec.class, new Action<DeprecationDataSpec>() {
+                    .diagnostics(diagnostics)
+                    .additionalDataInternal(DeprecationDataSpec.class, new Action<DeprecationDataSpec>() {
                         @Override
                         public void execute(DeprecationDataSpec data) {
                             data.type(usage.getType().toDeprecationDataType());
@@ -112,7 +113,9 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
                     })
                     .severity(WARNING);
 
-                addPossibleLocation(diagnostics, problemSpec);
+                if (usage.getType() == DeprecatedFeatureUsage.Type.USER_CODE_DIRECT) {
+                    builder.stackLocation();
+                }
                 addSolution(usage.getAdvice(), problemSpec);
                 addSolution(usage.getContextualAdvice(), problemSpec);
             }
@@ -131,14 +134,6 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
         if (advice != null) {
             problemSpec.solution(advice);
         }
-    }
-
-    private static void addPossibleLocation(ProblemDiagnostics diagnostics, InternalProblemSpec deprecationProblemBuilder) {
-        Location location = diagnostics.getLocation();
-        if (location == null) {
-            return;
-        }
-        deprecationProblemBuilder.lineInFileLocation(location.getSourceLongDisplayName().getDisplayName(), location.getLineNumber());
     }
 
     private void maybeLogUsage(DeprecatedFeatureUsage usage, ProblemDiagnostics diagnostics) {

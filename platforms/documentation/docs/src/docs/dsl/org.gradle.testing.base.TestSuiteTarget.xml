@@ -23,6 +23,9 @@
                     <td>Name</td>
                 </tr>
             </thead>
+            <tr>
+                <td>binaryResultsDirectory</td>
+            </tr>
         </table>
     </section>
     <section>

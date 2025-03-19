@@ -30,7 +30,17 @@ class AndroidHome {
     }
 
     static void assertIsSet() {
-        assertThat(NO_ENV_MESSAGE, System.getenv(ENV_VARIABLE_NAME), notNullValue())
+        assertHasValue(System.getenv(ENV_VARIABLE_NAME))
+    }
+
+    static String get() {
+        def sdkRoot = System.getenv(ENV_VARIABLE_NAME)
+        assertHasValue(sdkRoot)
+        sdkRoot
+    }
+
+    private static void assertHasValue(String sdkRoot) {
+        assertThat(NO_ENV_MESSAGE, sdkRoot, notNullValue())
     }
 
     private static final String NO_ENV_MESSAGE = """

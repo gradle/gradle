@@ -55,7 +55,7 @@ group = "test.group"
 
 uploadArchives {
     repositories {
-        ivy { url uri("ivy-repo") }
+        ivy { url = uri("ivy-repo") }
     }
 }
 """
@@ -87,21 +87,21 @@ group = "test.group"
 
 publishing {
     repositories {
-        ivy { url uri("ivy-repo") }
-        maven { url uri("maven-repo") }
+        ivy { url = uri("ivy-repo") }
+        maven { url = uri("maven-repo") }
     }
     publications {
         mainIvy(IvyPublication) {
             from components.java
-            organisation 'test.org'
-            module 'test-module'
-            revision '1.1'
+            organisation = 'test.org'
+            module = 'test-module'
+            revision = '1.1'
         }
         mainMaven(MavenPublication) {
             from components.java
-            groupId 'test.groupId'
-            artifactId 'test-artifactId'
-            version '1.2'
+            groupId = 'test.groupId'
+            artifactId = 'test-artifactId'
+            version = '1.2'
         }
     }
 }

@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform.tasks;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
@@ -31,10 +30,11 @@ import org.gradle.workers.WorkAction;
 import org.gradle.workers.WorkParameters;
 import org.gradle.workers.WorkQueue;
 import org.gradle.workers.WorkerExecutor;
+import org.jspecify.annotations.NonNull;
 
-import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import java.io.File;
+import java.util.Collections;
 
 /**
  * Generates a prefix header file from a list of headers to be precompiled.
@@ -62,7 +62,7 @@ public abstract class PrefixHeaderFileGenerateTask extends DefaultTask {
 
         workQueue.submit(GeneratePrefixHeaderFile.class, new Action<PrefixHeaderFileParameters>() {
             @Override
-            public void execute(@Nonnull PrefixHeaderFileParameters parameters) {
+            public void execute(@NonNull PrefixHeaderFileParameters parameters) {
                 parameters.getHeader().set(header);
                 parameters.getPrefixHeaderFile().set(prefixHeaderFile);
             }
@@ -98,7 +98,7 @@ public abstract class PrefixHeaderFileGenerateTask extends DefaultTask {
 
         @Override
         public void execute() {
-            PCHUtils.generatePrefixHeaderFile(Lists.newArrayList(getParameters().getHeader().get()), getParameters().getPrefixHeaderFile().getAsFile().get());
+            PCHUtils.generatePrefixHeaderFile(Collections.singletonList(getParameters().getHeader().get()), getParameters().getPrefixHeaderFile().getAsFile().get());
         }
     }
 }

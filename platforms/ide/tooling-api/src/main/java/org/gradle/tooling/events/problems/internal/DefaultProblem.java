@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.events.problems.internal;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.tooling.Failure;
 import org.gradle.tooling.events.problems.AdditionalData;
 import org.gradle.tooling.events.problems.ContextualLabel;
@@ -25,16 +24,18 @@ import org.gradle.tooling.events.problems.Location;
 import org.gradle.tooling.events.problems.Problem;
 import org.gradle.tooling.events.problems.ProblemDefinition;
 import org.gradle.tooling.events.problems.Solution;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
-@NonNullApi
+@NullMarked
 public class DefaultProblem implements Problem {
     private final ProblemDefinition problemDefinition;
     private final ContextualLabel contextualLabel;
     private final Details details;
-    private final List<Location> locations;
+    private final List<Location> originLocations;
+    private final List<Location> contextualLocations;
     private final List<Solution> solutions;
     private final AdditionalData additionalData;
     private final Failure failure;
@@ -43,14 +44,16 @@ public class DefaultProblem implements Problem {
         ProblemDefinition problemDefinition,
         ContextualLabel contextualLabel,
         Details details,
-        List<Location> locations,
+        List<Location> originLocations,
+        List<Location> contextualLocations,
         List<Solution> solutions,
         AdditionalData additionalData,
         @Nullable Failure failure) {
         this.problemDefinition = problemDefinition;
         this.contextualLabel = contextualLabel;
         this.details = details;
-        this.locations = locations;
+        this.originLocations = originLocations;
+        this.contextualLocations = contextualLocations;
         this.solutions = solutions;
         this.additionalData = additionalData;
         this.failure = failure;
@@ -72,8 +75,13 @@ public class DefaultProblem implements Problem {
     }
 
     @Override
-    public List<Location> getLocations() {
-        return locations;
+    public List<Location> getOriginLocations() {
+        return originLocations;
+    }
+
+    @Override
+    public List<Location> getContextualLocations() {
+        return contextualLocations;
     }
 
     @Override

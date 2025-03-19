@@ -18,13 +18,14 @@ package org.gradle.api.internal.plugins;
 
 import org.apache.commons.lang3.reflect.TypeUtils;
 import org.gradle.api.Plugin;
+import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.internal.deprecation.Documentation;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.lang.reflect.Type;
 
 import static org.gradle.internal.Cast.uncheckedCast;
@@ -69,15 +70,11 @@ public class ImperativeOnlyPluginTarget<T extends PluginAwareInternal> implement
             return;
         }
 
+        String message = String.format("The plugin must be applied %s, but was applied %s", actualTargetType.getApplyTargetDescription(), targetType.getApplyTargetDescription());
+        ProblemId id = ProblemId.create("target-type-mismatch", "Unexpected plugin type", GradleCoreProblemGroup.pluginApplication());
         throw problems.getInternalReporter()
-            .throwing(spec -> {
-                String message = String.format(
-                    "The plugin must be applied %s, but was applied %s",
-                    actualTargetType.getApplyTargetDescription(), targetType.getApplyTargetDescription()
-                );
-
-                spec.id("target-type-mismatch", "Unexpected plugin type", GradleCoreProblemGroup.pluginApplication())
-                    .severity(Severity.ERROR)
+            .throwing(new IllegalArgumentException(message), id, spec -> {
+                spec.severity(Severity.ERROR)
                     .withException(new IllegalArgumentException(message))
                     .contextualLabel(message)
                     .documentedAt(Documentation.userManual("custom_plugins", "project_vs_settings_vs_init_plugins").toString());

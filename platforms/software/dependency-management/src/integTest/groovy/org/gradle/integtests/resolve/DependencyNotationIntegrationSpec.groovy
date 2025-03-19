@@ -86,38 +86,37 @@ task checkDeps {
     @ToBeFixedForConfigurationCache(because = "Task uses the Configuration API")
     def "understands project notations"() {
         when:
-        createDirs("otherProject")
         settingsFile << "include 'otherProject'"
 
         buildFile <<  """
-configurations {
-    conf
-    confTwo
-}
+            configurations {
+                conf
+                confTwo
+            }
+            dependencies {
+                conf project(':otherProject')
+                confTwo project(path: ':otherProject', configuration: 'otherConf')
+            }
 
-project(':otherProject') {
-    configurations {
-        otherConf
-    }
-}
+            task checkDeps {
+                doLast {
+                    def deps = configurations.conf.incoming.dependencies
+                    assert deps.size() == 1
+                    assert deps.find { it.path == ':otherProject' && it.targetConfiguration == null }
 
-dependencies {
-    conf project(':otherProject')
-    confTwo project(path: ':otherProject', configuration: 'otherConf')
-}
+                    deps = configurations.confTwo.incoming.dependencies
+                    assert deps.size() == 1
+                    assert deps.find { it.path == ':otherProject' && it.targetConfiguration == 'otherConf' }
+                }
+            }
+        """
 
-task checkDeps {
-    doLast {
-        def deps = configurations.conf.incoming.dependencies
-        assert deps.size() == 1
-        assert deps.find { it.path == ':otherProject' && it.targetConfiguration == null }
+        file("otherProject/build.gradle") << """
+            configurations {
+                otherConf
+            }
+        """
 
-        deps = configurations.confTwo.incoming.dependencies
-        assert deps.size() == 1
-        assert deps.find { it.path == ':otherProject' && it.targetConfiguration == 'otherConf' }
-    }
-}
-"""
         then:
         succeeds 'checkDeps'
     }

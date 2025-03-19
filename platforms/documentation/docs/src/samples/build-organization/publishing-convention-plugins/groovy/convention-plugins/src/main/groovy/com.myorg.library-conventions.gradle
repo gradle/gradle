@@ -20,8 +20,8 @@ publishing {
     }
     repositories {
         maven {
-            name "myOrgPrivateRepo"
-            url 'build/my-repo'
+            name = "myOrgPrivateRepo"
+            url = layout.buildDirectory.dir('my-repo')
         }
     }
 }

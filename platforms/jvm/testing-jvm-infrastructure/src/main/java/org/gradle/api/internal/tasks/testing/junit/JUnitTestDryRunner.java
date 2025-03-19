@@ -16,14 +16,14 @@
 
 package org.gradle.api.internal.tasks.testing.junit;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;
 import org.junit.runner.Description;
 import org.junit.runner.Runner;
 import org.junit.runner.notification.RunNotifier;
 
 import java.util.LinkedList;
 
-@NonNullApi
+@NullMarked
 public class JUnitTestDryRunner extends Runner {
     private final Runner runner;
 

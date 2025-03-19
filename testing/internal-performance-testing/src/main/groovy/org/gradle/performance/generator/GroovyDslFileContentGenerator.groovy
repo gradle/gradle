@@ -69,7 +69,7 @@ class GroovyDslFileContentGenerator extends FileContentGenerator {
             maxHeapSize = testRunnerMemory
             maxParallelForks = ${config.maxParallelForks}
             forkEvery = testForkEvery
-            jvmArgs '-XX:+HeapDumpOnOutOfMemoryError'
+            jvmArgs('-XX:+HeapDumpOnOutOfMemoryError')
         }
 
         task dependencyReport(type: DependencyReportTask) {

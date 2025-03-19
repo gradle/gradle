@@ -16,14 +16,13 @@
 
 package org.gradle.internal.instrumentation.api.groovybytecode;
 
-import org.gradle.api.NonNullApi;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A call interceptor that can also tell if it is going to intercept a call to a method based on the argument types, not the specific argument values.
  */
-@NonNullApi
+@NullMarked
 public interface SignatureAwareCallInterceptor {
     /**
      * @param receiverClass the class that the method is invoked on; the owner class if static
@@ -34,7 +33,7 @@ public interface SignatureAwareCallInterceptor {
     @Nullable
     SignatureMatch matchesMethodSignature(Class<?> receiverClass, Class<?>[] argumentClasses, boolean isStatic);
 
-    @NonNullApi
+    @NullMarked
     public static class SignatureMatch {
         public final boolean isVararg;
         public final Class<?>[] argClasses;

@@ -21,11 +21,13 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.UrlArtifactRepository;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.deprecation.Documentation;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.verifier.HttpRedirectVerifier;
 import org.gradle.internal.verifier.HttpRedirectVerifierFactory;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.net.URI;
 import java.util.function.Supplier;
@@ -73,7 +75,7 @@ public class DefaultUrlArtifactRepository implements UrlArtifactRepository {
         return allowInsecureProtocol;
     }
 
-    @Nonnull
+    @NonNull
     public URI validateUrl() {
         URI rootUri = getUrl();
         if (rootUri == null) {
@@ -123,6 +125,7 @@ public class DefaultUrlArtifactRepository implements UrlArtifactRepository {
             );
     }
 
+    @ServiceScope(Scope.Project.class)
     public static class Factory {
         private final FileResolver fileResolver;
 

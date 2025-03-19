@@ -16,8 +16,8 @@
 package org.gradle.api.internal.changedetection.changes;
 
 import org.gradle.api.internal.changedetection.TaskExecutionMode;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.Optional;
 

@@ -15,7 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.cache;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import java.util.concurrent.TimeUnit;
 
 /**

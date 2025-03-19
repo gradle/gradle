@@ -120,7 +120,7 @@ class Resolve extends Copy {
             def buildScriptCounter = new Counter()
 
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
 
             configurations {

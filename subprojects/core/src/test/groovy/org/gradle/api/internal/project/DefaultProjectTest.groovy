@@ -34,6 +34,7 @@ import org.gradle.api.artifacts.dsl.DependencyLockingHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.component.SoftwareComponentContainer
+import org.gradle.api.file.ProjectLayout
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.FactoryNamedDomainObjectContainer
 import org.gradle.api.internal.GradleInternal
@@ -95,6 +96,9 @@ import org.gradle.model.internal.manage.instance.ManagedProxyFactory
 import org.gradle.model.internal.manage.schema.ModelSchemaStore
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal
+import org.gradle.plugin.software.internal.SoftwareFeatureApplicator
+import org.gradle.plugin.software.internal.SoftwareFeaturesDynamicObject
+import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Path
 import org.gradle.util.TestClosure
@@ -153,6 +157,7 @@ class DefaultProjectTest extends Specification {
             def params = args[1]
             new LifecycleAwareProject(params[0], params[1], params[2])
         }
+        newInstance(SoftwareFeaturesDynamicObject, _) >> Stub(SoftwareFeaturesDynamicObject)
     }
     SoftwareComponentContainer softwareComponentsMock = Stub(SoftwareComponentContainer)
     InputNormalizationHandlerInternal inputNormalizationHandler = Stub(InputNormalizationHandlerInternal)
@@ -194,6 +199,7 @@ class DefaultProjectTest extends Specification {
         projectServiceRegistryFactoryMock = Stub(ServiceRegistryFactory)
         serviceRegistryMock = Stub(ServiceRegistry)
 
+        def fileResolver = TestFiles.resolver(rootDir)
         projectServiceRegistryFactoryMock.createFor({ it != null }) >> serviceRegistryMock
         serviceRegistryMock.get(TaskContainerInternal) >> taskContainerMock
         taskContainerMock.getTasksAsDynamicObject() >> new BeanDynamicObject(new TaskContainerDynamicObject(someTask: testTask))
@@ -211,7 +217,7 @@ class DefaultProjectTest extends Specification {
         serviceRegistryMock.getFactory(AntBuilder) >> antBuilderFactoryMock
         serviceRegistryMock.get((Type) ScriptHandlerInternal) >> scriptHandlerMock
         serviceRegistryMock.get((Type) LoggingManagerInternal) >> loggingManagerMock
-        serviceRegistryMock.get(FileResolver) >> Stub(FileResolver)
+        serviceRegistryMock.get(FileResolver) >> fileResolver
         serviceRegistryMock.get(CollectionCallbackActionDecorator) >> Stub(CollectionCallbackActionDecorator)
         serviceRegistryMock.get(Instantiator) >> instantiatorMock
         serviceRegistryMock.get(InstantiatorFactory) >> TestUtil.instantiatorFactory()
@@ -235,6 +241,8 @@ class DefaultProjectTest extends Specification {
         serviceRegistryMock.get(GradleLifecycleActionExecutor) >> gradleLifecycleActionExecutor
         serviceRegistryMock.get(ObjectFactory) >> objectFactory
         serviceRegistryMock.get(TaskDependencyFactory) >> DefaultTaskDependencyFactory.forProject(taskContainerMock, Mock(TaskDependencyUsageTracker))
+        serviceRegistryMock.get(SoftwareTypeRegistry) >> Stub(SoftwareTypeRegistry)
+        serviceRegistryMock.get(SoftwareFeatureApplicator) >> Stub(SoftwareFeatureApplicator)
         pluginManager.getPluginContainer() >> pluginContainer
 
         serviceRegistryMock.get((Type) DeferredProjectConfiguration) >> Stub(DeferredProjectConfiguration)
@@ -248,7 +256,7 @@ class DefaultProjectTest extends Specification {
         ModelSchemaStore modelSchemaStore = Stub(ModelSchemaStore)
         serviceRegistryMock.get((Type) ModelSchemaStore) >> modelSchemaStore
         serviceRegistryMock.get(ModelSchemaStore) >> modelSchemaStore
-        serviceRegistryMock.get((Type) DefaultProjectLayout) >> new DefaultProjectLayout(rootDir, TestFiles.resolver(rootDir), Stub(TaskDependencyFactory), Stub(Factory), Stub(PropertyHost), Stub(FileCollectionFactory), TestFiles.filePropertyFactory(), TestFiles.fileFactory())
+        serviceRegistryMock.get((Type) ProjectLayout) >> new DefaultProjectLayout(rootDir, rootDir, fileResolver, Stub(TaskDependencyFactory), Stub(Factory), Stub(PropertyHost), Stub(FileCollectionFactory), TestFiles.filePropertyFactory(), TestFiles.fileFactory())
 
         build.getProjectEvaluationBroadcaster() >> Stub(ProjectEvaluationListener)
         build.getParent() >> null

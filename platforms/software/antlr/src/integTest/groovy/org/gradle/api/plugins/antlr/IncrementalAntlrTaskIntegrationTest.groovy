@@ -101,11 +101,9 @@ class IncrementalAntlrTaskIntegrationTest extends AbstractAntlrIntegrationTest {
         def test1LexerFileSnapshot = test1LexerFile.snapshot()
         def test1ParserFileSnapshot = test1ParserFile.snapshot()
 
-        buildFile << """
-            project(":grammar-builder") {
-                generateGrammarSource {
-                    arguments << '-dfa'
-                }
+        buildFile "grammar-builder/build.gradle", """
+            generateGrammarSource {
+                arguments << '-dfa'
             }
         """
 

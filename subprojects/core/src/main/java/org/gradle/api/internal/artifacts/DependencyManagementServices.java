@@ -20,10 +20,13 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * Factory for various types related to dependency management.
  */
+@ServiceScope(Scope.Build.class)
 public interface DependencyManagementServices {
 
     /**

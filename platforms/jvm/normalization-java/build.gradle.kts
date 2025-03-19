@@ -19,7 +19,7 @@ dependencies {
     api(projects.files)
     api(projects.snapshots)
 
-    api(libs.jsr305)
+    api(libs.jspecify)
     api(libs.guava)
     api("org.gradle:java-api-extractor")
 
@@ -43,6 +43,3 @@ listOf(configurations["apiElements"], configurations["runtimeElements"]).forEach
     }
 }
 
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}

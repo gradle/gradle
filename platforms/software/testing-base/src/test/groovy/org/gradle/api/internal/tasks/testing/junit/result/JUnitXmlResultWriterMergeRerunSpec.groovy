@@ -57,7 +57,7 @@ class JUnitXmlResultWriterMergeRerunSpec extends Specification {
 
         then:
         getXml(testClass) == """<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.Flaky" tests="4" skipped="0" failures="0" errors="0" timestamp="1970-01-01T00:00:00" hostname="localhost" time="1.0">
+<testsuite name="com.Flaky" tests="4" skipped="0" failures="0" errors="0" timestamp="1970-01-01T00:00:00Z" hostname="localhost" time="1.0">
   <properties/>
   <testcase name="m1" classname="com.Flaky" time="2.0">
     <flakyFailure message="m1-message-1" type="ExceptionType">
@@ -113,7 +113,7 @@ class JUnitXmlResultWriterMergeRerunSpec extends Specification {
 
         then:
         getXml(testClass) == """<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.Flaky" tests="4" skipped="0" failures="0" errors="0" timestamp="1970-01-01T00:00:00" hostname="localhost" time="1.0">
+<testsuite name="com.Flaky" tests="4" skipped="0" failures="0" errors="0" timestamp="1970-01-01T00:00:00Z" hostname="localhost" time="1.0">
   <properties/>
   <testcase name="m1" classname="com.Flaky" time="2.0">
     <flakyFailure message="m1-message-1" type="ExceptionType">
@@ -170,7 +170,7 @@ class JUnitXmlResultWriterMergeRerunSpec extends Specification {
 
         then:
         getXml(testClass) == """<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.Flaky" tests="6" skipped="0" failures="0" errors="0" timestamp="1970-01-01T00:00:00" hostname="localhost" time="1.0">
+<testsuite name="com.Flaky" tests="6" skipped="0" failures="0" errors="0" timestamp="1970-01-01T00:00:00Z" hostname="localhost" time="1.0">
   <properties/>
   <testcase name="m1" classname="com.Flaky" time="3.0">
     <flakyFailure message="m1-message-1" type="ExceptionType">
@@ -235,7 +235,7 @@ class JUnitXmlResultWriterMergeRerunSpec extends Specification {
 
         then:
         getXml(testClass) == """<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.Flaky" tests="7" skipped="0" failures="0" errors="0" timestamp="1970-01-01T00:00:00" hostname="localhost" time="1.0">
+<testsuite name="com.Flaky" tests="7" skipped="0" failures="0" errors="0" timestamp="1970-01-01T00:00:00Z" hostname="localhost" time="1.0">
   <properties/>
   <testcase name="m1" classname="com.Flaky" time="3.0">
     <flakyFailure message="m1-message-1" type="ExceptionType">
@@ -294,7 +294,7 @@ class JUnitXmlResultWriterMergeRerunSpec extends Specification {
 
         then:
         getXml(testClass) == """<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.Flaky" tests="4" skipped="0" failures="0" errors="0" timestamp="1970-01-01T00:00:00" hostname="localhost" time="1.0">
+<testsuite name="com.Flaky" tests="4" skipped="0" failures="0" errors="0" timestamp="1970-01-01T00:00:00Z" hostname="localhost" time="1.0">
   <properties/>
   <testcase name="m1" classname="com.Flaky" time="2.0">
     <flakyFailure message="m1-message-1.1" type="ExceptionType">

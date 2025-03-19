@@ -17,131 +17,183 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import spock.lang.Issue
 
+/**
+ * Tests the behavior of {@link org.gradle.api.artifacts.ConfigurationPublications#getVariants()}.
+ */
 class OutgoingVariantsMutationIntegrationTest extends AbstractIntegrationSpec {
+
     def setup() {
         buildFile << """
             def usage = Attribute.of('usage', String)
-            def format = Attribute.of('format', String)
-            allprojects {
-                dependencies {
-                    attributesSchema {
-                        attribute(usage)
-                    }
+
+
+            configurations {
+                dependencyScope("deps")
+                resolvable("resolver") {
+                    extendsFrom(deps)
+                    attributes.attribute(usage, "primary")
                 }
-                configurations { compile { attributes.attribute(usage, 'for-compile') } }
+            }
+
+            dependencies {
+                deps(project)
             }
         """
     }
 
-    @ToBeFixedForConfigurationCache(because = "Task uses the Configuration API")
     def "cannot mutate outgoing variants after configuration is resolved"() {
         given:
         buildFile << """
-
-        configurations {
-            compile {
-                attributes.attribute(usage, 'for compile')
+            def elements = configurations.create("elements") {
+                attributes.attribute(usage, "primary")
                 outgoing {
-                    artifact file('lib1.jar')
                     variants {
                         classes {
-                            attributes.attribute(format, 'classes-dir')
-                            artifact file('classes')
-                        }
-                        jar {
-                            attributes.attribute(format, 'classes-jar')
-                            artifact file('lib.jar')
-                        }
-                        sources {
-                            attributes.attribute(format, 'source-jar')
-                            artifact file('source.zip')
+                            attributes.attribute(usage, 'secondary')
+                            artifact(file('classes'))
                         }
                     }
                 }
             }
-        }
-        task mutateBeforeResolve {
-            doLast {
-                def classes = configurations.compile.outgoing.variants['classes']
-                classes.attributes.attribute(format, 'classes2')
+
+            elements.dependencies.addAllLater(provider {
+                // Try to mutate attributes late.
+                // We realize dependencies after we lock the configuration for mutation.
+                elements.outgoing.variants.classes {
+                    attributes.attribute(usage, 'tertiary')
+                }
+                []
+            })
+
+            task resolve {
+                def files = configurations.resolver.incoming.files
+                doLast {
+                    println(files*.name)
+                }
             }
-        }
-        task mutateAfterResolve {
-            doLast {
-                configurations.compile.resolve()
-                def classes = configurations.compile.outgoing.variants['classes']
-                classes.attributes.attribute(format, 'classes-dir')
-            }
-        }
         """
 
         when:
-        run 'mutateBeforeResolve'
+        fails("resolve")
 
         then:
-        noExceptionThrown()
-
-        when:
-        fails("mutateAfterResolve")
-
-        then:
-        failure.assertHasCause "Cannot change attributes of configuration ':compile' after it has been locked for mutation"
+        failure.assertHasCause "Cannot change attributes of configuration ':elements' variant classes after it has been locked for mutation"
     }
 
-    @ToBeFixedForConfigurationCache(because = "Task uses the Configuration API")
-    def "cannot add outgoing variants after configuration is resolved"() {
+    def "cannot declare capabilities after configuration is observed"() {
+        given:
+        buildFile << """
+            def elements = configurations.create("elements") {
+                attributes.attribute(usage, "primary")
+            }
+
+            elements.dependencies.addAllLater(provider {
+                // Try to add capabilities late.
+                // We realize dependencies after we lock the configuration for mutation.
+                elements.outgoing {
+                    capability("foo")
+                }
+                []
+            })
+
+            task resolve {
+                def files = configurations.resolver.incoming.files
+                doLast {
+                    println(files*.name)
+                }
+            }
+        """
+
+        when:
+        fails("resolve")
+
+        then:
+        failure.assertHasCause("Cannot declare capability 'foo' on configuration ':elements' after the configuration was consumed as a variant.")
+    }
+
+    def "cannot add outgoing variants after configuration is observed"() {
         given:
         buildFile << """
 
-        configurations {
-            compile {
-                attributes.attribute(usage, 'for compile')
-                outgoing {
-                    artifact file('lib1.jar')
-                    variants {
-                        classes {
-                            attributes.attribute(format, 'classes-dir')
-                            artifact file('classes')
-                        }
+            def elements = configurations.create("elements") {
+                attributes.attribute(usage, "primary")
+                outgoing.artifact(file("primary"))
+            }
+
+            if (${createVariantBefore}) {
+                elements.outgoing.variants {
+                    third {
+                        attributes.attribute(usage, 'tertiary')
+                        artifact file('third')
                     }
                 }
             }
-        }
-        task mutateBeforeResolve {
-            doLast {
-                configurations.compile.outgoing.variants {
-                    jar {
-                        attributes.attribute(format, 'classes-jar')
-                        artifact file('lib.jar')
+
+            elements.dependencies.addAllLater(provider {
+                // Try to add a secondary variant late.
+                // We realize dependencies after we lock the configuration for mutation.
+                elements.outgoing.variants {
+                    classes {
+                        attributes.attribute(usage, 'secondary')
+                        artifact file('classes')
                     }
                 }
-            }
-        }
-        task mutateAfterResolve {
-            doLast {
-                configurations.compile.resolve()
-                configurations.compile.outgoing.variants {
-                    sources {
-                        attributes.attribute(format, 'source-jar')
-                        artifact file('source.zip')
-                    }
+                []
+            })
+
+            task resolve {
+                def files = configurations.resolver.incoming.artifactView {
+                    attributes.attribute(usage, "secondary")
+                }.files
+                doLast {
+                    println(files*.name)
                 }
             }
-        }
         """
 
         when:
-        run 'mutateBeforeResolve'
+        fails("resolve")
 
         then:
-        noExceptionThrown()
+        failure.assertHasCause("Cannot add secondary artifact set to configuration ':elements' after the configuration was consumed as a variant.")
 
-        when:
-        fails("mutateAfterResolve")
+        where:
+        createVariantBefore << [true, false]
+    }
 
-        then:
-        failure.assertHasCause "Cannot create variant 'sources' after dependency configuration ':compile' has been resolved"
+    @Issue("https://github.com/gradle/gradle/issues/30367")
+    def "secondary variants can be registered lazily"() {
+        buildFile << """
+            def type = Attribute.of("color", String)
+
+            file("file1.txt").text = "file1"
+            file("file2.txt").text = "file2"
+
+            configurations {
+                consumable("outgoing") {
+                    attributes.attribute(type, "primary")
+                    outgoing.artifact(file("file1.txt"))
+                    outgoing.variants.register("my-secondary-variant") {
+                        attributes.attribute(type, "secondary")
+                        artifact(file("file2.txt"))
+                    }
+                }
+            }
+
+            tasks.register("resolve") {
+                def files = configurations.resolver.incoming.artifactView {
+                    attributes.attribute(type, "secondary")
+                }.files
+                inputs.files(files)
+                doFirst {
+                    assert files*.name == ["file2.txt"]
+                }
+            }
+        """
+
+        expect:
+        succeeds("resolve")
     }
 }

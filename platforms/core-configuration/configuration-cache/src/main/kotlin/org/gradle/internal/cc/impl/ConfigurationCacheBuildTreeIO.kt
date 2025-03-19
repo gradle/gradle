@@ -28,10 +28,13 @@ import org.gradle.internal.serialize.graph.MutableReadContext
 import org.gradle.internal.serialize.graph.SpecialDecoders
 import org.gradle.internal.serialize.graph.SpecialEncoders
 import org.gradle.internal.serialize.graph.WriteContext
+import org.gradle.internal.service.scopes.Scope
+import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.util.Path
 import java.io.InputStream
 import java.io.OutputStream
 
+@ServiceScope(Scope.Build::class)
 internal
 interface ConfigurationCacheBuildTreeIO : ConfigurationCacheOperationIO {
 
@@ -96,7 +99,7 @@ interface ConfigurationCacheBuildTreeIO : ConfigurationCacheOperationIO {
     fun <R> withWriteContextFor(
         stateFile: ConfigurationCacheStateFile,
         profile: () -> String,
-        specialEncoders: SpecialEncoders,
+        specialEncoders: SpecialEncoders = SpecialEncoders(),
         writeOperation: suspend WriteContext.(Codecs) -> R
     ): R =
         withWriteContextFor(stateFile.stateFile.name, stateFile.stateType, stateFile::outputStream, profile, specialEncoders, writeOperation)
@@ -109,4 +112,11 @@ interface ConfigurationCacheBuildTreeIO : ConfigurationCacheOperationIO {
         specialEncoders: SpecialEncoders,
         writeOperation: suspend WriteContext.(Codecs) -> R
     ): R
+
+    fun readCandidateEntries(stateFile: ConfigurationCacheStateFile): List<CandidateEntry>
+    fun writeCandidateEntries(stateFile: ConfigurationCacheStateFile, entries: List<CandidateEntry>)
 }
+
+data class CandidateEntry(
+    val id: String
+)

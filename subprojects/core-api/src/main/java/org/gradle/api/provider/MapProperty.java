@@ -18,8 +18,8 @@ package org.gradle.api.provider;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.SupportsKotlinAssignmentOverloading;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.Set;
 
@@ -28,6 +28,11 @@ import java.util.Set;
  *
  * <p>
  * You can create a {@link MapProperty} instance using factory method {@link org.gradle.api.model.ObjectFactory#mapProperty(Class, Class)}.
+ * </p>
+ *
+ * <p>
+ * Instances of this interface are not thread-safe for reading and writing.
+ * It is not safe to share the same MapProperty instance between different projects.
  * </p>
  *
  * <p><b>Note:</b> This interface is not intended for implementation by build script or plugin authors.

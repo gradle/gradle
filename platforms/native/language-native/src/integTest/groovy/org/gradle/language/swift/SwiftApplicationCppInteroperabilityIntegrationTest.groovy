@@ -16,8 +16,6 @@
 
 package org.gradle.language.swift
 
-import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
-import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.CppGreeterFunction
 import org.gradle.nativeplatform.fixtures.app.CppGreeterFunctionUsesLogger
 import org.gradle.nativeplatform.fixtures.app.CppGreeterFunctionUsesLoggerApi
@@ -29,11 +27,8 @@ import org.gradle.nativeplatform.fixtures.app.SwiftGreeterUsingCppFunction
 import org.gradle.nativeplatform.fixtures.app.SwiftMainWithCppDep
 import org.gradle.nativeplatform.fixtures.app.SwiftSum
 import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
-import spock.lang.Ignore
 
-@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_5_OR_OLDER)
 @DoesNotSupportNonAsciiPaths(reason = "Swift sometimes fails when executed from non-ASCII directory")
-@Ignore("Inconsistent Swift SDK and tooling discovered on our Intel Macs")
 class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLanguageIntegrationTest {
     def "can compile and link against a #linkage.toLowerCase() c++ library"() {
         createDirs("app", "cppGreeter")

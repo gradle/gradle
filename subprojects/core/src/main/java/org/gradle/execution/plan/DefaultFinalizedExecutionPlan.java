@@ -20,16 +20,16 @@ import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.SetMultimap;
 import org.gradle.api.Action;
 import org.gradle.api.BuildCancelledException;
-import org.gradle.api.NonNullApi;
 import org.gradle.internal.MutableBoolean;
 import org.gradle.internal.Pair;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.work.WorkerLeaseRegistry;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -46,7 +46,7 @@ import java.util.function.Consumer;
 import static com.google.common.collect.Sets.newIdentityHashSet;
 import static java.lang.String.format;
 
-@NonNullApi
+@NullMarked
 public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, FinalizedExecutionPlan {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultFinalizedExecutionPlan.class);
     public static final Comparator<Node> NODE_EXECUTION_ORDER = new Comparator<Node>() {
@@ -279,7 +279,7 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
                 if (attemptToStart(node, resources)) {
                     readyNodes.remove();
                     waitingToStartNodes.remove(node);
-                    node.getMutationInfo().started();
+                    node.getConsumerState().started();
                     return Selection.of(node);
                 }
             }
@@ -322,7 +322,7 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
         }
 
         node.startExecution(this::recordNodeExecutionStarted);
-        if (mutations.hasValidationProblem) {
+        if (mutations.hasValidationProblem()) {
             invalidNodeRunning = true;
         }
         return true;
@@ -351,7 +351,7 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
             return true;
         } else if (mutationConflictsWithOtherNodes(node, mutations)) {
             return true;
-        } else if (destroysNotYetConsumedOutputOfAnotherNode(node, mutations.destroyablePaths)) {
+        } else if (destroysNotYetConsumedOutputOfAnotherNode(node, mutations.getDestroyablePaths())) {
             LOGGER.debug("Node {} destroys not yet consumed output of another node", node);
             return true;
         }
@@ -400,7 +400,7 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
 
     private boolean canRunWithCurrentlyExecutedNodes(MutationInfo mutations) {
         // No new work should be started when invalid work is running
-        if (mutations.hasValidationProblem) {
+        if (mutations.hasValidationProblem()) {
             // Invalid work is not allowed to run together with any other work
             return runningNodes.isEmpty();
         } else {
@@ -409,8 +409,8 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
     }
 
     private boolean mutationConflictsWithOtherNodes(Node node, MutationInfo mutations) {
-        Set<String> nodeOutputPaths = mutations.outputPaths;
-        Set<String> nodeDestroysPaths = mutations.destroyablePaths;
+        Set<String> nodeOutputPaths = mutations.getOutputPaths();
+        Set<String> nodeDestroysPaths = mutations.getDestroyablePaths();
         if (nodeOutputPaths.isEmpty() && nodeDestroysPaths.isEmpty()) {
             return false;
         }
@@ -458,11 +458,11 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
             if (current) {
                 return current;
             }
-            if (!producingNode.getMutationInfo().isOutputProducedButNotYetConsumed()) {
+            if (!producingNode.getConsumerState().isOutputProducedButNotYetConsumed()) {
                 return false;
             }
-            MutationInfo producingNodeMutations = producingNode.getMutationInfo();
-            for (Node consumer : producingNodeMutations.getNodesYetToConsumeOutput()) {
+            ConsumerState producingNodeConsumerState = producingNode.getConsumerState();
+            for (Node consumer : producingNodeConsumerState.getNodesYetToConsumeOutput()) {
                 if (doesConsumerDependOnDestroyer(consumer, destroyer)) {
                     // If there's an explicit dependency from consuming node to destroyer,
                     // then we accept that as the will of the user
@@ -521,8 +521,8 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
         }
 
         for (Node producer : node.getDependencySuccessors()) {
-            MutationInfo producerMutations = producer.getMutationInfo();
-            producerMutations.consumerCompleted(node);
+            ConsumerState producerConsumerState = producer.getConsumerState();
+            producerConsumerState.consumerCompleted(node);
         }
 
         updateAllDependenciesCompleteForPredecessors(node);

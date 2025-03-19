@@ -17,7 +17,7 @@ apply plugin: 'idea'
 repositories {
 <% if (repository) { %>
     maven {
-        url rootProject.file("${repository.rootDir.name}").toURI().toURL()
+        url = rootProject.file("${repository.rootDir.name}")
     }
 <% } %>
     mavenCentral()
@@ -68,7 +68,7 @@ dependencies {
 }
 
 test {
-    jvmArgs '-Xmx1g', '-XX:+HeapDumpOnOutOfMemoryError'
+    jvmArgs('-Xmx1g', '-XX:+HeapDumpOnOutOfMemoryError')
     <% if (binding.hasVariable("fullTestLogging")) { %>
         testLogging {
             if (Boolean.getBoolean("reducedOutput")) {
@@ -78,5 +78,5 @@ test {
             }
         }
     <% } %>
-    maxParallelForks 2
+    maxParallelForks = 2
 }

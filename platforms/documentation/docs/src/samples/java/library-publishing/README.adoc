@@ -1,4 +1,4 @@
-NOTE: You can open this sample in an <<gradle_ides.adoc#gradle_ides,IDE that supports Gradle>>.
+NOTE: You can open this sample in an link:{userManualPath}/gradle_ides.html#gradle_ides[IDE that supports Gradle].
 
 This sample shows how to publish a Java library to a repository.
 The library has no dependencies and the build has minimal configuration.

@@ -2,15 +2,18 @@ package org.gradle.internal.declarativedsl.mappingToJvm
 
 import org.gradle.declarative.dsl.schema.DataBuilderFunction
 import org.gradle.declarative.dsl.schema.DataProperty
+import org.gradle.declarative.dsl.schema.DataType
 import org.gradle.declarative.dsl.schema.ExternalObjectProviderKey
 import org.gradle.declarative.dsl.schema.ParameterSemantics
 import org.gradle.declarative.dsl.schema.SchemaFunction
+import org.gradle.internal.declarativedsl.InstanceAndPublicType
 import org.gradle.internal.declarativedsl.analysis.AssignmentMethod
+import org.gradle.internal.declarativedsl.analysis.DeclarativeDslInterpretationException
 import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
 import org.gradle.internal.declarativedsl.analysis.OperationId
-import org.gradle.internal.declarativedsl.analysis.ParameterValueBinding
 import org.gradle.internal.declarativedsl.objectGraph.ObjectReflection
 import org.gradle.internal.declarativedsl.objectGraph.PropertyValueReflection
+import kotlin.reflect.KClass
 
 
 class DeclarativeReflectionToObjectConverter(
@@ -18,7 +21,8 @@ class DeclarativeReflectionToObjectConverter(
     private val topLevelObject: Any,
     private val functionResolver: RuntimeFunctionResolver,
     private val propertyResolver: RuntimePropertyResolver,
-    private val customAccessors: RuntimeCustomAccessors
+    private val customAccessors: RuntimeCustomAccessors,
+    private val getScopeClassLoader: () -> ClassLoader
 ) : ReflectionToObjectConverter {
 
     override fun apply(objectReflection: ObjectReflection, conversionFilter: ReflectionToObjectConverter.ConversionFilter) {
@@ -39,12 +43,12 @@ class DeclarativeReflectionToObjectConverter(
             }
 
             objectReflection.customAccessorObjects.forEach { customAccessor ->
-                getObjectByResolvedOrigin(customAccessor.objectOrigin) ?: error("could not get object by custom accessor ${customAccessor.objectOrigin}")
+                getObjectByResolvedOrigin(customAccessor.objectOrigin).validate { "could not get object by custom accessor ${customAccessor.objectOrigin}" }.first
                 apply(customAccessor, conversionFilter)
             }
 
             objectReflection.lambdaAccessedObjects.forEach { lambdaAccessedObject ->
-                getObjectByResolvedOrigin(lambdaAccessedObject.objectOrigin) ?: error("could not get object from lambda passed to ${lambdaAccessedObject.objectOrigin}")
+                getObjectByResolvedOrigin(lambdaAccessedObject.objectOrigin).validate { "could not get object from lambda passed to ${lambdaAccessedObject.objectOrigin}" }.first
                 apply(lambdaAccessedObject, conversionFilter)
             }
         }
@@ -54,45 +58,84 @@ class DeclarativeReflectionToObjectConverter(
     val reflectionIdentityObjects = mutableMapOf<ObjectAccessKey, Any?>()
 
     private
-    fun objectByIdentity(key: ObjectAccessKey, newObject: () -> Any?): Any? {
+    val reflectionIdentityPublicTypes = mutableMapOf<ObjectAccessKey, KClass<*>?>()
+
+    private
+    fun objectByIdentity(key: ObjectAccessKey, newInstanceAndPublicType: () -> InstanceAndPublicType): InstanceAndPublicType {
         // This code does not use `computeIfAbsent` because `newObject` can make reentrant calls, leading to CME.
         // Also, it does not check for the value being null, because null values are potentially allowed
         if (key !in reflectionIdentityObjects) {
-            val newInstance = newObject()
-            reflectionIdentityObjects[key] = newInstance
-            return newInstance
+            val instanceAndPublicType = newInstanceAndPublicType()
+            reflectionIdentityObjects[key] = instanceAndPublicType.instance
+            reflectionIdentityPublicTypes[key] = instanceAndPublicType.publicType
+            return instanceAndPublicType
         } else {
-            return reflectionIdentityObjects[key]
+            return InstanceAndPublicType.of(reflectionIdentityObjects[key], reflectionIdentityPublicTypes[key])
         }
     }
 
     private
     fun applyPropertyValue(receiver: ObjectOrigin, property: DataProperty, assigned: PropertyValueReflection) {
         when (assigned.assignmentMethod) {
-            is AssignmentMethod.Property -> setPropertyValue(receiver, property, getObjectByResolvedOrigin(assigned.value.objectOrigin))
+            is AssignmentMethod.Property -> setPropertyValue(receiver, property, getObjectByResolvedOrigin(assigned.value.objectOrigin).instance)
             is AssignmentMethod.BuilderFunction -> invokeBuilderFunction(receiver, assigned.assignmentMethod.function, assigned.value.objectOrigin)
             is AssignmentMethod.AsConstructed -> Unit // the value should have already been passed to the constructor or the factory function
         }
     }
 
     private
-    fun getObjectByResolvedOrigin(objectOrigin: ObjectOrigin): Any? {
+    fun getObjectByResolvedOrigin(objectOrigin: ObjectOrigin): InstanceAndPublicType {
         return when (objectOrigin) {
             is ObjectOrigin.DelegatingObjectOrigin -> getObjectByResolvedOrigin(objectOrigin.delegate)
-            is ObjectOrigin.ConstantOrigin -> objectOrigin.literal.value
+            is ObjectOrigin.ConstantOrigin -> InstanceAndPublicType.of(objectOrigin.literal.value, objectOrigin.literal.type.constantType.kotlin)
             is ObjectOrigin.EnumConstantOrigin -> getEnumConstant(objectOrigin)
-            is ObjectOrigin.External -> externalObjectsMap[objectOrigin.key] ?: error("no external object provided for external object key of ${objectOrigin.key}")
+            is ObjectOrigin.External -> InstanceAndPublicType.unknownPublicType(
+                externalObjectsMap[objectOrigin.key] ?: error("no external object provided for external object key of ${objectOrigin.key}")
+            )
+
             is ObjectOrigin.NewObjectFromMemberFunction -> objectByIdentity(ObjectAccessKey.Identity(objectOrigin.invocationId)) { objectFromMemberFunction(objectOrigin) }
-            is ObjectOrigin.NewObjectFromTopLevelFunction -> objectByIdentity(ObjectAccessKey.Identity(objectOrigin.invocationId)) { objectFromTopLevelFunction(/*objectOrigin*/) }
-            is ObjectOrigin.NullObjectOrigin -> null
+            is ObjectOrigin.NewObjectFromTopLevelFunction -> objectByIdentity(ObjectAccessKey.Identity(objectOrigin.invocationId)) { objectFromTopLevelFunction(objectOrigin) }
+            is ObjectOrigin.NullObjectOrigin -> InstanceAndPublicType.NULL
             is ObjectOrigin.PropertyDefaultValue -> getPropertyValue(objectOrigin.receiver, objectOrigin.property)
             is ObjectOrigin.PropertyReference -> getPropertyValue(objectOrigin.receiver, objectOrigin.property)
-            is ObjectOrigin.TopLevelReceiver -> topLevelObject
+            is ObjectOrigin.TopLevelReceiver -> InstanceAndPublicType.of(topLevelObject, topLevelObject::class)
             is ObjectOrigin.ConfiguringLambdaReceiver -> objectFromConfiguringLambda(objectOrigin)
             is ObjectOrigin.CustomConfigureAccessor -> objectFromCustomAccessor(objectOrigin)
+            is ObjectOrigin.GroupedVarargValue -> {
+                @Suppress("UNCHECKED_CAST")
+                val resultArray = when (val elementClass = loadJvmTypeFor(objectOrigin.elementType)) {
+                    Int::class.java -> IntArray(objectOrigin.elementValues.size) { getObjectByResolvedOrigin(objectOrigin.elementValues[it]).instance as Int }
+                    Long::class.java -> LongArray(objectOrigin.elementValues.size) { getObjectByResolvedOrigin(objectOrigin.elementValues[it]).instance as Long }
+                    Boolean::class.java -> BooleanArray(objectOrigin.elementValues.size) { getObjectByResolvedOrigin(objectOrigin.elementValues[it]).instance as Boolean }
+                    else -> (java.lang.reflect.Array.newInstance(elementClass, objectOrigin.elementValues.size) as Array<in Any>).also {
+                        (objectOrigin.elementValues.map { getObjectByResolvedOrigin(it).instance }.toTypedArray() as Array<out Any>).copyInto(it)
+                    }
+                }
+
+                InstanceAndPublicType.of(
+                    resultArray,
+                    resultArray::class
+                )
+            }
         }
     }
 
+    private fun loadJvmTypeFor(dataType: DataType): Class<*> = when (dataType) {
+        is DataType.HasTypeName -> try {
+            getScopeClassLoader().loadClass(dataType.javaTypeName)
+        } catch (e: ClassNotFoundException) {
+            throw DeclarativeDslInterpretationException("Failed to load the JVM class for $dataType (${e.message})")
+                .also { it.addSuppressed(e) }
+        }
+
+        is DataType.BooleanDataType -> Boolean::class.java
+        is DataType.IntDataType -> Int::class.java
+        is DataType.LongDataType -> Long::class.java
+        is DataType.StringDataType -> String::class.java
+        is DataType.NullType -> Nothing::class.java
+        is DataType.TypeVariableUsage -> Any::class.java
+        is DataType.UnitType -> Unit::class.java
+    }
 
     private
     sealed interface ObjectAccessKey {
@@ -101,29 +144,28 @@ class DeclarativeReflectionToObjectConverter(
         data class ConfiguringLambda(val owner: ObjectOrigin, val function: SchemaFunction, val identityValues: List<Any?>) : ObjectAccessKey
     }
 
-
     private
     fun objectFromMemberFunction(
         origin: ObjectOrigin.NewObjectFromMemberFunction
-    ): Any? {
+    ): InstanceAndPublicType {
         val dataFun = origin.function
-        val receiverInstance = getObjectByResolvedOrigin(origin.receiver)
-            ?: error("tried to invoke a function $dataFun on a null receiver ${origin.receiver}")
+        val receiverInstanceAndPublicType = getObjectByResolvedOrigin(origin.receiver).validate { "tried to invoke a function $dataFun on a null receiver ${origin.receiver}" }
 
-        val callResult = invokeFunctionAndGetResult(receiverInstance, origin)
+        val callResult = invokeFunctionAndGetResult(receiverInstanceAndPublicType, origin)
         return callResult.result
     }
 
     private
     fun invokeFunctionAndGetResult(
-        receiverInstance: Any,
+        receiverInstanceAndPublicType: Pair<Any, KClass<*>>,
         origin: ObjectOrigin.FunctionInvocationOrigin
     ): DeclarativeRuntimeFunction.InvocationResult {
         val dataFun = origin.function
-        val receiverKClass = receiverInstance::class
-        return when (val runtimeFunction = functionResolver.resolve(receiverKClass, dataFun)) {
+        val receiverInstance = receiverInstanceAndPublicType.first
+        val receiverKClass = receiverInstanceAndPublicType.second
+        return when (val runtimeFunction = functionResolver.resolve(receiverKClass, dataFun, getScopeClassLoader())) {
             is RuntimeFunctionResolver.Resolution.Resolved -> {
-                val bindingWithValues = origin.parameterBindings.bindingMap.mapValues { getObjectByResolvedOrigin(it.value) }
+                val bindingWithValues = origin.parameterBindings.bindingMap.mapValues { getObjectByResolvedOrigin(it.value.objectOrigin).instance }
                 runtimeFunction.function.callByWithErrorHandling(receiverInstance, bindingWithValues, origin.parameterBindings.providesConfigureBlock)
             }
 
@@ -134,85 +176,86 @@ class DeclarativeReflectionToObjectConverter(
     private
     fun objectFromConfiguringLambda(
         origin: ObjectOrigin.ConfiguringLambdaReceiver
-    ): Any? = objectByIdentity(
+    ): InstanceAndPublicType = objectByIdentity(
         ObjectAccessKey.ConfiguringLambda(
             origin.receiver,
             origin.function,
-            identityValues = origin.parameterBindings.bindingMap.map {(parameter, value) ->
+            identityValues = origin.parameterBindings.bindingMap.map { (parameter, value) ->
                 if (parameter.semantics is ParameterSemantics.IdentityKey) {
-                    (value as? ObjectOrigin.ConstantOrigin)?.literal?.value
+                    (value.objectOrigin as? ObjectOrigin.ConstantOrigin)?.literal?.value
                 } else null
             })
     ) {
         val function = origin.function
-        val receiverInstance = getObjectByResolvedOrigin(origin.receiver)
-            ?: error("tried to invoke a function $function on a null receiver ${origin.receiver}")
-
-        invokeFunctionAndGetResult(receiverInstance, origin).capturedValue
+        val receiverInstanceAndPublicType = getObjectByResolvedOrigin(origin.receiver).validate { "tried to invoke a function $function on a null receiver ${origin.receiver}" }
+        invokeFunctionAndGetResult(receiverInstanceAndPublicType, origin).capturedValue
     }
 
     private
     fun objectFromCustomAccessor(
         origin: ObjectOrigin.CustomConfigureAccessor
-    ): Any? = objectByIdentity(ObjectAccessKey.CustomAccessor(origin.receiver, origin.accessor.customAccessorIdentifier)) {
-        customAccessors.getObjectFromCustomAccessor(
-            getObjectByResolvedOrigin(origin.receiver) ?: error("receiver for custom accessor is null"), origin.accessor
-        )
+    ): InstanceAndPublicType = objectByIdentity(ObjectAccessKey.CustomAccessor(origin.receiver, origin.accessor.customAccessorIdentifier)) {
+        val instanceAndPublicType = getObjectByResolvedOrigin(origin.receiver).validate { "receiver for custom accessor is null" }
+        customAccessors.getObjectFromCustomAccessor(instanceAndPublicType.first, origin.accessor)
     }
 
     private
     fun invokeBuilderFunction(receiverOrigin: ObjectOrigin, function: DataBuilderFunction, valueOrigin: ObjectOrigin) {
-        val receiverInstance = getObjectByResolvedOrigin(receiverOrigin)
-            ?: error("tried to invoke a function $function on a null receiver $receiverOrigin")
-        val receiverKClass = receiverInstance::class
-        val parameterBinding = ParameterValueBinding(mapOf(function.dataParameter to valueOrigin), false)
+        val receiverInstanceAndPublicType = getObjectByResolvedOrigin(receiverOrigin).validate { "tried to invoke a function $function on a null receiver $receiverOrigin" }
+        val receiverInstance = receiverInstanceAndPublicType.first
+        val receiverKClass = receiverInstanceAndPublicType.second
 
-        when (val runtimeFunction = functionResolver.resolve(receiverKClass, function)) {
-            is RuntimeFunctionResolver.Resolution.Resolved ->
-                runtimeFunction.function.callByWithErrorHandling(receiverInstance, parameterBinding.bindingMap.mapValues { getObjectByResolvedOrigin(it.value) }, parameterBinding.providesConfigureBlock).result
+        when (val runtimeFunction = functionResolver.resolve(receiverKClass, function, getScopeClassLoader())) {
+            is RuntimeFunctionResolver.Resolution.Resolved -> {
+                val binding = mapOf(function.dataParameter to getObjectByResolvedOrigin(valueOrigin).instance)
+                runtimeFunction.function.callByWithErrorHandling(receiverInstance, binding, false).result
+            }
+
             RuntimeFunctionResolver.Resolution.Unresolved -> error("could not resolve a member function $function call in the owner class $receiverKClass")
         }
     }
 
     private
     fun objectFromTopLevelFunction(
-        // origin: ObjectOrigin.NewObjectFromTopLevelFunction
-    ): Any? {
-        TODO("support calls to top-level functions: they need to carry the owner class information to get resolved")
-    }
-
-    private
-    fun getPropertyValue(receiver: ObjectOrigin, dataProperty: DataProperty): Any? {
-        val receiverInstance = getObjectByResolvedOrigin(receiver)
-            ?: error("tried to access a property ${dataProperty.name} on a null receiver")
-        val receiverKClass = receiverInstance::class
-        return when (val property = propertyResolver.resolvePropertyRead(receiverKClass, dataProperty.name)) {
-            is RuntimePropertyResolver.ReadResolution.ResolvedRead -> property.getter.getValue(receiverInstance)
-            RuntimePropertyResolver.ReadResolution.UnresolvedRead -> error("cannot get property ${dataProperty.name} from the receiver class $receiverKClass")
-        }
-    }
-
-    private
-    fun getEnumConstant(objectOrigin: ObjectOrigin.EnumConstantOrigin): Enum<*>? {
-        val typeName = objectOrigin.javaTypeName
-        val classLoader = topLevelObject.javaClass.classLoader
-        try {
-            val enumClass = classLoader.loadClass(typeName) as Class<*>
-            if (enumClass.isEnum) {
-                @Suppress("UNCHECKED_CAST")
-                return (enumClass as Class<Enum<*>>).enumConstants.find { it.name == objectOrigin.entryName }
-            } else {
-                error("$typeName is not an enum class")
+        origin: ObjectOrigin.NewObjectFromTopLevelFunction
+    ): InstanceAndPublicType {
+        return when (val runtimeFunction = functionResolver.resolve(Any::class, origin.function, getScopeClassLoader())) {
+            is RuntimeFunctionResolver.Resolution.Resolved -> {
+                val bindingWithValues = origin.parameterBindings.bindingMap.mapValues { getObjectByResolvedOrigin(it.value.objectOrigin).instance }
+                runtimeFunction.function.callByWithErrorHandling(receiver = null, bindingWithValues, origin.parameterBindings.providesConfigureBlock)
+                    .result
             }
-        } catch (e: ClassNotFoundException) {
-            error("failed loading class $typeName: ${e.message}")
+
+            RuntimeFunctionResolver.Resolution.Unresolved -> error("could not resolve a top-level function ${origin.function}")
         }
+    }
+
+    private
+    fun getPropertyValue(receiver: ObjectOrigin, dataProperty: DataProperty): InstanceAndPublicType {
+        val receiverInstanceAndPublicType = getObjectByResolvedOrigin(receiver).validate { "tried to access a property ${dataProperty.name} on a null receiver" }
+        val receiverInstance = receiverInstanceAndPublicType.first
+        val receiverPublicType = receiverInstanceAndPublicType.second
+        return when (val property = propertyResolver.resolvePropertyRead(receiverPublicType, dataProperty.name)) {
+            is RuntimePropertyResolver.ReadResolution.ResolvedRead -> property.getter.getValue(receiverInstance)
+            RuntimePropertyResolver.ReadResolution.UnresolvedRead -> error("cannot get property ${dataProperty.name} from the receiver class $receiverPublicType")
+        }
+    }
+
+    private
+    fun getEnumConstant(objectOrigin: ObjectOrigin.EnumConstantOrigin): InstanceAndPublicType {
+        val enumClass = loadJvmTypeFor(objectOrigin.type)
+        val enumConstant = if (enumClass.isEnum) {
+            @Suppress("UNCHECKED_CAST")
+            (enumClass as Class<Enum<*>>).enumConstants.find { it.name == objectOrigin.entryName }
+        } else {
+            error("$enumClass is not an enum class")
+        }
+        return InstanceAndPublicType.of(enumConstant, enumClass.kotlin)
     }
 
     private
     fun setPropertyValue(receiver: ObjectOrigin, dataProperty: DataProperty, value: Any?) {
-        val receiverInstance = getObjectByResolvedOrigin(receiver)
-            ?: error("tried to access a property ${dataProperty.name} on a null receiver")
+        val receiverInstance = getObjectByResolvedOrigin(receiver).validate { "tried to access a property ${dataProperty.name} on a null receiver" }.first
         val receiverKClass = receiverInstance::class
         when (val property = propertyResolver.resolvePropertyWrite(receiverKClass, dataProperty.name)) {
             is RuntimePropertyResolver.WriteResolution.ResolvedWrite -> property.setter.setValue(receiverInstance, value)

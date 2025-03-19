@@ -5,8 +5,8 @@ plugins {
     id 'ivy-publish'
 }
 
-group 'com.example'
-version '1.0.0'
+group = 'com.example'
+version = '1.0.0'
 
 gradlePlugin {
     plugins {
@@ -24,10 +24,10 @@ gradlePlugin {
 publishing {
     repositories {
         maven {
-            url layout.buildDirectory.dir("maven-repo")
+            url = layout.buildDirectory.dir('maven-repo')
         }
         ivy {
-            url layout.buildDirectory.dir("ivy-repo")
+            url = layout.buildDirectory.dir('ivy-repo')
         }
     }
 }

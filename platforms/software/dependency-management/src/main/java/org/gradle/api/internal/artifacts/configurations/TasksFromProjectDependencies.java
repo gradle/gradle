@@ -25,8 +25,8 @@ import org.gradle.api.internal.tasks.TaskDependencyContainerInternal;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.util.Path;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -56,7 +56,7 @@ class TasksFromProjectDependencies implements TaskDependencyContainerInternal {
         String taskName
     ) {
         for (ProjectDependency projectDependency : projectDependencies) {
-            Path identityPath = ((ProjectDependencyInternal) projectDependency).getIdentityPath();
+            Path identityPath = ((ProjectDependencyInternal) projectDependency).getTargetProjectIdentity().getBuildTreePath();
             ProjectState projectState = projectStateRegistry.stateFor(identityPath);
             projectState.ensureTasksDiscovered();
 

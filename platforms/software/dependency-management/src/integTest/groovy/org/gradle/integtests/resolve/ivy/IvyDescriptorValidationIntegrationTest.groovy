@@ -27,7 +27,7 @@ class IvyDescriptorValidationIntegrationTest extends AbstractDependencyResolutio
         buildFile << """
   repositories {
       ivy {
-          url "${ivyRepo.uri}"
+          url = "${ivyRepo.uri}"
       }
   }
   configurations { compile }

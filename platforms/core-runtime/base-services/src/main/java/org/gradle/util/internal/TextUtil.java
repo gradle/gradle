@@ -22,8 +22,8 @@ import com.google.common.collect.Iterables;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.SystemProperties;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
@@ -358,5 +358,12 @@ public class TextUtil {
 
     public static String screamingSnakeToKebabCase(String text) {
         return StringUtils.replace(text.toLowerCase(Locale.ENGLISH), "_", "-");
+    }
+
+    public static String removeTrailing(String originalString, String suffix) {
+        if (originalString.endsWith(suffix)) {
+            return originalString.substring(0, originalString.length() - suffix.length());
+        }
+        return originalString;
     }
 }

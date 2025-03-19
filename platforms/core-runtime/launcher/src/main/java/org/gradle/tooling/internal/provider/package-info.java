@@ -14,5 +14,7 @@
  * limitations under the License.
  */
 
-@org.gradle.api.NonNullApi
+@NullMarked
 package org.gradle.tooling.internal.provider;
+
+import org.jspecify.annotations.NullMarked;

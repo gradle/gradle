@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.internal.featurelifecycle.DeprecatedUsageProgressDetails
 
-import static org.gradle.api.problems.internal.DefaultProblemSummarizer.THRESHOLD_DEFAULT_VALUE
+import static org.gradle.problems.internal.services.DefaultProblemSummarizer.THRESHOLD_DEFAULT_VALUE
 
 class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractIntegrationSpec {
 
@@ -206,10 +206,7 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
             fqid == 'deprecation:typed-task'
             contextualLabel == 'Typed task has been deprecated.'
         }
-        verifyAll(receivedProblem(8)) {
-            fqid == 'deprecation:typed-task'
-            contextualLabel == 'Typed task has been deprecated.'
-        }
+        // The second one of this deprecation is not reported as it is dropped by the hash based deduplication
     }
 
     def "emits deprecation warnings as build operation progress events for buildSrc builds"() {
@@ -321,7 +318,7 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         events[50].details['deprecation'].stackTrace.length() == 0
 
         and:
-        (THRESHOLD_DEFAULT_VALUE).times {
+        THRESHOLD_DEFAULT_VALUE.times {
             verifyAll(receivedProblem(it)) {
                 fqid == 'deprecation:thing'
                 contextualLabel.contains(" has been deprecated.")
@@ -331,7 +328,7 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         def summaries = problemSummaries
         summaries.size() == 1
 
-        summaries[0][0].left.name == "thing"
+        summaries[0][0].problemId.name == "thing"
 
         where:
         mode << [WarningMode.None, WarningMode.Summary]
@@ -364,7 +361,7 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         events.every { it.details['deprecation'].stackTrace.length() > 0 }
 
         and:
-        (THRESHOLD_DEFAULT_VALUE).times {
+        THRESHOLD_DEFAULT_VALUE.times {
             verifyAll(receivedProblem(it)) {
                 fqid == 'deprecation:thing'
                 contextualLabel.contains('has been deprecated.')

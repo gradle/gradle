@@ -18,63 +18,68 @@ package org.gradle.api.problems.internal;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
+import org.gradle.api.problems.AdditionalData;
+import org.gradle.api.problems.DocLink;
+import org.gradle.api.problems.FileLocation;
+import org.gradle.api.problems.ProblemDefinition;
 import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.ProblemId;
+import org.gradle.api.problems.ProblemLocation;
 import org.gradle.api.problems.Severity;
-import org.gradle.api.problems.SharedProblemGroup;
+import org.gradle.internal.code.UserCodeSource;
+import org.gradle.internal.isolation.Isolatable;
 import org.gradle.problems.Location;
 import org.gradle.problems.ProblemDiagnostics;
-import org.gradle.problems.buildtree.ProblemStream;
+import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
 public class DefaultProblemBuilder implements InternalProblemBuilder {
-    @Nullable
-    private ProblemStream problemStream;
+    private final ProblemsInfrastructure problemsInfrastructure;
 
     private ProblemId id;
     private String contextualLabel;
     private Severity severity;
-    private final ImmutableList.Builder<ProblemLocation> locations = ImmutableList.builder();
+    private final List<ProblemLocation> locations = new ArrayList<ProblemLocation>();
+    private final List<ProblemLocation> contextLocations = new ArrayList<ProblemLocation>();
     private String details;
     private DocLink docLink;
     private List<String> solutions;
     private Throwable exception;
     private AdditionalData additionalData;
-    private boolean collectLocation = false;
-    private final AdditionalDataBuilderFactory additionalDataBuilderFactory;
+    private boolean collectStackLocation = false;
+    private ProblemDiagnostics diagnostics;
 
-    public DefaultProblemBuilder(AdditionalDataBuilderFactory additionalDataBuilderFactory) {
-        this.additionalDataBuilderFactory = additionalDataBuilderFactory;
+    public DefaultProblemBuilder(
+        ProblemsInfrastructure infrastructure
+    ) {
+        this.problemsInfrastructure = infrastructure;
         this.additionalData = null;
         this.solutions = new ArrayList<String>();
     }
 
-    public DefaultProblemBuilder(@Nullable ProblemStream problemStream, AdditionalDataBuilderFactory additionalDataBuilderFactory) {
-        this(additionalDataBuilderFactory);
-        this.problemStream = problemStream;
-    }
-
-    public DefaultProblemBuilder(Problem problem, AdditionalDataBuilderFactory additionalDataBuilderFactory) {
-        this(additionalDataBuilderFactory);
+    public DefaultProblemBuilder(
+        InternalProblem problem,
+        ProblemsInfrastructure infrastructure
+    ) {
+        this(infrastructure);
         this.id = problem.getDefinition().getId();
         this.contextualLabel = problem.getContextualLabel();
         this.solutions = new ArrayList<String>(problem.getSolutions());
         this.severity = problem.getDefinition().getSeverity();
-
-        locations.addAll(problem.getLocations());
-
+        this.locations.addAll(problem.getOriginLocations());
+        this.contextLocations.addAll(problem.getContextualLocations());
         this.details = problem.getDetails();
         this.docLink = problem.getDefinition().getDocumentationLink();
         this.exception = problem.getException();
         this.additionalData = problem.getAdditionalData();
-        this.problemStream = null;
     }
 
     @Override
-    public Problem build() {
+    public InternalProblem build() {
         // id is mandatory
         if (getId() == null) {
             return invalidProblem("missing-id", "Problem id must be specified", null);
@@ -85,60 +90,96 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         if (additionalData instanceof UnsupportedAdditionalDataSpec) {
             return invalidProblem("unsupported-additional-data", "Unsupported additional data type",
                 "Unsupported additional data type: " + ((UnsupportedAdditionalDataSpec) additionalData).getType().getName() +
-                    ". Supported types are: " + additionalDataBuilderFactory.getSupportedTypes());
+                    ". Supported types are: " + problemsInfrastructure.getAdditionalDataBuilderFactory().getSupportedTypes());
         }
 
-        Throwable exceptionForProblemInstantiation = getExceptionForProblemInstantiation();
-        if (problemStream != null) {
-            addLocationsFromProblemStream(this.locations, exceptionForProblemInstantiation);
+        ProblemDiagnostics diagnostics = determineDiagnostics();
+        if (diagnostics != null) {
+            addLocationsFromDiagnostics(collectStackLocation ? this.locations : this.contextLocations, diagnostics);
         }
 
         ProblemDefinition problemDefinition = new DefaultProblemDefinition(getId(), getSeverity(), docLink);
-        return new DefaultProblem(problemDefinition, contextualLabel, solutions, locations.build(), details, exceptionForProblemInstantiation, additionalData);
+        return new DefaultProblem(
+            problemDefinition,
+            contextualLabel,
+            solutions,
+            locations,
+            contextLocations,
+            details,
+            exception,
+            additionalData
+        );
     }
 
-    private void addLocationsFromProblemStream(ImmutableList.Builder<ProblemLocation> locations, Throwable exceptionForProblemInstantiation) {
-        assert problemStream != null;
-        ProblemDiagnostics problemDiagnostics = problemStream.forCurrentCaller(exceptionForProblemInstantiation);
-        Location loc = problemDiagnostics.getLocation();
-        if (loc != null) {
-            locations.add(getFileLocation(loc));
+    @Nullable
+    private ProblemDiagnostics determineDiagnostics() {
+        if (diagnostics != null) {
+            return diagnostics;
         }
-        if (problemDiagnostics.getSource() != null && problemDiagnostics.getSource().getPluginId() != null) {
-            locations.add(getDefaultPluginIdLocation(problemDiagnostics));
+        return problemsInfrastructure.getProblemStream() != null
+            ? problemsInfrastructure.getProblemStream().forCurrentCaller(exceptionForStackLocation())
+            : null;
+    }
+
+    private void addLocationsFromDiagnostics(List<ProblemLocation> locations, ProblemDiagnostics diagnostics) {
+        Location loc = diagnostics.getLocation();
+        FileLocation fileLocation = loc == null ? null : getFileLocation(loc);
+        if (fileLocation != null) {
+            locations.remove(fileLocation);
+        }
+        if (collectStackLocation || fileLocation != null) {
+            locations.add(new DefaultStackTraceLocation(fileLocation, diagnostics.getStack()));
+        }
+
+        PluginIdLocation pluginIdLocation = getDefaultPluginIdLocation(diagnostics);
+        if (pluginIdLocation != null) {
+            locations.add(pluginIdLocation);
         }
     }
 
-    private static DefaultPluginIdLocation getDefaultPluginIdLocation(ProblemDiagnostics problemDiagnostics) {
-        assert problemDiagnostics.getSource() != null;
-        return new DefaultPluginIdLocation(problemDiagnostics.getSource().getPluginId());
+    @Nullable
+    private static PluginIdLocation getDefaultPluginIdLocation(ProblemDiagnostics problemDiagnostics) {
+        UserCodeSource source = problemDiagnostics.getSource();
+        if (source == null) {
+            return null;
+        }
+        String pluginId = source.getPluginId();
+        if (pluginId == null) {
+            return null;
+        }
+        return new DefaultPluginIdLocation(pluginId);
     }
 
     private static FileLocation getFileLocation(Location loc) {
-        String path = loc.getSourceLongDisplayName().getDisplayName();
+        String path = loc.getFilePath();
         int line = loc.getLineNumber();
         return DefaultLineInFileLocation.from(path, line);
     }
 
-    private Problem invalidProblem(String id, String displayName, @Nullable String contextualLabel) {
-        id(id, displayName, new DefaultProblemGroup(
+    private InternalProblem invalidProblem(String id, String displayName, @Nullable String contextualLabel) {
+        id(id, displayName, ProblemGroup.create(
             "problems-api",
             "Problems API")
         ).stackLocation();
         ProblemDefinition problemDefinition = new DefaultProblemDefinition(this.getId(), Severity.WARNING, null);
-        Throwable exceptionForProblemInstantiation = getExceptionForProblemInstantiation();
-        ImmutableList.Builder<ProblemLocation> problemLocations = ImmutableList.builder();
-        addLocationsFromProblemStream(problemLocations, exceptionForProblemInstantiation);
-        return new DefaultProblem(problemDefinition, contextualLabel,
+        List<ProblemLocation> problemLocations = new ArrayList<ProblemLocation>();
+        ProblemDiagnostics diagnostics = determineDiagnostics();
+        if (diagnostics != null) {
+            addLocationsFromDiagnostics(problemLocations, diagnostics);
+        }
+        return new DefaultProblem(problemDefinition,
+            contextualLabel,
             ImmutableList.<String>of(),
-            problemLocations.build(),
+            problemLocations,
+            ImmutableList.<ProblemLocation>of(),
             null,
-            exceptionForProblemInstantiation,
-            null);
+            null,
+            null
+        );
     }
 
-    public Throwable getExceptionForProblemInstantiation() {
-        return getException() == null && collectLocation ? new RuntimeException() : getException();
+    public Throwable exceptionForStackLocation() {
+        return getException() == null && collectStackLocation ? new RuntimeException() : getException();
     }
 
     protected Severity getSeverity() {
@@ -161,44 +202,68 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     }
 
     @Override
-    public InternalProblemBuilder taskPathLocation(String buildTreePath) {
-        this.addLocation(new DefaultTaskPathLocation(buildTreePath));
+    public ProblemsInfrastructure getInfrastructure() {
+        return problemsInfrastructure;
+    }
+
+    @Override
+    public InternalProblemBuilder taskLocation(String buildTreePath) {
+        this.contextLocations.add(new DefaultTaskLocation(buildTreePath));
         return this;
     }
 
     @Override
     public InternalProblemBuilder fileLocation(String path) {
-        this.addLocation(DefaultFileLocation.from(path));
+        addFileLocation(DefaultFileLocation.from(path));
         return this;
     }
 
     @Override
     public InternalProblemBuilder lineInFileLocation(String path, int line) {
-        this.addLocation(DefaultLineInFileLocation.from(path, line));
+        return addFileLocation(DefaultLineInFileLocation.from(path, line));
+    }
+
+    @NonNull
+    private DefaultProblemBuilder addFileLocation(FileLocation from) {
+        return addFileLocationTo(this.locations, from);
+    }
+
+    @NonNull
+    private DefaultProblemBuilder addFileLocationTo(List<ProblemLocation> problemLocations, FileLocation from) {
+        if (problemLocations.contains(from)) {
+            return this;
+        }
+        problemLocations.add(from);
         return this;
     }
 
     @Override
     public InternalProblemBuilder lineInFileLocation(String path, int line, int column) {
-        this.addLocation(DefaultLineInFileLocation.from(path, line, column));
+        addFileLocation(DefaultLineInFileLocation.from(path, line, column));
         return this;
     }
 
     @Override
     public InternalProblemBuilder offsetInFileLocation(String path, int offset, int length) {
-        this.addLocation(DefaultOffsetInFileLocation.from(path, offset, length));
+        addFileLocation(DefaultOffsetInFileLocation.from(path, offset, length));
         return this;
     }
 
     @Override
     public InternalProblemBuilder lineInFileLocation(String path, int line, int column, int length) {
-        this.addLocation(DefaultLineInFileLocation.from(path, line, column, length));
+        addFileLocation(DefaultLineInFileLocation.from(path, line, column, length));
         return this;
     }
 
     @Override
     public InternalProblemBuilder stackLocation() {
-        this.collectLocation = true;
+        this.collectStackLocation = true;
+        return this;
+    }
+
+    @Override
+    public InternalProblemSpec diagnostics(ProblemDiagnostics diagnostics) {
+        this.diagnostics = diagnostics;
         return this;
     }
 
@@ -215,19 +280,27 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     }
 
     @Override
-    public InternalProblemBuilder id(String name, String displayName) {
-        this.id = new DefaultProblemId(name, displayName, cloneGroup(SharedProblemGroup.generic()));
+    public InternalProblemBuilder id(ProblemId problemId) {
+        if (problemId instanceof DefaultProblemId) {
+            this.id = problemId;
+        } else {
+            this.id = cloneId(problemId);
+        }
         return this;
     }
 
     @Override
     public InternalProblemBuilder id(String name, String displayName, ProblemGroup parent) {
-        this.id = new DefaultProblemId(name, displayName, cloneGroup(parent));
+        this.id = ProblemId.create(name, displayName, cloneGroup(parent));
         return this;
     }
 
+    private static ProblemId cloneId(ProblemId original) {
+        return ProblemId.create(original.getName(), original.getDisplayName(), cloneGroup(original.getGroup()));
+    }
+
     private static ProblemGroup cloneGroup(ProblemGroup original) {
-        return new DefaultProblemGroup(original.getName(), original.getDisplayName(), original.getParent() == null ? null : cloneGroup(original.getParent()));
+        return ProblemGroup.create(original.getName(), original.getDisplayName(), original.getParent() == null ? null : cloneGroup(original.getParent()));
     }
 
     @Override
@@ -248,15 +321,34 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <U extends AdditionalDataSpec> InternalProblemBuilder additionalData(Class<? extends U> specType, Action<? super U> config) {
-        if (additionalDataBuilderFactory.hasProviderForSpec(specType)) {
-            AdditionalDataBuilder<?> additionalDataBuilder = additionalDataBuilderFactory.createAdditionalDataBuilder(specType, additionalData);
+    public <U extends AdditionalDataSpec> InternalProblemBuilder additionalDataInternal(Class<? extends U> specType, Action<? super U> config) {
+        if (problemsInfrastructure.getAdditionalDataBuilderFactory().hasProviderForSpec(specType)) {
+            AdditionalDataBuilder<? extends AdditionalData> additionalDataBuilder = problemsInfrastructure.getAdditionalDataBuilderFactory().createAdditionalDataBuilder(specType, additionalData);
             config.execute((U) additionalDataBuilder);
             additionalData = additionalDataBuilder.build();
         } else {
             additionalData = new UnsupportedAdditionalDataSpec(specType);
         }
         return this;
+    }
+
+    @Override
+    public <T extends AdditionalData> InternalProblemBuilder additionalData(Class<T> type, Action<? super T> config) {
+        AdditionalData additionalDataInstance = createAdditionalData(type, config);
+        Isolatable<AdditionalData> isolated = problemsInfrastructure.getIsolatableFactory().isolate(additionalDataInstance);
+
+        SerializedPayload serializedBaseClass = problemsInfrastructure.getPayloadSerializer().serialize(type);
+        byte[] serialized = this.problemsInfrastructure.getIsolatableSerializer().serialize(isolated);
+
+        this.additionalData = new DefaultTypedAdditionalData(serializedBaseClass, serialized);
+        return this;
+    }
+
+    @NonNull
+    private <T extends AdditionalData> AdditionalData createAdditionalData(Class<T> type, Action<? super T> config) {
+        T additionalDataInstance = problemsInfrastructure.getInstantiator().newInstance(type);
+        config.execute(additionalDataInstance);
+        return additionalDataInstance;
     }
 
     @Override
@@ -268,10 +360,6 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     @Nullable
     Throwable getException() {
         return exception;
-    }
-
-    protected void addLocation(ProblemLocation location) {
-        this.locations.add(location);
     }
 
     public ProblemId getId() {

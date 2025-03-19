@@ -26,7 +26,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  * Here, the term "build" is used to represent the overall invocation.
  * For example, buildSrc shares the same build scope ID as the overall build.
  * All composite participants also share the same build scope ID.
- * That is, all “nested” build trees (in terms of GradleLauncher, GradleBuild etc.) share the same build invocation ID.
+ * That is, all "nested" build trees (in terms of GradleLauncher, GradleBuild etc.) share the same build invocation ID.
  *
  * This ID is, by definition, not persistent.
  */

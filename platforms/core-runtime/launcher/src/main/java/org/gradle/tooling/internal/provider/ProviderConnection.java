@@ -60,6 +60,7 @@ import org.gradle.launcher.exec.BuildActionExecutor;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
 import org.gradle.process.internal.streams.SafeStreams;
+import org.gradle.process.internal.worker.request.IsolatableSerializerRegistry;
 import org.gradle.tooling.events.OperationType;
 import org.gradle.tooling.internal.build.DefaultBuildEnvironment;
 import org.gradle.tooling.internal.consumer.parameters.FailsafeBuildProgressListenerAdapter;
@@ -84,6 +85,7 @@ import org.gradle.tooling.internal.provider.connection.ProviderOperationParamete
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 import org.gradle.tooling.internal.provider.test.ProviderInternalTestExecutionRequest;
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.gradle.tooling.model.build.BuildEnvironment;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.GUtil;
@@ -97,6 +99,7 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import static java.util.Collections.emptySet;
@@ -114,6 +117,7 @@ public class ProviderConnection {
     private final UserInputReader userInputReader;
     private final ShutdownCoordinator shutdownCoordinator;
     private final NotifyDaemonClientExecuter notifyDaemonClientExecuter;
+    private final IsolatableSerializerRegistry isolatableSerializerRegistry;
 
     private GradleVersion consumerVersion;
 
@@ -127,7 +131,8 @@ public class ProviderConnection {
         GlobalUserInputReceiver userInputReceiver,
         UserInputReader userInputReader,
         ShutdownCoordinator shutdownCoordinator,
-        NotifyDaemonClientExecuter notifyDaemonClientExecuter
+        NotifyDaemonClientExecuter notifyDaemonClientExecuter,
+        IsolatableSerializerRegistry isolatableSerializerRegistry
     ) {
         this.buildLayoutFactory = buildLayoutFactory;
         this.daemonClientFactory = daemonClientFactory;
@@ -139,6 +144,7 @@ public class ProviderConnection {
         this.userInputReader = userInputReader;
         this.shutdownCoordinator = shutdownCoordinator;
         this.notifyDaemonClientExecuter = notifyDaemonClientExecuter;
+        this.isolatableSerializerRegistry = isolatableSerializerRegistry;
     }
 
     public void configure(ProviderConnectionParameters parameters, GradleVersion consumerVersion) {
@@ -169,7 +175,7 @@ public class ProviderConnection {
                 params.daemonParams.getEffectiveJvmArgs());
         }
 
-        ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters, consumerVersion, payloadSerializer);
+        ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters, consumerVersion, payloadSerializer, isolatableSerializerRegistry);
         BuildAction action = new BuildModelAction(params.startParameter, modelName, tasks != null, listenerConfig.clientSubscriptions);
         return run(action, cancellationToken, listenerConfig, listenerConfig.buildEventConsumer, providerParameters, params);
     }
@@ -206,7 +212,7 @@ public class ProviderConnection {
         SerializedPayload serializedAction = payloadSerializer.serialize(clientAction);
         Parameters params = initParams(providerParameters);
         StartParameterInternal startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.buildLayout, params.properties);
-        ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters, consumerVersion, payloadSerializer);
+        ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters, consumerVersion, payloadSerializer, isolatableSerializerRegistry);
         BuildAction action = new ClientProvidedBuildAction(startParameter, serializedAction, tasks != null, listenerConfig.clientSubscriptions);
         return run(action, cancellationToken, listenerConfig, listenerConfig.buildEventConsumer, providerParameters, params);
     }
@@ -222,7 +228,7 @@ public class ProviderConnection {
         Parameters params = initParams(providerParameters);
         StartParameterInternal startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.buildLayout, params.properties);
         FailsafePhasedActionResultListener failsafePhasedActionResultListener = new FailsafePhasedActionResultListener(resultListener);
-        ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters, consumerVersion, payloadSerializer);
+        ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters, consumerVersion, payloadSerializer, isolatableSerializerRegistry);
         BuildAction action = new ClientProvidedPhasedAction(startParameter, serializedAction, tasks != null, listenerConfig.clientSubscriptions);
         try {
             return run(action, cancellationToken, listenerConfig, new PhasedActionEventConsumer(failsafePhasedActionResultListener, payloadSerializer, listenerConfig.buildEventConsumer),
@@ -235,7 +241,7 @@ public class ProviderConnection {
     public Object runTests(ProviderInternalTestExecutionRequest testExecutionRequest, BuildCancellationToken cancellationToken, ProviderOperationParameters providerParameters) {
         Parameters params = initParams(providerParameters);
         StartParameterInternal startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.buildLayout, params.properties);
-        ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters, consumerVersion, payloadSerializer);
+        ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters, consumerVersion, payloadSerializer, isolatableSerializerRegistry);
         TestExecutionRequestAction action = TestExecutionRequestAction.create(listenerConfig.clientSubscriptions, startParameter, testExecutionRequest);
         return run(action, cancellationToken, listenerConfig, listenerConfig.buildEventConsumer, providerParameters, params);
     }
@@ -310,7 +316,7 @@ public class ProviderConnection {
         } else {
             ServiceRegistry requestSpecificLogging = LoggingServiceRegistry.newNestedLogging();
             loggingManager = requestSpecificLogging.getFactory(LoggingManagerInternal.class).create();
-            ServiceRegistry clientServices = daemonClientFactory.createBuildClientServices(requestSpecificLogging, params.daemonParams, params.requestContext, standardInput);
+            ServiceRegistry clientServices = daemonClientFactory.createBuildClientServices(requestSpecificLogging, params.daemonParams, params.requestContext, standardInput, Optional.ofNullable(operationParameters.getBuildProgressListener()));
             stoppable.add(clientServices);
             stoppable.add(requestSpecificLogging);
             executor = clientServices.get(DaemonClient.class);
@@ -346,10 +352,25 @@ public class ProviderConnection {
             daemonParams.setBaseDir(operationParameters.getDaemonBaseDir());
         }
 
-        //override the params with the explicit settings provided by the tooling api
-        List<String> jvmArguments = operationParameters.getJvmArguments();
-        if (jvmArguments != null) {
-            daemonParams.setJvmArgs(jvmArguments);
+        // Since 8.13, we split the daemon JVM args into base and additional JVM args (#31462)
+        // When calling the following new method before 8.13 provider, it will fall back to the old behavior.
+        try {
+            List<String> baseJvmArguments = operationParameters.getBaseJvmArguments();
+            // Here, we consider `null` and `[]` as no-op.
+            // See LongRunningOperation.setJvmArguments(java.lang.String...)
+            if (baseJvmArguments != null && !baseJvmArguments.isEmpty()) {
+                daemonParams.setJvmArgs(baseJvmArguments);
+            }
+            List<String> additionalJvmArguments = operationParameters.getAdditionalJvmArguments();
+            if (additionalJvmArguments != null) {
+                daemonParams.addJvmArgs(additionalJvmArguments);
+            }
+        } catch (UnsupportedMethodException ex) {
+            // If we get an exception, we are dealing with an older provider.
+            List<String> legacyJvmArguments = operationParameters.getJvmArguments();
+            if (legacyJvmArguments != null) {
+                daemonParams.setJvmArgs(legacyJvmArguments);
+            }
         }
 
         daemonParams.setRequestedJvmCriteriaFromMap(properties.getDaemonJvmProperties());
@@ -437,6 +458,7 @@ public class ProviderConnection {
             .put(InternalBuildProgressListener.TRANSFORM_EXECUTION, OperationType.TRANSFORM)
             .put(InternalBuildProgressListener.BUILD_EXECUTION, OperationType.GENERIC)
             .put(InternalBuildProgressListener.TEST_OUTPUT, OperationType.TEST_OUTPUT)
+            .put(InternalBuildProgressListener.TEST_METADATA, OperationType.TEST_METADATA)
             .put(InternalBuildProgressListener.FILE_DOWNLOAD, OperationType.FILE_DOWNLOAD)
             .put(InternalBuildProgressListener.BUILD_PHASE, OperationType.BUILD_PHASE)
             .put(InternalBuildProgressListener.PROBLEMS, OperationType.PROBLEMS)
@@ -462,13 +484,16 @@ public class ProviderConnection {
         static ProgressListenerConfiguration from(
             ProviderOperationParameters providerParameters,
             GradleVersion consumerVersion,
-            PayloadSerializer payloadSerializer
+            PayloadSerializer payloadSerializer,
+            IsolatableSerializerRegistry isolatableSerializerRegistry
         ) {
             InternalBuildProgressListener buildProgressListener = providerParameters.getBuildProgressListener();
             Set<OperationType> operationTypes = toOperationTypes(buildProgressListener, consumerVersion);
             BuildEventSubscriptions clientSubscriptions = new BuildEventSubscriptions(operationTypes);
             FailsafeBuildProgressListenerAdapter progressListenerAdapter = new FailsafeBuildProgressListenerAdapter(buildProgressListener);
-            BuildEventConsumer buildEventConsumer = clientSubscriptions.isAnyOperationTypeRequested() ? new BuildProgressListenerInvokingBuildEventConsumer(progressListenerAdapter) : new NoOpBuildEventConsumer();
+            BuildEventConsumer
+                buildEventConsumer = clientSubscriptions.isAnyOperationTypeRequested() ? new BuildProgressListenerInvokingBuildEventConsumer(progressListenerAdapter) : new NoOpBuildEventConsumer();
+            buildEventConsumer = new ProblemAdditionalDataRemapper(payloadSerializer, buildEventConsumer, isolatableSerializerRegistry);
             buildEventConsumer = new StreamedValueConsumer(providerParameters, payloadSerializer, buildEventConsumer);
             if (Boolean.TRUE.equals(providerParameters.isEmbedded())) {
                 // Contract requires build events are delivered by a single thread. This is taken care of by the daemon client when not in embedded mode

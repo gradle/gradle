@@ -26,7 +26,7 @@ class MavenM2CacheReuseIntegrationTest extends AbstractHttpDependencyResolutionT
 
         buildFile.text = """
 repositories {
-    maven { url "${mavenHttpRepo.uri}" }
+    maven { url = "${mavenHttpRepo.uri}" }
 }
 configurations { compile }
 dependencies {
@@ -59,7 +59,7 @@ task retrieve(type: Sync) {
 
         buildFile.text = """
 repositories {
-    maven { url "${mavenHttpRepo.uri}" }
+    maven { url = "${mavenHttpRepo.uri}" }
 }
 configurations { compile }
 dependencies {

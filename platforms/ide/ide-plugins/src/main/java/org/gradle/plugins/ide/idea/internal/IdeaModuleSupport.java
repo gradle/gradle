@@ -17,9 +17,9 @@
 package org.gradle.plugins.ide.idea.internal;
 
 import org.gradle.api.JavaVersion;
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;
 
-@NonNullApi
+@NullMarked
 public class IdeaModuleSupport {
 
     /**

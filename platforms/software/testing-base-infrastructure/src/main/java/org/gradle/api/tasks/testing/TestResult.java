@@ -17,8 +17,8 @@
 package org.gradle.api.tasks.testing;
 
 import org.gradle.api.Incubating;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -28,7 +28,7 @@ public interface TestResult {
     /**
      * The final status of a test.
      */
-    public enum ResultType {
+    enum ResultType {
         SUCCESS, FAILURE, SKIPPED
     }
 

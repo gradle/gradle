@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Gradle, Inc.
+// Copyright (C) 2024 Gradle, Inc.
 //
 // Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
@@ -59,6 +59,7 @@ include::sample[dir="snippets/tasks/tutorialTask/groovy", files="build.gradle[ta
 
 Once a task is added to a group, it is visible when listing tasks.
 
+[[task_inputs_and_outputs]]
 == Task input and outputs
 
 For the task to do useful work, it typically needs some *inputs*.

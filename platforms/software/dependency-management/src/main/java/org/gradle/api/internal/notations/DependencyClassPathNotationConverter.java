@@ -109,7 +109,7 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
     }
 
     private Set<File> gradleApiFileCollection(Collection<File> apiClasspath) {
-        // Don't inline the Groovy jar as the Groovy “tools locator” searches for it by name
+        // Don't inline the Groovy jar as the Groovy "tools locator" searches for it by name
         List<File> groovyImpl = classPathRegistry.getClassPath(LOCAL_GROOVY.name()).getAsFiles();
         List<File> kotlinImpl = kotlinImplFrom(apiClasspath);
         List<File> installationBeacon = classPathRegistry.getClassPath("GRADLE_INSTALLATION_BEACON").getAsFiles();

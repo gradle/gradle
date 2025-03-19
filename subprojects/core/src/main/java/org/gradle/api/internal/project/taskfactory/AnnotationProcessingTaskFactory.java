@@ -21,8 +21,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.reflect.Instantiator;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A {@link ITaskFactory} which determines task actions, inputs and outputs based on annotation attached to the task properties. Also provides some validation based on these annotations.

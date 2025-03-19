@@ -1,6 +1,5 @@
 plugins {
     id("gradlebuild.distribution.api-java")
-    id("gradlebuild.instrumented-java-project")
 }
 
 description = "Adds support for assembling web application EAR files"
@@ -14,7 +13,7 @@ errorprone {
 dependencies {
     api(libs.groovy)
     api(libs.inject)
-    api(libs.jsr305)
+    api(libs.jspecify)
 
     api(projects.baseServices)
     api(projects.coreApi)

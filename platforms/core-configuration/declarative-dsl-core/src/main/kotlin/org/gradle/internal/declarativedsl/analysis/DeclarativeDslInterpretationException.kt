@@ -16,13 +16,10 @@
 
 package org.gradle.internal.declarativedsl.analysis
 
-
-class DeclarativeDslInterpretationException(message: String) : RuntimeException(message)
-
+open class DeclarativeDslInterpretationException(message: String) : RuntimeException(message)
 
 internal
 fun interpretationFailure(message: String): Nothing = throw DeclarativeDslInterpretationException(message)
-
 
 internal
 fun interpretationCheck(value: Boolean, lazyMessage: () -> String) {

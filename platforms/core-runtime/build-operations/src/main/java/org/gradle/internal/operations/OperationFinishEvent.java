@@ -16,7 +16,7 @@
 
 package org.gradle.internal.operations;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public final class OperationFinishEvent {
     private final long startTime;
@@ -24,9 +24,16 @@ public final class OperationFinishEvent {
     private final Throwable failure;
     private final Object result;
 
-    public OperationFinishEvent(long startTime, long endTime, @Nullable Throwable failure, @Nullable Object result) {
+    /**
+     *
+     * @param startTime the time the operation started
+     * @param currentTime the current time when the operation is considered finished
+     * @param failure operation failure
+     * @param result operation result
+     */
+    public OperationFinishEvent(long startTime, long currentTime, @Nullable Throwable failure, @Nullable Object result) {
         this.startTime = startTime;
-        this.endTime = endTime;
+        this.endTime = currentTime;
         this.failure = failure;
         this.result = result;
     }

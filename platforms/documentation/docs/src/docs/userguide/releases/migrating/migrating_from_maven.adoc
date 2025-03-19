@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Gradle, Inc.
+// Copyright (C) 2024 Gradle, Inc.
 //
 // Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
@@ -88,7 +88,7 @@ If you want, you can also use a Gradle build scan to identify opportunities to <
  . <<migmvn:integration_tests,Configure integration and functional tests>>.
 +
 Many tests can simply be migrated by configuring an extra source set.
-If you are using a third-party library, such as http://docs.fitnesse.org/FrontPage[FitNesse], look to see whether  there is a suitable community plugin available on the https://plugins.gradle.org/[Gradle Plugin Portal].
+If you are using a third-party library, such as https://fitnesse.org/FitNesse/UserGuide.html[FitNesse], look to see whether  there is a suitable community plugin available on the https://plugins.gradle.org/[Gradle Plugin Portal].
 +
  . Replace Maven plugins with Gradle equivalents.
 +
@@ -349,7 +349,7 @@ You are likely to encounter two situations regarding optional dependencies:
 For the first scenario, Gradle behaves the same way as Maven and simply ignores any transitive dependencies that are declared as optional.
 They are not resolved and have no impact on the versions selected if the same dependencies appear elsewhere in the dependency graph as non-optional.
 
-As for publishing dependencies as optional, Gradle provides a richer model called <<feature_variants#feature_variants, feature variants>>, which will let you declare the "optional features" your library provides.
+As for publishing dependencies as optional, Gradle provides a richer model called <<how_to_create_feature_variants_of_a_library.adoc#feature_variants, feature variants>>, which will let you declare the "optional features" your library provides.
 
 [[migmvn:using_boms]]
 == Using bills of materials (BOMs)
@@ -447,7 +447,7 @@ You can easily get the same behavior by combining conditions with secondary buil
 
 Let's say you have different deployment settings depending on the environment: local development (the default), a test environment, and production.
 To add profile-like behavior, you first create build scripts for each environment in the project root: `profile-default.gradle`, `profile-test.gradle`, and `profile-prod.gradle`.
-You can then conditionally apply one of those profile scripts based on a <<project_properties.adoc#sec:project_properties,project property>> of your own choice.
+You can then conditionally apply one of those profile scripts based on a <<build_environment.adoc#sec:project_properties,project property>> of your own choice.
 
 The following example demonstrates the basic technique using a project property called `buildProfile` and profile scripts that simply initialize an <<writing_build_scripts#sec:extra_properties,extra project property>> called `message`:
 

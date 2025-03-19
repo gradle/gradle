@@ -47,6 +47,7 @@ import org.gradle.api.internal.tasks.testing.logging.TestEventLogger;
 import org.gradle.api.internal.tasks.testing.logging.TestExceptionFormatter;
 import org.gradle.api.internal.tasks.testing.logging.TestWorkerProgressListener;
 import org.gradle.api.internal.tasks.testing.report.HtmlTestReport;
+import org.gradle.api.internal.tasks.testing.report.TestReporter;
 import org.gradle.api.internal.tasks.testing.results.StateTrackingTestResultProcessor;
 import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
@@ -172,6 +173,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     private final BroadcastSubscriptions<TestOutputListener> testOutputListenerSubscriptions;
     private final TestLoggingContainer testLogging;
     private final DirectoryProperty binaryResultsDirectory;
+    private TestReporter testReporter;
     private boolean ignoreFailures;
     private boolean failFast;
 
@@ -242,6 +244,10 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * @since 4.4
      */
     protected abstract TestExecutionSpec createTestExecutionSpec();
+
+    void setTestReporter(TestReporter testReporter) {
+        this.testReporter = testReporter;
+    }
 
     // only way I know of to determine current log level
     private LogLevel determineCurrentLogLevel() {
@@ -412,7 +418,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * apply plugin: 'java'
      *
      * test.testLogging {
-     *     exceptionFormat "full"
+     *     exceptionFormat = "full"
      * }
      * </pre>
      *
@@ -538,8 +544,14 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         if (testCountLogger.hadFailures()) {
             handleTestFailures();
         } else if (testCountLogger.getTotalTests() == 0) {
+            // No tests were executed, the following rules apply:
+            // - If there are no filters, and no tests or test suites were discovered, emit a deprecation warning
+            // - If there are filters and the task is configured to fail when no tests match the filters, throw an exception
+            // - Otherwise, this is fine - the task should succeed with no warnings or errors
             if (testsAreNotFiltered()) {
-                emitDeprecationMessage();
+                if (testCountLogger.getTotalDiscoveredItems() == 0) {
+                    emitDeprecationMessage();
+                }
             } else if (shouldFailOnNoMatchingTests()) {
                 throw new TestExecutionException(createNoMatchingTestErrorMessage());
             }
@@ -617,11 +629,17 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
             if (!html.getRequired().get()) {
                 getLogger().info("Test report disabled, omitting generation of the HTML test report.");
             } else {
-                HtmlTestReport htmlReport = new HtmlTestReport(getBuildOperationRunner(), getBuildOperationExecutor());
-                htmlReport.generateReport(testResultsProvider, html.getOutputLocation().getAsFile().getOrNull());
+                File htmlReportDestinationDir = html.getOutputLocation().getAsFile().getOrNull();
+                if (testReporter != null) {
+                    testReporter.generateReport(testResultsProvider, htmlReportDestinationDir);
+                } else {
+                    HtmlTestReport htmlReport = new HtmlTestReport(getBuildOperationRunner(), getBuildOperationExecutor());
+                    htmlReport.generateReport(testResultsProvider, htmlReportDestinationDir);
+                }
             }
         } finally {
             CompositeStoppable.stoppable(testResultsProvider).stop();
+            testReporter = null;
         }
     }
 

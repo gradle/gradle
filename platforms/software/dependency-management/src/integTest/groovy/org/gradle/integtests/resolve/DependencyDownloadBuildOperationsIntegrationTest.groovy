@@ -37,7 +37,7 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
 
         buildFile << """
             repositories {
-                maven { url "${mavenHttpRepo.uri}" }
+                maven { url = "${mavenHttpRepo.uri}" }
             }
 
             configurations {
@@ -118,14 +118,14 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
         buildFile << """
             repositories {
                 maven {
-                    url "${emptyRepo.uri}"
+                    url = "${emptyRepo.uri}"
                     metadataSources {
                         mavenPom()
                         artifact()
                     }
                 }
                 maven {
-                    url "${mavenHttpRepo.uri}"
+                    url = "${mavenHttpRepo.uri}"
                     metadataSources {
                         mavenPom()
                         artifact()
@@ -221,7 +221,7 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
         buildFile << """
             repositories {
                 maven {
-                    url "${mavenHttpRepo.uri}"
+                    url = "${mavenHttpRepo.uri}"
                     metadataSources {
                         mavenPom()
                         artifact()
@@ -306,7 +306,7 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
 
         buildFile << """
             repositories {
-                maven { url "${mavenHttpRepo.uri}" }
+                maven { url = "${mavenHttpRepo.uri}" }
             }
 
             configurations {

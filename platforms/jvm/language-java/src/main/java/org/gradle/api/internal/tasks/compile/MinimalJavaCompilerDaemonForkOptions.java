@@ -18,8 +18,8 @@ package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.tasks.compile.ForkOptions;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 
 public class MinimalJavaCompilerDaemonForkOptions extends MinimalCompilerDaemonForkOptions {

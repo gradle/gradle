@@ -39,15 +39,12 @@ dependencies {
 
     api(libs.inject)
 
-    implementation(projects.core)
     implementation(projects.logging)
     implementation(projects.pluginsJavaBase)
     implementation(projects.testingBase)
 
-    implementation(libs.commonsLang)
-
-    implementation(libs.ant)
     implementation(libs.guava)
+    implementation(libs.jspecify)
 
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
 }

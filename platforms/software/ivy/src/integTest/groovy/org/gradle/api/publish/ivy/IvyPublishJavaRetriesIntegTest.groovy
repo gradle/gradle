@@ -58,7 +58,7 @@ class IvyPublishJavaRetriesIntegTest extends AbstractIvyPublishIntegTest {
             publishing {
                 repositories {
                     ivy {
-                        url '${ivyRemoteRepo.uri}'
+                        url = "${ivyRemoteRepo.uri}"
                     }
                 }
                 publications {

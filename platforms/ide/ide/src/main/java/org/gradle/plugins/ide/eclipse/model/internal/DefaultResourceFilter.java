@@ -115,7 +115,7 @@ public final class DefaultResourceFilter implements ResourceFilter {
         DefaultResourceFilter resourceFilter = (DefaultResourceFilter) o;
         return Objects.equal(appliesTo, resourceFilter.appliesTo)
             && Objects.equal(type, resourceFilter.type)
-            && Objects.equal(recursive, resourceFilter.recursive)
+            && recursive == resourceFilter.recursive
             && Objects.equal(matcher, resourceFilter.matcher);
     }
 
@@ -124,7 +124,7 @@ public final class DefaultResourceFilter implements ResourceFilter {
         int result;
         result = appliesTo != null ? appliesTo.hashCode() : 0;
         result = 31 * result + (type != null ? type.hashCode() : 0);
-        result = 31 * result + Boolean.valueOf(recursive).hashCode();
+        result = 31 * result + Boolean.hashCode(recursive);
         result = 31 * result + (matcher != null ? matcher.hashCode() : 0);
         return result;
     }

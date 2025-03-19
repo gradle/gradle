@@ -13,8 +13,8 @@ dependencies {
 }
 // end::app_dependencies[]
 
-group 'org.sample'
-version '1.0'
+group = 'org.sample'
+version = '1.0'
 
 repositories {
     mavenCentral()

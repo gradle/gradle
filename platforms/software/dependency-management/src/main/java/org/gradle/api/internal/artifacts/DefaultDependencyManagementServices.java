@@ -31,6 +31,7 @@ import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
@@ -57,8 +58,6 @@ import org.gradle.api.internal.artifacts.ivyservice.DefaultConfigurationResolver
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.ResolutionExecutor;
 import org.gradle.api.internal.artifacts.ivyservice.ShortCircuitingResolutionExecutor;
-import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProviderFactories;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
@@ -66,6 +65,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionS
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.FileStoreAndIndexProvider;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultLocalComponentRegistry;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DependencyGraphResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.DependencyGraphBuilder;
@@ -91,10 +91,11 @@ import org.gradle.api.internal.artifacts.transform.TransformExecutionResult.Tran
 import org.gradle.api.internal.artifacts.transform.TransformInvocationFactory;
 import org.gradle.api.internal.artifacts.transform.TransformParameterScheme;
 import org.gradle.api.internal.artifacts.transform.TransformRegistrationFactory;
+import org.gradle.api.internal.artifacts.transform.TransformedVariantFactory;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
-import org.gradle.api.internal.artifacts.type.DefaultArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.AttributeDescriberRegistry;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
+import org.gradle.api.internal.attributes.AttributeSchemaServices;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.DefaultAttributesSchema;
@@ -274,23 +275,24 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         void configure(ServiceRegistration registration) {
-            registration.add(DefaultTransformedVariantFactory.class);
+            registration.add(TransformedVariantFactory.class, DefaultTransformedVariantFactory.class);
             registration.add(DefaultRootComponentMetadataBuilder.Factory.class);
             registration.add(ResolveExceptionMapper.class);
             registration.add(ResolutionStrategyFactory.class);
-            registration.add(DefaultLocalComponentRegistry.class);
+            registration.add(LocalComponentRegistry.class, DefaultLocalComponentRegistry.class);
             registration.add(ProjectDependencyResolver.class);
             registration.add(ConsumerProvidedVariantFinder.class);
             registration.add(DefaultConfigurationFactory.class);
-            registration.add(DefaultComponentSelectorConverter.class);
-            registration.add(DefaultArtifactResolutionQueryFactory.class);
+            registration.add(ComponentSelectorConverter.class, DefaultComponentSelectorConverter.class);
+            registration.add(ArtifactResolutionQueryFactory.class, DefaultArtifactResolutionQueryFactory.class);
             registration.add(DependencyGraphResolver.class);
             registration.add(DependencyGraphBuilder.class);
             registration.add(AttributeDescriberRegistry.class);
             registration.add(GraphVariantSelector.class);
             registration.add(TransformedVariantConverter.class);
             registration.add(ResolutionExecutor.class);
-            registration.add(ResolverProviderFactories.class);
+            registration.add(ArtifactTypeRegistry.class);
+            registration.add(GlobalDependencyResolutionRules.class);
         }
 
         @Provides
@@ -380,8 +382,15 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         @Provides
-        VariantTransformRegistry createVariantTransformRegistry(InstantiatorFactory instantiatorFactory, AttributesFactory attributesFactory, ServiceRegistry services, TransformRegistrationFactory transformRegistrationFactory, TransformParameterScheme parameterScheme) {
-            return new DefaultVariantTransformRegistry(instantiatorFactory, attributesFactory, services, transformRegistrationFactory, parameterScheme.getInstantiationScheme());
+        VariantTransformRegistry createVariantTransformRegistry(
+            InstantiatorFactory instantiatorFactory,
+            AttributesFactory attributesFactory,
+            ServiceRegistry services,
+            TransformRegistrationFactory transformRegistrationFactory,
+            TransformParameterScheme parameterScheme,
+            DocumentationRegistry documentationRegistry
+        ) {
+            return new DefaultVariantTransformRegistry(instantiatorFactory, attributesFactory, services, transformRegistrationFactory, parameterScheme.getInstantiationScheme(), documentationRegistry);
         }
 
         @Provides
@@ -486,11 +495,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         @Provides
-        ArtifactTypeRegistry createArtifactTypeRegistry(Instantiator instantiator, AttributesFactory attributesFactory, CollectionCallbackActionDecorator decorator, VariantTransformRegistry transformRegistry) {
-            return new DefaultArtifactTypeRegistry(instantiator, attributesFactory, decorator, transformRegistry);
-        }
-
-        @Provides
         DependencyHandler createDependencyHandler(
             Instantiator instantiator,
             ConfigurationContainerInternal configurationContainer,
@@ -555,7 +559,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return instantiator.newInstance(DefaultDependencyConstraintHandler.class, configurationContainer, dependencyConstraintFactory, objects, platformSupport);
         }
 
-        @Provides
+        @Provides({ComponentMetadataHandler.class, ComponentMetadataHandlerInternal.class})
         DefaultComponentMetadataHandler createComponentMetadataHandler(
             Instantiator instantiator,
             ImmutableModuleIdentifierFactory moduleIdentifierFactory,
@@ -573,7 +577,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         @Provides
-        DefaultComponentModuleMetadataHandler createComponentModuleMetadataHandler(Instantiator instantiator, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+        ComponentModuleMetadataHandlerInternal createComponentModuleMetadataHandler(Instantiator instantiator, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
             return instantiator.newInstance(DefaultComponentModuleMetadataHandler.class, moduleIdentifierFactory);
         }
 
@@ -591,11 +595,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         @Provides
-        GlobalDependencyResolutionRules createModuleMetadataHandler(ComponentMetadataProcessorFactory componentMetadataProcessorFactory, ComponentModuleMetadataProcessor moduleMetadataProcessor, List<DependencySubstitutionRules> rules) {
-            return new DefaultGlobalDependencyResolutionRules(componentMetadataProcessorFactory, moduleMetadataProcessor, rules);
-        }
-
-        @Provides
         ResolutionFailureHandler createResolutionFailureHandler(InstantiatorFactory instantiatorFactory, ServiceRegistry serviceRegistry, InternalProblems problemsService, TransformedVariantConverter transformedVariantConverter) {
             InstanceGenerator instanceGenerator = instantiatorFactory.inject(serviceRegistry);
 
@@ -609,17 +608,25 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         ConfigurationResolver createConfigurationResolver(
             RepositoriesSupplier repositoriesSupplier,
             ResolutionExecutor resolutionExecutor,
-            AttributeDesugaring attributeDesugaring
+            AttributeDesugaring attributeDesugaring,
+            ArtifactTypeRegistry artifactTypeRegistry,
+            ComponentModuleMetadataHandlerInternal componentModuleMetadataHandler,
+            AttributeSchemaServices attributeSchemaServices,
+            DependencyLockingProvider dependencyLockingProvider
         ) {
             ShortCircuitingResolutionExecutor shortCircuitingResolutionExecutor = new ShortCircuitingResolutionExecutor(
                 resolutionExecutor,
-                attributeDesugaring
+                attributeDesugaring,
+                dependencyLockingProvider
             );
 
             return new DefaultConfigurationResolver(
                 repositoriesSupplier,
                 shortCircuitingResolutionExecutor,
-                attributeDesugaring
+                attributeDesugaring,
+                artifactTypeRegistry,
+                componentModuleMetadataHandler,
+                attributeSchemaServices
             );
         }
 

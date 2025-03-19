@@ -17,13 +17,13 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
 import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.DefaultResolvedModuleVersion;
-import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState;
+import org.gradle.internal.component.external.model.ExternalModuleComponentGraphResolveState;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.Map;
@@ -33,7 +33,7 @@ class DefaultCachedMetadata implements ModuleMetadataCache.CachedMetadata {
     private final long ageMillis;
     private final ModuleComponentResolveMetadata metadata;
 
-    private volatile Map<Integer, ModuleComponentGraphResolveState> processedMetadataByRules;
+    private volatile Map<Integer, ExternalModuleComponentGraphResolveState> processedMetadataByRules;
 
     DefaultCachedMetadata(ModuleMetadataCacheEntry entry, ModuleComponentResolveMetadata metadata, BuildCommencedTimeProvider timeProvider) {
         this(timeProvider.getCurrentTime() - entry.createTimestamp, metadata);
@@ -71,7 +71,7 @@ class DefaultCachedMetadata implements ModuleMetadataCache.CachedMetadata {
 
     @Nullable
     @Override
-    public ModuleComponentGraphResolveState getProcessedMetadata(int key) {
+    public ExternalModuleComponentGraphResolveState getProcessedMetadata(int key) {
         if (processedMetadataByRules != null) {
             return processedMetadataByRules.get(key);
         }
@@ -79,7 +79,7 @@ class DefaultCachedMetadata implements ModuleMetadataCache.CachedMetadata {
     }
 
     @Override
-    public synchronized void putProcessedMetadata(int hash, ModuleComponentGraphResolveState processed) {
+    public synchronized void putProcessedMetadata(int hash, ExternalModuleComponentGraphResolveState processed) {
         if (processedMetadataByRules == null) {
             processedMetadataByRules = Collections.singletonMap(hash, processed);
             return;

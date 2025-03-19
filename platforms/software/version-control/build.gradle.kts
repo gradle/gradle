@@ -1,31 +1,24 @@
 plugins {
     id("gradlebuild.distribution.api-java")
-    id("gradlebuild.instrumented-java-project")
 }
 
 description = "Version control integration (with git) for source dependencies"
 
-errorprone {
-    disabledChecks.addAll(
-        "UnusedVariable", // 3 occurrences
-    )
-}
-
 dependencies {
-    api(projects.concurrent)
-    api(projects.serviceProvider)
     api(projects.baseServices)
+    api(projects.concurrent)
     api(projects.core)
     api(projects.coreApi)
     api(projects.dependencyManagement)
     api(projects.fileCollections)
+    api(projects.persistentCache)
+    api(projects.serviceProvider)
+    api(projects.stdlibJavaExtensions)
 
     api(libs.jgit)
     api(libs.inject)
-    api(libs.jsr305)
+    api(libs.jspecify)
 
-    implementation(projects.stdlibJavaExtensions)
-    implementation(projects.persistentCache)
     implementation(projects.serialization)
     implementation(projects.files)
     implementation(projects.functional)
@@ -36,6 +29,7 @@ dependencies {
     implementation(libs.jgitSsh) {
         exclude("org.apache.sshd", "sshd-osgi") // Because it duplicates sshd-core and sshd-commons contents
     }
+    implementation(libs.jsr305)
 
     testImplementation(projects.native)
     testImplementation(projects.snapshots)

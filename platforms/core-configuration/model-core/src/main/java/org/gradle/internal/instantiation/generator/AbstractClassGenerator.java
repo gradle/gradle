@@ -54,8 +54,9 @@ import org.gradle.api.provider.SetProperty;
 import org.gradle.api.provider.SupportsConvention;
 import org.gradle.api.reflect.InjectionPointQualifier;
 import org.gradle.api.tasks.Nested;
-import org.gradle.cache.internal.CrossBuildInMemoryCache;
+import org.gradle.cache.Cache;
 import org.gradle.internal.Cast;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.extensibility.NoConventionMapping;
 import org.gradle.internal.instantiation.ClassGenerationException;
 import org.gradle.internal.instantiation.InjectAnnotationHandler;
@@ -71,8 +72,9 @@ import org.gradle.internal.reflect.PropertyAccessorType;
 import org.gradle.internal.reflect.PropertyDetails;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceRegistry;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
@@ -88,7 +90,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static java.util.Optional.ofNullable;
@@ -137,18 +138,17 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
     private static final Object[] NO_PARAMS = new Object[0];
 
-    private final CrossBuildInMemoryCache<Class<?>, GeneratedClassImpl> generatedClasses;
+    private final Cache<Class<?>, GeneratedClassImpl> generatedClasses;
     private final ImmutableSet<Class<? extends Annotation>> disabledAnnotations;
     private final ImmutableSet<Class<? extends Annotation>> enabledAnnotations;
     private final ImmutableMultimap<Class<? extends Annotation>, TypeToken<?>> allowedTypesForAnnotation;
-    private final Function<Class<?>, GeneratedClassImpl> generator = this::generateUnderLock;
     private final PropertyRoleAnnotationHandler roleHandler;
 
     protected AbstractClassGenerator(
         Collection<? extends InjectAnnotationHandler> allKnownAnnotations,
         Collection<Class<? extends Annotation>> enabledAnnotations,
         PropertyRoleAnnotationHandler roleHandler,
-        CrossBuildInMemoryCache<Class<?>, GeneratedClassImpl> generatedClassesCache
+        Cache<Class<?>, GeneratedClassImpl> generatedClassesCache
     ) {
         this.generatedClasses = generatedClassesCache;
         this.enabledAnnotations = ImmutableSet.copyOf(enabledAnnotations);
@@ -187,7 +187,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
     @Override
     public <T> GeneratedClass<? extends T> generate(Class<T> type) {
-        return Cast.uncheckedNonnullCast(generatedClasses.get(unpack(type), generator));
+        return Cast.uncheckedNonnullCast(generatedClasses.get(unpack(type), this::generateUnderLock));
     }
 
     private GeneratedClassImpl generateUnderLock(Class<?> type) {
@@ -221,6 +221,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             validators.add(new DisabledAnnotationValidator(annotation));
         }
         validators.add(new InjectionAnnotationValidator(enabledAnnotations, allowedTypesForAnnotation));
+        validators.add(new BooleanPropertyDeprecatingValidator());
 
         Class<?> generatedClass;
         try {
@@ -301,6 +302,10 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         }
 
         for (PropertyDetails property : classDetails.getProperties()) {
+            for (ClassValidator validator : validators) {
+                validator.validateProperty(property);
+            }
+
             PropertyMetadata propertyMetaData = classMetaData.property(property.getName());
             for (ClassGenerationHandler handler : generationHandlers) {
                 handler.visitProperty(propertyMetaData);
@@ -771,7 +776,28 @@ abstract class AbstractClassGenerator implements ClassGenerator {
     }
 
     private interface ClassValidator {
-        void validateMethod(Method method, PropertyAccessorType accessorType);
+        /**
+         * Validates the method is declared properly.
+         *
+         * Implementations might check things like the annotations declared on the method.
+         *
+         * @param method the method to check
+         * @param accessorType the type of property this method would represent
+         */
+        default void validateMethod(Method method, PropertyAccessorType accessorType) {
+
+        }
+
+        /**
+         * Validate the property is declared properly.
+         *
+         * Implementations might check things like the name or type of property.
+         *
+         * @param property the property to check
+         */
+        default void validateProperty(PropertyDetails property) {
+
+        }
     }
 
     private static class ClassGenerationHandler {
@@ -911,6 +937,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         private void addSetMethods(AbstractClassGenerator.ClassGenerationVisitor visitor) {
             for (PropertyMetadata property : mutableProperties) {
                 if (property.setMethods.isEmpty()) {
+                    // TODO: remove in Gradle 10.0
                     Set<Class<?>> appliedTo = new HashSet<>();
                     for (Method setter : property.setters) {
                         if (appliedTo.add(setter.getParameterTypes()[0])) {
@@ -1290,9 +1317,9 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                 TreeFormatter formatter = new TreeFormatter();
                 formatter.node("Cannot use ");
                 formatter.appendAnnotation(annotationType);
-                formatter.append(" annotation on property ");
-                formatter.appendMethod(method);
-                formatter.append(" of type ");
+                formatter.append(" annotation on property '");
+                formatter.append(accessorType.propertyNameFor(method));
+                formatter.append("' of type ");
                 formatter.append(TypeToken.of(returnType).toString());
                 formatter.append(". Allowed property types: ");
                 formatter.append(allowedTypes.stream()
@@ -1535,5 +1562,51 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         void addNameProperty();
 
         Class<?> generate() throws Exception;
+    }
+
+    /**
+     * Groovy 4 no longer considers {@code Boolean isFoo()} a property {@code foo} of type {@code Boolean}.
+     * <p>
+     * To create a boolean property, you need to use {@code boolean isFoo()} or {@code Boolean getFoo()}.
+     */
+    @NullMarked
+    private static class BooleanPropertyDeprecatingValidator implements ClassValidator {
+        @Override
+        public void validateProperty(PropertyDetails property) {
+            // If a property only has a single getter, we need to check if its getXXX or isXXX when it's a Boolean.
+            // In a future version of Groovy, the Groovy compiler will not consider a Boolean is-getter as defining a property.
+            //
+            // However, in Groovy 3, the compiler will still generate getters for a field-like declaration:
+            // class GroovyClass {
+            //      Boolean foo
+            // }
+            // This will generate a private field "foo", a getFoo() and a isFoo().
+            // We do not emit a deprecation if a property has both a get-getter and an is-getter.
+            //
+            // In Groovy 4, the same code will only generate the field and getFoo().
+            //
+            if (property.getGetters().size() == 1) {
+                Method method = property.getGetters().iterator().next();
+                PropertyAccessorType accessorType = PropertyAccessorType.of(method);
+                if (accessorType == PropertyAccessorType.IS_GETTER && method.getReturnType().isAssignableFrom(Boolean.class)) {
+                    // To remove this deprecation, we need to do a few things:
+                    // 1. We should no longer recognize isXXX for anything that is not explicitly boolean (primitive type)
+                    // 2. We should be able to remove this validator completely. We do not need to make this an error.
+                    //
+                    // If we do not upgrade to Groovy 4 in Gradle 9, we can still remove this deprecation and drop support for these types of properties.
+
+                    DeprecationLogger.deprecateAction("Declaring an 'is-' property with a Boolean type")
+                        .withAdvice(String.format(
+                            "Add a method named '%s' with the same behavior and mark the old one with @Deprecated, or change the type of '%s.%s' (and the setter) to 'boolean'.",
+                            method.getName().replace("is", "get"),
+                            method.getDeclaringClass().getCanonicalName(), method.getName()
+                        ))
+                        .withContext("The combination of method name and return type is not consistent with Java Bean property rules and will become unsupported in future versions of Groovy.")
+                        .startingWithGradle9("this property will be ignored by Gradle")
+                        .withUpgradeGuideSection(8, "groovy_boolean_properties")
+                        .nagUser();
+                }
+            }
+        }
     }
 }

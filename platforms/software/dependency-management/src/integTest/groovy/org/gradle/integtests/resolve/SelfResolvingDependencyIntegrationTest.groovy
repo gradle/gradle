@@ -23,37 +23,37 @@ class SelfResolvingDependencyIntegrationTest extends AbstractDependencyResolutio
     @ToBeFixedForConfigurationCache(because = "Task uses the Configuration API")
     def "can query file dependency for its files"() {
         buildFile << """
-allprojects {
-    configurations {
-        compile
-    }
-}
-artifacts {
-    compile file("main.jar") // include to ensure artifacts are not included in the result
-}
-dependencies {
-    compile files("lib.jar")
-    compile "group:test1:1.0" // unknown module, include to ensure that other dependencies are not resolved
-}
+            configurations {
+                compile
+            }
 
-task verify {
-    doLast {
-        def dep = configurations.compile.dependencies.find { it instanceof FileCollectionDependency }
-        println "files: " + dep.files.files.collect { it.name }
-        println "resolve: " + dep.resolve().collect { it.name }
-        println "resolve-not-transitive: " + dep.resolve(false).collect { it.name }
-        println "resolve-transitive: " + dep.resolve(true).collect { it.name }
-        dep.getBuildDependencies()
-    }
-}
-"""
+            artifacts {
+                compile file("main.jar") // include to ensure artifacts are not included in the result
+            }
+
+            dependencies {
+                compile files("lib.jar")
+                compile "group:test1:1.0" // unknown module, include to ensure that other dependencies are not resolved
+            }
+
+            task verify {
+                doLast {
+                    def dep = configurations.compile.dependencies.find { it instanceof FileCollectionDependency }
+                    println "files: " + dep.files.files.collect { it.name }
+                    println "resolve: " + dep.resolve().collect { it.name }
+                    println "resolve-not-transitive: " + dep.resolve(false).collect { it.name }
+                    println "resolve-transitive: " + dep.resolve(true).collect { it.name }
+                    dep.getBuildDependencies()
+                }
+            }
+        """
 
         when:
         executer.expectDocumentedDeprecationWarning("Directly resolving a file collection dependency's files has been deprecated. This will fail with an error in Gradle 9.0. Add the dependency to a resolvable configuration and resolve the configuration. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_self_resolving_dependency")
         executer.expectDocumentedDeprecationWarning("Directly resolving a file collection dependency's files has been deprecated. This will fail with an error in Gradle 9.0. Add the dependency to a resolvable configuration and resolve the configuration. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_self_resolving_dependency")
         executer.expectDocumentedDeprecationWarning("Directly resolving a file collection dependency's files has been deprecated. This will fail with an error in Gradle 9.0. Add the dependency to a resolvable configuration and resolve the configuration. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_self_resolving_dependency")
         executer.expectDocumentedDeprecationWarning("Accessing the build dependencies of a file collection dependency has been deprecated. This will fail with an error in Gradle 9.0. Add the dependency to a resolvable configuration use the configuration to track task dependencies. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_self_resolving_dependency")
-        run "verify"
+        succeeds("verify")
 
         then:
         outputContains("files: [lib.jar]")
@@ -68,74 +68,89 @@ task verify {
         mavenRepo.module("group", "test1", "1.0").publish()
         mavenRepo.module("group", "test2", "1.0").publish()
 
-        createDirs("child1", "child2", "child3")
         settingsFile << """
-rootProject.name = "main"
-include "child1", "child2", "child3"
-"""
-        buildFile << """
-allprojects {
-    repositories {
-        maven { url '${mavenRepo.uri}' }
-    }
-    configurations {
-        compile
-        create('default') { extendsFrom compile }
-    }
-}
-artifacts {
-    compile file("main.jar")
-}
-dependencies {
-    compile files("lib.jar")
-    compile "group:test1:1.0"
-    compile project(':child1')
-    compile project(':child2')
-}
-project(':child1') {
-    artifacts {
-        compile file("child1.jar")
-    }
-    dependencies {
-        compile files("child1-lib.jar")
-        compile "group:test2:1.0"
-        compile project(':child3')
-    }
-}
-project(':child2') {
-    artifacts {
-        compile file("child2.jar")
-    }
-    dependencies {
-        compile files("child2-lib.jar")
-    }
-}
-project(':child3') {
-    artifacts {
-        compile file("child3.jar")
-    }
-    dependencies {
-        compile files("child3-lib.jar")
-    }
-}
+            rootProject.name = "main"
+            include "child1"
+            include "child2"
+            include "child3"
+            dependencyResolutionManagement {
+                ${mavenTestRepository()}
+            }
+        """
 
-task verify {
-    doLast {
-        def dep = configurations.compile.dependencies.find { it instanceof ProjectDependency }
-        println "files: " + dep.resolve().collect { it.name }
-        println "files-not-transitive: " + dep.resolve(false).collect { it.name }
-        println "files-transitive: " + dep.resolve(true).collect { it.name }
-        dep.getBuildDependencies()
-    }
-}
-"""
+        def common = """
+            configurations {
+                compile
+                create('default') { extendsFrom compile }
+            }
+        """
+
+        buildFile << """
+            $common
+
+            artifacts {
+                compile file("main.jar")
+            }
+
+            dependencies {
+                compile files("lib.jar")
+                compile "group:test1:1.0"
+                compile project(':child1')
+                compile project(':child2')
+            }
+
+            task verify {
+                doLast {
+                    def dep = configurations.compile.dependencies.find { it instanceof ProjectDependency }
+                    println "files: " + dep.resolve().collect { it.name }
+                    println "files-not-transitive: " + dep.resolve(false).collect { it.name }
+                    println "files-transitive: " + dep.resolve(true).collect { it.name }
+                    dep.getBuildDependencies()
+                }
+            }
+        """
+
+        file("child1/build.gradle") << """
+            $common
+
+            artifacts {
+                compile file("child1.jar")
+            }
+            dependencies {
+                compile files("child1-lib.jar")
+                compile "group:test2:1.0"
+                compile project(':child3')
+            }
+        """
+
+        file("child2/build.gradle") << """
+            $common
+
+            artifacts {
+                compile file("child2.jar")
+            }
+            dependencies {
+                compile files("child2-lib.jar")
+            }
+        """
+
+        file("child3/build.gradle") << """
+            $common
+
+            artifacts {
+                compile file("child3.jar")
+            }
+            dependencies {
+                compile files("child3-lib.jar")
+            }
+        """
 
         when:
         executer.expectDocumentedDeprecationWarning("Directly resolving the files of project dependency ':child1' has been deprecated. This will fail with an error in Gradle 9.0. Add the dependency to a resolvable configuration and resolve the configuration. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_self_resolving_dependency")
         executer.expectDocumentedDeprecationWarning("Directly resolving the files of project dependency ':child1' has been deprecated. This will fail with an error in Gradle 9.0. Add the dependency to a resolvable configuration and resolve the configuration. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_self_resolving_dependency")
         executer.expectDocumentedDeprecationWarning("Directly resolving the files of project dependency ':child1' has been deprecated. This will fail with an error in Gradle 9.0. Add the dependency to a resolvable configuration and resolve the configuration. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_self_resolving_dependency")
         executer.expectDocumentedDeprecationWarning("Accessing the build dependencies of project dependency ':child1' has been deprecated. This will fail with an error in Gradle 9.0. Add the dependency to a resolvable configuration and use the configuration to track task dependencies. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_self_resolving_dependency")
-        run "verify"
+        succeeds("verify")
 
         then:
         outputContains("files: [child1-lib.jar, child3-lib.jar]")

@@ -17,9 +17,6 @@
 package org.gradle.api.internal.tasks.testing.junit.result;
 
 import org.gradle.api.Action;
-import org.gradle.api.tasks.testing.TestOutputEvent;
-
-import java.io.Writer;
 
 public class InMemoryTestResultsProvider extends TestOutputStoreBackedResultsProvider {
     private final Iterable<TestClassResult> results;
@@ -27,60 +24,6 @@ public class InMemoryTestResultsProvider extends TestOutputStoreBackedResultsPro
     public InMemoryTestResultsProvider(Iterable<TestClassResult> results, TestOutputStore outputStore) {
         super(outputStore);
         this.results = results;
-    }
-
-    @Override
-    public boolean hasOutput(final long classId, final TestOutputEvent.Destination destination) {
-        final boolean[] hasOutput = new boolean[1];
-        withReader(new Action<TestOutputStore.Reader>() {
-            @Override
-            public void execute(TestOutputStore.Reader reader) {
-                hasOutput[0] = reader.hasOutput(classId, destination);
-            }
-        });
-        return hasOutput[0];
-    }
-
-    @Override
-    public boolean hasOutput(final long classId, final long testId, final TestOutputEvent.Destination destination) {
-        final boolean[] hasOutput = new boolean[1];
-        withReader(new Action<TestOutputStore.Reader>() {
-            @Override
-            public void execute(TestOutputStore.Reader reader) {
-                hasOutput[0] = reader.hasOutput(classId, testId, destination);
-            }
-        });
-        return hasOutput[0];
-    }
-
-    @Override
-    public void writeAllOutput(final long classId, final TestOutputEvent.Destination destination, final Writer writer) {
-        withReader(new Action<TestOutputStore.Reader>() {
-            @Override
-            public void execute(TestOutputStore.Reader reader) {
-                reader.writeAllOutput(classId, destination, writer);
-            }
-        });
-    }
-
-    @Override
-    public void writeNonTestOutput(final long classId, final TestOutputEvent.Destination destination, final Writer writer) {
-        withReader(new Action<TestOutputStore.Reader>() {
-            @Override
-            public void execute(TestOutputStore.Reader reader) {
-                reader.writeNonTestOutput(classId, destination, writer);
-            }
-        });
-    }
-
-    @Override
-    public void writeTestOutput(final long classId, final long testId, final TestOutputEvent.Destination destination, final Writer writer) {
-        withReader(new Action<TestOutputStore.Reader>() {
-            @Override
-            public void execute(TestOutputStore.Reader reader) {
-                reader.writeTestOutput(classId, testId, destination, writer);
-            }
-        });
     }
 
     @Override

@@ -25,15 +25,15 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.api.artifacts.VersionConstraint;
-import org.gradle.api.internal.artifacts.capability.SpecificCapabilitySelector;
-import org.gradle.api.internal.artifacts.capability.FeatureCapabilitySelector;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ModuleVersionSelectorStrictSpec;
 import org.gradle.api.internal.artifacts.capability.DefaultSpecificCapabilitySelector;
+import org.gradle.api.internal.artifacts.capability.FeatureCapabilitySelector;
+import org.gradle.api.internal.artifacts.capability.SpecificCapabilitySelector;
 import org.gradle.internal.component.external.model.DefaultImmutableCapability;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 public abstract class AbstractExternalModuleDependency extends AbstractModuleDependency implements ExternalModuleDependency {
@@ -42,21 +42,25 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
     private final DefaultMutableVersionConstraint versionConstraint;
 
     public AbstractExternalModuleDependency(ModuleIdentifier module, String version, @Nullable String configuration) {
-        super(configuration);
         if (module == null) {
             throw new InvalidUserDataException("Module must not be null!");
         }
         this.moduleIdentifier = module;
         this.versionConstraint = new DefaultMutableVersionConstraint(version);
+        if (configuration != null) {
+            setTargetConfiguration(configuration);
+        }
     }
 
     public AbstractExternalModuleDependency(ModuleIdentifier module, MutableVersionConstraint version, @Nullable String configuration) {
-        super(configuration);
         if (module == null) {
             throw new InvalidUserDataException("Module must not be null!");
         }
         this.moduleIdentifier = module;
         this.versionConstraint = (DefaultMutableVersionConstraint) version;
+        if (configuration != null) {
+            setTargetConfiguration(configuration);
+        }
     }
 
     protected void copyTo(AbstractExternalModuleDependency target) {

@@ -16,21 +16,70 @@
 
 package org.gradle.api.internal.file;
 
-import java.io.File;
+import org.gradle.util.internal.GUtil;
 
-public class BaseDirFileResolver extends AbstractBaseDirFileResolver {
+import java.io.File;
+import java.nio.file.Path;
+
+public class BaseDirFileResolver extends AbstractFileResolver {
     private final File baseDir;
 
     /**
      * Do not create instances of this type. Use {@link FileLookup} instead.
      */
     public BaseDirFileResolver(File baseDir) {
-        assert baseDir.isAbsolute() : String.format("base dir '%s' is not an absolute file.", baseDir);
+        if (!GUtil.isTrue(baseDir)) {
+            throw new IllegalArgumentException(String.format("baseDir may not be null or empty string. basedir='%s'", baseDir));
+        }
+        if (!baseDir.isAbsolute()) {
+            throw new IllegalArgumentException(String.format("base dir '%s' is not an absolute file.", baseDir));
+        }
         this.baseDir = baseDir;
     }
 
     @Override
-    protected File getBaseDir() {
+    public String resolveAsRelativePath(Object path) {
+        Path baseDir = this.baseDir.toPath();
+        Path file = resolve(path).toPath();
+        if (file.equals(baseDir)) {
+            return ".";
+        } else {
+            return baseDir.relativize(file).toString();
+        }
+    }
+
+    @Override
+    public String resolveForDisplay(Object path) {
+        Path file = resolve(path).toPath();
+        Path baseDir = this.baseDir.toPath();
+        if (file.equals(baseDir)) {
+            return ".";
+        }
+        Path parent = baseDir.getParent();
+        if (parent == null) {
+            parent = baseDir;
+        }
+        if (file.startsWith(parent)) {
+            return baseDir.relativize(file).toString();
+        } else {
+            return file.toString();
+        }
+    }
+
+    @Override
+    protected File doResolve(File file) {
+        if (!file.isAbsolute()) {
+            return new File(baseDir, file.getPath());
+        }
+        return file;
+    }
+
+    @Override
+    public boolean canResolveRelativePath() {
+        return true;
+    }
+
+    public File getBaseDir() {
         return baseDir;
     }
 }

@@ -10,9 +10,6 @@ dependencies {
     api(projects.serviceLookup)
     api(projects.stdlibJavaExtensions)
 
-    api(libs.jsr305)
+    api(libs.jspecify)
     api(libs.errorProneAnnotations)
-}
-tasks.isolatedProjectsIntegTest {
-    enabled = false
 }

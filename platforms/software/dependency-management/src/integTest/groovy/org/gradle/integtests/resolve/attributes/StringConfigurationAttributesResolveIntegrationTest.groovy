@@ -27,14 +27,12 @@ class StringConfigurationAttributesResolveIntegrationTest extends AbstractConfig
             def buildType = Attribute.of('buildType', String)
             def extra = Attribute.of('extra', String)
 
-            allprojects {
-               dependencies {
-                   attributesSchema {
-                      attribute(flavor)
-                      attribute(buildType)
-                      attribute(extra)
-                   }
-               }
+            dependencies {
+                attributesSchema {
+                   attribute(flavor)
+                   attribute(buildType)
+                   attribute(extra)
+                }
             }
         '''
     }

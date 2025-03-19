@@ -44,7 +44,7 @@ class MavenPublishConsoleIntegrationTest extends AbstractMavenPublishIntegTest {
             publishing {
                 repositories {
                     maven {
-                        url "${server.uri}"
+                        url = "${server.uri}"
                     }
                 }
                 publications {

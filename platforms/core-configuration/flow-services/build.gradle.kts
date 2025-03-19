@@ -32,6 +32,7 @@ dependencies {
 
     implementation(projects.core)
     implementation(projects.messaging)
+    implementation(projects.modelReflect)
     implementation(projects.problemsApi)
     implementation(projects.serviceLookup)
     implementation(projects.serviceRegistryBuilder)

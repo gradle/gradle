@@ -17,7 +17,10 @@ package org.gradle.configuration.project;
 
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateInternal;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
+@ServiceScope(Scope.Build.class)
 public interface ProjectEvaluator {
     void evaluate(ProjectInternal project, ProjectStateInternal state);
 }

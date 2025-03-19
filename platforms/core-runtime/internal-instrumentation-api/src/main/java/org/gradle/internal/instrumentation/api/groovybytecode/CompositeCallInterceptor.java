@@ -16,7 +16,8 @@
 
 package org.gradle.internal.instrumentation.api.groovybytecode;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;

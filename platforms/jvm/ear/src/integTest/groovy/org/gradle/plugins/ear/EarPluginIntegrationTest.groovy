@@ -50,6 +50,7 @@ dependencies {
         run 'assemble'
 
         then:
+        executed(":ear")
         def ear = new JarTestFixture(file('build/libs/root.ear'))
         ear.assertContainsFile("META-INF/MANIFEST.MF")
         ear.assertContainsFile("META-INF/application.xml")
@@ -66,7 +67,7 @@ dependencies {
 }
 
 ear {
-    libDirName 'CUSTOM/lib'
+    libDirName = 'CUSTOM/lib'
 
     deploymentDescriptor {
         applicationName = "cool ear"

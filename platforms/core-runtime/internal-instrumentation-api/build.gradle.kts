@@ -15,7 +15,7 @@
  */
 
 plugins {
-    id("gradlebuild.internal.java")
+    id("gradlebuild.distribution.implementation-java")
 }
 
 dependencies {
@@ -23,12 +23,11 @@ dependencies {
 
     api(libs.asm)
     api(libs.asmTree)
+    api(libs.jspecify)
     api(libs.jsr305)
-    api(projects.stdlibJavaExtensions)
+
+    implementation(projects.stdlibJavaExtensions)
 
     implementation(libs.groovy)
 }
 
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}

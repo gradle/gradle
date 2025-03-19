@@ -21,21 +21,21 @@ import com.esotericsoftware.kryo.io.Output;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.tasks.testing.TestOutputEvent;
-import org.gradle.internal.UncheckedException;
-import org.gradle.internal.file.RandomAccessFileInputStream;
+import org.gradle.internal.file.nio.PositionTrackingFileChannelInputStream;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.io.UnsupportedEncodingException;
+import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.StandardOpenOption;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -46,7 +46,7 @@ public class TestOutputStore {
 
     public TestOutputStore(File resultsDir) {
         this.resultsDir = resultsDir;
-        this.messageStorageCharset = Charset.forName("UTF-8");
+        this.messageStorageCharset = StandardCharsets.UTF_8;
     }
 
     File getOutputsFile() {
@@ -108,28 +108,18 @@ public class TestOutputStore {
             output.writeSmallLong(classId);
             output.writeSmallLong(testId);
 
-            byte[] bytes;
-            try {
-                bytes = outputEvent.getMessage().getBytes(messageStorageCharset.name());
-            } catch (UnsupportedEncodingException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
+            byte[] bytes = outputEvent.getMessage().getBytes(messageStorageCharset);
             output.writeSmallInt(bytes.length);
             output.writeBytes(bytes, 0, bytes.length);
         }
 
         private void mark(long classId, long testId, boolean isStdout) {
             if (!index.containsKey(classId)) {
-                index.put(classId, new LinkedHashMap<Long, TestCaseRegion>());
+                index.put(classId, new LinkedHashMap<>());
             }
 
             Map<Long, TestCaseRegion> testCaseRegions = index.get(classId);
-            if (!testCaseRegions.containsKey(testId)) {
-                TestCaseRegion region = new TestCaseRegion();
-                testCaseRegions.put(testId, region);
-            }
-
-            TestCaseRegion region = testCaseRegions.get(testId);
+            TestCaseRegion region = testCaseRegions.computeIfAbsent(testId, k -> new TestCaseRegion());
 
             Region streamRegion = isStdout ? region.stdOutRegion : region.stdErrRegion;
 
@@ -225,9 +215,12 @@ public class TestOutputStore {
         }
     }
 
+    /*
+     * This class is thread-safe, it contains no concurrent modifications to the `dataFile`'s state.
+     */
     public class Reader implements Closeable {
         private final Index index;
-        private final RandomAccessFile dataFile;
+        private final FileChannel dataFile;
 
         public Reader() {
             File indexFile = getIndexFile();
@@ -271,8 +264,8 @@ public class TestOutputStore {
                 index = rootBuilder.build();
 
                 try {
-                    dataFile = new RandomAccessFile(getOutputsFile(), "r");
-                } catch (FileNotFoundException e) {
+                    dataFile = FileChannel.open(getOutputsFile().toPath(), StandardOpenOption.READ);
+                } catch (IOException e) {
                     throw new UncheckedIOException(e);
                 }
             } else { // no outputs file
@@ -343,9 +336,8 @@ public class TestOutputStore {
             boolean ignoreTestLevel = !allClassOutput && testId == 0;
 
             try {
-                dataFile.seek(region.start);
                 long maxPos = region.stop - region.start;
-                KryoBackedDecoder decoder = new KryoBackedDecoder(new RandomAccessFileInputStream(dataFile));
+                KryoBackedDecoder decoder = new KryoBackedDecoder(new PositionTrackingFileChannelInputStream(dataFile, region.start));
                 while (decoder.getReadPosition() <= maxPos) {
                     boolean readStdout = decoder.readBoolean();
                     long readClassId = decoder.readSmallLong();
@@ -372,13 +364,7 @@ public class TestOutputStore {
                     if (testId == 0 || testId == readTestId) {
                         byte[] stringBytes = new byte[readLength];
                         decoder.readBytes(stringBytes);
-                        String message;
-                        try {
-                            message = new String(stringBytes, messageStorageCharset.name());
-                        } catch (UnsupportedEncodingException e) {
-                            // shouldn't happen
-                            throw UncheckedException.throwAsUncheckedException(e);
-                        }
+                        String message = new String(stringBytes, messageStorageCharset);
 
                         writer.write(message);
                     } else {

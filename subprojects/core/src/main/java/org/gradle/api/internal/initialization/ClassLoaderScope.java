@@ -20,8 +20,8 @@ import org.gradle.initialization.ClassLoaderScopeId;
 import org.gradle.initialization.ClassLoaderScopeOrigin;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.hash.HashCode;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.function.Function;
 
 /**
@@ -116,8 +116,8 @@ public interface ClassLoaderScope {
     boolean isLocked();
 
     /**
-     * Notifies this scope that it is about to be reused in a new build invocation, so that the scope can recreate or otherwise prepare its classloaders for this, as certain state may have
-     * been discarded to reduce memory pressure.
+     * Notifies this scope that it is about to be reused in a new build invocation, so that the scope can recreate or
+     * otherwise prepare its classloaders for this, as certain state may have been discarded to reduce memory pressure.
      */
     void onReuse();
 

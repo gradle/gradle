@@ -16,7 +16,7 @@
 
 package org.gradle.internal.enterprise;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public interface GradleEnterprisePluginCheckInResult {
 
@@ -29,7 +29,7 @@ public interface GradleEnterprisePluginCheckInResult {
     String getUnsupportedMessage();
 
     /**
-     * A configuration caching friendly dynamic reference to the plugin service for the “current build invocation”
+     * A configuration caching friendly dynamic reference to the plugin service for the "current build invocation"
      *
      * @throws IllegalStateException if {@link #getUnsupportedMessage()} is non null
      */

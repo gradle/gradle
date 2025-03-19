@@ -99,7 +99,7 @@ public class FileUtils {
      * <p>
      * This method does not access the file system.
      * It is agnostic to whether a given file object represents a regular file, directory or does not exist.
-     * That is, the term “file” is used in the java.io.File sense, not the regular file sense.
+     * That is, the term "file" is used in the java.io.File sense, not the regular file sense.
      *
      * @param files the site of files to find the encompassing roots of
      * @return the encompassing roots
@@ -224,6 +224,25 @@ public class FileUtils {
             parent = root.getParentFile();
         }
         return root;
+    }
+
+    /**
+     * Adds suffix to the filename, preserving the extension
+     *
+     * @param filename original file name, e.g. name.zip
+     * @param suffix suffix to add, e.g. "-new"
+     * @return new file name, e.g. name-new.zip
+     */
+    public static String addSuffixToName(String filename, String suffix) {
+        int dotIndex = filename.indexOf('.');
+
+        if (dotIndex > 0) {
+            String name = filename.substring(0, dotIndex);
+            String extension = filename.substring(dotIndex);
+            return name + suffix + extension;
+        } else {
+            return filename + suffix;
+        }
     }
 
 }

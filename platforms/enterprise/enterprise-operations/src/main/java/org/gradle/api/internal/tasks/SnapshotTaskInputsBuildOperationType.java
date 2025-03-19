@@ -18,8 +18,8 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.operations.execution.FilePropertyVisitor;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -50,16 +50,14 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
          * <p>
          * Null if the overall key was not calculated because the inputs were invalid.
          */
-        @Nullable
-        byte[] getHashBytes();
+        byte @Nullable [] getHashBytes();
 
         /**
          * The hash of the classloader that loaded the task implementation.
          * <p>
          * Null if the classloader is not managed by Gradle.
          */
-        @Nullable
-        byte[] getClassLoaderHashBytes();
+        byte @Nullable [] getClassLoaderHashBytes();
 
 
         /**
@@ -160,7 +158,7 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
         interface VisitState extends FilePropertyVisitor.VisitState {
 
             /**
-             * The “primary” attribute of the current property.
+             * The "primary" attribute of the current property.
              * <p>
              * Used by Develocity plugin &lt; 3.8, retained for backwards compatibility.
              * <p>

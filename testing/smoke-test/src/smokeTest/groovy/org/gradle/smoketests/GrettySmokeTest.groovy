@@ -63,12 +63,9 @@ class GrettySmokeTest extends AbstractPluginValidatingSmokeTest {
 
         when:
         def result = runner('checkContainerUp')
-            .expectDeprecationWarning(
-                "The org.gradle.api.plugins.WarPluginConvention type has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#war_convention_deprecation",
-                "https://github.com/gretty-gradle-plugin/gretty/issues/266")
             .expectDeprecationWarningIf(
                 grettyVersion < VersionNumber.parse("4.1.0"),
-                "The org.gradle.util.VersionNumber type has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#org_gradle_util_reports_deprecations",
+                "The org.gradle.util.VersionNumber type has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#org_gradle_util_reports_deprecations_8",
                 "https://github.com/gretty-gradle-plugin/gretty/issues/297"
             )
             .expectDeprecationWarning(
@@ -80,7 +77,8 @@ class GrettySmokeTest extends AbstractPluginValidatingSmokeTest {
             )
             .expectDeprecationWarning(
                 "Invocation of Task.project at execution time has been deprecated. " +
-                    "This will fail with an error in Gradle 9.0. " +
+                    "This will fail with an error in Gradle 10.0. " +
+                    "This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release. " +
                     "Consult the upgrading guide for further information: ${BASE_URL}/userguide/upgrading_version_7.html#task_project",
                 "https://github.com/gretty-gradle-plugin/gretty/issues/313"
             )

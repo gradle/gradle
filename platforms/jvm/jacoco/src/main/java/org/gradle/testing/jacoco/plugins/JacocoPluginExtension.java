@@ -39,8 +39,8 @@ import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyPro
 import org.gradle.internal.jacoco.JacocoAgentJar;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaForkOptions;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Collections;

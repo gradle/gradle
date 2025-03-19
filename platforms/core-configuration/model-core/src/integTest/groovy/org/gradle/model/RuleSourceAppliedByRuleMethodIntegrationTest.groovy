@@ -17,12 +17,11 @@
 package org.gradle.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.language.base.LanguageSourceSet
 
 @UnsupportedWithConfigurationCache(because = "software model")
-class RuleSourceAppliedByRuleMethodIntegrationTest extends AbstractIntegrationSpec implements StableConfigurationCacheDeprecations {
+class RuleSourceAppliedByRuleMethodIntegrationTest extends AbstractIntegrationSpec {
     def "@Rule method can apply rules to a particular target"() {
         buildFile << '''
             @Managed
@@ -423,7 +422,6 @@ class RuleSourceAppliedByRuleMethodIntegrationTest extends AbstractIntegrationSp
         '''
 
         expect:
-        expectTaskGetProjectDeprecations()
         fails("model")
         failure.assertHasCause("Exception thrown while executing model rule: MyPlugin#rules")
         failure.assertHasCause("broken")
@@ -458,7 +456,6 @@ class RuleSourceAppliedByRuleMethodIntegrationTest extends AbstractIntegrationSp
         '''
 
         expect:
-        expectTaskGetProjectDeprecations()
         fails 'model'
         failure.assertHasCause("Exception thrown while executing model rule: CalculateName#defaultName")
         failure.assertHasCause("broken")
@@ -492,7 +489,6 @@ class RuleSourceAppliedByRuleMethodIntegrationTest extends AbstractIntegrationSp
         '''
 
         expect:
-        expectTaskGetProjectDeprecations()
         fails 'model'
         failure.assertHasCause("Exception thrown while executing model rule: MyPlugin#rules")
         failure.assertHasCause("broken")
@@ -514,8 +510,6 @@ class RuleSourceAppliedByRuleMethodIntegrationTest extends AbstractIntegrationSp
         '''
 
         expect:
-        succeeds("tasks")
-        expectTaskGetProjectDeprecations()
         fails("model")
     }
 
@@ -555,7 +549,6 @@ class RuleSourceAppliedByRuleMethodIntegrationTest extends AbstractIntegrationSp
         '''
 
         expect:
-        expectTaskGetProjectDeprecations()
         fails("model")
         failure.assertHasCause("Exception thrown while executing model rule: MyPlugin#rules")
         failure.assertHasCause('''Type BrokenRuleSource is not a valid rule source:
@@ -584,7 +577,6 @@ class RuleSourceAppliedByRuleMethodIntegrationTest extends AbstractIntegrationSp
         '''
 
         expect:
-        expectTaskGetProjectDeprecations()
         fails "model"
         failure.assertHasCause('''The following model rules could not be applied due to unbound inputs and/or subjects:
 

@@ -14,11 +14,15 @@ buildscript {
 // end::code[]
 
 // tag::apply[]
+// tag::apply-conv[]
 plugins {
-    id 'my-create-file-plugin' // Apply the convention plugin
+    id 'my-create-file-plugin' // Apply the pre-compiled convention plugin
+// end::apply-conv[]
     id 'com.example.my-binary-plugin' // Apply the binary plugin
+// tag::apply-conv[]
     id 'groovy' // Apply the Groovy DSL plugin
 }
+// end::apply-conv[]
 // end::apply[]
 
 // tag::code[]
@@ -29,6 +33,20 @@ tasks.register('encode') {
     }
 }
 // end::code[]
+
+// tag::plugin[]
+class SamplePlugin implements Plugin<Project> { // <1>
+    void apply(Project project) {   // <2>
+        project.tasks.register("ScriptPlugin") {
+            doLast {
+                println("Hello world from the build file!")
+            }
+        }
+    }
+}
+
+apply plugin: SamplePlugin // <3>
+// end::plugin[]
 
 // tag::plugin-1[]
 class SamplePlugin1 implements Plugin<Project> { // <1>

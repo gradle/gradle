@@ -16,9 +16,13 @@
 
 package org.gradle.internal.watch.vfs;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 import java.io.File;
 import java.util.stream.Stream;
 
+@ServiceScope(Scope.UserHome.class)
 public interface WatchableFileSystemDetector {
     /**
      * Returns the mount points of all file systems for which file system watching is not supported.

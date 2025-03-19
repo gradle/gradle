@@ -149,7 +149,7 @@ class JansiEndUserIntegrationTest extends AbstractIntegrationSpec implements Jav
 
             repositories {
                 maven {
-                    url '${repoDir.toURI()}'
+                    url = '${repoDir.toURI()}'
                 }
             }
 
@@ -222,7 +222,7 @@ class JansiEndUserIntegrationTest extends AbstractIntegrationSpec implements Jav
 
                     repositories {
                         maven {
-                            url "\$buildDir/repo"
+                            url = layout.buildDirectory.dir('repo')
                         }
                     }
                 }

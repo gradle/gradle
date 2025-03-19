@@ -17,9 +17,9 @@
 package org.gradle.internal.service
 
 import com.google.common.reflect.TypeToken
-import org.gradle.api.NonNullApi
 import org.gradle.internal.Factory
 import org.gradle.internal.concurrent.Stoppable
+import org.gradle.util.GroovyNullMarked
 import org.gradle.util.internal.TextUtil
 import spock.lang.Specification
 
@@ -413,7 +413,19 @@ class DefaultServiceRegistryTest extends Specification {
 
         then:
         def e = thrown(ServiceValidationException)
-        e.message == "Cannot register an interface for construction."
+        e.message == "Cannot register an interface (java.lang.Runnable) for construction."
+    }
+
+    def "fails when abstract class is registered"() {
+        def registry = new DefaultServiceRegistry()
+        when:
+        registry.register {
+            it.add(AbstractClass)
+        }
+
+        then:
+        def e = thrown(ServiceValidationException)
+        e.message == "Cannot register an abstract type (org.gradle.internal.service.DefaultServiceRegistryTest.AbstractClass) for construction."
     }
 
     def cachesInstancesCreatedUsingAProviderFactoryMethod() {
@@ -1669,7 +1681,7 @@ class DefaultServiceRegistryTest extends Specification {
         Factory<?> getFactory(Class<?> type)
     }
 
-    @NonNullApi
+    @GroovyNullMarked
     private static class MockServiceWrapper implements Service {
         private final Object instance
 
@@ -1741,7 +1753,7 @@ class DefaultServiceRegistryTest extends Specification {
         }
     }
 
-    @NonNullApi
+    @GroovyNullMarked
     private static class MockServiceRegistry implements ContainsServices, ServiceRegistry {
         private final ParentServices parentServices
 
@@ -2118,6 +2130,10 @@ class DefaultServiceRegistryTest extends Specification {
                 }
             }
         }
+    }
+
+    static abstract class AbstractClass {
+
     }
 
     interface TestCloseService extends Closeable {

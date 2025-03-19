@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.model.cpp;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Represent a macro directive.

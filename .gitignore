@@ -5,9 +5,9 @@
 /*/build
 /*/*/build
 /*/*/*/build
-/*/*/*/*/build
-/*/docs/src/samples/**/build
-/*/docs/src/snippets/**/build
+/*/*/*/*/*/build
+/**/docs/src/samples/**/build
+/**/docs/src/snippets/**/build
 /*/internal-android-performance-testing/build-android-libs
 test-splits/
 /gradle/verification-keyring.gpg

@@ -550,8 +550,6 @@ abstract class AbstractRichVersionConstraintsIntegrationTest extends AbstractMod
                 }
             }
         """
-        createDirs("other")
-        settingsFile << "\ninclude 'other'"
 
         when:
         repositoryInteractions {
@@ -591,8 +589,6 @@ abstract class AbstractRichVersionConstraintsIntegrationTest extends AbstractMod
                 conf('org:bar:1')
             }
         """
-        createDirs("other")
-        settingsFile << "\ninclude 'other'"
 
         when:
         repositoryInteractions {

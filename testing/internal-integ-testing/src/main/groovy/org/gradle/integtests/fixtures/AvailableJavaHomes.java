@@ -55,7 +55,7 @@ import org.gradle.jvm.toolchain.internal.OsXInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.SdkmanInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.ToolchainConfiguration;
 import org.gradle.jvm.toolchain.internal.WindowsInstallationSupplier;
-import org.gradle.process.internal.ExecHandleFactory;
+import org.gradle.process.internal.ClientExecHandleBuilderFactory;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 
 import javax.annotation.Nullable;
@@ -345,7 +345,7 @@ public abstract class AvailableJavaHomes {
     }
 
     private static List<JvmInstallationMetadata> discoverLocalInstallations() {
-        ExecHandleFactory execHandleFactory = TestFiles.execHandleFactory();
+        ClientExecHandleBuilderFactory execHandleFactory = TestFiles.execHandleFactory();
         TemporaryFileProvider temporaryFileProvider = TestFiles.tmpDirTemporaryFileProvider(new File(SystemProperties.getInstance().getJavaIoTmpDir()));
         DefaultJvmMetadataDetector defaultJvmMetadataDetector =
             new DefaultJvmMetadataDetector(execHandleFactory, temporaryFileProvider);

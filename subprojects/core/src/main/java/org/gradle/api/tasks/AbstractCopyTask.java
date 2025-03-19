@@ -18,7 +18,6 @@ package org.gradle.api.tasks;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.ConfigurableFilePermissions;
 import org.gradle.api.file.CopyProcessingSpec;
@@ -27,9 +26,9 @@ import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.ExpandDetails;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileCopyDetails;
+import org.gradle.api.file.FilePermissions;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
-import org.gradle.api.file.FilePermissions;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.FileLookup;
@@ -42,6 +41,7 @@ import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.file.copy.CopySpecResolver;
 import org.gradle.api.internal.file.copy.CopySpecSource;
 import org.gradle.api.internal.file.copy.DefaultCopySpec;
+import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.specs.Spec;
@@ -51,8 +51,9 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.work.DisableCachingByDefault;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.FilterReader;
 import java.util.Map;
@@ -65,7 +66,7 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
 /**
  * {@code AbstractCopyTask} is the base class for all copy tasks.
  */
-@NonNullApi
+@NullMarked
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class AbstractCopyTask extends ConventionTask implements CopySpec, CopySpecSource {
 
@@ -148,6 +149,11 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
         throw new UnsupportedOperationException();
     }
 
+    @Inject
+    protected PropertyFactory getPropertyFactory() {
+        throw new UnsupportedOperationException();
+    }
+
     @TaskAction
     protected void copy() {
         CopyActionExecuter copyActionExecuter = createCopyActionExecuter();
@@ -160,7 +166,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
         Instantiator instantiator = getInstantiator();
         FileSystem fileSystem = getFileSystem();
 
-        return new CopyActionExecuter(instantiator, getObjectFactory(), fileSystem, false, getDocumentationRegistry());
+        return new CopyActionExecuter(instantiator, getPropertyFactory(), fileSystem, false, getDocumentationRegistry());
     }
 
     /**
@@ -465,7 +471,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      * {@inheritDoc}
      */
     @Override
-    public AbstractCopyTask rename(Transformer<@org.jetbrains.annotations.Nullable String, String> renamer) {
+    public AbstractCopyTask rename(Transformer<@Nullable String, String> renamer) {
         getMainSpec().rename(renamer);
         return this;
     }
@@ -519,7 +525,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      * {@inheritDoc}
      */
     @Override
-    public AbstractCopyTask filter(Transformer<@org.jetbrains.annotations.Nullable String, String> transformer) {
+    public AbstractCopyTask filter(Transformer<@Nullable String, String> transformer) {
         getMainSpec().filter(transformer);
         return this;
     }

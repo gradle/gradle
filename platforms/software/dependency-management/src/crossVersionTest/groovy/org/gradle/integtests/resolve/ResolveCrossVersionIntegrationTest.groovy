@@ -49,7 +49,7 @@ class ResolveCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
         buildFile << """
 repositories {
     if (repositories.metaClass.respondsTo(repositories, 'maven')) {
-        maven { url "${mavenHttpRepo.uri}" }
+        maven { url = "${mavenHttpRepo.uri}" }
     } else {
         mavenRepo urls: "${mavenHttpRepo.uri}"
     }
@@ -102,7 +102,7 @@ task check {
         buildFile << """
 repositories {
     if (gradle.gradleVersion == '${current.version.version}' || ${previous.fullySupportsIvyRepository}) {
-        ivy { url "${ivyHttpRepo.uri}" }
+        ivy { url = "${ivyHttpRepo.uri}" }
     } else {
         add(Class.forName('org.apache.ivy.plugins.resolver.URLResolver').newInstance()) {
             name = 'repo'

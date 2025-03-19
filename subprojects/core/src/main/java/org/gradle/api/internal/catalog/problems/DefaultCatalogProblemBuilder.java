@@ -18,13 +18,13 @@ package org.gradle.api.internal.catalog.problems;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.problems.internal.DocLink;
+import org.gradle.api.problems.DocLink;
+import org.gradle.api.problems.ProblemDefinition;
+import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.InternalProblems;
-import org.gradle.api.problems.internal.Problem;
-import org.gradle.api.problems.internal.ProblemDefinition;
 import org.gradle.internal.logging.text.TreeFormatter;
+import org.jspecify.annotations.NonNull;
 
-import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.List;
 
@@ -37,17 +37,17 @@ public class DefaultCatalogProblemBuilder {
     private final static DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry();
     public static final String VERSION_CATALOG_PROBLEMS = "version_catalog_problems";
 
-    public static void maybeThrowError(InternalProblems problemsService, String error, Collection<Problem> problems) {
+    public static void maybeThrowError(InternalProblems problemsService, String error, Collection<InternalProblem> problems) {
         if (!problems.isEmpty()) {
             throw throwError(problemsService, error, problems);
         }
     }
 
-    public static RuntimeException throwError(InternalProblems problemsService, String error, Collection<Problem> problems) {
+    public static RuntimeException throwError(InternalProblems problemsService, String error, Collection<InternalProblem> problems) {
         TreeFormatter formatter = new TreeFormatter();
         formatter.node(error);
         formatter.startChildren();
-        for (Problem problem : problems) {
+        for (InternalProblem problem : problems) {
             formatter.node(getProblemString(problem));
             problemsService.getInternalReporter().report(problem);
         }
@@ -55,7 +55,7 @@ public class DefaultCatalogProblemBuilder {
         throw new InvalidUserDataException(formatter.toString());
     }
 
-    public static String getProblemString(Problem problem) {
+    public static String getProblemString(InternalProblem problem) {
         ProblemDefinition definition = problem.getDefinition();
         String contextualLabel = problem.getContextualLabel();
         String renderedLabel = contextualLabel == null ? definition.getId().getDisplayName() : contextualLabel;
@@ -78,17 +78,17 @@ public class DefaultCatalogProblemBuilder {
         return formatter.toString();
     }
 
-    @Nonnull
+    @NonNull
     public static String getProblemInVersionCatalog(VersionCatalogBuilder builder) {
         return getProblemInVersionCatalog(builder.getName());
     }
 
-    @Nonnull
+    @NonNull
     public static String getProblemInVersionCatalog(String name) {
         return "Problem: " + getInVersionCatalog(name);
     }
 
-    @Nonnull
+    @NonNull
     public static String getInVersionCatalog(String name) {
         return "In version catalog " + name;
     }

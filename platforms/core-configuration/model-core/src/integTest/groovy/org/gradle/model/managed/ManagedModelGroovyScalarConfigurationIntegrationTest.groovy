@@ -506,7 +506,7 @@ The following types/formats are supported:
         output.contains '4: true'
     }
 
-    void 'CharSequence to File error cases'() {
+    void 'File error cases'() {
         given:
         String model = '''
             @Managed
@@ -527,29 +527,12 @@ The following types/formats are supported:
         buildFile.text = model + '''
             model {
                 props {
-                    theFile = 'http://gradle.org'
-                }
-            }
-        '''
-
-        then:
-        expectTaskGetProjectDeprecations()
-        fails 'model'
-
-        and:
-        failure.assertThatCause(containsString("Cannot convert URL 'http://gradle.org' to a file."))
-
-        when:
-        buildFile.text = model + '''
-            model {
-                props {
                     theFile = new Object()
                 }
             }
         '''
 
         then:
-        expectTaskGetProjectDeprecations()
         fails 'model'
 
         and:

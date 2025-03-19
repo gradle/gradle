@@ -16,14 +16,18 @@
 
 package org.gradle.internal.buildevents;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 /**
  * The holder for when the build is considered to have started.
  *
- * This is primarily used to provide user feedback on how long the “build” took (see BuildResultLogger).
+ * This is primarily used to provide user feedback on how long the "build" took (see BuildResultLogger).
  *
  * The build is considered to have started as soon as the user, or some tool, initiated the build.
  * During continuous build, subsequent builds are timed from when changes are noticed.
  */
+@ServiceScope(Scope.BuildSession.class)
 public class BuildStartedTime {
 
     private volatile long startTime;

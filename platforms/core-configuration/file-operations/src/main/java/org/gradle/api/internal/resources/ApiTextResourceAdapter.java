@@ -26,9 +26,11 @@ import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.TextResource;
 import org.gradle.internal.resource.TextUriResourceLoader;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.verifier.HttpRedirectVerifier;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
@@ -125,6 +127,7 @@ public class ApiTextResourceAdapter implements TextResourceInternal {
         return textResource;
     }
 
+    @ServiceScope(Scope.Build.class)
     public static class Factory {
         private final TextUriResourceLoader.Factory textUriResourceLoaderFactory;
         private final TemporaryFileProvider tempFileProvider;

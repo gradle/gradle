@@ -25,9 +25,10 @@ import org.gradle.internal.evaluation.EvaluationScopeContext;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.state.ModelObject;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import java.util.ConcurrentModificationException;
 
 /**
  * The base implementation for all properties in Gradle.
@@ -165,7 +166,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         }
     }
 
-    @Nonnull
+    @NonNull
     private Value<? extends T> doCalculateValue(EvaluationScopeContext context, ValueConsumer consumer) {
         try {
             return calculateValueFrom(context, value, consumer);
@@ -176,6 +177,20 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
                 throw UncheckedException.throwAsUncheckedException(e);
             }
         }
+    }
+
+    /**
+     * Throws a {@link ConcurrentModificationException} with text describing data corruption because of unsafe property access.
+     *
+     * @param reason the (optional) reason indicating the detected corruption
+     * @return nothing (it throws), but you can use this method in {@code throw} statement to appease the compiler
+     */
+    protected ConcurrentModificationException failWithCorruptedStateException(@Nullable Throwable reason) {
+        throw new ConcurrentModificationException(
+            "State of " + getDisplayName().getDisplayName() + " is corrupted. " +
+                "This may be caused by unsafe concurrent modifications with parallel configuration or execution enabled.",
+            reason
+        );
     }
 
     protected abstract Value<? extends T> calculateValueFrom(EvaluationScopeContext context, S value, ValueConsumer consumer);

@@ -24,6 +24,8 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.work.WorkerLeaseService;
 
 import javax.inject.Inject;
@@ -31,6 +33,7 @@ import javax.inject.Inject;
 /**
  * Resolves a {@link ResolvedArtifactSet} in a build operation, visiting the results.
  */
+@ServiceScope(Scope.Build.class)
 public class ResolvedArtifactSetResolver {
 
     private final WorkerLeaseService workerLeaseService;

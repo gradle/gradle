@@ -17,8 +17,8 @@
 package org.gradle.caching.internal;
 
 import org.gradle.internal.operations.BuildOperationType;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 
 /**
@@ -28,7 +28,7 @@ import java.util.Map;
  * In practice, it will fire as part of bootstrapping the execution of the first task to execute.
  *
  * This operation should always be executed, regardless of whether caching is enabled/disabled.
- * That is, determining enabled-ness is part of “finalizing”.
+ * That is, determining enabled-ness is part of "finalizing".
  * However, if the build fails during configuration or task graph assembly, it will not be emitted.
  * It must fire before any build cache is used.
  *

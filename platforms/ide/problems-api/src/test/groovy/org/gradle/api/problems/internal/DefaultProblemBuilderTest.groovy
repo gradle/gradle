@@ -16,20 +16,30 @@
 
 package org.gradle.api.problems.internal
 
+
+import org.gradle.api.problems.ProblemGroup
+import org.gradle.api.problems.ProblemId
+import org.gradle.internal.isolation.IsolatableFactory
 import org.gradle.internal.problems.NoOpProblemDiagnosticsFactory
+import org.gradle.internal.reflect.Instantiator
+import org.gradle.tooling.internal.provider.serialization.PayloadSerializer
 import spock.lang.Specification
 
 import static org.gradle.internal.problems.NoOpProblemDiagnosticsFactory.EMPTY_STREAM
 
 class DefaultProblemBuilderTest extends Specification {
-    def "additionalData accepts GeneralDataSpec"() {
+
+    def problemGroup = ProblemGroup.create("group", "label")
+    def problemId = ProblemId.create('id', 'Problem Id', problemGroup)
+
+    def 'additionalData accepts GeneralDataInternalSpec'() {
         given:
-        def problemBuilder = new DefaultProblemBuilder(EMPTY_STREAM, new AdditionalDataBuilderFactory())
+        def problemBuilder = createProblemBuilder()
 
         when:
         def data = problemBuilder
-            .id("id", "displayName")
-            .additionalData(GeneralDataSpec, spec -> {
+            .id(problemId)
+            .additionalDataInternal(GeneralDataSpec, spec -> {
                 spec.put("key", "value")
             })
             .build().additionalData
@@ -38,14 +48,18 @@ class DefaultProblemBuilderTest extends Specification {
         GeneralData.isInstance(data)
     }
 
-    def "additionalData accepts DeprecationDataSpec"() {
+    DefaultProblemBuilder createProblemBuilder() {
+        new DefaultProblemBuilder(new ProblemsInfrastructure(new AdditionalDataBuilderFactory(), Mock(Instantiator.class), Mock(PayloadSerializer.class), Mock(IsolatableFactory), Mock(IsolatableToBytesSerializer), EMPTY_STREAM))
+    }
+
+    def 'additionalData accepts DeprecationDataInternalSpec'() {
         given:
-        def problemBuilder = new DefaultProblemBuilder(EMPTY_STREAM, new AdditionalDataBuilderFactory())
+        def problemBuilder = createProblemBuilder()
 
         when:
         def data = problemBuilder
-            .id("id", "displayName")
-            .additionalData(DeprecationDataSpec, spec -> {
+            .id(problemId)
+            .additionalDataInternal(DeprecationDataSpec, spec -> {
                 spec.type(DeprecationData.Type.USER_CODE_INDIRECT)
             })
             .build().additionalData
@@ -54,14 +68,14 @@ class DefaultProblemBuilderTest extends Specification {
         DeprecationData.isInstance(data)
     }
 
-    def "additionalData accepts TypeValidationDataSpec"() {
+    def 'additionalData accepts TypeValidationDataInternalSpec'() {
         given:
-        def problemBuilder = new DefaultProblemBuilder(EMPTY_STREAM, new AdditionalDataBuilderFactory())
+        def problemBuilder = createProblemBuilder()
 
         when:
         def data = problemBuilder
-            .id("id", "displayName")
-            .additionalData(TypeValidationDataSpec, spec -> {
+            .id(problemId)
+            .additionalDataInternal(TypeValidationDataSpec, spec -> {
                 spec.propertyName("propertyName")
                 spec.parentPropertyName("parentPropertyName")
                 spec.pluginId("pluginId")
@@ -73,14 +87,14 @@ class DefaultProblemBuilderTest extends Specification {
         TypeValidationData.isInstance(data)
     }
 
-    def "additionalData accepts PropertyTraceDataSpec"() {
+    def 'additionalData accepts PropertyTraceDataInternalSpec'() {
         given:
-        def problemBuilder = new DefaultProblemBuilder(EMPTY_STREAM, new AdditionalDataBuilderFactory())
+        def problemBuilder = createProblemBuilder()
 
         when:
         def data = problemBuilder
-            .id("id", "displayName")
-            .additionalData(PropertyTraceDataSpec, spec -> {
+            .id(problemId)
+            .additionalDataInternal(PropertyTraceDataSpec, spec -> {
                 spec.trace("trace")
             })
             .build().additionalData
@@ -90,24 +104,40 @@ class DefaultProblemBuilderTest extends Specification {
     }
 
 
-    def "additionalData fails with invalid type"() {
+    def 'additionalDataInternal fails with invalid type'() {
         given:
-        def problemBuilder = new DefaultProblemBuilder(EMPTY_STREAM, new AdditionalDataBuilderFactory())
+        def problemBuilder = createProblemBuilder()
 
 
         when:
         //noinspection GroovyAssignabilityCheck
         def problem = problemBuilder
-            .id("id", "displayName")
-            .additionalData(NoOpProblemDiagnosticsFactory, spec -> {
+            .id(problemId)
+            .additionalDataInternal(NoOpProblemDiagnosticsFactory, spec -> {
                 // won't reach here
 
             })
             .build()
-        def data = problem
-            .additionalData
+        def data = problem.additionalData
 
         then:
         data == null
+    }
+
+    def "can define contextual locations"() {
+        given:
+        def problemBuilder = createProblemBuilder()
+
+        when:
+        //noinspection GroovyAssignabilityCheck
+        def problem = problemBuilder
+            .id(problemId)
+            .taskLocation(":taskPath")
+            .build()
+
+
+        then:
+        problem.contextualLocations.every { it instanceof TaskLocation }
+        problem.contextualLocations.collect { (it as TaskLocation).buildTreePath } == [':taskPath']
     }
 }

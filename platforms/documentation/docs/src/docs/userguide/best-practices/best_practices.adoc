@@ -1,0 +1,53 @@
+// Copyright (C) 2025 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[best_practices]]
+= Best Practices for Authoring Gradle Builds
+
+== Introduction
+
+Gradle is a powerful and flexible tool for building software, but along with these benefits comes complexity and the need for clear guidance on best practices.
+There are many scenarios where how to best use Gradle is unclear, as Gradle provides several ways of accomplishing the same goals.
+Often there is a need to determine if a current solution is likely to cause problems down the line, or if problems could have been avoided in advance by using Gradle differently.
+This guide aims to help Gradle authors navigate these scenarios and make informed decisions about how to use Gradle effectively.
+
+=== What this Guide Is
+
+This section outlines best practices for authoring Gradle builds that are maintainable, function properly, and are aligned with Gradle's core design philosophy.
+Some of these practices are things to do, and some are things to avoid doing.
+
+This guide is informed by real-world experience in some of the largest software ecosystems using Gradle.
+It targets all levels of Gradle expertise, from beginners to advanced users.
+Not every practice here will be applicable to every build, however these are meant to be widely applicable and beneficial to many different usage scenarios.
+
+This guide is **not** meant as instructions for how to use Gradle.
+For that purpose, we provide extensive tutorials and reference materials <<getting_started_eng.adoc#introduction,elsewhere>> in the Gradle documentation.
+
+=== Principles
+
+The items in this guide are meant to be _brief_, _understandable_, and _actionable_.
+
+- Build authors should be able to quickly recognize when they are following best practices and when they are not.
+- After reading, they should understand why a particular approach is beneficial or problematic and where to find further reference material.
+- Recommendations should be widely applicable to _many_ or _most_ typical builds and should provide specific, concrete advice.
+
+== Best Practices
+
+- <<bp_general.adoc#best_practices_general,General Gradle Best Practices>>
+- <<bp_dependencies.adoc#best_practices_for_dependencies,Best Practices for Dependencies>>
+- <<bp_tasks.adoc#best_practices_for_tasks,Best Practices for Tasks>>
+
+== Further Reference
+
+- <<tags_reference.adoc#tags_reference,Tags Used in Best Practices>>

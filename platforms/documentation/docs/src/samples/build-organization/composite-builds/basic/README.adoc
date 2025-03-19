@@ -1,4 +1,4 @@
-NOTE: You can open this sample in an <<gradle_ides.adoc#gradle_ides,IDE that supports Gradle>>.
+NOTE: You can open this sample in an link:{userManualPath}/gradle_ides.html#gradle_ides[IDE that supports Gradle].
 
 == Defining and using a composite build
 

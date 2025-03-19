@@ -56,7 +56,7 @@ abstract class AbstractDependencyVerificationIntegTest extends AbstractHttpDepen
 
             repositories {
                 maven {
-                    url "${mavenHttpRepo.uri}"
+                    url = "${mavenHttpRepo.uri}"
                 }
             }
         """

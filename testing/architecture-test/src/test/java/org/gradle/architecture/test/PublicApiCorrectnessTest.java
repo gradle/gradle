@@ -48,6 +48,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
 import static org.gradle.architecture.test.ArchUnitFixture.beAbstract;
 import static org.gradle.architecture.test.ArchUnitFixture.freeze;
+import static org.gradle.architecture.test.ArchUnitFixture.not_from_fileevents;
 import static org.gradle.architecture.test.ArchUnitFixture.gradleInternalApi;
 import static org.gradle.architecture.test.ArchUnitFixture.gradlePublicApi;
 import static org.gradle.architecture.test.ArchUnitFixture.haveDirectSuperclassOrInterfaceThatAre;
@@ -56,7 +57,7 @@ import static org.gradle.architecture.test.ArchUnitFixture.not_written_in_kotlin
 import static org.gradle.architecture.test.ArchUnitFixture.overrideMethod;
 import static org.gradle.architecture.test.ArchUnitFixture.primitive;
 import static org.gradle.architecture.test.ArchUnitFixture.public_api_methods;
-import static org.gradle.architecture.test.ArchUnitFixture.useJavaxAnnotationNullable;
+import static org.gradle.architecture.test.ArchUnitFixture.useJSpecifyNullable;
 
 @AnalyzeClasses(packages = "org.gradle")
 public class PublicApiCorrectnessTest {
@@ -66,7 +67,7 @@ public class PublicApiCorrectnessTest {
             .or(primitive)
             // NOTE: we don't want to include java.util.function here because Gradle public API uses custom types like org.gradle.api.Action and org.gradle.api.Spec
             // Mixing these custom types with java.util.function types would make the public API harder to use, especially for plugin authors.
-            .or(resideInAnyPackage("java.lang", "java.util", "java.util.concurrent", "java.util.regex", "java.lang.reflect", "java.io")
+            .or(resideInAnyPackage("java.lang", "java.util", "java.util.concurrent", "java.util.regex", "java.lang.reflect", "java.io", "java.time")
                 .or(type(byte[].class))
                 .or(type(URI.class))
                 .or(type(URL.class))
@@ -110,8 +111,8 @@ public class PublicApiCorrectnessTest {
      */
     @ArchTest
     public static final ArchRule all_methods_use_proper_Nullable = methods()
-            .that(are(not_written_in_kotlin))
-            .should(useJavaxAnnotationNullable()
+            .that(are(not_written_in_kotlin).and(are(not_from_fileevents)))
+            .should(useJSpecifyNullable()
     );
 
     @ArchTest

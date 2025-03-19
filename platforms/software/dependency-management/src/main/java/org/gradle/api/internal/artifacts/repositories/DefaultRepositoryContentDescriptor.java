@@ -31,8 +31,8 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionS
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -355,11 +355,11 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
             }
             ContentSpec that = (ContentSpec) o;
             return matcherKind == that.matcherKind &&
-                    hashCode == that.hashCode &&
-                    Objects.equal(group, that.group) &&
-                    Objects.equal(module, that.module) &&
-                    Objects.equal(version, that.version) &&
-                    Objects.equal(inclusive, that.inclusive);
+                hashCode == that.hashCode &&
+                Objects.equal(group, that.group) &&
+                Objects.equal(module, that.module) &&
+                Objects.equal(version, that.version) &&
+                inclusive == that.inclusive;
         }
 
         @Override

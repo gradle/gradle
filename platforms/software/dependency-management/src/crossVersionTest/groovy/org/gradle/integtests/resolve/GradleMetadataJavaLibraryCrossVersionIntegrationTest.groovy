@@ -49,7 +49,7 @@ class GradleMetadataJavaLibraryCrossVersionIntegrationTest extends CrossVersionI
                 version = '1.0'
 
                 repositories {
-                    maven { url "\${rootProject.buildDir}/repo" }
+                    maven { url = rootProject.layout.buildDirectory.dir("repo") }
                     ${mavenCentralRepository()}
                 }
             }
@@ -85,7 +85,7 @@ class GradleMetadataJavaLibraryCrossVersionIntegrationTest extends CrossVersionI
 
             publishing {
                 repositories {
-                    maven { url "\${rootProject.buildDir}/repo" }
+                    maven { url = rootProject.layout.buildDirectory.dir("repo") }
                 }
 
                 publications {

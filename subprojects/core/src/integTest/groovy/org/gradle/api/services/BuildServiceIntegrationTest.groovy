@@ -90,7 +90,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
         given:
         serviceImplementation()
         adhocTaskUsingUndeclaredService(1)
-        enableStableConfigurationCache()
+        enableServiceUsageDeclaration()
         executer.expectDocumentedDeprecationWarning(
             "Build service 'counter' is being used by task ':broken' without the corresponding declaration via 'Task#usesService'. " +
                 "This behavior has been deprecated. " +
@@ -139,7 +139,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
                 // reference will be set by name
             }
         """
-        enableStableConfigurationCache()
+        enableServiceUsageDeclaration()
         executer.expectDocumentedDeprecationWarning(
             "Build service 'counter' is being used by task ':broken' without the corresponding declaration via 'Task#usesService'. " +
                 "This behavior has been deprecated. " +
@@ -215,7 +215,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
         """
         file("src/main/java").createDir()
         file("src/main/java/Foo.java").createFile().text = """class Foo {}"""
-        enableStableConfigurationCache()
+        enableServiceUsageDeclaration()
         // should not be expected
         executer.expectDocumentedDeprecationWarning(
             "Build service 'counter' is being used by task ':compileJava' without the corresponding declaration via 'Task#usesService'. " +
@@ -255,7 +255,7 @@ service: closed with value 11
                 }
             }
         """
-        enableStableConfigurationCache()
+        enableServiceUsageDeclaration()
 
         when:
         succeeds 'explicit'
@@ -298,7 +298,7 @@ service: closed with value 11
                 }
             }
         """
-        enableStableConfigurationCache()
+        enableServiceUsageDeclaration()
 
         when:
         succeeds 'named'
@@ -334,7 +334,7 @@ service: closed with value 11
                 }
             }
         """
-        enableStableConfigurationCache()
+        enableServiceUsageDeclaration()
 
         when:
         succeeds 'named'
@@ -378,7 +378,7 @@ service: closed with value 11
                 }
             }
         """
-        enableStableConfigurationCache()
+        enableServiceUsageDeclaration()
 
         when:
         fails 'ambiguous'
@@ -416,7 +416,7 @@ service: closed with value 11
                 }
             }
         """
-        enableStableConfigurationCache()
+        enableServiceUsageDeclaration()
 
         when:
         succeeds 'unambiguous'
@@ -450,7 +450,7 @@ service: closed with value 11
                 usesService(counterProvider2)
             }
         """
-        enableStableConfigurationCache()
+        enableServiceUsageDeclaration()
 
         when:
         succeeds 'named'
@@ -479,7 +479,7 @@ service: closed with value 10001
                 counter.get().increment()
             }
         """
-        enableStableConfigurationCache()
+        enableServiceUsageDeclaration()
 
         when:
         succeeds 'named'
@@ -512,7 +512,7 @@ service: closed with value 12
             }
             task missingRequiredService(type: Consumer) {}
         """
-        enableStableConfigurationCache()
+        enableServiceUsageDeclaration()
 
         when:
         fails 'missingRequiredService'
@@ -541,7 +541,7 @@ service: closed with value 12
             }
             task missingOptionalService(type: Consumer) {}
         """
-        enableStableConfigurationCache()
+        enableServiceUsageDeclaration()
 
         when:
         succeeds 'missingOptionalService'
@@ -567,7 +567,7 @@ service: closed with value 12
                 // expect service to be injected by name (it won't though)
             }
         """
-        enableStableConfigurationCache()
+        enableServiceUsageDeclaration()
 
         when:
         fails 'missingService'
@@ -591,7 +591,7 @@ service: closed with value 12
             }
             task invalidServiceType(type: Consumer) {}
         """
-        enableStableConfigurationCache()
+        enableServiceUsageDeclaration()
 
         when:
         fails 'invalidServiceType'
@@ -1010,6 +1010,78 @@ Hello, subproject1
 
         then:
         outputContains("Hello, subproject2")
+    }
+
+    def "service provided by a plugin shared by subprojects with different classloaders by name should give actionable error message"() {
+        createDirs("plugin1", "plugin2", "subproject1", "subproject2")
+        settingsFile """
+        pluginManagement {
+            includeBuild 'plugin1'
+            includeBuild 'plugin2'
+        }
+        include 'subproject1'
+        include 'subproject2'
+        """
+        // plugin 1 declares a service
+        buildFile(file("plugin1/build.gradle"), "plugins { id 'groovy-gradle-plugin' }")
+        buildFile(file("plugin1/src/main/groovy/my.plugin1.gradle"), """
+            import org.gradle.api.services.BuildService
+            import org.gradle.api.services.BuildServiceParameters
+            abstract class MyService implements BuildService<BuildServiceParameters.None> {
+                String hello(String message) {
+                    "Hello, \$message"
+                }
+            }
+
+            def service = gradle.sharedServices.registerIfAbsent("myService", MyService) {}
+
+            abstract class HelloTask extends DefaultTask {
+                @$Internal.name
+                abstract Property<MyService> getMyServiceReference()
+
+                @$Internal.name
+                abstract Property<String> getProjectName()
+
+                @TaskAction
+                def go() {
+                    println(myServiceReference.get().hello(projectName.get()))
+                }
+            }
+
+            project.tasks.register('hello', HelloTask) {
+                projectName = project.name
+                myServiceReference = service
+                doLast {
+                    assert MyService == myServiceReference.type
+                }
+            }
+        """)
+
+        // plugin 2
+        buildFile(file("plugin2/build.gradle"), "plugins { id 'groovy-gradle-plugin' }")
+        buildFile(file("plugin2/src/main/groovy/my.plugin2.gradle"), "/* no code needed */")
+        // subproject1 and subproject2 apply different sets of plugins, so get different classloaders
+        buildFile(file("subproject1/build.gradle"), """
+        plugins {
+            id 'my.plugin1'
+            id 'my.plugin2'
+        }
+        """)
+        buildFile(file("subproject2/build.gradle"), """
+        plugins {
+            // must include the plugin contributing the build service,
+            // and must be a different ordered set than the other project
+            // or else both subprojects are built with the same classloader
+            id 'my.plugin2'
+            id 'my.plugin1'
+        }
+        """)
+
+        when:
+        fails(":subproject1:hello", ":subproject2:hello", "-s")
+
+        then:
+        failureHasCause(~/.*Cannot set the value of task ':subproject[12]:hello' property 'myServiceReference' of type MyService loaded with .* using a provider of type MyService loaded with .*\nThis can be caused by a plugin being applied to two sibling projects and then using a shared build service. To fix this, use `@ServiceReference` or add the problematic plugin with `apply false` to the root build script./)
     }
 
     @ToBeFixedForIsolatedProjects(because = "subprojects")
@@ -1700,9 +1772,9 @@ Hello, subproject1
         succeeds("hello")
     }
 
-    private void enableStableConfigurationCache() {
+    private void enableServiceUsageDeclaration() {
         settingsFile '''
-            enableFeaturePreview 'STABLE_CONFIGURATION_CACHE'
+            enableFeaturePreview "${org.gradle.api.internal.FeaturePreviews.Feature.INTERNAL_BUILD_SERVICE_USAGE}"
         '''
     }
 

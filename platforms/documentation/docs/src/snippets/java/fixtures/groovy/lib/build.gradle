@@ -45,7 +45,7 @@ components.java.withVariantsFromConfiguration(configurations.testFixturesApiElem
 components.java.withVariantsFromConfiguration(configurations.testFixturesRuntimeElements) { skip() }
 // end::disable-test-fixtures-publishing[]
 
-tasks.create("usages") {
+tasks.register("usages") {
     def javaComponentUsages = components.java.usages.collect { it.name }
     doLast {
         javaComponentUsages.each { println(it) }

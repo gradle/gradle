@@ -35,7 +35,7 @@ class MavenBrokenRemoteResolveIntegrationTest extends AbstractHttpDependencyReso
 
         buildFile << """
 repositories {
-    maven { url "${repo.uri}"}
+    maven { url = "${repo.uri}"}
 }
 configurations { missing }
 dependencies {
@@ -99,7 +99,7 @@ Required by:
 
         buildFile << """
 repositories {
-    maven { url "${repo.uri}"}
+    maven { url = "${repo.uri}"}
 }
 configurations { missing }
 dependencies {
@@ -154,7 +154,6 @@ Required by:
     }
 
     void "reports and recovers from multiple missing transitive modules"() {
-        createDirs("child1")
         settingsFile << "include 'child1'"
 
         given:
@@ -169,32 +168,42 @@ Required by:
             .dependsOn(moduleB)
             .publish()
 
+        settingsFile << """
+            dependencyResolutionManagement {
+                repositories {
+                    maven { url = "${repo.uri}"}
+                }
+            }
+        """
+
         buildFile << """
-allprojects {
-    repositories {
-        maven { url "${repo.uri}"}
-    }
-    configurations {
-        compile
-        'default' {
-            extendsFrom(compile)
-        }
-    }
-}
-dependencies {
-    compile 'group:projectC:0.99'
-    compile project(':child1')
-}
-project(':child1') {
-    dependencies {
-        compile 'group:projectD:1.0GA'
-    }
-}
-task showMissing {
-    def files = configurations.compile
-    doLast { println files.files }
-}
-"""
+            configurations {
+                compile
+                'default' {
+                    extendsFrom(compile)
+                }
+            }
+            dependencies {
+                compile 'group:projectC:0.99'
+                compile project(':child1')
+            }
+            task showMissing {
+                def files = configurations.compile
+                doLast { println files.files }
+            }
+        """
+
+        file("child1/build.gradle") << """
+            configurations {
+                compile
+                'default' {
+                    extendsFrom(compile)
+                }
+            }
+            dependencies {
+                compile 'group:projectD:1.0GA'
+            }
+        """
 
         when:
         moduleA.pom.expectGetMissing()
@@ -248,7 +257,7 @@ Required by:
         buildFile << """
 repositories {
     maven {
-        url "${ivyHttpRepo.uri}"
+        url = "${ivyHttpRepo.uri}"
     }
 }
 configurations { broken }
@@ -295,7 +304,7 @@ task showBroken {
         buildFile << """
 repositories {
     maven {
-        url "${ivyHttpRepo.uri}"
+        url = "${ivyHttpRepo.uri}"
     }
 }
 configurations { broken }
@@ -332,7 +341,7 @@ task showBroken {
         buildFile << """
 repositories {
     maven {
-        url "${ivyHttpRepo.uri}"
+        url = "${ivyHttpRepo.uri}"
     }
 }
 configurations { broken }
@@ -369,7 +378,7 @@ task showBroken {
         buildFile << """
 repositories {
     maven {
-        url "${ivyHttpRepo.uri}"
+        url = "${ivyHttpRepo.uri}"
     }
 }
 configurations { broken }
@@ -406,7 +415,7 @@ task showBroken {
         buildFile << """
 repositories {
     maven {
-        url "${ivyHttpRepo.uri}"
+        url = "${ivyHttpRepo.uri}"
     }
 }
 configurations { broken }
@@ -440,7 +449,7 @@ task showBroken {
         buildFile << """
 repositories {
     maven {
-        url "${mavenHttpRepo.uri}"
+        url = "${mavenHttpRepo.uri}"
     }
 }
 configurations { compile }

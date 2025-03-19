@@ -16,7 +16,7 @@ dependencies {
 
 repositories {
     maven {
-        url = uri(project.file("../local-repo"))
+        url = uri("../local-repo")
     }
     mavenCentral()
 }

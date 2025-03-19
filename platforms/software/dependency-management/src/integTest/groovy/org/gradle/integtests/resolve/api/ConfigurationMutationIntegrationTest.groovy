@@ -15,9 +15,13 @@
  */
 package org.gradle.integtests.resolve.api
 
+
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
+import org.gradle.internal.deprecation.DeprecationLogger
+import org.gradle.internal.featurelifecycle.DefaultDeprecatedUsageProgressDetails
 
 class ConfigurationMutationIntegrationTest extends AbstractDependencyResolutionTest {
     ResolveTestFixture resolve
@@ -31,15 +35,15 @@ class ConfigurationMutationIntegrationTest extends AbstractDependencyResolutionT
 
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
-group "org.test"
-version "1.1"
+group = "org.test"
+version = "1.1"
 
 configurations {
     conf
     compile.extendsFrom conf
 }
 repositories {
-    maven { url '${mavenRepo.uri}' }
+    maven { url = '${mavenRepo.uri}' }
 }
 
 """
@@ -227,44 +231,46 @@ configurations.compile.withDependencies {
     def "can use withDependencies to alter configuration resolved in a multi-project build"() {
         mavenRepo.module("org", "explicit-dependency", "3.4").publish()
         mavenRepo.module("org", "added-dependency", "3.4").publish()
-        buildFile.text = """
-subprojects {
-    apply plugin: 'java'
+        settingsFile << """
+            include 'consumer'
+            include 'producer'
+            dependencyResolutionManagement {
+                ${mavenTestRepository()}
+            }
+        """
+        buildFile.text = ""
 
-    repositories {
-        maven { url '${mavenRepo.uri}' }
-    }
-}
-
-project(":producer") {
-    configurations {
-        implementation {
-            withDependencies { deps ->
-                deps.each {
-                    it.version {
-                       require '3.4'
+        file("producer/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+            configurations {
+                implementation {
+                    withDependencies { deps ->
+                        deps.each {
+                            it.version {
+                               require '3.4'
+                            }
+                        }
+                        deps.add(project.dependencies.create("org:added-dependency:3.4"))
                     }
                 }
-                deps.add(project.dependencies.create("org:added-dependency:3.4"))
             }
-        }
-    }
-    dependencies {
-        implementation "org:explicit-dependency"
-    }
-}
+            dependencies {
+                implementation "org:explicit-dependency"
+            }
+        """
 
-project(":consumer") {
-    dependencies {
-        implementation project(":producer")
-    }
-}
-"""
+        file("consumer/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+            dependencies {
+                implementation project(":producer")
+            }
+        """
+
         resolve.prepare("runtimeClasspath")
-        createDirs("consumer", "producer")
-        settingsFile << """
-include 'consumer', 'producer'
-"""
         expect:
         // relying on default dependency
         succeeds(":consumer:checkDeps")
@@ -288,7 +294,7 @@ include 'consumer', 'producer'
     apply plugin: 'java'
 
     repositories {
-        maven { url '${mavenRepo.uri}' }
+        maven { url = '${mavenRepo.uri}' }
     }
     configurations {
         implementation {
@@ -314,11 +320,11 @@ include 'consumer', 'producer'
         buildFile << """
     apply plugin: 'java'
     repositories {
-        maven { url '${mavenRepo.uri}' }
+        maven { url = '${mavenRepo.uri}' }
     }
 
     repositories {
-        maven { url '${mavenRepo.uri}' }
+        maven { url = '${mavenRepo.uri}' }
     }
     dependencies {
         implementation 'org.test:producer:1.0'
@@ -339,11 +345,89 @@ include 'consumer', 'producer'
         }
     }
 
+    def "withDependencies deprecations are properly attributed to source plugin"() {
+        BuildOperationsFixture buildOps = new BuildOperationsFixture(executer, temporaryFolder)
+
+        settingsFile << """
+            includeBuild("plugin")
+        """
+
+        file("plugin/build.gradle") << """
+            plugins {
+                id("java-gradle-plugin")
+            }
+
+            gradlePlugin {
+                plugins {
+                    transformPlugin {
+                        id = "com.example.plugin"
+                        implementationClass = "com.example.ExamplePlugin"
+                    }
+                }
+            }
+        """
+
+        file("plugin/src/main/java/com/example/ExamplePlugin.java") << """
+            package com.example;
+
+            import org.gradle.api.Plugin;
+            import org.gradle.api.Project;
+            import ${DeprecationLogger.name};
+
+            public class ExamplePlugin implements Plugin<Project> {
+                public void apply(Project project) {
+                    project.getConfigurations().configureEach(conf -> {
+                        conf.withDependencies(deps -> {
+                            DeprecationLogger.deprecate("foo")
+                                .willBecomeAnErrorInGradle10()
+                                .undocumented()
+                                .nagUser();
+                        });
+                    });
+                }
+            }
+        """
+
+        buildFile.text = """
+            plugins {
+                id("com.example.plugin")
+            }
+
+            configurations {
+                create("deps")
+            }
+
+            task resolve {
+                // triggers `defaultDependencies`
+                def root = configurations.deps.incoming.resolutionResult.rootComponent
+                doLast {
+                    root.get()
+                }
+            }
+        """
+
+        when:
+        executer.noDeprecationChecks()
+        succeeds("resolve")
+
+        then:
+        def deprecationOperations = buildOps.all().findAll { !it.progress(DefaultDeprecatedUsageProgressDetails).isEmpty() }
+        deprecationOperations.findAll { op ->
+            if (!op.details.containsKey("applicationId")) {
+                return false
+            }
+            def pluginId = op.details["applicationId"]
+            def pluginOperations = buildOps.all(org.gradle.api.internal.plugins.ApplyPluginBuildOperationType)
+            def associatedPlugins = pluginOperations.findAll { it.details.applicationId == pluginId }
+            associatedPlugins.size() == 1 && associatedPlugins[0].details.pluginId == "com.example.plugin"
+        }.size() == 1
+    }
+
     def "can lazily add dependencies to a configuration"() {
         given:
         buildFile.text = """
             repositories {
-                maven { url '${mavenRepo.uri}' }
+                maven { url = '${mavenRepo.uri}' }
             }
 
             configurations {
@@ -372,7 +456,7 @@ include 'consumer', 'producer'
         given:
         buildFile.text = """
             repositories {
-                maven { url '${mavenRepo.uri}' }
+                maven { url = '${mavenRepo.uri}' }
             }
 
             configurations {
@@ -453,10 +537,10 @@ include 'consumer', 'producer'
         """
 
         expect:
-        executer.expectDocumentedDeprecationWarning("Mutating the dependency attributes of configuration ':deps' after it has been resolved or consumed. This behavior has been deprecated. This will fail with an error in Gradle 9.0. After a Configuration has been resolved, consumed as a variant, or used for generating published metadata, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
-        executer.expectDocumentedDeprecationWarning("Mutating the dependency attributes of configuration ':parent' after it has been resolved or consumed. This behavior has been deprecated. This will fail with an error in Gradle 9.0. After a Configuration has been resolved, consumed as a variant, or used for generating published metadata, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
-        executer.expectDocumentedDeprecationWarning("Mutating the dependency constraint attributes of configuration ':deps' after it has been resolved or consumed. This behavior has been deprecated. This will fail with an error in Gradle 9.0. After a Configuration has been resolved, consumed as a variant, or used for generating published metadata, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
-        executer.expectDocumentedDeprecationWarning("Mutating the dependency constraint attributes of configuration ':parent' after it has been resolved or consumed. This behavior has been deprecated. This will fail with an error in Gradle 9.0. After a Configuration has been resolved, consumed as a variant, or used for generating published metadata, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
+        executer.expectDocumentedDeprecationWarning("Mutating a configuration after it has been resolved, consumed as a variant, or used for generating published metadata. This behavior has been deprecated. This will fail with an error in Gradle 9.0. The dependency attributes of configuration ':deps' were mutated after the configuration's child configuration ':res' was resolved. After a configuration has been observed, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
+        executer.expectDocumentedDeprecationWarning("Mutating a configuration after it has been resolved, consumed as a variant, or used for generating published metadata. This behavior has been deprecated. This will fail with an error in Gradle 9.0. The dependency attributes of configuration ':parent' were mutated after the configuration's child configuration ':res' was resolved. After a configuration has been observed, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
+        executer.expectDocumentedDeprecationWarning("Mutating a configuration after it has been resolved, consumed as a variant, or used for generating published metadata. This behavior has been deprecated. This will fail with an error in Gradle 9.0. The dependency constraint attributes of configuration ':deps' were mutated after the configuration's child configuration ':res' was resolved. After a configuration has been observed, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
+        executer.expectDocumentedDeprecationWarning("Mutating a configuration after it has been resolved, consumed as a variant, or used for generating published metadata. This behavior has been deprecated. This will fail with an error in Gradle 9.0. The dependency constraint attributes of configuration ':parent' were mutated after the configuration's child configuration ':res' was resolved. After a configuration has been observed, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
         succeeds("resolve")
     }
 }

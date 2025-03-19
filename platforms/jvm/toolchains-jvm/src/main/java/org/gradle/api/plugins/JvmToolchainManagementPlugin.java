@@ -21,7 +21,6 @@ import org.gradle.api.Plugin;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.toolchain.management.ToolchainManagement;
 import org.gradle.jvm.toolchain.JvmToolchainManagement;
-import org.gradle.jvm.toolchain.internal.DefaultJvmToolchainManagement;
 
 import javax.inject.Inject;
 
@@ -34,12 +33,12 @@ import javax.inject.Inject;
 public abstract class JvmToolchainManagementPlugin implements Plugin<Settings> {
 
     @Inject
-    protected abstract DefaultJvmToolchainManagement getDefaultJvmToolchainManagement();
+    protected abstract JvmToolchainManagement getDefaultJvmToolchainManagement();
 
     @Override
     public void apply(Settings settings) {
         ToolchainManagement toolchainManagement = settings.getToolchainManagement();
         toolchainManagement.getExtensions()
-                .add(JvmToolchainManagement.class, "jvm", getDefaultJvmToolchainManagement());
+            .add(JvmToolchainManagement.class, "jvm", getDefaultJvmToolchainManagement());
     }
 }

@@ -40,11 +40,12 @@ dependencies {
     api(libs.groovy)
     api(libs.guava)
     api(libs.inject)
-    api(libs.jsr305)
+    api(libs.jspecify)
 
     implementation(projects.dependencyManagement)
     implementation(projects.ear)
     implementation(projects.fileCollections)
+    implementation(projects.jvmServices)
     implementation(projects.languageJava)
     implementation(projects.modelCore)
     implementation(projects.pluginsGroovy)

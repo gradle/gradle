@@ -554,11 +554,11 @@ dependencies {
     }
 
     private useIvyRepo(def repo) {
-        buildFile << """repositories { ivy { url "$repo.uri" } }"""
+        buildFile << """repositories { ivy { url = "$repo.uri" } }"""
     }
 
     private useMavenRepo(def repo) {
-        buildFile << """repositories { maven { url "$repo.uri" } }"""
+        buildFile << """repositories { maven { url = "$repo.uri" } }"""
     }
 
     private static void addCompleteConfigurations(IvyHttpModule module) {

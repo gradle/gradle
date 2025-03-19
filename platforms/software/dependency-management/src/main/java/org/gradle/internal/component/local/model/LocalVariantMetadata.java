@@ -23,6 +23,7 @@ import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.model.DefaultVariantMetadata;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.model.CalculatedValue;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Implementation of {@link VariantResolveMetadata} which allows variant artifacts to be calculated lazily
@@ -31,7 +32,7 @@ import org.gradle.internal.model.CalculatedValue;
 public final class LocalVariantMetadata extends DefaultVariantMetadata {
     private final CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> artifacts;
 
-    public LocalVariantMetadata(String name, Identifier identifier, DisplayName displayName, ImmutableAttributes attributes, ImmutableCapabilities capabilities, CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> artifacts) {
+    public LocalVariantMetadata(String name, @Nullable Identifier identifier, DisplayName displayName, ImmutableAttributes attributes, ImmutableCapabilities capabilities, CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> artifacts) {
         super(name, identifier, displayName, attributes, ImmutableList.of(), capabilities);
         this.artifacts = artifacts;
     }

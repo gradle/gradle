@@ -49,7 +49,7 @@ version = '1.0'
 publishing {
     repositories {
         ivy {
-            url "${ivyRepo.uri}"
+            url = "${ivyRepo.uri}"
         }
     }
     publications {

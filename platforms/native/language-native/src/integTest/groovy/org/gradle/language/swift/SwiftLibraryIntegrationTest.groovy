@@ -25,13 +25,11 @@ import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.SwiftLib
 import org.gradle.nativeplatform.fixtures.app.SwiftSingleFileLib
 import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
-import spock.lang.Ignore
 
 import static org.gradle.util.Matchers.containsText
 
-@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_5_OR_OLDER)
+@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 @DoesNotSupportNonAsciiPaths(reason = "swiftc does not support these paths")
-@Ignore("Inconsistent Swift SDK and tooling discovered on our Intel Macs")
 class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def "skip compile and link tasks when no source"() {
         given:

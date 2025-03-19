@@ -28,9 +28,10 @@ pluginManagement {
 
 plugins {
     id("gradlebuild.build-environment")
-    id("com.gradle.develocity").version("3.18.2") // Run `java build-logic-settings/UpdateDevelocityPluginVersion.java <new-version>` to update
+    id("gradlebuild.configuration-cache-compatibility")
+    id("com.gradle.develocity").version("3.19.2") // Run `java build-logic-settings/UpdateDevelocityPluginVersion.java <new-version>` to update
     id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.10.2")
-    id("org.gradle.toolchains.foojay-resolver-convention").version ("0.8.0")
+    id("org.gradle.toolchains.foojay-resolver-convention").version("0.9.0")
 }
 
 includeBuild("build-logic-commons")
@@ -42,26 +43,10 @@ val architectureElements = mutableListOf<ArchitectureElementBuilder>()
 
 // If you include a new subproject here, consult internal documentation "Adding a new Build Tool subproject" page
 
-unassigned {
-    subproject("distributions-dependencies") // platform for dependency versions
-    subproject("core-platform")              // platform for Gradle distribution core
-}
-
-// Gradle Distributions - for testing and for publishing a full distribution
-unassigned {
-    subproject("distributions-full")
-}
-
-// Public API publishing
-unassigned {
-    subproject("public-api")
-}
-
 // Gradle implementation projects
 unassigned {
     subproject("core")
     subproject("build-events")
-    subproject("diagnostics")
     subproject("composite-builds")
     subproject("core-api")
 }
@@ -80,6 +65,7 @@ val core = platform("core") {
         subproject("build-process-services")
         subproject("build-profile")
         subproject("build-state")
+        subproject("classloaders")
         subproject("cli")
         subproject("client-services")
         subproject("concurrent")
@@ -118,6 +104,7 @@ val core = platform("core") {
         subproject("service-registry-impl")
         subproject("time")
         subproject("tooling-api-provider")
+        subproject("versioned-cache")
         subproject("wrapper-main")
         subproject("wrapper-shared")
     }
@@ -125,6 +112,7 @@ val core = platform("core") {
     // Core Configuration Module
     module("core-configuration") {
         subproject("api-metadata")
+        subproject("base-diagnostics")
         subproject("base-services-groovy")
         subproject("bean-serialization-services")
         subproject("configuration-cache")
@@ -156,6 +144,7 @@ val core = platform("core") {
         subproject("stdlib-kotlin-extensions")
         subproject("stdlib-serialization-codecs")
         subproject("model-core")
+        subproject("model-reflect")
         subproject("model-groovy")
     }
 
@@ -164,16 +153,19 @@ val core = platform("core") {
         subproject("build-cache")
         subproject("build-cache-base")
         subproject("build-cache-example-client")
-        subproject("build-cache-local")
         subproject("build-cache-http")
+        subproject("build-cache-local")
         subproject("build-cache-packaging")
         subproject("build-cache-spi")
+        subproject("daemon-server-worker")
+        subproject("execution")
         subproject("execution-e2e-tests")
         subproject("file-watching")
-        subproject("execution")
         subproject("hashing")
         subproject("persistent-cache")
+        subproject("request-handler-worker")
         subproject("snapshots")
+        subproject("snapshots-worker")
         subproject("worker-main")
         subproject("workers")
     }
@@ -223,6 +215,7 @@ val software = platform("software") {
     subproject("reporting")
     subproject("security")
     subproject("signing")
+    subproject("software-diagnostics")
     subproject("testing-base")
     subproject("testing-base-infrastructure")
     subproject("test-suites-base")
@@ -293,6 +286,14 @@ module("enterprise") {
     subproject("enterprise-workers")
 }
 
+packaging {
+    subproject("distributions-dependencies") // platform for dependency versions
+    subproject("core-platform")              // platform for Gradle distribution core
+    subproject("distributions-full")
+    subproject("public-api")                 // Public API publishing
+    subproject("internal-build-reports")     // Internal utility and verification projects
+}
+
 testing {
     subproject("architecture-test")
     subproject("distributions-integ-tests")
@@ -307,11 +308,6 @@ testing {
     subproject("soak")
     subproject("smoke-ide-test") // eventually should be owned by IDEX team
     subproject("smoke-test")
-}
-
-// Internal utility and verification projects
-unassigned {
-    subproject("internal-build-reports")
 }
 
 rootProject.name = "gradle"
@@ -460,6 +456,12 @@ fun platform(platformName: String, platformConfiguration: PlatformBuilder.() -> 
     platform.platformConfiguration()
     return platform
 }
+
+/**
+ * Defines the packaging module, for project helping package Gradle.
+ */
+fun packaging(moduleConfiguration: ProjectScope.() -> Unit) =
+    ProjectScope("packaging").moduleConfiguration()
 
 /**
  * Defines the testing module, for project helping test Gradle.

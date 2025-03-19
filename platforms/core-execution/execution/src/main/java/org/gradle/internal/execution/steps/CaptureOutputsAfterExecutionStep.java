@@ -92,7 +92,7 @@ public class CaptureOutputsAfterExecutionStep<C extends WorkspaceContext & Cachi
     private OriginMetadata createOriginMetadata(CachingState.CacheKeyCalculatedState cacheKeyCalculatedState, Result result, Timer timer) {
         long snapshotOutputDuration = timer.getElapsedMillis();
 
-        // The origin execution time is recorded as “work duration” + “output snapshotting duration”,
+        // The origin execution time is recorded as "work duration" + "output snapshotting duration",
         // As this is _roughly_ the amount of time that is avoided by reusing the outputs,
         // which is currently the _only_ thing this value is used for.
         Duration originExecutionTime = result.getDuration().plus(Duration.ofMillis(snapshotOutputDuration));

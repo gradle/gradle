@@ -54,7 +54,6 @@ import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
-import org.gradle.api.internal.file.DefaultProjectLayout;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
@@ -125,6 +124,7 @@ import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.normalization.InputNormalizationHandler;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
+import org.gradle.plugin.software.internal.SoftwareFeaturesDynamicObject;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
 import org.gradle.process.JavaExecSpec;
@@ -132,9 +132,9 @@ import org.gradle.util.Configurable;
 import org.gradle.util.Path;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.util.internal.ConfigureUtil;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.net.URI;
@@ -257,12 +257,14 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
             services.get(InstantiatorFactory.class).decorateLenient(services)
         );
 
-
         @Nullable DynamicObject parentInherited = services.get(CrossProjectModelAccess.class).parentProjectDynamicInheritedScope(this);
         if (parentInherited != null) {
             extensibleDynamicObject.setParent(parentInherited);
         }
         extensibleDynamicObject.addObject(taskContainer.getTasksAsDynamicObject(), ExtensibleDynamicObject.Location.AfterConvention);
+
+        DynamicObject softwareFeaturesDynamicObject = getObjects().newInstance(SoftwareFeaturesDynamicObject.class, this);
+        extensibleDynamicObject.addObject(softwareFeaturesDynamicObject, ExtensibleDynamicObject.Location.BeforeConvention);
 
         evaluationListener.add(gradle.getProjectEvaluationBroadcaster());
 
@@ -655,7 +657,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         return owner.getProjectPath();
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public ProjectIdentity getProjectIdentity() {
         return owner.getIdentity();
@@ -880,7 +882,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Override
     @Deprecated
     public void setBuildDir(Object path) {
-        getLayout().setBuildDirectory(path);
+        getLayout().getBuildDirectory().set(getFileResolver().resolve(path));
     }
 
     @Override
@@ -995,7 +997,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Inject
     @Override
     // onMutableStateAccess() triggered by #getServices()
-    public abstract DefaultProjectLayout getLayout();
+    public abstract ProjectLayout getLayout();
 
     @Override
     public File file(Object path) {
@@ -1382,23 +1384,27 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         ConfigureUtil.configure(configureClosure, getBuildscript());
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public Task task(String task) {
         onMutableStateAccess();
         return taskContainer.create(task);
     }
 
+    @SuppressWarnings("deprecation")
     public Task task(Object task) {
         onMutableStateAccess();
         return taskContainer.create(task.toString());
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public Task task(String task, Action<? super Task> configureAction) {
         onMutableStateAccess();
         return taskContainer.create(task, configureAction);
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public Task task(String task, Closure configureClosure) {
         onMutableStateAccess();
@@ -1410,6 +1416,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         return task(task.toString(), configureClosure);
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public Task task(Map options, String task) {
         onMutableStateAccess();
@@ -1421,6 +1428,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         return task(options, task.toString());
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public Task task(Map options, String task, Closure configureClosure) {
         onMutableStateAccess();
@@ -1603,7 +1611,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     /**
      * Assert that the current thread is not running a lazy action on a domain object within this project.
-     *  This method should be called by methods that must not be called in lazy actions.
+     * This method should be called by methods that must not be called in lazy actions.
      */
     private void assertEagerContext(String methodName) {
         getProjectConfigurator().getLazyBehaviorGuard().assertEagerContext(methodName, this, Project.class);

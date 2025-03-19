@@ -25,7 +25,9 @@ import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 import org.gradle.internal.declarativedsl.analysis.ResolutionTrace
 import org.gradle.internal.declarativedsl.analysis.tracingCodeResolver
 import org.gradle.internal.declarativedsl.dom.fromLanguageTree.toDocument
+import org.gradle.internal.declarativedsl.dom.resolution.DocumentWithResolution
 import org.gradle.internal.declarativedsl.dom.resolution.resolutionContainer
+import org.gradle.internal.declarativedsl.evaluator.checks.DocumentLowLevelResolutionCheck
 import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult.NotEvaluated
 import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult.NotEvaluated.StageFailure.AssignmentErrors
 import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult.NotEvaluated.StageFailure.DocumentCheckFailures
@@ -75,7 +77,12 @@ abstract class AbstractAnalysisStepRunner : InterpretationSequenceStepRunner<Ana
         val checkFeatures = step.features.filterIsInstance<DocumentChecks>()
         val isAnalyzedNodeContainer = produceIsAnalyzedNodeContainer(document.languageTreeMappingContainer, parseAndResolveResult.languageModel.topLevelBlock, evaluationSchema.analysisStatementFilter)
         val checkResults = stepContext.supportedDocumentChecks.filter { checkFeatures.any(it::shouldHandleFeature) }
-            .flatMap { it.detectFailures(document, documentResolutionContainer, isAnalyzedNodeContainer) }
+            .flatMap {
+                it.detectFailures(DocumentWithResolution(document, documentResolutionContainer), isAnalyzedNodeContainer) +
+                    if (it is DocumentLowLevelResolutionCheck)
+                        it.detectFailuresInLowLevelResolution(document, document.languageTreeMappingContainer, parseAndResolveResult.resolutionTrace)
+                    else emptyList()
+            }
 
         if (checkResults.isNotEmpty()) {
             failureReasons += DocumentCheckFailures(checkResults)

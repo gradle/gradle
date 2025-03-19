@@ -34,6 +34,7 @@ import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.repositories.UrlArtifactRepository;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.FileCollection;
@@ -174,7 +175,9 @@ public class ProviderMigrationArchitectureTest {
         // Exceptions should not be upgraded
         .and(not(declaredIn(assignableTo(Exception.class))))
         // Dependency management
-        .and(not(declaredIn(resideInAPackage("org.gradle.api.artifacts.."))))
+        .and(
+            not(declaredIn(resideInAPackage("org.gradle.api.artifacts..").and(not(assignableTo(UrlArtifactRepository.class)))))
+        )
         .and(not(declaredIn(resideInAPackage("org.gradle.api.attributes"))))
         // Software model
         .and(not(declaredIn(assignableTo(ModelElement.class))))

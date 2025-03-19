@@ -20,10 +20,11 @@ import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.DependencyResolutionListener;
 import org.gradle.api.artifacts.ResolvableConfiguration;
 import org.gradle.api.capabilities.Capability;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper;
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesFactory;
@@ -39,7 +40,6 @@ import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.internal.work.WorkerThreadRegistry;
 
 /**
  * A concrete resolvable {@link DefaultConfiguration} that cannot change roles.
@@ -52,7 +52,6 @@ public class DefaultResolvableConfiguration extends DefaultConfiguration impleme
         ConfigurationsProvider configurationsProvider,
         ConfigurationResolver resolver,
         ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners,
-        DependencyLockingProvider dependencyLockingProvider,
         Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
         FileCollectionFactory fileCollectionFactory,
         BuildOperationRunner buildOperationRunner,
@@ -64,13 +63,14 @@ public class DefaultResolvableConfiguration extends DefaultConfiguration impleme
         ResolveExceptionMapper exceptionMapper,
         AttributeDesugaring attributeDesugaring,
         UserCodeApplicationContext userCodeApplicationContext,
+        CollectionCallbackActionDecorator collectionCallbackActionDecorator,
         ProjectStateRegistry projectStateRegistry,
-        WorkerThreadRegistry workerThreadRegistry,
         DomainObjectCollectionFactory domainObjectCollectionFactory,
         CalculatedValueContainerFactory calculatedValueContainerFactory,
         DefaultConfigurationFactory defaultConfigurationFactory,
         TaskDependencyFactory taskDependencyFactory,
-        InternalProblems problemsService
+        InternalProblems problemsService,
+        DocumentationRegistry documentationRegistry
     ) {
         super(
             domainObjectContext,
@@ -78,7 +78,6 @@ public class DefaultResolvableConfiguration extends DefaultConfiguration impleme
             configurationsProvider,
             resolver,
             dependencyResolutionListeners,
-            dependencyLockingProvider,
             resolutionStrategyFactory,
             fileCollectionFactory,
             buildOperationRunner,
@@ -90,14 +89,15 @@ public class DefaultResolvableConfiguration extends DefaultConfiguration impleme
             exceptionMapper,
             attributeDesugaring,
             userCodeApplicationContext,
+            collectionCallbackActionDecorator,
             projectStateRegistry,
-            workerThreadRegistry,
             domainObjectCollectionFactory,
             calculatedValueContainerFactory,
             defaultConfigurationFactory,
             taskDependencyFactory,
             ConfigurationRoles.RESOLVABLE,
             problemsService,
+            documentationRegistry,
             true
         );
 

@@ -22,9 +22,10 @@ import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.reflect.CachedInvokable;
 import org.gradle.internal.reflect.ReflectionCache;
 import org.gradle.util.internal.ConfigureUtil;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -117,12 +118,14 @@ public abstract class MapNotationConverter<T> extends TypedNotationConverter<Map
         protected ConvertMethod create(Class<?> key, Class<?>[] params) {
             Method convertMethod = findConvertMethod(key);
             Annotation[][] parameterAnnotations = convertMethod.getParameterAnnotations();
+            AnnotatedType[] annotatedParameterTypes = convertMethod.getAnnotatedParameterTypes();
             String[] keyNames = new String[parameterAnnotations.length];
             boolean[] nullables = new boolean[parameterAnnotations.length];
             for (int i = 0; i < parameterAnnotations.length; i++) {
                 Annotation[] annotations = parameterAnnotations[i];
+                Annotation[] typeAnnotations = annotatedParameterTypes[i].getAnnotations();
                 keyNames[i] = keyName(annotations);
-                nullables[i] = nullable(annotations);
+                nullables[i] = nullable(annotations) || nullable(typeAnnotations);
             }
             return new ConvertMethod(convertMethod, keyNames, nullables);
         }
@@ -139,7 +142,7 @@ public abstract class MapNotationConverter<T> extends TypedNotationConverter<Map
 
         private static boolean nullable(Annotation[] annotations) {
             for (Annotation annotation : annotations) {
-                if (annotation instanceof Nullable) {
+                if (annotation instanceof javax.annotation.Nullable || annotation instanceof org.jspecify.annotations.Nullable) {
                     return true;
                 }
             }

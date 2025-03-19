@@ -57,7 +57,7 @@ class ProjectBuilderIntegrationTest extends AbstractIntegrationSpec {
         project = ProjectBuilder.builder().build()
         project.with {
             repositories {
-                maven { url repo.uri }
+                maven { url = repo.uri }
             }
             configurations {
                 compile

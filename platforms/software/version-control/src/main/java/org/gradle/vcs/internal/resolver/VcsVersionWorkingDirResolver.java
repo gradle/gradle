@@ -17,11 +17,14 @@
 package org.gradle.vcs.internal.resolver;
 
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.vcs.internal.VersionControlRepositoryConnection;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 
+@ServiceScope(Scope.Build.class)
 public interface VcsVersionWorkingDirResolver {
     /**
      * Attempts to locate a matching version for the selector in the given VCS, returning the working directory to use for the version if found.

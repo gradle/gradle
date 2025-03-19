@@ -55,7 +55,7 @@ public interface AuthenticationSupported {
      * <pre class='autoTested'>
      * repositories {
      *     maven {
-     *         url "${url}"
+     *         url = "https://example.com/m2"
      *         credentials {
      *             username = 'joe'
      *             password = 'secret'
@@ -76,10 +76,10 @@ public interface AuthenticationSupported {
      * <pre class='autoTested'>
      * repositories {
      *     maven {
-     *         url "${url}"
+     *         url = "https://example.com/aws/proxy"
      *         credentials(AwsCredentials) {
-     *             accessKey "myAccessKey"
-     *             secretKey "mySecret"
+     *             accessKey = "myAccessKey"
+     *             secretKey = "mySecret"
      *         }
      *     }
      * }
@@ -104,7 +104,7 @@ public interface AuthenticationSupported {
      * <pre class='autoTested'>
      * repositories {
      *     maven {
-     *         url "${url}"
+     *         url = "https://example.com/m2"
      *         credentials(PasswordCredentials)
      *     }
      * }
@@ -134,7 +134,7 @@ public interface AuthenticationSupported {
      * <pre class='autoTested'>
      * repositories {
      *     maven {
-     *         url "${url}"
+     *         url = "https://example.com/m2"
      *         authentication {
      *             basic(BasicAuthentication)
      *         }

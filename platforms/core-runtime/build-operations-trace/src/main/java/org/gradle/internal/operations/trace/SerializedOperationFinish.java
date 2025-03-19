@@ -44,8 +44,8 @@ class SerializedOperationFinish implements SerializedOperation {
     }
 
     SerializedOperationFinish(Map<String, ?> map) {
-        this.id = ((Integer) map.get("id")).longValue();
-        this.endTime = (Long) map.get("endTime");
+        this.id = ((Number) map.get("id")).longValue();
+        this.endTime = ((Number) map.get("endTime")).longValue();
         this.result = map.get("result");
         this.resultClassName = (String) map.get("resultClassName");
         this.failureMsg = (String) map.get("failure");

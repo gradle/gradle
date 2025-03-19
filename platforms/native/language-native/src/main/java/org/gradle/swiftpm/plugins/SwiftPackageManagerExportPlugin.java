@@ -90,6 +90,7 @@ public abstract class SwiftPackageManagerExportPlugin implements Plugin<Project>
 
     @Override
     public void apply(final Project project) {
+        @SuppressWarnings("deprecation")
         final GenerateSwiftPackageManagerManifest manifestTask = project.getTasks().create("generateSwiftPmManifest", GenerateSwiftPackageManagerManifest.class);
         manifestTask.getManifestFile().set(project.getLayout().getProjectDirectory().file("Package.swift"));
 
@@ -203,7 +204,7 @@ public abstract class SwiftPackageManagerExportPlugin implements Plugin<Project>
             for (org.gradle.api.artifacts.Dependency dependency : configuration.getAllDependencies()) {
                 if (dependency instanceof ProjectDependency) {
                     ProjectDependency projectDependency = (ProjectDependency) dependency;
-                    Path identityPath = ((ProjectDependencyInternal) projectDependency).getIdentityPath();
+                    Path identityPath = ((ProjectDependencyInternal) projectDependency).getTargetProjectIdentity().getBuildTreePath();
                     SwiftPmTarget identifier = publicationResolver.resolveComponent(SwiftPmTarget.class, identityPath);
                     target.getRequiredTargets().add(identifier.getTargetName());
                 } else if (dependency instanceof ExternalModuleDependency) {

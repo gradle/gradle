@@ -126,7 +126,7 @@ data class ModelStoreResult(val storeFailure: Throwable?)
 
 
 internal
-fun BuildOperationRunner.withFingerprintCheckOperations(block: () -> CheckedFingerprint): CheckedFingerprint {
+fun BuildOperationRunner.withFingerprintCheckOperations(block: () -> EntrySearchResult): CheckedFingerprint {
     return call(object : CallableBuildOperation<CheckedFingerprint> {
         override fun description() = BuildOperationDescriptor
             .displayName("Check configuration cache fingerprint")
@@ -135,10 +135,13 @@ fun BuildOperationRunner.withFingerprintCheckOperations(block: () -> CheckedFing
         override fun call(context: BuildOperationContext): CheckedFingerprint {
             return block().also {
                 context.setResult(FingerprintCheckResult(it))
-            }
+            }.checkedFingerprint
         }
     })
 }
+
+internal
+data class EntrySearchResult(val originInvocationId: String?, val checkedFingerprint: CheckedFingerprint)
 
 
 private
@@ -147,41 +150,54 @@ object FingerprintCheckDetails : ConfigurationCacheCheckFingerprintBuildOperatio
 
 private
 class FingerprintCheckResult(
-    private val checkResult: CheckedFingerprint
+    entrySearchResult: EntrySearchResult
 ) : ConfigurationCacheCheckFingerprintBuildOperationType.Result {
 
-    override fun getStatus(): CheckStatus = when (checkResult) {
+    private
+    val checkedFingerprint = entrySearchResult.checkedFingerprint
+
+    private
+    val originInvocationId = entrySearchResult.originInvocationId
+
+    override fun getStatus(): CheckStatus = when (checkedFingerprint) {
         is CheckedFingerprint.NotFound -> CheckStatus.NOT_FOUND
-        is CheckedFingerprint.Valid -> CheckStatus.VALID
-        is CheckedFingerprint.EntryInvalid -> CheckStatus.INVALID
-        is CheckedFingerprint.ProjectsInvalid -> CheckStatus.PARTIAL
-    }
-
-    override fun getBuildInvalidationReasons(): List<BuildInvalidationReasons> {
-        return when (checkResult) {
-            is CheckedFingerprint.EntryInvalid -> listOf(BuildInvalidationReasonsImpl(checkResult.buildPath, checkResult.reason))
-            else -> emptyList()
-        }
-    }
-
-    override fun getProjectInvalidationReasons(): List<ProjectInvalidationReasons> {
-        return when (checkResult) {
-            is CheckedFingerprint.ProjectsInvalid -> {
-                buildList(checkResult.invalidProjects.size) {
-                    // First reason is shown to the user.
-                    add(ProjectInvalidationReasonsImpl(checkResult.invalidProjects.getValue(checkResult.firstInvalidated)))
-                    // The rest is in alphabetical order.
-                    checkResult.invalidProjects.asSequence()
-                        .filterNot { it.key == checkResult.firstInvalidated }
-                        .map { ProjectInvalidationReasonsImpl(it.value) }
-                        .sortedWith(compareBy({ it.buildPath }, { it.projectPath }))
-                        .forEach { add(it) }
-                }
+        is CheckedFingerprint.Invalid -> CheckStatus.INVALID
+        is CheckedFingerprint.Valid -> {
+            when (checkedFingerprint.invalidProjects) {
+                null -> CheckStatus.VALID
+                else -> CheckStatus.PARTIAL
             }
-
-            else -> emptyList()
         }
     }
+
+    override fun getBuildInvalidationReasons(): List<BuildInvalidationReasons> = when (checkedFingerprint) {
+        is CheckedFingerprint.Invalid -> listOf(
+            BuildInvalidationReasonsImpl(checkedFingerprint.buildPath, checkedFingerprint.reason)
+        )
+
+        else -> emptyList()
+    }
+
+    override fun getProjectInvalidationReasons(): List<ProjectInvalidationReasons> = when {
+        checkedFingerprint is CheckedFingerprint.Valid && checkedFingerprint.invalidProjects != null -> {
+            val invalidProjects = checkedFingerprint.invalidProjects
+            buildList(invalidProjects.size) {
+                // First reason is shown to the user.
+                add(ProjectInvalidationReasonsImpl(invalidProjects.first))
+                // The rest is in alphabetical order.
+                invalidProjects.all.asSequence()
+                    .filterNot { it.key == invalidProjects.firstProjectPath }
+                    .map { ProjectInvalidationReasonsImpl(it.value) }
+                    .sortedWith(compareBy({ it.buildPath }, { it.projectPath }))
+                    .forEach { add(it) }
+            }
+        }
+
+        else -> emptyList()
+    }
+
+    override fun getOriginBuildInvocationId(): String? =
+        originInvocationId
 
     private
     data class BuildInvalidationReasonsImpl(
@@ -203,10 +219,10 @@ class FingerprintCheckResult(
         private val invalidationReasons: List<FingerprintInvalidationReason>
     ) : ProjectInvalidationReasons {
 
-        constructor(invalidation: CheckedFingerprint.ProjectInvalidationData) : this(
+        constructor(invalidation: CheckedFingerprint.InvalidProject) : this(
             invalidation.buildPath.path,
             invalidation.projectPath.path,
-            listOf(FingerprintInvalidationReasonImpl(invalidation.message.toString()))
+            listOf(FingerprintInvalidationReasonImpl(invalidation.reason.toString()))
         )
 
         override fun getBuildPath() = buildPath

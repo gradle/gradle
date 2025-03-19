@@ -20,8 +20,6 @@ import org.gradle.internal.buildtree.BuildTreeWorkGraph;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-import javax.annotation.Nonnull;
-import javax.annotation.meta.When;
 import java.util.function.Function;
 
 /**
@@ -38,6 +36,5 @@ public interface BuildTreeWorkGraphController {
      * Runs the given action against a new, empty work graph. This allows tasks to be run while calculating the task graph of the build tree, for example to run `buildSrc` tasks or
      * to build local plugins in an included build.
      */
-    @Nonnull(when = When.UNKNOWN)
     <T> T withNewWorkGraph(Function<? super BuildTreeWorkGraph, T> action);
 }

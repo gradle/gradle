@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.project;
 
+import com.google.common.collect.Iterables;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
@@ -37,8 +38,8 @@ import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.Path;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.File;
 import java.util.Collection;
@@ -325,9 +326,23 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
         public Set<ProjectState> getChildProjects() {
             Set<ProjectState> children = new TreeSet<>(Comparator.comparing(ProjectState::getIdentityPath));
             for (DefaultProjectDescriptor child : descriptor.children()) {
-                children.add(projectsByPath.get(owner.calculateIdentityPathForProject(child.path())));
+                children.add(getStateForChild(child));
             }
             return children;
+        }
+
+        @Override
+        public Iterable<ProjectState> getUnorderedChildProjects() {
+            return Iterables.transform(descriptor.children(), this::getStateForChild);
+        }
+
+        @Override
+        public boolean hasChildren() {
+            return !descriptor.children().isEmpty();
+        }
+
+        private ProjectStateImpl getStateForChild(DefaultProjectDescriptor child) {
+            return projectsByPath.get(owner.calculateIdentityPathForProject(child.path()));
         }
 
         @Override
@@ -381,6 +396,15 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
             ProjectState parent = getBuildParent();
             if (parent != null) {
                 parent.ensureConfigured();
+            }
+            controller.ensureSelfConfigured();
+        }
+
+        @Override
+        public void ensureSelfConfigured() {
+            ProjectState parent = getBuildParent();
+            if (parent != null) {
+                ((ProjectStateImpl) parent).controller.assertConfigured();
             }
             controller.ensureSelfConfigured();
         }

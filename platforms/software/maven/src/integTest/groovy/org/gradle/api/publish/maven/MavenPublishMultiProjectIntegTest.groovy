@@ -41,9 +41,9 @@ class MavenPublishMultiProjectIntegTest extends AbstractMavenPublishIntegTest {
 project(":project3") {
     publishing {
         publications.maven {
-            groupId "changed.group"
-            artifactId "changed-artifact-id"
-            version "changed"
+            groupId = "changed.group"
+            artifactId = "changed-artifact-id"
+            version = "changed"
         }
     }
 }
@@ -94,14 +94,14 @@ project(":project2") {
         publications {
             extraComp(MavenPublication) {
                 from components.java
-                groupId "extra.group"
-                artifactId "extra-comp"
-                version "extra"
+                groupId = "extra.group"
+                artifactId = "extra-comp"
+                version = "extra"
             }
             extra(MavenPublication) {
-                groupId "extra.group"
-                artifactId "extra"
-                version "extra"
+                groupId = "extra.group"
+                artifactId = "extra"
+                version = "extra"
             }
         }
     }
@@ -125,9 +125,9 @@ project(":project3") {
     publishing {
         publications {
             extra(MavenPublication) {
-                groupId "extra.group"
-                artifactId "extra"
-                version "extra"
+                groupId = "extra.group"
+                artifactId = "extra"
+                version = "extra"
             }
         }
     }
@@ -154,15 +154,15 @@ project(":project3") {
         publications {
             extra1(MavenPublication) {
                 from c1
-                groupId "extra.group"
-                artifactId "extra1"
-                version "extra"
+                groupId = "extra.group"
+                artifactId = "extra1"
+                version = "extra"
             }
             extra2(MavenPublication) {
                 from c2
-                groupId "custom"
-                artifactId "custom3"
-                version "456"
+                groupId = "custom"
+                artifactId = "custom3"
+                version = "456"
             }
         }
     }
@@ -246,7 +246,7 @@ project(":project2") {
 
     publishing {
         repositories {
-            maven { url "${mavenRepo.uri}" }
+            maven { url = "${mavenRepo.uri}" }
         }
         publications {
             maven(MavenPublication) {
@@ -316,7 +316,7 @@ project(":$platformName") {
     }
     publishing {
         repositories {
-            maven { url "${mavenRepo.uri}" }
+            maven { url = "${mavenRepo.uri}" }
         }
         publications {
             maven(MavenPublication) { from components.javaPlatform }
@@ -333,7 +333,7 @@ project(":library") {
     }
     publishing {
         repositories {
-            maven { url "${mavenRepo.uri}" }
+            maven { url = "${mavenRepo.uri}" }
         }
         publications {
             maven(MavenPublication) { from components.java }
@@ -397,7 +397,7 @@ subprojects {
 
     publishing {
         repositories {
-            maven { url "${mavenRepo.uri}" }
+            maven { url = "${mavenRepo.uri}" }
         }
         publications {
             maven(MavenPublication) {

@@ -22,23 +22,20 @@ import org.gradle.api.Project
 import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
 import org.gradle.api.internal.plugins.software.SoftwareType
 import org.gradle.api.internal.tasks.properties.InspectionScheme
-import org.gradle.api.problems.internal.AdditionalDataBuilderFactory
-import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.properties.annotations.PropertyMetadata
 import org.gradle.internal.properties.annotations.TypeMetadata
 import org.gradle.internal.properties.annotations.TypeMetadataStore
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadata
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class SoftwareTypeRegistrationPluginTargetTest extends Specification {
     def delegate = Mock(PluginTarget)
     def softwareTypeRegistry = Mock(SoftwareTypeRegistry)
     def inspectionScheme = Mock(InspectionScheme)
-    def problems = Mock(InternalProblems) {
-        getAdditionalDataBuilderFactory() >> new AdditionalDataBuilderFactory()
-    }
+    def problems = TestUtil.problemsService()
     def pluginTarget = new SoftwareTypeRegistrationPluginTarget(delegate, softwareTypeRegistry, inspectionScheme, problems)
     def plugin = Mock(Plugin)
     def metadataStore = Mock(TypeMetadataStore)

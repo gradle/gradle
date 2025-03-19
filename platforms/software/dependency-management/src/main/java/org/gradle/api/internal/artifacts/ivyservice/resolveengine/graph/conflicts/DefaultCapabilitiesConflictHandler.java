@@ -268,8 +268,15 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
         }
 
         @Override
-        public void withParticipatingModules(Action<? super ModuleIdentifier> action) {
+        public void withParticipatingModules(Action<? super ModuleIdentifier> action, ConflictResolutionResult result) {
             Set<ModuleIdentifier> seen = new HashSet<>();
+
+            // Visit the winning module first so that when we visit unattached dependencies of
+            // losing modules, the winning module always has a selected component.
+            ModuleIdentifier winningModule = result.getSelected().getModule().getId();
+            action.execute(winningModule);
+            seen.add(winningModule);
+
             for (NodeState node : conflict.nodes) {
                 ModuleIdentifier module = node.getComponent().getId().getModule();
                 if (seen.add(module)) {

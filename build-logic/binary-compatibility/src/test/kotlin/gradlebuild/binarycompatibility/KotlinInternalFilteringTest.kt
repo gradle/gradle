@@ -16,6 +16,7 @@
 
 package gradlebuild.binarycompatibility
 
+import org.intellij.lang.annotations.Language
 import org.junit.Test
 
 
@@ -24,6 +25,7 @@ import org.junit.Test
  */
 class KotlinInternalFilteringTest : AbstractBinaryCompatibilityTest() {
 
+    @Language("kotlin")
     private
     val internalMembers = """
 
@@ -46,6 +48,7 @@ class KotlinInternalFilteringTest : AbstractBinaryCompatibilityTest() {
 
     """
 
+    @Language("kotlin")
     private
     val publicMembers = """
 
@@ -68,6 +71,7 @@ class KotlinInternalFilteringTest : AbstractBinaryCompatibilityTest() {
 
     """
 
+    @Language("kotlin")
     private
     val existingSource = """
 
@@ -83,6 +87,7 @@ class KotlinInternalFilteringTest : AbstractBinaryCompatibilityTest() {
         typealias ExistingTypeAlias = String
     """
 
+    @Language("kotlin")
     private
     val internalSource = """
 
@@ -132,6 +137,7 @@ class KotlinInternalFilteringTest : AbstractBinaryCompatibilityTest() {
         }
     """
 
+    @Language("kotlin")
     private
     val publicSource = """
 

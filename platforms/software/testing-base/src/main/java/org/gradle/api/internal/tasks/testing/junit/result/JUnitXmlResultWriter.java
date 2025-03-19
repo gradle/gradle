@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks.testing.junit.result;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
-import org.apache.tools.ant.util.DateUtils;
+import org.gradle.api.internal.tasks.testing.results.serializable.SerializableFailure;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.UncheckedException;
@@ -27,11 +27,14 @@ import org.gradle.internal.xml.SimpleXmlWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Writer;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static java.time.format.DateTimeFormatter.ISO_INSTANT;
 
 public class JUnitXmlResultWriter {
 
@@ -53,13 +56,13 @@ public class JUnitXmlResultWriter {
             writer.startElement("testsuite")
                 .attribute("name", result.getXmlTestSuiteName())
 
-                // NOTE: these totals are unaffected by “merge reruns” with Surefire, so we do the same
+                // NOTE: these totals are unaffected by "merge reruns" with Surefire, so we do the same
                 .attribute("tests", String.valueOf(result.getTestsCount()))
                 .attribute("skipped", String.valueOf(result.getSkippedCount()))
                 .attribute("failures", String.valueOf(result.getFailuresCount()))
                 .attribute("errors", "0")
 
-                .attribute("timestamp", DateUtils.format(result.getStartTime(), DateUtils.ISO8601_DATETIME_PATTERN))
+                .attribute("timestamp", ISO_INSTANT.format(Instant.ofEpochMilli(result.getStartTime())))
                 .attribute("hostname", hostName)
                 .attribute("time", String.valueOf(result.getDuration() / 1000.0));
 
@@ -111,9 +114,9 @@ public class JUnitXmlResultWriter {
      * - https://plugins.jenkins.io/flaky-test-handler/
      *
      * We deviate from Maven's behaviour when there are any skipped executions, or when there are multiple successful executions.
-     * The “standard” does not specify the behaviour in this circumstance.
+     * The "standard" does not specify the behaviour in this circumstance.
      *
-     * There's no way to convey multiple successful “executions” of a test case in the XML structure.
+     * There's no way to convey multiple successful "executions" of a test case in the XML structure.
      * If this happens, Maven just omits any information about successful executions if they were not the last.
      * We break the executions up into multiple testcases, which each successful execution being the last execution
      * of the test case, so as to not drop information.
@@ -322,10 +325,10 @@ public class JUnitXmlResultWriter {
     }
 
     private static class TestCaseExecutionFailure extends TestCaseExecution {
-        private final TestFailure failure;
+        private final SerializableFailure failure;
         private final FailureType type;
 
-        TestCaseExecutionFailure(OutputProvider outputProvider, JUnitXmlResultOptions options, FailureType type, TestFailure failure) {
+        TestCaseExecutionFailure(OutputProvider outputProvider, JUnitXmlResultOptions options, FailureType type, SerializableFailure failure) {
             super(outputProvider, options);
             this.failure = failure;
             this.type = type;
@@ -360,15 +363,15 @@ public class JUnitXmlResultWriter {
     }
 
     private Iterable<TestCaseExecution> failures(final long classId, final TestMethodResult methodResult, final FailureType failureType) {
-        List<TestFailure> failures = methodResult.getFailures();
+        List<SerializableFailure> failures = methodResult.getFailures();
         if (failures.isEmpty()) {
             // This can happen with a failing engine. For now, we just ignore this.
             return Collections.emptyList();
         }
-        final TestFailure firstFailure = failures.get(0);
-        return Iterables.transform(failures, new Function<TestFailure, TestCaseExecution>() {
+        final SerializableFailure firstFailure = failures.get(0);
+        return Iterables.transform(failures, new Function<SerializableFailure, TestCaseExecution>() {
             @Override
-            public TestCaseExecution apply(final TestFailure failure) {
+            public TestCaseExecution apply(final SerializableFailure failure) {
                 boolean isFirst = failure == firstFailure;
                 OutputProvider outputProvider = isFirst ? outputProvider(classId, methodResult.getId()) : NullOutputProvider.INSTANCE;
                 return new TestCaseExecutionFailure(outputProvider, options, failureType, failure);

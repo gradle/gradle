@@ -16,16 +16,16 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.TaskInputFilePropertyBuilder;
 import org.gradle.api.tasks.TaskInputPropertyBuilder;
 import org.gradle.api.tasks.TaskInputs;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 
-@NonNullApi
+@NullMarked
 public class TaskInputsDeprecationSupport implements TaskInputs {
 
     private UnsupportedOperationException failWithUnsupportedMethod(String method) {

@@ -39,9 +39,9 @@ import org.codehaus.groovy.tools.javac.JavaAwareCompilationUnit;
 import org.codehaus.groovy.tools.javac.JavaCompiler;
 import org.codehaus.groovy.tools.javac.JavaCompilerFactory;
 import org.gradle.api.GradleException;
-import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.classloading.GroovySystemLoader;
 import org.gradle.api.internal.classloading.GroovySystemLoaderFactory;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classloader.DefaultClassLoaderFactory;
@@ -66,11 +66,11 @@ import static org.gradle.internal.FileUtils.hasExtension;
 
 public class ApiGroovyCompiler implements org.gradle.language.base.internal.compile.Compiler<GroovyJavaJointCompileSpec>, Serializable {
     private final Compiler<JavaCompileSpec> javaCompiler;
-    private final ProjectLayout projectLayout;
+    private final ObjectFactory objectFactory;
 
-    public ApiGroovyCompiler(Compiler<JavaCompileSpec> javaCompiler, ProjectLayout projectLayout) {
+    public ApiGroovyCompiler(Compiler<JavaCompileSpec> javaCompiler, ObjectFactory objectFactory) {
         this.javaCompiler = javaCompiler;
-        this.projectLayout = projectLayout;
+        this.objectFactory = objectFactory;
     }
 
     private static abstract class IncrementalCompilationCustomizer extends CompilationCustomizer {
@@ -242,7 +242,7 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
                         if (shouldProcessAnnotations) {
                             // In order for the Groovy stubs to have annotation processors invoked against them, they must be compiled as source.
                             // Classes compiled as a result of being on the -sourcepath do not have the annotation processor run against them
-                            spec.setSourceFiles(Iterables.concat(spec.getSourceFiles(), projectLayout.files(stubDir).getAsFileTree()));
+                            spec.setSourceFiles(Iterables.concat(spec.getSourceFiles(), objectFactory.fileTree().from(stubDir)));
                         } else {
                             // When annotation processing isn't required, it's better to add the Groovy stubs as part of the source path.
                             // This allows compilations to complete faster, because only the Groovy stubs that are needed by the java source are compiled.
@@ -372,6 +372,7 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
     // This is necessary because:
     // 1. serialization/deserialization of the compile spec doesn't preserve Boolean.TRUE/Boolean.FALSE but creates new instances
     // 1. org.codehaus.groovy.classgen.asm.WriterController makes identity comparisons
+    @SuppressWarnings("ModifyCollectionInEnhancedForLoop")
     private void canonicalizeValues(Map<String, Boolean> options) {
         for (String key : options.keySet()) {
             // unboxing and boxing does the trick

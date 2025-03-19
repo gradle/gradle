@@ -197,7 +197,7 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
                 suspend = false
             }
 
-            jvmArgs "-agentlib:jdwp=transport=dt_socket,server=n,suspend=n,address=$debugClient.port"
+            jvmArgs("-agentlib:jdwp=transport=dt_socket,server=n,suspend=n,address=$debugClient.port")
         """
 
         debugClient.listen()

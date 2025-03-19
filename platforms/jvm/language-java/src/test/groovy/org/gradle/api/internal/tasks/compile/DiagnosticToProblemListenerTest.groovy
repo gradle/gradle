@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile
 
-import org.gradle.api.problems.internal.GradleCoreProblemGroup
+
 import org.gradle.api.problems.internal.InternalProblemSpec
 import spock.lang.Specification
 
@@ -32,21 +32,6 @@ class DiagnosticToProblemListenerTest extends Specification {
     def spec = Mock(InternalProblemSpec)
 
     def diagnosticToProblemListener = new DiagnosticToProblemListener(null, null)
-
-    def "diagnostic id is correctly reported"() {
-        given:
-        def diagnostic = getMockDiagnostics()
-        diagnostic.source >> Mock(JavaFileObject) {
-            name >> "SomeFile.java"
-        }
-
-        when:
-        diagnosticToProblemListener.buildProblem(diagnostic, spec)
-
-        then:
-        1 * spec.id("dummy-code", "Java compilation error", GradleCoreProblemGroup.compilation().java())
-        1 * spec.details(_)
-    }
 
     def "file location is correctly reported"() {
         given:

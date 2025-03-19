@@ -37,8 +37,8 @@ dependencyLocking {
 
 repositories {
     maven {
-        name 'repo'
-        url '${mavenRepo.uri}'
+        name = 'repo'
+        url = "${mavenRepo.uri}"
     }
 }
 configurations {
@@ -64,7 +64,7 @@ dependencies {
             root(":", ":depLock:") {
                 edge("org:foo:1.+", "org:foo:1.1") {
                     byConflictResolution("between versions 1.0 and 1.1")
-                    byConstraint("dependency was locked to version '1.0' (update/lenient mode)")
+                    byConstraint("Dependency version enforced by Dependency Locking")
                 }
                 edge("org:foo:{strictly 1.1}", "org:foo:1.1")
                 constraint("org:foo:1.0", "org:foo:1.1")
@@ -88,8 +88,8 @@ dependencyLocking {
 
 repositories {
     maven {
-        name 'repo'
-        url '${mavenRepo.uri}'
+        name = 'repo'
+        url = "${mavenRepo.uri}"
     }
 }
 configurations {
@@ -112,7 +112,7 @@ dependencies {
         resolve.expectGraph {
             root(":", ":depLock:") {
                 edge("org:foo:1.+", "org:foo:1.1") {
-                    byConstraint("dependency was locked to version '1.0' (update/lenient mode)")
+                    byConstraint("Dependency version enforced by Dependency Locking")
                     byConflictResolution("between versions 1.0 and 1.1")
                 }
                 module("org:foo:1.1")
@@ -138,8 +138,8 @@ dependencyLocking {
 
 repositories {
     maven {
-        name 'repo'
-        url '${mavenRepo.uri}'
+        name = 'repo'
+        url = "${mavenRepo.uri}"
     }
 }
 configurations {
@@ -162,7 +162,7 @@ dependencies {
             root(":", ":depLock:") {
                 edge("org:foo:1.+", "org:foo:1.0")
                 constraint("org:foo:1.0", "org:foo:1.0") {
-                    byConstraint("dependency was locked to version '1.0' (update/lenient mode)")
+                    byConstraint("Dependency version enforced by Dependency Locking")
                 }
             }
         }
@@ -184,8 +184,8 @@ dependencyLocking {
 
 repositories {
     maven {
-        name 'repo'
-        url '${mavenRepo.uri}'
+        name = 'repo'
+        url = "${mavenRepo.uri}"
     }
 }
 configurations {
@@ -210,7 +210,7 @@ dependencies {
                 edge("org:foo:1.+", "org:foo:1.0")
                 edge("org:bar:1.+", "org:bar:1.0")
                 constraint("org:foo:1.0", "org:foo:1.0") {
-                    byConstraint("dependency was locked to version '1.0' (update/lenient mode)")
+                    byConstraint("Dependency version enforced by Dependency Locking")
                 }
             }
         }
@@ -231,8 +231,8 @@ dependencyLocking {
 
 repositories {
     maven {
-        name 'repo'
-        url '${mavenRepo.uri}'
+        name = 'repo'
+        url = "${mavenRepo.uri}"
     }
 }
 configurations {
@@ -268,8 +268,8 @@ dependencyLocking {
 
 repositories {
     maven {
-        name 'repo'
-        url '${mavenRepo.uri}'
+        name = 'repo'
+        url = "${mavenRepo.uri}"
     }
 }
 configurations {
@@ -309,8 +309,8 @@ dependencyLocking {
 
 repositories {
     maven {
-        name 'repo'
-        url '${mavenRepo.uri}'
+        name = 'repo'
+        url = "${mavenRepo.uri}"
     }
 }
 configurations {

@@ -15,9 +15,9 @@
  */
 
 /**
- * The Gradle Daemon JVM internals.
+ * The Gradle build configuration tasks internals.
  */
-@NonNullApi
+@NullMarked
 package org.gradle.internal.buildconfiguration.tasks;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;

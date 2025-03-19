@@ -19,9 +19,7 @@ package org.gradle.language.swift
 
 import org.gradle.nativeplatform.fixtures.app.SourceElement
 import org.gradle.nativeplatform.fixtures.app.SwiftLib
-import spock.lang.Ignore
 
-@Ignore("Inconsistent Swift SDK and tooling discovered on our Intel Macs")
 class SwiftBothLibraryLinkageIntegrationTest extends AbstractSwiftIntegrationTest {
     @Override
     protected List<String> getTasksToAssembleDevelopmentBinary(String variant) {

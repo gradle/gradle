@@ -17,6 +17,7 @@
 package org.gradle.internal.cc.impl
 
 import org.gradle.internal.cc.impl.fixtures.DefaultExcludesFixture
+import org.gradle.test.fixtures.dsl.GradleDsl
 
 class ConfigurationCacheFileSystemDefaultExcludesTest extends AbstractConfigurationCacheIntegrationTest {
 
@@ -54,12 +55,12 @@ class ConfigurationCacheFileSystemDefaultExcludesTest extends AbstractConfigurat
         spec << DefaultExcludesFixture.specs()
     }
 
-    def "default excludes defined in build#scriptLanguage are ignoring for snapshotting"() {
+    def "default excludes defined in build#dsl are ignoring for snapshotting"() {
         given:
         def configurationCache = newConfigurationCacheFixture()
         def spec = new DefaultExcludesFixture.Spec(
             Collections.singletonList(new DefaultExcludesFixture.RootBuildLocation()),
-            scriptLanguage
+            dsl
         )
         spec.setup(this)
 
@@ -68,11 +69,7 @@ class ConfigurationCacheFileSystemDefaultExcludesTest extends AbstractConfigurat
         def excludedByBuildScriptFileCopy = file("build/output/${excludedByBuildScriptFileName}")
         excludedByBuildScriptFile.text = "input"
 
-        if (scriptLanguage == DefaultExcludesFixture.ScriptLanguage.KOTLIN) {
-            buildKotlinFile << DefaultExcludesFixture.DefaultExcludesLocation.addDefaultExclude(excludedByBuildScriptFileName)
-        } else {
-            buildFile << DefaultExcludesFixture.DefaultExcludesLocation.addDefaultExclude(excludedByBuildScriptFileName)
-        }
+        getBuildFile(dsl) << DefaultExcludesFixture.DefaultExcludesLocation.addDefaultExclude(excludedByBuildScriptFileName)
 
         when:
         configurationCacheRun spec.copyTask
@@ -93,6 +90,6 @@ class ConfigurationCacheFileSystemDefaultExcludesTest extends AbstractConfigurat
         excludedByBuildScriptFileCopy.exists()
 
         where:
-        scriptLanguage << DefaultExcludesFixture.ScriptLanguage.values().toList()
+        dsl << [GradleDsl.GROOVY, GradleDsl.KOTLIN]
     }
 }

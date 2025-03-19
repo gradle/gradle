@@ -19,7 +19,7 @@ package org.gradle.internal.resource.local;
 import org.gradle.internal.hash.HashCode;
 
 /**
- * A set of locally available resources that were “selected” through some means.
+ * A set of locally available resources that were "selected" through some means.
  */
 public interface LocallyAvailableResourceCandidates {
 

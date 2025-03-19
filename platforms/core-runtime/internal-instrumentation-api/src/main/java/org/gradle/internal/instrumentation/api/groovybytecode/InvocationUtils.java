@@ -17,8 +17,7 @@
 package org.gradle.internal.instrumentation.api.groovybytecode;
 
 import org.codehaus.groovy.runtime.wrappers.Wrapper;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class InvocationUtils {
     private InvocationUtils() {}

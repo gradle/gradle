@@ -38,7 +38,7 @@ class DependencyConstraintsAndResolutionStrategiesIntegrationTest extends Abstra
         resolve.addDefaultVariantDerivationStrategy()
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 conf
@@ -98,8 +98,7 @@ class DependencyConstraintsAndResolutionStrategiesIntegrationTest extends Abstra
         fails 'checkDeps'
 
         then:
-        failure.assertHasCause """Conflict found for the following module:
-  - org:foo between versions 1.1 and 1.0"""
+        failure.assertHasCause """Conflict found for module 'org:foo': between versions 1.1 and 1.0"""
         failure.assertHasResolutions("Run with :dependencyInsight --configuration conf " +
             "--dependency org:foo to get more insight on how to solve the conflict.",
             STACKTRACE_MESSAGE,

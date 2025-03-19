@@ -22,8 +22,7 @@ import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Collects and isolates the actions provided via the {@link org.gradle.api.invocation.GradleLifecycle GradleLifecycle} API.

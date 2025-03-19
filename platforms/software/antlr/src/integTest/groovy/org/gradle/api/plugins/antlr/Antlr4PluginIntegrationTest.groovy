@@ -56,12 +56,10 @@ class Antlr4PluginIntegrationTest extends AbstractAntlrIntegrationTest {
             WS : [ \\t\\r\\n]+ -> skip ;
         """
         when:
-        buildFile << """
-        project(":grammar-builder") {
+        buildFile "grammar-builder/build.gradle", """
             generateGrammarSource {
                 arguments << "-lib" << "src/main/antlr/org/acme"
             }
-        }
         """
         then:
         succeeds("generateGrammarSource")

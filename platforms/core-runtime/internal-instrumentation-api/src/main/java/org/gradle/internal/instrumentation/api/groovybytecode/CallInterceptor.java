@@ -17,8 +17,8 @@
 package org.gradle.internal.instrumentation.api.groovybytecode;
 
 import org.codehaus.groovy.runtime.callsite.CallSite;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.util.Set;

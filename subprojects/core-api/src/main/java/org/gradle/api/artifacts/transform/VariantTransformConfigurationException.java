@@ -17,20 +17,35 @@
 package org.gradle.api.artifacts.transform;
 
 import org.gradle.api.GradleException;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.exceptions.Contextual;
 
 /**
  * An exception to report a problem during a transform execution.
+ * <p>
+ * This exception is deprecated and will be removed in a future version of Gradle.  There
+ * is no public use case for this.  Gradle should use {@code org.gradle.api.internal.artifacts.transform.VariantTransformConfigurationException}
+ * instead.
  *
  * @since 3.5
  */
 @Contextual
+@Deprecated
 public class VariantTransformConfigurationException extends GradleException {
     public VariantTransformConfigurationException(String message, Throwable cause) {
         super(message, cause);
+        announceDeprecation();
     }
 
     public VariantTransformConfigurationException(String message) {
         super(message);
+        announceDeprecation();
+    }
+
+    private static void announceDeprecation() {
+        DeprecationLogger.deprecateType(VariantTransformConfigurationException.class)
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(9, "deprecated_transform_configuration_exception")
+            .nagUser();
     }
 }

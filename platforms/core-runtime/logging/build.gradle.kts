@@ -24,6 +24,7 @@ dependencies {
     api(projects.problemsApi)
 
     api(libs.jansi)
+    api(libs.jspecify)
     api(libs.jsr305)
     api(libs.slf4jApi)
 
@@ -45,15 +46,19 @@ dependencies {
     runtimeOnly(libs.log4jToSlf4j)
 
     testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.time))
     testImplementation(testFixtures(projects.testingJvm))
     testImplementation(libs.groovyDatetime)
     testImplementation(libs.groovyDateUtil)
+
+    integTestImplementation(projects.problems)
 
     integTestImplementation(libs.ansiControlSequenceUtil)
 
     testFixturesImplementation(projects.baseServices)
     testFixturesImplementation(projects.enterpriseWorkers)
     testFixturesImplementation(testFixtures(projects.core))
+    testFixturesImplementation(testFixtures(projects.time))
     testFixturesImplementation(libs.slf4jApi)
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)

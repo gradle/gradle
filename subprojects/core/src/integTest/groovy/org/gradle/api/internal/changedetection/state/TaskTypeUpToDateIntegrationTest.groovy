@@ -26,7 +26,7 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
         buildFile """
             task copy(type: Copy) {
                 from "input.txt"
-                destinationDir buildDir
+                destinationDir = buildDir
             }
         """
 
@@ -89,7 +89,7 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
         buildFile """
             task copy(type: Copy) {
                 from "input.txt"
-                destinationDir buildDir
+                destinationDir = buildDir
                 doLast {
                     println "Custom action"
                 }

@@ -18,6 +18,8 @@ package org.gradle.jvm.toolchain;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * Dynamic extension added to <code>ToolchainManagement</code> at runtime, by the
@@ -27,6 +29,7 @@ import org.gradle.api.Incubating;
  * @since 7.6
  */
 @Incubating
+@ServiceScope(Scope.Build.class)
 public interface JvmToolchainManagement {
 
     /**
@@ -45,8 +48,8 @@ public interface JvmToolchainManagement {
      *             repository('registry1') {
      *                 resolverClass = com.example.CustomToolchainRegistry1
      *                 credentials {
-     *                     username "user"
-     *                     password "password"
+     *                     username = "user"
+     *                     password = "password"
      *                 }
      *                 authentication {
      *                     digest(BasicAuthentication)

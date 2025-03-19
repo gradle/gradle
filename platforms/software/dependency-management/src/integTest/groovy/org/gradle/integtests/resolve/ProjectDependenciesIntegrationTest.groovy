@@ -28,7 +28,6 @@ class ProjectDependenciesIntegrationTest extends AbstractDependencyResolutionTes
 
     @Issue("GRADLE-2477") //this is a feature on its own but also covers one of the reported issues
     def "resolving project dependency triggers configuration of the target project"() {
-        createDirs("impl")
         settingsFile << "include 'impl'"
         buildFile << """
             apply plugin: 'java'
@@ -37,7 +36,7 @@ class ProjectDependenciesIntegrationTest extends AbstractDependencyResolutionTes
             }
             repositories {
                 //resolving project must declare the repo
-                maven { url '${mavenRepo.uri}' }
+                maven { url = '${mavenRepo.uri}' }
             }
             println "Resolved at configuration time: " + configurations.runtimeClasspath.files*.name
         """
@@ -59,10 +58,9 @@ class ProjectDependenciesIntegrationTest extends AbstractDependencyResolutionTes
 
     @ToBeFixedForConfigurationCache(because = "task uses dependencies API")
     def "configuring project dependencies by map is validated"() {
-        createDirs("impl")
         settingsFile << "include 'impl'"
         buildFile << """
-            allprojects { configurations.create('conf') }
+            configurations.create('conf')
             task extraKey {
                 doLast {
                     dependencies.project(path: ":impl", configuration: ":conf", foo: "bar")
@@ -78,6 +76,9 @@ class ProjectDependenciesIntegrationTest extends AbstractDependencyResolutionTes
                     dependencies.project(path: ":impl")
                 }
             }
+        """
+        file("impl/build.gradle") << """
+            configurations.create('conf')
         """
 
         when:

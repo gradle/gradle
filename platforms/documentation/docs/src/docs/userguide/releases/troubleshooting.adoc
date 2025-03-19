@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Gradle, Inc.
+// Copyright (C) 2024 Gradle, Inc.
 //
 // Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
@@ -67,7 +67,7 @@ $ echo $JAVA_HOME
 /Users/user/Library/Java/JavaVirtualMachines/corretto-11.0.22/Contents/Home
 ----
 
-You must ensure that a link:{jdkDownloadUrl}[Java Development Kit] version {minJdkVersion} or higher is link:https://www.java.com/en/download/help/index_installing.xml[properly installed], the `JAVA_HOME` environment variable is set, and link:https://www.java.com/en/download/help/path.xml[Java is added to your `PATH`].
+You must ensure that a link:{jdkDownloadUrl}[Java Development Kit] version {minJdkVersion} or higher is link:https://www.java.com/en/download/help/index_installing.html[properly installed], the `JAVA_HOME` environment variable is set, and Java is added to your `PATH`.
 
 === Permission denied
 
@@ -97,7 +97,7 @@ The link:https://scans.gradle.com/s/sample/troubleshooting-userguide/dependencie
 [[sec:troubleshooting_performance]]
 == Troubleshooting slow builds
 
-For build performance issues (including “slow sync time”), see <<performance.adoc#performance_gradle,improving the Performance of Gradle Builds>>.
+For build performance issues (including "slow sync time"), see <<performance.adoc#performance_gradle,improving the Performance of Gradle Builds>>.
 
 Android developers should watch a presentation by the Android SDK Tools team about link:https://youtu.be/7ll-rkLCtyk[Speeding Up Your Android Gradle Builds].
 Many tips are also covered in the Android Studio user guide link:https://developer.android.com/studio/build/optimize-your-build.html[on optimizing build speed].
@@ -107,7 +107,7 @@ Many tips are also covered in the Android Studio user guide link:https://develop
 
 === Attaching a debugger to your build
 
-You can set breakpoints and debug <<custom_plugins.adoc#custom_plugins,`buildSrc` and standalone plugins>> in your Gradle build itself by setting the `org.gradle.debug` property to “true” and then attaching a remote debugger to port 5005.
+You can set breakpoints and debug <<custom_plugins.adoc#custom_plugins,`buildSrc` and standalone plugins>> in your Gradle build itself by setting the `org.gradle.debug` property to "true" and then attaching a remote debugger to port 5005.
 You can change the port number by setting the `org.gradle.debug.port` property to the desired port number.
 
 To attach the debugger remotely via the network, you must set the `org.gradle.debug.host` property to the machine's IP address or `*` (listen on all interfaces).
@@ -125,7 +125,7 @@ image::remote-debug-gradle.gif[]
 
 === Adding and changing logging
 
-In addition to <<command_line_interface.adoc#sec:command_line_logging,controlling logging verbosity>>, you can also control display of task outcomes (e.g. “UP-TO-DATE”) in lifecycle logging using the <<command_line_interface.adoc#sec:command_line_customizing_log_format,`--console=verbose` flag>>.
+In addition to <<command_line_interface.adoc#sec:command_line_logging,controlling logging verbosity>>, you can also control display of task outcomes (e.g. "UP-TO-DATE") in lifecycle logging using the <<command_line_interface.adoc#sec:command_line_customizing_log_format,`--console=verbose` flag>>.
 
 You can also replace much of Gradle’s logging with your own by registering various event listeners.
 One example of a <<logging.adoc#sec:changing_what_gradle_logs,custom event logger is explained in the logging documentation>>.

@@ -30,8 +30,8 @@ import org.gradle.internal.resource.TextResource;
 import org.gradle.internal.scripts.ProjectScopedScriptResolution;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.util.internal.NameValidator;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 
 public class ProjectFactory implements IProjectFactory {
@@ -48,7 +48,7 @@ public class ProjectFactory implements IProjectFactory {
     @Override
     public ProjectInternal createProject(GradleInternal gradle, ProjectDescriptor projectDescriptor, ProjectState owner, @Nullable ProjectInternal parent, ServiceRegistryFactory serviceRegistryFactory, ClassLoaderScope selfClassLoaderScope, ClassLoaderScope baseClassLoaderScope) {
         // Need to wrap resolution of the build file to associate the build file with the correct project
-        File buildFile = scriptResolution.resolveScriptsForProject(owner.getIdentityPath(), owner.getOwner().getIdentityPath(), owner.getProjectPath(), projectDescriptor::getBuildFile);
+        File buildFile = scriptResolution.resolveScriptsForProject(owner.getIdentity(), projectDescriptor::getBuildFile);
         TextResource resource = textFileResourceLoader.loadFile("build file", buildFile);
         ScriptSource source = new TextResourceScriptSource(resource);
         DefaultProject project = instantiator.newInstance(DefaultProject.class,

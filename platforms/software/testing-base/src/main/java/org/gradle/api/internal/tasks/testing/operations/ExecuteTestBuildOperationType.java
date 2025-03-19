@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.testing.operations;
 
 import org.gradle.api.tasks.testing.TestDescriptor;
+import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.operations.BuildOperationType;
@@ -31,6 +32,11 @@ public final class ExecuteTestBuildOperationType implements BuildOperationType<E
     @UsedByScanPlugin
     public interface Details {
 
+        /**
+         * This is the time the _test_ reported itself as started.
+         *
+         * This may not line up with local time.
+         */
         long getStartTime();
 
         TestDescriptor getTestDescriptor();
@@ -48,6 +54,13 @@ public final class ExecuteTestBuildOperationType implements BuildOperationType<E
     public interface Output {
 
         TestOutputEvent getOutput();
+
+    }
+
+    // Will probably be @UsedByScanPlugin in the future, but not yet
+    public interface Metadata {
+
+        TestMetadataEvent getMetadata();
 
     }
 

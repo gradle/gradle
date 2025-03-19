@@ -857,7 +857,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         when:
         expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer,
             "Type 'CustomTask' property 'unsupportedEagerMap' where key of nested map is of type 'java.lang.Boolean'. " +
-                "Reason: Key of nested map must be one of the following types: 'Enum', 'Integer', 'String'.",
+                "Reason: Key of nested map must be an enum or one of the following types: 'java.lang.String', 'java.lang.Integer'.",
             'validation_problems',
             'unsupported_key_type_of_nested_map')
         run("customTask")
@@ -1302,14 +1302,14 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         return projectDir.file("buildSrc/src/main/java/TaskWithNestedBeanWithAction.java") << """
             import org.gradle.api.Action;
             import org.gradle.api.DefaultTask;
-            import org.gradle.api.NonNullApi;
             import org.gradle.api.tasks.Nested;
             import org.gradle.api.tasks.OutputFile;
             import org.gradle.api.tasks.TaskAction;
 
+            import javax.annotation.Nonnull;
             import java.io.File;
 
-            @NonNullApi
+            @Nonnull
             public class TaskWithNestedBeanWithAction extends DefaultTask {
                 private File outputFile = new File(getTemporaryDir(), "output.txt");
                 private NestedBeanWithAction bean;

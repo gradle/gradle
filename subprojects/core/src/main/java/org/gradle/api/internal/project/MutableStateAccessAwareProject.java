@@ -84,9 +84,9 @@ import org.gradle.process.ExecSpec;
 import org.gradle.process.JavaExecSpec;
 import org.gradle.util.Path;
 import org.gradle.util.internal.ConfigureUtil;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.File;
 import java.net.URI;
 import java.util.List;
@@ -255,7 +255,7 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     }
 
     @Override
-    @Nonnull
+    @NonNull
     public ProjectIdentity getProjectIdentity() {
         return delegate.getProjectIdentity();
     }
@@ -521,30 +521,35 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
         return delegate.getTasksByName(name, recursive);
     }
 
+    @Deprecated
     @Override
     public Task task(String name) throws InvalidUserDataException {
         onMutableStateAccess("task");
         return delegate.task(name);
     }
 
+    @Deprecated
     @Override
     public Task task(Map<String, ?> args, String name) throws InvalidUserDataException {
         onMutableStateAccess("task");
         return delegate.task(args, name);
     }
 
+    @Deprecated
     @Override
     public Task task(Map<String, ?> args, String name, Closure configureClosure) {
         onMutableStateAccess("task");
         return delegate.task(args, name, configureClosure);
     }
 
+    @Deprecated
     @Override
     public Task task(String name, Closure configureClosure) {
         onMutableStateAccess("task");
         return delegate.task(name, configureClosure);
     }
 
+    @Deprecated
     @Override
     public Task task(String name, Action<? super Task> configureAction) {
         onMutableStateAccess("task");

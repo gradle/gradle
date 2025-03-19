@@ -22,8 +22,8 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
-import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.immutable.artifact.ImmutableArtifactTypeRegistry;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.IvyArtifactName;
@@ -39,7 +39,7 @@ import java.util.Set;
 public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
 
     private final DependencyArtifactsVisitor artifactResults;
-    private final ArtifactTypeRegistry artifactTypeRegistry;
+    private final ImmutableArtifactTypeRegistry artifactTypeRegistry;
     private final VariantArtifactSetCache artifactSetCache;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
 
@@ -48,7 +48,7 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
 
     public ResolvedArtifactsGraphVisitor(
         DependencyArtifactsVisitor artifactsBuilder,
-        ArtifactTypeRegistry artifactTypeRegistry,
+        ImmutableArtifactTypeRegistry artifactTypeRegistry,
         VariantArtifactSetCache artifactSetCache,
         CalculatedValueContainerFactory calculatedValueContainerFactory
     ) {

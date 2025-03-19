@@ -24,8 +24,7 @@ import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.nativeplatform.NativeLibraryBinary;
 import org.gradle.nativeplatform.NativeLibrarySpec;
 import org.gradle.platform.base.ComponentSpecContainer;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class ProjectLibraryBinaryLocator implements LibraryBinaryLocator {
     private final ProjectModelResolver projectModelResolver;

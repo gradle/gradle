@@ -19,8 +19,8 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
 import org.gradle.tooling.internal.protocol.InternalLaunchable;
 import org.gradle.tooling.internal.protocol.ProgressListenerVersion1;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -51,10 +51,28 @@ public interface ProviderOperationParameters {
     File getJavaHome();
 
     /**
-     * @return When null, use the provider's default JVM arguments. When empty, use no JVM arguments.
+     * Returns the concatenated list of {@link #getBaseJvmArguments()} and {@link #getAdditionalJvmArguments()}. The method is only kept for backwards compatibility (see #31462) to support Gradle versions where {@link #getBaseJvmArguments()} and  {@link #getAdditionalJvmArguments()} is not yet available.
+     *
+     * @return null if no JVM arguments are provided, otherwise a concatenated list of JVM arguments.
      */
     @Nullable
     List<String> getJvmArguments();
+
+    /**
+     * Arguments, which will override the default JVM arguments.
+     *
+     * @return null if no JVM arguments are provided, otherwise a list of JVM arguments.
+     */
+    @Nullable
+    List<String> getBaseJvmArguments();
+
+    /**
+     * Additional arguments, which will be appended to the default/overridden JVM arguments.
+     *
+     * @return null if no additional JVM arguments are provided, otherwise a list of additional JVM arguments.
+     */
+    @Nullable
+    List<String> getAdditionalJvmArguments();
 
     /**
      * @return When null, use the provider's default environment variables. When empty, use no environment variables.

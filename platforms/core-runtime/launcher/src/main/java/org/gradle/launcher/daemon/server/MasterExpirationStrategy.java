@@ -17,6 +17,7 @@
 package org.gradle.launcher.daemon.server;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.cache.internal.locklistener.FileLockContentionHandler;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -36,11 +37,14 @@ public class MasterExpirationStrategy implements DaemonExpirationStrategy {
 
     private final DaemonExpirationStrategy strategy;
 
-    public MasterExpirationStrategy(Daemon daemon, DaemonServerConfiguration params, HealthExpirationStrategy healthExpirationStrategy, ListenerManager listenerManager) {
+    public MasterExpirationStrategy(Daemon daemon, DaemonServerConfiguration params, HealthExpirationStrategy healthExpirationStrategy, FileLockContentionHandler fileLockContentionHandler, ListenerManager listenerManager) {
         ImmutableList.Builder<DaemonExpirationStrategy> strategies = ImmutableList.<DaemonExpirationStrategy>builder();
 
         // Expire under high JVM memory or GC pressure
         strategies.add(healthExpirationStrategy);
+
+        // If we can no longer communicate with the outside world, the daemon should expire
+        strategies.add(new FileLockContentionExpirationStrategy(fileLockContentionHandler));
 
         // Expire compatible, idle, not recently used Daemons after a short time
         strategies.add(new AllDaemonExpirationStrategy(ImmutableList.of(

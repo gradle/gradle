@@ -29,7 +29,7 @@ class IvyComponentMetadataRulesStatusIntegrationTest extends ComponentMetadataRu
 """
 repositories {
     ivy {
-        url "$ivyHttpRepo.uri"
+        url = "$ivyHttpRepo.uri"
     }
 }
 """

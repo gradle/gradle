@@ -29,8 +29,8 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Map;
 import java.util.Set;
@@ -343,13 +343,14 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
     ResolvedConfiguration getResolvedConfiguration();
 
     /**
-     * Returns the name of the task that upload the artifacts of this configuration to repositories
-     * declared by the user.
+     * Returns a string. The returned value should not be interpreted as a task name,
+     * as no task with this name is created by default.
      *
-     * @return The name of the associated upload task
-     * @see org.gradle.api.tasks.Upload
+     * @return A string.
+     *
+     * @deprecated This method will be removed in Gradle 9.0
      */
-    @Deprecated // TODO:Finalize Upload Removal - Issue #21439
+    @Deprecated
     String getUploadTaskName();
 
     /**
@@ -492,7 +493,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * If multiple actions are supplied, each action will be executed until the set of dependencies is no longer empty.
      * Remaining actions will be ignored.
      *
-     * @implSpec Usage: This method should only be called on resolvable configurations and will emit a deprecation warning if
+     * @implSpec Usage: This method should only be called on declarable configurations and will emit a deprecation warning if
      * called on a configuration that does not permit this usage, or has allowed this usage but marked it as deprecated.
      *
      * @param action the action to execute when the configuration has no defined dependencies.

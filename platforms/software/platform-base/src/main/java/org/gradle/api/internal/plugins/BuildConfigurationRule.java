@@ -47,6 +47,7 @@ public class BuildConfigurationRule implements Rule {
             Configuration configuration = configurations.findByName(configurationName);
 
             if (configuration != null) {
+                @SuppressWarnings("deprecation")
                 Task task = tasks.create(taskName);
                 task.dependsOn(configuration.getAllArtifacts());
                 task.setDescription("Builds the artifacts belonging to " + configuration + ".");

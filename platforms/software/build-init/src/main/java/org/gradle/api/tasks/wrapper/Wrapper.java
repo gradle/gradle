@@ -41,8 +41,8 @@ import org.gradle.work.DisableCachingByDefault;
 import org.gradle.wrapper.Download;
 import org.gradle.wrapper.Logger;
 import org.gradle.wrapper.WrapperExecutor;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.net.URI;

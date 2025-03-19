@@ -21,8 +21,10 @@ import org.gradle.api.internal.SettingsInternal;
 import org.gradle.execution.EntryTaskSelector;
 import org.gradle.execution.plan.BuildWorkPlan;
 import org.gradle.execution.plan.ScheduledWork;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -30,6 +32,7 @@ import java.util.function.Function;
 /**
  * Controls the lifecycle of an individual build in the build tree.
  */
+@ServiceScope(Scope.Build.class)
 public interface BuildLifecycleController {
     /**
      * Returns the current state of the mutable model for this build.

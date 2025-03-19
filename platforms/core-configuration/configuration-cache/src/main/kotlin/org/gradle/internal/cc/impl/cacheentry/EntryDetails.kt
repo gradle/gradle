@@ -26,6 +26,7 @@ import java.io.File
  */
 internal
 class EntryDetails(
+    val buildInvocationScopeId: String,
     val rootDirs: List<File>,
     val intermediateModels: Map<ModelKey, BlockAddress>,
     val projectMetadata: Map<Path, BlockAddress>,

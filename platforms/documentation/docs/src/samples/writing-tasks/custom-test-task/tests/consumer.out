@@ -1,0 +1,23 @@
+Test suite 'all tests' > Test class ParallelSuite > Test class Worker 1 > parallelTest1() succeeded
+Test suite 'all tests' > Test class ParallelSuite > Test class Worker 2 > parallelTest2() succeeded
+Test suite 'all tests' > Test class ParallelSuite > Test class Worker 2 > parallelTest3() succeeded
+Test suite 'all tests' > Test class ParallelSuite > Test class Worker 1 succeeded
+Test suite 'all tests' > Test class ParallelSuite > Test class Worker 2 succeeded
+Test suite 'all tests' > Test class ParallelSuite > Test class Worker 3 succeeded
+Test suite 'all tests' > Test class ParallelSuite succeeded
+Test suite 'all tests' > Test class MyTestSuite > test(0) skipped
+Test suite 'all tests' > Test class MyTestSuite > test(1) succeeded
+Test suite 'all tests' > Test class MyTestSuite > test(2) succeeded
+Test suite 'all tests' > Test class MyTestSuite > test(3) skipped
+Test suite 'all tests' > Test class MyTestSuite > test(4) succeeded
+Test suite 'all tests' > Test class MyTestSuite > test(5) succeeded
+Test suite 'all tests' > Test class MyTestSuite > test(6) skipped
+Test suite 'all tests' > Test class MyTestSuite > test(7) succeeded
+Test suite 'all tests' > Test class MyTestSuite > test(8) succeeded
+Test suite 'all tests' > Test class MyTestSuite > test(9) skipped
+Test suite 'all tests' > Test class MyTestSuite succeeded
+Test suite 'all tests' > Test class OuterNestingSuite > Test class DeeperNestingSuite > Test class InnerNestingSuite > nestedTest() succeeded
+Test suite 'all tests' > Test class OuterNestingSuite > Test class DeeperNestingSuite > Test class InnerNestingSuite succeeded
+Test suite 'all tests' > Test class OuterNestingSuite > Test class DeeperNestingSuite succeeded
+Test suite 'all tests' > Test class OuterNestingSuite succeeded
+Test suite 'all tests' succeeded

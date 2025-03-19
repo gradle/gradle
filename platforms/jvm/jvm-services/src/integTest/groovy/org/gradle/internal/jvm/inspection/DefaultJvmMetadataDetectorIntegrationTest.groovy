@@ -17,16 +17,16 @@
 package org.gradle.internal.jvm.inspection
 
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.SystemProperties
+import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.jvm.Jvm
 import org.gradle.jvm.toolchain.internal.InstallationLocation
-import org.gradle.process.internal.DefaultExecHandleBuilder
+import org.gradle.process.internal.DefaultClientExecHandleBuilderFactory
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
-
-import java.util.concurrent.Executors
 
 class DefaultJvmMetadataDetectorIntegrationTest extends AbstractIntegrationSpec {
 
@@ -34,8 +34,8 @@ class DefaultJvmMetadataDetectorIntegrationTest extends AbstractIntegrationSpec 
     def "works on real installation"() {
         when:
         def detector = new DefaultJvmMetadataDetector(
-                () -> new DefaultExecHandleBuilder(TestFiles.pathToFileResolver(), Executors.newCachedThreadPool()),
-                TestFiles.tmpDirTemporaryFileProvider(new File(SystemProperties.getInstance().getJavaIoTmpDir()))
+            DefaultClientExecHandleBuilderFactory.of(TestFiles.pathToFileResolver(), new DefaultExecutorFactory(), new DefaultBuildCancellationToken()),
+            TestFiles.tmpDirTemporaryFileProvider(new File(SystemProperties.getInstance().getJavaIoTmpDir()))
         )
         Jvm jvm = AvailableJavaHomes.differentJdk //the detector has special handling for the current JVM
         def javaHome = InstallationLocation.userDefined(jvm.getJavaHome(), "test")

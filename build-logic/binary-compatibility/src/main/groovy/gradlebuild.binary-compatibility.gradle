@@ -32,8 +32,8 @@ plugins {
 repositories {
     ['distributions', 'distributions-snapshots'].each { distUrl ->
         ivy {
-            name 'Gradle distributions'
-            url 'https://services.gradle.org'
+            name = 'Gradle distributions'
+            url = 'https://services.gradle.org'
             patternLayout {
                 artifact "/${distUrl}/[module]-[revision]-bin(.[ext])"
             }
@@ -199,7 +199,7 @@ static List<String> toPatterns(List<String> packages) {
     }
 }
 
-private String writeFilterPreset(Project project) {
-    def preset = project.hasProperty('bin.cmp.report.severity.filter') ? project.getProperty('bin.cmp.report.severity.filter') : 'All levels'
+static String writeFilterPreset(Project project) {
+    def preset = project.providers.gradleProperty('bin.cmp.report.severity.filter').getOrElse('All levels')
     return """<input id="filter-preset" type="hidden" value="$preset" />"""
 }

@@ -37,7 +37,7 @@ class CacheResolveIntegrationTest extends AbstractHttpDependencyResolutionTest i
         and:
         buildFile << """
 repositories {
-    ivy { url "${ivyHttpRepo.uri}" }
+    ivy { url = "${ivyHttpRepo.uri}" }
 }
 configurations { compile }
 dependencies { compile 'group:projectA:1.2' }
@@ -76,33 +76,34 @@ task deleteCacheFiles(type: Delete) {
         def module2 = repo2.module('org.gradle', 'testproject', '1.0').publishWithChangedContent()
 
         and:
-        createDirs("a", "b")
         settingsFile << "include 'a','b'"
-        buildFile << """
-subprojects {
-    configurations {
-        test
-    }
-    dependencies {
-        test "org.gradle:testproject:1.0"
-    }
-    task retrieve(type: Sync) {
-        into 'build'
-        from configurations.test
-    }
-}
-project('a') {
-    repositories {
-        ivy { url "${repo1.uri}" }
-    }
-}
-project('b') {
-    repositories {
-        ivy { url "${repo2.uri}" }
-    }
-    retrieve.dependsOn(':a:retrieve')
-}
-"""
+        def header = """
+            configurations {
+                test
+            }
+            dependencies {
+                test "org.gradle:testproject:1.0"
+            }
+            task retrieve(type: Sync) {
+                into 'build'
+                from configurations.test
+            }
+        """
+
+        file("a/build.gradle") << """
+            $header
+            repositories {
+                ivy { url = "${repo1.uri}" }
+            }
+        """
+
+        file("b/build.gradle") << """
+            $header
+            repositories {
+                ivy { url = "${repo2.uri}" }
+            }
+            retrieve.dependsOn(':a:retrieve')
+        """
 
         when:
         module1.ivy.expectGet()
@@ -130,7 +131,7 @@ project('b') {
         and:
         buildFile << """
 repositories {
-    ivy { url "${ivyHttpRepo.uri}" }
+    ivy { url = "${ivyHttpRepo.uri}" }
 }
 configurations { compile }
 dependencies { compile 'group:projectA:1.2' }
@@ -274,7 +275,7 @@ plugins {
 
 repositories {
     maven {
-        url "${mavenHttpRepo.uri}"
+        url = "${mavenHttpRepo.uri}"
         metadataSources {
             artifact()
         }
@@ -291,7 +292,7 @@ plugins {
 
 repositories {
     maven {
-        url "${mavenHttpRepo.uri}"
+        url = "${mavenHttpRepo.uri}"
     }
 }
 """

@@ -64,7 +64,7 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
         def confCacheDir = file("./app/.gradle/configuration-cache")
         confCacheDir.isDirectory()
         def confCacheFiles = confCacheDir.allDescendants().findAll { it != 'configuration-cache.lock' && it != 'gc.properties' }
-        confCacheFiles.size() == 12 // header, 2 * fingerprint, build strings file, root build state file, root build shared objects file, included build state file, included build shared objects file, 2 * project state file, 2 * owner-less node state files
+        confCacheFiles.size() == 13 // header, candidates file, 2 * fingerprint, build strings file, root build state file, root build shared objects file, included build state file, included build shared objects file, 2 * project state file, 2 * owner-less node state files
         if (!OperatingSystem.current().isWindows()) {
             confCacheFiles.forEach {
                 assert confCacheDir.file(it).mode == 384
@@ -155,7 +155,7 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
                 vcsMappings {
                     withModule("org.test:buildB") {
                         from(GitVersionControlSpec) {
-                            url = uri("some-repo")
+                            url = "some-repo"
                         }
                     }
                 }

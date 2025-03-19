@@ -8,12 +8,9 @@ dependencies {
     api(projects.baseServices)
     api(projects.stdlibJavaExtensions)
 
-    api(libs.jsr305)
+    api(libs.jspecify)
     api(libs.groovy)
     api(libs.guava)
 
     testImplementation(testFixtures(projects.core))
-}
-tasks.isolatedProjectsIntegTest {
-    enabled = false
 }

@@ -23,7 +23,6 @@ import com.google.common.collect.MultimapBuilder;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.file.Directory;
 import org.gradle.api.internal.DocumentationRegistry;
@@ -37,11 +36,12 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.util.internal.GFileUtils;
 import org.gradle.util.internal.GUtil;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
@@ -959,7 +959,7 @@ public class BuildScriptBuilder {
         }
     }
 
-    @NonNullApi
+    @NullMarked
     private static class StatementGroup extends AbstractStatement {
         private final List<Statement> statements = new ArrayList<>();
 
@@ -2187,7 +2187,7 @@ public class BuildScriptBuilder {
             return blockStatement;
         }
 
-        @Nonnull
+        @NonNull
         private String getLiteral(String container, String elementName, @Nullable String elementType, String varName) {
             if (varName == null) {
                 if (elementType == null) {

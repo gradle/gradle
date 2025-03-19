@@ -50,7 +50,7 @@ import java.util.Set;
  *
  * @since 4.0
  */
-@ServiceScope({Scope.Global.class, Scope.Project.class})
+@ServiceScope({Scope.Global.class, Scope.BuildTree.class, Scope.Project.class})
 public interface ObjectFactory {
     /**
      * Creates a simple immutable {@link Named} object of the given type and name.

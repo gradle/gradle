@@ -20,9 +20,9 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.catalog.problems.ResolutionFailureProblemId;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblems;
-import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.problems.internal.ResolutionFailureDataSpec;
 import org.gradle.internal.component.resolution.failure.ReportableAsProblem;
 import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
@@ -31,8 +31,8 @@ import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.ResolutionProvider;
 import org.gradle.internal.exceptions.StyledException;
 import org.gradle.util.internal.TextUtil;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 import static org.gradle.api.problems.Severity.ERROR;
@@ -77,13 +77,13 @@ public abstract class AbstractResolutionFailureException extends StyledException
 
     @Override
     public AbstractResolutionFailureException reportAsProblem(InternalProblems problemsService) {
-        Problem problem = problemsService.getInternalReporter().create(builder -> {
+        Problem problem = problemsService.getInternalReporter().internalCreate(builder -> {
             ResolutionFailureProblemId problemId = getFailure().getProblemId();
             builder.id(TextUtil.screamingSnakeToKebabCase(problemId.name()), problemId.getDisplayName(), GradleCoreProblemGroup.variantResolution())
                 .contextualLabel(getMessage())
                 .documentedAt(userManual("variant_model", "sec:variant-select-errors"))
                 .severity(ERROR)
-                .additionalData(ResolutionFailureDataSpec.class, data -> data.from(getFailure()));
+                .additionalDataInternal(ResolutionFailureDataSpec.class, data -> data.from(getFailure()));
         });
         problemsService.getInternalReporter().report(problem);
 

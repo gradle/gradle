@@ -10,6 +10,7 @@ gradlebuildJava.usedInWorkers()
 dependencies {
     api(projects.stdlibJavaExtensions)
 
+    api(libs.jspecify)
     api(libs.jsr305)
 
     implementation(libs.guava)
@@ -20,7 +21,4 @@ dependencies {
         because("TextUtil is needed")
     }
     testImplementation(testFixtures(projects.native))
-}
-tasks.isolatedProjectsIntegTest {
-    enabled = false
 }

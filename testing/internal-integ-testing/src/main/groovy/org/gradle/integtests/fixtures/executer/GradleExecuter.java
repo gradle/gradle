@@ -227,6 +227,8 @@ public interface GradleExecuter extends Stoppable {
      */
     GradleExecuter withFullDeprecationStackTraceEnabled();
 
+    GradleExecuter withoutInternalDeprecationStackTraceFlag();
+
     /**
      * Downloads and sets up the JVM arguments for running the Gradle daemon with the file leak detector: https://github.com/jenkinsci/lib-file-leak-detector
      *

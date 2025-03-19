@@ -56,7 +56,7 @@ class MavenPublishS3ErrorsIntegrationTest extends AbstractMavenPublishIntegTest 
     publishing {
         repositories {
                 maven {
-                    url "${mavenS3Repo.uri}"
+                    url = "${mavenS3Repo.uri}"
                     credentials(AwsCredentials)
                 }
             }
@@ -95,7 +95,7 @@ class MavenPublishS3ErrorsIntegrationTest extends AbstractMavenPublishIntegTest 
             publishing {
                 repositories {
                     maven {
-                        url "${mavenS3Repo.uri}"
+                        url = "${mavenS3Repo.uri}"
                         authentication {
                            awsIm(AwsImAuthentication)
                         }

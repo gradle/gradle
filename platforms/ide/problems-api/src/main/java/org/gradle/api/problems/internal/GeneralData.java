@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,24 @@
 
 package org.gradle.api.problems.internal;
 
+import org.gradle.api.Incubating;
+import org.gradle.api.problems.AdditionalData;
+
 import java.util.Map;
 
 /**
  * General additional data type that can be used to attach arbitrary data to a problem with a string map.
+ *
+ * @since 8.13
  */
+@Incubating
 public interface GeneralData extends AdditionalData {
 
+    /**
+     * Return the data as a map of strings.
+     *
+     * @return the data
+     * @since 8.13
+     */
     Map<String, String> getAsMap();
 }

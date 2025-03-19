@@ -21,6 +21,8 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
 
 import java.io.File;
@@ -31,6 +33,7 @@ import java.util.function.Function;
  *
  * Implementations are not yet entirely thread-safe, but should be.
  */
+@ServiceScope(Scope.Build.class)
 public interface BuildState {
     DisplayName getDisplayName();
 

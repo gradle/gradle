@@ -90,6 +90,7 @@ public abstract class CUnitPlugin implements Plugin<Project> {
             for (final CUnitTestSuiteSpec suite : testSuites.withType(CUnitTestSuiteSpec.class).values()) {
 
                 String taskName = suite.getName() + "CUnitLauncher";
+                @SuppressWarnings("deprecation")
                 GenerateCUnitLauncher skeletonTask = tasks.create(taskName, GenerateCUnitLauncher.class);
 
                 CSourceSet launcherSources = findLauncherSources(suite);

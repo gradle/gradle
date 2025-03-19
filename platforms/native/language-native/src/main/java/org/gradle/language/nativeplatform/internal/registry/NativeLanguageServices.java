@@ -20,10 +20,14 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.language.cpp.internal.NativeDependencyCache;
 import org.gradle.language.internal.DefaultNativeComponentFactory;
+import org.gradle.language.internal.NativeComponentFactory;
 import org.gradle.language.nativeplatform.internal.incremental.DefaultCompilationStateCacheFactory;
 import org.gradle.language.nativeplatform.internal.incremental.DefaultIncrementalCompilerBuilder;
+import org.gradle.language.nativeplatform.internal.incremental.IncrementalCompilerBuilder;
+import org.gradle.language.nativeplatform.internal.incremental.sourceparser.CSourceParser;
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.CachingCSourceParser;
 import org.gradle.language.nativeplatform.internal.toolchains.DefaultToolChainSelector;
+import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
 
 public class NativeLanguageServices extends AbstractGradleModuleServices {
 
@@ -31,13 +35,13 @@ public class NativeLanguageServices extends AbstractGradleModuleServices {
     public void registerBuildServices(ServiceRegistration registration) {
         registration.add(NativeDependencyCache.class);
         registration.add(DefaultCompilationStateCacheFactory.class);
-        registration.add(CachingCSourceParser.class);
+        registration.add(CSourceParser.class, CachingCSourceParser.class);
     }
 
     @Override
     public void registerProjectServices(ServiceRegistration registration) {
-        registration.add(DefaultIncrementalCompilerBuilder.class);
-        registration.add(DefaultToolChainSelector.class);
-        registration.add(DefaultNativeComponentFactory.class);
+        registration.add(IncrementalCompilerBuilder.class, DefaultIncrementalCompilerBuilder.class);
+        registration.add(ToolChainSelector.class, DefaultToolChainSelector.class);
+        registration.add(NativeComponentFactory.class, DefaultNativeComponentFactory.class);
     }
 }

@@ -17,8 +17,8 @@
 package org.gradle.internal.build.event.types;
 
 import org.gradle.tooling.internal.protocol.events.InternalJavaCompileTaskOperationResult;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 public class DefaultJavaCompileTaskSuccessResult extends DefaultTaskSuccessResult implements InternalJavaCompileTaskOperationResult {

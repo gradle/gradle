@@ -39,7 +39,7 @@ class MavenJvmLibraryArtifactResolutionIntegrationTest extends AbstractHttpDepen
     def initBuild(MavenRepository repo) {
         buildFile.text = """
 repositories {
-    maven { url '$repo.uri' }
+    maven { url = '$repo.uri' }
 }
 """
     }

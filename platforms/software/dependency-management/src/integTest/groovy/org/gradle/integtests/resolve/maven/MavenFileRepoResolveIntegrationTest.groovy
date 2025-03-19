@@ -33,7 +33,7 @@ class MavenFileRepoResolveIntegrationTest extends AbstractDependencyResolutionTe
         and:
         buildFile << """
 configurations { compile }
-repositories { maven { url "${mavenRepo().uri}" } }
+repositories { maven { url = "${mavenRepo().uri}" } }
 dependencies { compile 'group:projectA:1.2-SNAPSHOT' }
 task retrieve(type: Sync) {
     from configurations.compile
@@ -71,7 +71,7 @@ task retrieve(type: Sync) {
         and:
         buildFile << """
 configurations { compile }
-repositories { maven { url "${mavenRepo().uri}" } }
+repositories { maven { url = "${mavenRepo().uri}" } }
 dependencies { compile 'group:projectA:1.2' }
 task retrieve(type: Sync) {
     from configurations.compile
@@ -115,7 +115,7 @@ task retrieve(type: Sync) {
         buildFile << """
 repositories {
     maven {
-        url "${mavenRepo().uri}"
+        url = "${mavenRepo().uri}"
         artifactUrls "${artifactsRepo.uri}"
     }
 }
@@ -150,7 +150,7 @@ task retrieve(type: Sync) {
         buildFile << """
 repositories {
     maven {
-        url "${repo.uri}"
+        url = "${repo.uri}"
         authentication {
             auth(BasicAuthentication)
         }

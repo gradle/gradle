@@ -109,7 +109,7 @@ class SwiftApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
             @testable import App
 
             class HolaTests: XCTestCase {
-                public static var allTests = [
+                public static let allTests = [
                     ("testGreeting", testGreeting),
                 ]
 

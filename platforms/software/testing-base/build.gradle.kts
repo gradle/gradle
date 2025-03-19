@@ -1,6 +1,5 @@
 plugins {
     id("gradlebuild.distribution.api-java")
-    id("gradlebuild.instrumented-java-project")
 }
 
 description = """Basic testing related plugins, which establish conventions for testing output directories,
@@ -28,27 +27,26 @@ dependencies {
     api(projects.loggingApi)
     api(projects.messaging)
     api(projects.native)
+    api(projects.problemsApi)
     api(projects.reportRendering)
     api(projects.reporting)
+    api(projects.serialization)
     api(projects.serviceProvider)
     api(projects.testingBaseInfrastructure)
     api(projects.time)
 
     api(libs.groovy)
     api(libs.guava)
-    api(libs.jsr305)
+    api(libs.jspecify)
     api(libs.inject)
 
     implementation(projects.baseServicesGroovy)
     implementation(projects.concurrent)
     implementation(projects.files)
     implementation(projects.modelCore)
-    implementation(projects.serialization)
 
-    implementation(libs.ant) {
-        because("only used for DateUtils")
-    }
     implementation(libs.commonsLang)
+    implementation(libs.commonsIo)
     implementation(libs.kryo)
     implementation(libs.slf4jApi)
 
@@ -60,6 +58,7 @@ dependencies {
     testImplementation(testFixtures(projects.messaging))
     testImplementation(testFixtures(projects.platformBase))
     testImplementation(testFixtures(projects.serialization))
+    testImplementation(testFixtures(projects.time))
 
     testImplementation(libs.commonsIo)
 

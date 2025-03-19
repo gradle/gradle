@@ -73,7 +73,7 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
             apply plugin: 'java'
 
             repositories {
-                maven { url "${mavenHttpRepository.uri}" }
+                maven { url = "${mavenHttpRepository.uri}" }
             }
 
             dependencies {

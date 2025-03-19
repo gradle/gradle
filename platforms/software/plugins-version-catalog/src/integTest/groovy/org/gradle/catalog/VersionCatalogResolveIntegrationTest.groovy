@@ -54,7 +54,7 @@ class VersionCatalogResolveIntegrationTest extends AbstractHttpDependencyResolut
         settingsFile << """
             dependencyResolutionManagement {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
                 versionCatalogs {
                     libs {
@@ -91,7 +91,7 @@ class VersionCatalogResolveIntegrationTest extends AbstractHttpDependencyResolut
         settingsFile << """
             dependencyResolutionManagement {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
                 versionCatalogs {
                     libs {
@@ -137,7 +137,7 @@ class VersionCatalogResolveIntegrationTest extends AbstractHttpDependencyResolut
         settingsFile << """
             dependencyResolutionManagement {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
                 versionCatalogs {
                     libs {
@@ -168,7 +168,7 @@ org.gradle.test:my-platform:1.0=incomingCatalogForLibs0
         settingsFile << """
             dependencyResolutionManagement {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
                 versionCatalogs {
                     libs {
@@ -217,7 +217,7 @@ org.gradle.test:my-platform:1.0=incomingCatalogForLibs0
         settingsFile << """
             dependencyResolutionManagement {
                 repositories {
-                    maven { url "${mavenHttpRepo.uri}" }
+                    maven { url = "${mavenHttpRepo.uri}" }
                 }
             }
         """
@@ -286,7 +286,7 @@ org.gradle.test:my-platform:1.0=incomingCatalogForLibs0
                 publishing {
                     repositories {
                         maven {
-                            url "${mavenRepo.uri}"
+                            url = "${mavenRepo.uri}"
                         }
                     }
                 }

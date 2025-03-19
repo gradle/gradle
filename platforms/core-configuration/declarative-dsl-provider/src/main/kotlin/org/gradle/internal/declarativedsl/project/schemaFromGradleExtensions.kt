@@ -20,7 +20,9 @@ import org.gradle.api.plugins.ExtensionAware
 import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.declarative.dsl.schema.ConfigureAccessor
 import org.gradle.declarative.dsl.schema.DataConstructor
+import org.gradle.declarative.dsl.schema.DataTopLevelFunction
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
+import org.gradle.internal.declarativedsl.InstanceAndPublicType
 import org.gradle.internal.declarativedsl.analysis.ConfigureAccessorInternal
 import org.gradle.internal.declarativedsl.analysis.DefaultDataMemberFunction
 import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsInternal
@@ -32,8 +34,10 @@ import org.gradle.internal.declarativedsl.evaluationSchema.ifConversionSupported
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeCustomAccessors
 import org.gradle.internal.declarativedsl.schemaBuilder.DataSchemaBuilder
 import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
+import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingContextElement
+import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingHost
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
-import org.gradle.internal.declarativedsl.schemaBuilder.toDataTypeRef
+import org.gradle.internal.declarativedsl.schemaBuilder.withTag
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 
@@ -107,38 +111,44 @@ data class ExtensionInfo(
 ) {
     val customAccessorId = "$accessorIdPrefix:$name"
 
-    val schemaFunction = DefaultDataMemberFunction(
-        ProjectTopLevelReceiver::class.toDataTypeRef(),
-        name,
-        emptyList(),
-        isDirectAccessOnly = true,
-        semantics = FunctionSemanticsInternal.DefaultAccessAndConfigure(
-            accessor = ConfigureAccessorInternal.DefaultCustom(type.toDataTypeRef(), customAccessorId),
-            FunctionSemanticsInternal.DefaultAccessAndConfigure.DefaultReturnType.DefaultUnit,
-            FunctionSemanticsInternal.DefaultConfigureBlockRequirement.DefaultRequired
-        )
-    )
+    fun schemaFunction(host: SchemaBuildingHost) =
+        host.withTag(extensionTag(name)) {
+            DefaultDataMemberFunction(
+                host.containerTypeRef(ProjectTopLevelReceiver::class),
+                name,
+                emptyList(),
+                isDirectAccessOnly = true,
+                semantics = FunctionSemanticsInternal.DefaultAccessAndConfigure(
+                    accessor = ConfigureAccessorInternal.DefaultCustom(host.containerTypeRef(type), customAccessorId),
+                    FunctionSemanticsInternal.DefaultAccessAndConfigure.DefaultReturnType.DefaultUnit,
+                    FunctionSemanticsInternal.DefaultConfigureBlockRequirement.DefaultRequired
+                )
+            )
+        }
+
+    private fun extensionTag(name: String) = SchemaBuildingContextElement.TagContextElement("'$name' extension")
 }
 
 
 private
 class RuntimeExtensionAccessors(info: List<ExtensionInfo>) : RuntimeCustomAccessors {
 
-    val extensionsByIdentifier = info.associate { it.customAccessorId to it.extensionProvider() }
+    val providersByIdentifier = info.associate { it.customAccessorId to it.extensionProvider() }
+    val typesByIdentifier = info.associate { it.customAccessorId to it.type }
 
-    override fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessor.Custom): Any? =
-        extensionsByIdentifier[accessor.customAccessorIdentifier]
+    override fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessor.Custom): InstanceAndPublicType =
+        InstanceAndPublicType.of(providersByIdentifier[accessor.customAccessorIdentifier], typesByIdentifier[accessor.customAccessorIdentifier])
 }
 
 
 private
 fun extensionConfiguringFunctions(typeToExtend: KClass<*>, extensionInfo: Iterable<ExtensionInfo>): FunctionExtractor = object : FunctionExtractor {
-    override fun memberFunctions(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<SchemaMemberFunction> =
-        if (kClass == typeToExtend) extensionInfo.map(ExtensionInfo::schemaFunction) else emptyList()
+    override fun memberFunctions(host: SchemaBuildingHost, kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<SchemaMemberFunction> =
+        if (kClass == typeToExtend) extensionInfo.map { it.schemaFunction(host) } else emptyList()
 
-    override fun constructors(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<DataConstructor> = emptyList()
+    override fun constructors(host: SchemaBuildingHost, kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<DataConstructor> = emptyList()
 
-    override fun topLevelFunction(function: KFunction<*>, preIndex: DataSchemaBuilder.PreIndex) = null
+    override fun topLevelFunction(host: SchemaBuildingHost, function: KFunction<*>, preIndex: DataSchemaBuilder.PreIndex): DataTopLevelFunction? = null
 }
 
 

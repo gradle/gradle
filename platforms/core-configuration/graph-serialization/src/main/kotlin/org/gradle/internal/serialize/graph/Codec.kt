@@ -175,11 +175,11 @@ interface IsolateContext {
 
 interface IsolateOwner {
     val delegate: Any
-    fun <T> service(type: Class<T>): T
+    fun <T : Any> service(type: Class<T>): T
 }
 
 
-inline fun <reified T> IsolateOwner.serviceOf() = service(T::class.java)
+inline fun <reified T : Any> IsolateOwner.serviceOf() = service(T::class.java)
 
 
 interface Isolate {

@@ -203,18 +203,11 @@ class StrictVersionConstraintsFeatureInteractionIntegrationTest extends Abstract
             'org:bar:2.0'()
         }
 
-        createDirs("foo")
-        settingsFile << "\ninclude 'foo'"
+        settingsFile << """
+            include 'foo'
+        """
+
         buildFile << """
-            project(':foo') {
-                configurations.create('conf')
-                artifacts { add('conf', file('foo.jar')) }
-                dependencies {
-                    conf('org:bar') {
-                        version { strictly '2.0' }
-                    }
-                }
-            }
             dependencies {
                 constraints {
                     conf('org:bar') {
@@ -222,6 +215,16 @@ class StrictVersionConstraintsFeatureInteractionIntegrationTest extends Abstract
                     }
                 }
                 conf(project(path: ':foo', configuration: 'conf'))
+            }
+        """
+
+        file("foo/build.gradle") << """
+            configurations.create('conf')
+            artifacts { add('conf', file('foo.jar')) }
+            dependencies {
+                conf('org:bar') {
+                    version { strictly '2.0' }
+                }
             }
         """
 
@@ -244,17 +247,12 @@ class StrictVersionConstraintsFeatureInteractionIntegrationTest extends Abstract
             'org:bar:2.0'()
         }
 
-        createDirs("foo")
-        settingsFile << "\ninclude 'foo'"
+        settingsFile << """
+            include 'foo'
+        """
+
         buildFile << """
             configurations.conf.resolutionStrategy.force('org:bar:2.0')
-            project(':foo') {
-                configurations.create('conf')
-                artifacts { add('conf', file('foo.jar')) }
-                dependencies {
-                    conf('org:bar:2.0')
-                }
-            }
             dependencies {
                 constraints {
                     conf('org:bar') {
@@ -262,6 +260,14 @@ class StrictVersionConstraintsFeatureInteractionIntegrationTest extends Abstract
                     }
                 }
                 conf(project(path: ':foo', configuration: 'conf'))
+            }
+        """
+
+        file("foo/build.gradle") << """
+            configurations.create('conf')
+            artifacts { add('conf', file('foo.jar')) }
+            dependencies {
+                conf('org:bar:2.0')
             }
         """
 

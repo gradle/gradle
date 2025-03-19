@@ -41,7 +41,7 @@ abstract class UpdateAgpVersions : DefaultTask() {
     abstract val comment: Property<String>
 
     @get:Internal
-    abstract val minimumSupportedMinor: Property<String>
+    abstract val minimumSupported: Property<String>
 
     @get:Internal
     abstract val propertiesFile: RegularFileProperty
@@ -63,7 +63,7 @@ abstract class UpdateAgpVersions : DefaultTask() {
     fun fetchLatestAgpVersions(): FetchedVersions {
         val dbf = DocumentBuilderFactory.newInstance()
         val latests = dbf.fetchLatests(
-            minimumSupportedMinor.get(),
+            minimumSupported.get(),
             "https://dl.google.com/dl/android/maven2/com/android/tools/build/gradle/maven-metadata.xml"
         )
         val nightlyBuildId = fetchNightlyBuildId(
@@ -126,16 +126,20 @@ abstract class UpdateAgpVersions : DefaultTask() {
         var latests = fetchVersionsFromMavenMetadata(mavenMetadataUrl)
             .groupBy { it.take(3) }
             .map { (_, versions) -> versions.first() }
-        latests = (latests + minimumSupported).sorted()
+        latests = (latests + minimumSupported).sortedVersionNumbers()
         latests = latests.subList(latests.indexOf(minimumSupported) + 1, latests.size)
         return latests
     }
 
     private
+    fun List<String>.sortedVersionNumbers(): List<String> =
+        map { VersionNumber.parse(it) }.sorted().map { it.toString() }
+
+    private
     fun fetchNightlyBuildId(buildListUrl: String): String =
         Jsoup.connect(buildListUrl)
             .get()
-            .select("li a")
+            .select("main li a")
             .first()!!
             .text()
 

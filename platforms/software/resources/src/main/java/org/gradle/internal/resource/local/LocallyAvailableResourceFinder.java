@@ -16,6 +16,9 @@
 
 package org.gradle.internal.resource.local;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 /**
  * Can find a locally available candidates for an external resource, through some means.
  *
@@ -25,6 +28,7 @@ package org.gradle.internal.resource.local;
  *
  * @param <C> The type of the criterion object used to find candidates
  */
+@ServiceScope(Scope.Build.class)
 public interface LocallyAvailableResourceFinder<C> {
 
     LocallyAvailableResourceCandidates findCandidates(C criterion);

@@ -26,7 +26,7 @@ class IvyBrokenDescriptorIntegrationTest extends AbstractHttpDependencyResolutio
         buildFile << """
             repositories {
                 ivy {
-                    url "${ivyHttpRepo.uri}"
+                    url = "${ivyHttpRepo.uri}"
                 }
             }
             configurations { compile }
@@ -64,7 +64,7 @@ dependencies {
 repositories.clear()
 repositories {
     ivy {
-        url "${ivyRepo.uri}"
+        url = "${ivyRepo.uri}"
     }
 }
 dependencies {

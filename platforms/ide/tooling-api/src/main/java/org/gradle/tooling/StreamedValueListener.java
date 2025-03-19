@@ -16,8 +16,6 @@
 
 package org.gradle.tooling;
 
-import org.gradle.api.Incubating;
-
 /**
  * Receives a value sent via {@link BuildController#send(Object)}.
  *
@@ -25,7 +23,6 @@ import org.gradle.api.Incubating;
  *
  * @since 8.6
  */
-@Incubating
 public interface StreamedValueListener {
     /**
      * Handles the next value.

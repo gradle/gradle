@@ -20,8 +20,8 @@ import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.provider.Property;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.regex.Pattern;
 
 /**
@@ -55,7 +55,7 @@ public interface CopyProcessingSpec extends ContentFilterable {
      * @param renamer rename function
      * @return this
      */
-    CopyProcessingSpec rename(Transformer<@org.jetbrains.annotations.Nullable String, String> renamer);
+    CopyProcessingSpec rename(Transformer<@Nullable String, String> renamer);
 
     /**
      * Renames files based on a regular expression.  Uses java.util.regex type of regular expressions.  Note that the

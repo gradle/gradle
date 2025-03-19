@@ -26,7 +26,6 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.component.SoftwareComponentContainerInternal;
-import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.JvmConstants;
@@ -266,8 +265,8 @@ public abstract class JavaPlugin implements Plugin<Project> {
         ((SoftwareComponentContainerInternal) project.getComponents()).getMainComponent().convention(javaComponent);
 
         // Build the main jar when running `assemble`.
-        DefaultArtifactPublicationSet publicationSet = project.getExtensions().getByType(DefaultArtifactPublicationSet.class);
-        publicationSet.addCandidate(javaComponent.getMainFeature().getRuntimeElementsConfiguration().getArtifacts().iterator().next());
+        project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).getArtifacts()
+            .add(javaComponent.getMainFeature().getRuntimeElementsConfiguration().getArtifacts().iterator().next());
 
         BuildOutputCleanupRegistry buildOutputCleanupRegistry = projectInternal.getServices().get(BuildOutputCleanupRegistry.class);
         configureSourceSets(buildOutputCleanupRegistry, sourceSets);

@@ -394,7 +394,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         pluginManagement {
             repositories {
                 maven {
-                    url '$pluginRepo.uri'
+                    url = '$pluginRepo.uri'
                 }
             }
         }
@@ -420,7 +420,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         buildFile << """
           buildscript {
              repositories {
-                maven { url "${pluginRepo.uri}" }
+                maven { url = "${pluginRepo.uri}" }
              }
              dependencies {
                 classpath 'com:myplugin:1.0'
@@ -485,7 +485,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         file("buildSrc/build.gradle") << """
             repositories {
                 maven {
-                    url "${mavenHttpRepo.uri}"
+                    url = "${mavenHttpRepo.uri}"
                 }
             }
             dependencies {
@@ -516,7 +516,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
             buildscript {
                 repositories {
                     maven {
-                        url "${mavenHttpRepo.uri}"
+                        url = "${mavenHttpRepo.uri}"
                     }
                 }
                 dependencies {
@@ -641,7 +641,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
             }
 
             repositories {
-                maven { url "${mavenHttpRepo.uri}" }
+                maven { url = "${mavenHttpRepo.uri}" }
             }
 
             dependencies {
@@ -1018,7 +1018,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         settingsFile << "include 'other'"
         file("other/build.gradle") << """
             repositories {
-                  maven { url "${alternateRepo.uri}" }
+                  maven { url = "${alternateRepo.uri}" }
             }
             configurations {
                 other

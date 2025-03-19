@@ -18,8 +18,8 @@ package org.gradle.util.internal;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Ordering;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Locale;
 
 /**
@@ -171,7 +171,7 @@ public class VersionNumber implements Comparable<VersionNumber> {
 
         @Override
         public VersionNumber parse(@Nullable String versionString) {
-            if (versionString == null || versionString.length() == 0) {
+            if (versionString == null || versionString.isEmpty()) {
                 return UNKNOWN;
             }
             Scanner scanner = new Scanner(versionString);

@@ -36,6 +36,8 @@ public interface NamedDomainObjectContainer<T> extends NamedDomainObjectSet<T>, 
 
     /**
      * Creates a new item with the given name, adding it to this container.
+     * <p>
+     * This operation is eager, the element is realized before being returned.
      *
      * @param name The name to assign to the created object
      * @return The created object. Never null.
@@ -45,6 +47,8 @@ public interface NamedDomainObjectContainer<T> extends NamedDomainObjectSet<T>, 
 
     /**
      * Looks for an item with the given name, creating and adding it to this container if it does not exist.
+     * <p>
+     * This operation is eager, the element is realized before being returned.
      *
      * @param name The name to find or assign to the created object
      * @return The found or created object. Never null.
@@ -53,6 +57,8 @@ public interface NamedDomainObjectContainer<T> extends NamedDomainObjectSet<T>, 
 
     /**
      * Creates a new item with the given name, adding it to this container, then configuring it with the given closure.
+     * <p>
+     * This operation is eager, the element is realized before being returned.
      *
      * @param name The name to assign to the created object
      * @param configureClosure The closure to configure the created object with
@@ -63,6 +69,8 @@ public interface NamedDomainObjectContainer<T> extends NamedDomainObjectSet<T>, 
 
     /**
      * Creates a new item with the given name, adding it to this container, then configuring it with the given action.
+     * <p>
+     * This operation is eager, the element is realized before being returned.
      *
      * @param name The name to assign to the created object
      * @param configureAction The action to configure the created object with
@@ -84,8 +92,12 @@ public interface NamedDomainObjectContainer<T> extends NamedDomainObjectSet<T>, 
 
     /**
      * Defines a new object, which will be created and configured when it is required. An object is 'required' when the object is located using query methods such as {@link NamedDomainObjectCollection#getByName(java.lang.String)} or when {@link Provider#get()} is called on the return value of this method.
-     *
-     * <p>It is generally more efficient to use this method instead of {@link #create(java.lang.String, org.gradle.api.Action)} or {@link #create(java.lang.String)}, as those methods will eagerly create and configure the object, regardless of whether that object is required for the current build or not. This method, on the other hand, will defer creation and configuration until required.</p>
+     * <p>
+     * It is generally more efficient to use this method instead of {@link #create(java.lang.String, org.gradle.api.Action)} or {@link #create(java.lang.String)}, as those methods will eagerly create and configure the object, regardless of whether that object is required for the current build or not.
+     * This method, on the other hand, will defer creation and configuration until required.
+     * <p>
+     * This operation is lazy, the returned element is NOT realized.
+     * A {@link NamedDomainObjectProvider lazy wrapper} is returned, allowing to continue to use it with other lazy APIs.
      *
      * @param name The name of the object.
      * @param configurationAction The action to run to configure the object. This action runs when the object is required.
@@ -97,8 +109,12 @@ public interface NamedDomainObjectContainer<T> extends NamedDomainObjectSet<T>, 
 
     /**
      * Defines a new object, which will be created when it is required. A object is 'required' when the object is located using query methods such as {@link NamedDomainObjectCollection#getByName(java.lang.String)} or when {@link Provider#get()} is called on the return value of this method.
-     *
-     * <p>It is generally more efficient to use this method instead of {@link #create(java.lang.String)}, as that method will eagerly create the object, regardless of whether that object is required for the current build or not. This method, on the other hand, will defer creation until required.</p>
+     * <p>
+     * It is generally more efficient to use this method instead of {@link #create(java.lang.String)}, as that method will eagerly create the object, regardless of whether that object is required for the current build or not.
+     * This method, on the other hand, will defer creation until required.
+     * <p>
+     * This operation is lazy, the returned element is NOT realized.
+     * A {@link NamedDomainObjectProvider lazy wrapper} is returned, allowing to continue to use it with other lazy APIs.
      *
      * @param name The name of the object.
      * @return A {@link Provider} whose value will be the object, when queried.

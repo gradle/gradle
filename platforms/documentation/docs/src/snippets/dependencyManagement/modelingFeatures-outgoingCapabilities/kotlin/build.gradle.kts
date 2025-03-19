@@ -26,7 +26,7 @@ configurations {
 publishing {
     repositories {
         maven {
-            setUrl("${buildDir}/repo")
+            url = uri(layout.buildDirectory.dir("repo"))
         }
     }
     // tag::ignore-pom-warnings[]

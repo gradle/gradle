@@ -27,10 +27,13 @@ import org.gradle.api.GradleScriptException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.XmlProvider;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.plugins.scala.ScalaBasePlugin;
+import org.gradle.api.plugins.scala.ScalaPluginExtension;
 import org.gradle.api.tasks.ScalaRuntime;
 import org.gradle.internal.Cast;
 import org.gradle.plugins.ide.idea.IdeaPlugin;
@@ -49,6 +52,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import static org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject.findOrCreateFirstChildNamed;
 import static org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject.findOrCreateFirstChildWithAttributeValue;
@@ -59,9 +63,11 @@ public class IdeaScalaConfigurer {
     private static final VersionNumber IDEA_VERSION_WHEN_SCALA_SDK_WAS_INTRODUCED = VersionNumber.version(14);
     public static final String DEFAULT_SCALA_PLATFORM_VERSION = "2.10.7";
     private final Project rootProject;
+    private final Consumer<Collection<Project>> onScalaProjects;
 
-    public IdeaScalaConfigurer(Project rootProject) {
+    public IdeaScalaConfigurer(Project rootProject, Consumer<Collection<Project>> onScalaProjects) {
         this.rootProject = rootProject;
+        this.onScalaProjects = onScalaProjects;
     }
 
     public void configure() {
@@ -71,6 +77,9 @@ public class IdeaScalaConfigurer {
                 VersionNumber ideaTargetVersion = findIdeaTargetVersion();
                 final boolean useScalaSdk = ideaTargetVersion == null || IDEA_VERSION_WHEN_SCALA_SDK_WAS_INTRODUCED.compareTo(ideaTargetVersion) <= 0;
                 final Collection<Project> scalaProjects = findProjectsApplyingIdeaAndScalaPlugins();
+
+                onScalaProjects.accept(scalaProjects);
+
                 final Map<String, ProjectLibrary> scalaCompilerLibraries = new LinkedHashMap<>();
                 rootProject.getTasks().named("ideaProject", new Action<Task>() {
                     @Override
@@ -109,13 +118,10 @@ public class IdeaScalaConfigurer {
     private static Map<String, ProjectLibrary> resolveScalaCompilerLibraries(Collection<Project> scalaProjects, final boolean useScalaSdk) {
         Map<String, ProjectLibrary> scalaCompilerLibraries = new LinkedHashMap<>();
         for (final Project scalaProject : scalaProjects) {
-            final IdeaModule ideaModule = scalaProject.getExtensions().getByType(IdeaModel.class).getModule();
-            final Iterable<File> files = getIdeaModuleLibraryDependenciesAsFiles(ideaModule);
-            ProjectLibrary library = ((ProjectInternal) scalaProject).getOwner().fromMutableState(p -> createScalaSdkLibrary(scalaProject, files, useScalaSdk, ideaModule));
-            if (library != null) {
-                ProjectLibrary duplicate = Iterables.find(scalaCompilerLibraries.values(), Predicates.equalTo(library), null);
-                scalaCompilerLibraries.put(scalaProject.getPath(), duplicate == null ? library : duplicate);
-            }
+            ProjectState owner = ((ProjectInternal) scalaProject).getOwner();
+            ProjectLibrary library = owner.fromMutableState(p -> createScalaSdkLibrary(p, useScalaSdk));
+            ProjectLibrary duplicate = Iterables.find(scalaCompilerLibraries.values(), Predicates.equalTo(library), null);
+            scalaCompilerLibraries.put(owner.getIdentity().getProjectPath().toString(), duplicate == null ? library : duplicate);
         }
         return scalaCompilerLibraries;
     }
@@ -132,22 +138,28 @@ public class IdeaScalaConfigurer {
         return files;
     }
 
-    @SuppressWarnings({"deprecation", "unused"})
-    private static ProjectLibrary createScalaSdkLibrary(Project scalaProject, Iterable<File> files, boolean useScalaSdk, IdeaModule ideaModule) {
-        ScalaRuntime runtime = scalaProject.getExtensions().findByType(ScalaRuntime.class);
-        if (runtime != null) {
-            FileCollection scalaClasspath = runtime.inferScalaClasspath(files);
-            File compilerJar = runtime.findScalaJar(scalaClasspath, "compiler");
-            if (compilerJar == null) {
-                compilerJar = runtime.findScalaJar(scalaClasspath, "compiler_3");
-            }
-            String scalaVersion = compilerJar != null ? runtime.getScalaVersion(compilerJar) : DEFAULT_SCALA_PLATFORM_VERSION;
-            return createScalaSdkFromScalaVersion(scalaVersion, scalaClasspath, useScalaSdk);
-        } else {
-            // One of the Scala plugins is applied, but ScalaRuntime extension is missing or the ScalaPlatform is undefined.
-            // we can't create a Scala SDK without either one
-            return null;
+    private static ProjectLibrary createScalaSdkLibrary(Project scalaProject, boolean useScalaSdk) {
+        ScalaPluginExtension scalaPluginExtension = scalaProject.getExtensions().getByType(ScalaPluginExtension.class);
+        if (scalaPluginExtension.getScalaVersion().isPresent()) {
+            String scalaVersion = scalaPluginExtension.getScalaVersion().get();
+            Configuration toolchainClasspath = scalaProject.getConfigurations().getByName("scalaToolchainRuntimeClasspath");
+            return createScalaSdkFromScalaVersion(scalaVersion, toolchainClasspath.getIncoming().getFiles(), useScalaSdk);
         }
+
+        // Otherwise, use legacy logic to scan classpath jars for version.
+        IdeaModule ideaModule = scalaProject.getExtensions().getByType(IdeaModel.class).getModule();
+        Iterable<File> files = getIdeaModuleLibraryDependenciesAsFiles(ideaModule);
+
+        ScalaRuntime runtime = scalaProject.getExtensions().getByType(ScalaRuntime.class);
+        FileCollection scalaClasspath = runtime.inferScalaClasspath(files);
+
+        File compilerJar = runtime.findScalaJar(scalaClasspath, "compiler");
+        if (compilerJar == null) {
+            compilerJar = runtime.findScalaJar(scalaClasspath, "compiler_3");
+        }
+
+        String scalaVersion = compilerJar != null ? runtime.getScalaVersion(compilerJar) : DEFAULT_SCALA_PLATFORM_VERSION;
+        return createScalaSdkFromScalaVersion(scalaVersion, scalaClasspath, useScalaSdk);
     }
 
     private static ProjectLibrary createScalaSdkFromScalaVersion(String version, FileCollection scalaClasspath, boolean useScalaSdk) {
@@ -210,8 +222,8 @@ public class IdeaScalaConfigurer {
         return Collections2.filter(rootProject.getAllprojects(), new Predicate<Project>() {
             @Override
             public boolean apply(Project project) {
-                final boolean hasIdeaPlugin = project.getPlugins().hasPlugin(IdeaPlugin.class);
-                final boolean hasScalaPlugin = project.getPlugins().hasPlugin(ScalaBasePlugin.class);
+                final boolean hasIdeaPlugin = IdeaIsolatedProjectsWorkarounds.hasPlugin(project, IdeaPlugin.class);
+                final boolean hasScalaPlugin = IdeaIsolatedProjectsWorkarounds.hasPlugin(project, ScalaBasePlugin.class);
                 return hasIdeaPlugin && hasScalaPlugin;
             }
         });

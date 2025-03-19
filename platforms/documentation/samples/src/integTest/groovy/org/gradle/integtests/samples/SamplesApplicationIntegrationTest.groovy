@@ -104,8 +104,8 @@ application {
         installDir.file("${executableDir}/my-app.bat").text.contains("MODULE_PATH=")
 
         def builder = new ScriptExecuter()
-        builder.workingDir installDir.file(executableDir)
-        builder.executable 'my-app'
+        builder.workingDir = installDir.file(executableDir)
+        builder.executable = 'my-app'
         builder.standardOutput = new ByteArrayOutputStream()
         builder.errorOutput = new ByteArrayOutputStream()
 

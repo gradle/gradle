@@ -46,7 +46,6 @@ class VariantsDependencySubstitutionRulesIntegrationTest extends AbstractIntegra
             }
         """
 
-        createDirs("platform")
         settingsFile << """
             include 'platform'
         """
@@ -93,7 +92,7 @@ class VariantsDependencySubstitutionRulesIntegrationTest extends AbstractIntegra
         buildFile << """
 
             repositories {
-               maven { url "${mavenRepo.uri}" }
+               maven { url = "${mavenRepo.uri}" }
             }
 
             configurations {
@@ -143,7 +142,7 @@ class VariantsDependencySubstitutionRulesIntegrationTest extends AbstractIntegra
         buildFile << """
 
             repositories {
-               maven { url "${mavenRepo.uri}" }
+               maven { url = "${mavenRepo.uri}" }
             }
 
             configurations {
@@ -176,7 +175,7 @@ class VariantsDependencySubstitutionRulesIntegrationTest extends AbstractIntegra
         buildFile << """
 
             repositories {
-               maven { url "${mavenRepo.uri}" }
+               maven { url = "${mavenRepo.uri}" }
             }
 
             configurations {
@@ -196,10 +195,10 @@ class VariantsDependencySubstitutionRulesIntegrationTest extends AbstractIntegra
             }
         """
 
-        createDirs("other")
         settingsFile << """
             include 'other'
         """
+        file("other/build.gradle") << ""
 
         when:
         fails ':checkDeps'
@@ -214,7 +213,7 @@ class VariantsDependencySubstitutionRulesIntegrationTest extends AbstractIntegra
         buildFile << """
 
             repositories {
-               maven { url "${mavenRepo.uri}" }
+               maven { url = "${mavenRepo.uri}" }
             }
 
             configurations {
@@ -261,7 +260,7 @@ class VariantsDependencySubstitutionRulesIntegrationTest extends AbstractIntegra
         buildFile << """
 
             repositories {
-               maven { url "${mavenRepo.uri}" }
+               maven { url = "${mavenRepo.uri}" }
             }
 
             configurations {
@@ -285,7 +284,6 @@ class VariantsDependencySubstitutionRulesIntegrationTest extends AbstractIntegra
             }
         """
 
-        createDirs("other")
         settingsFile << """
             include 'other'
         """

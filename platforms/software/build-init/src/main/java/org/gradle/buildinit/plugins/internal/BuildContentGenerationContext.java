@@ -16,12 +16,12 @@
 
 package org.gradle.buildinit.plugins.internal;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * Context passed through all stages of the build generation to track state.
  */
-@NonNullApi
+@NullMarked
 public class BuildContentGenerationContext {
     private final VersionCatalogDependencyRegistry versionCatalogDependencyRegistry;
 

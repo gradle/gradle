@@ -183,7 +183,7 @@ class ScalaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
         """
             repositories {
                 maven {
-                    url '${repoDir.toURI()}'
+                    url = '${repoDir.toURI()}'
                 }
             }
 
@@ -274,7 +274,7 @@ class ScalaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
 
                     repositories {
                         maven {
-                            url "\$buildDir/repo"
+                            url = layout.buildDirectory.dir('repo')
                         }
                     }
                 }

@@ -16,10 +16,20 @@
 
 package org.gradle.api.tasks.testing;
 
+import org.gradle.api.Incubating;
+
 /**
  * Standard output or standard error message logged during the execution of the test
  */
 public interface TestOutputEvent {
+
+    /**
+     * The time the message was logged, in milliseconds since UNIX epoch.
+     *
+     * @since 8.12
+     */
+    @Incubating
+    long getLogTime();
 
     /**
      * Destination of the message

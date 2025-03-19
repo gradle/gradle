@@ -35,7 +35,7 @@ class CachedDependencyResolutionIntegrationTest extends AbstractHttpDependencyRe
     def setup() {
         buildFile << """
 repositories {
-    ivy { url "${ivyHttpRepo.uri}" }
+    ivy { url = "${ivyHttpRepo.uri}" }
 }
 
 configurations { compile }

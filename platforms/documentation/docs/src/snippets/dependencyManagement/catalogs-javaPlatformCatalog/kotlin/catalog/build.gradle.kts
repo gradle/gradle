@@ -41,7 +41,7 @@ publishing {
 publishing {
     repositories {
         maven {
-            url  = uri("${projectDir}/repo")
+            url = uri(layout.projectDirectory.dir("repo"))
         }
     }
 }

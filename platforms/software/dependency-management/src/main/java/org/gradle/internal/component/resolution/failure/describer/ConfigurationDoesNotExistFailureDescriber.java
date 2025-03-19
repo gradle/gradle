@@ -50,9 +50,4 @@ public abstract class ConfigurationDoesNotExistFailureDescriber extends Abstract
             failure.getTargetComponent().getDisplayName()
         );
     }
-
-    private String quoteNameOnly(String formattedId) {
-        int projectIdIdx = formattedId.indexOf("project ");
-        return projectIdIdx < 0 ? '\'' + formattedId + '\'' : formattedId.substring(0, projectIdIdx + 8) + '\'' + formattedId.substring(projectIdIdx + 8) + '\'';
-    }
 }

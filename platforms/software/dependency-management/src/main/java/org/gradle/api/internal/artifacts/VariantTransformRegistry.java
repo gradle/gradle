@@ -20,17 +20,30 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.artifacts.transform.TransformSpec;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
-import java.util.List;
+import java.util.Set;
 
+/**
+ * A registry for artifact transforms.
+ */
+@ServiceScope(Scope.Project.class)
 public interface VariantTransformRegistry {
-
     /**
      * Register an artifact transform.
+     *
+     * @param actionType the type of the transform action
+     * @param registrationAction an action used to configure the transform
      *
      * @see TransformAction
      */
     <T extends TransformParameters> void registerTransform(Class<? extends TransformAction<T>> actionType, Action<? super TransformSpec<T>> registrationAction);
 
-    List<TransformRegistration> getRegistrations();
+    /**
+     * Returns a set of all the registered transforms.
+     *
+     * @return the set of registered transforms
+     */
+    Set<TransformRegistration> getRegistrations();
 }

@@ -46,7 +46,6 @@ import javax.inject.Inject;
  *
  * @since 8.0
  */
-@Incubating
 @NonExtensible
 @SuppressWarnings("JavadocReference")
 public abstract class DependencyModifier {
@@ -86,6 +85,7 @@ public abstract class DependencyModifier {
      * @param providerConvertibleToDependency the provider
      * @return a provider to the modified dependency
      */
+    @Incubating
     public final Provider<? extends MinimalExternalModuleDependency> modify(ProviderConvertible<? extends MinimalExternalModuleDependency> providerConvertibleToDependency) {
         return providerConvertibleToDependency.asProvider().map(this::modify);
     }

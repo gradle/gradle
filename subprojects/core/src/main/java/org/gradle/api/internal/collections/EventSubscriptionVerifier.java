@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.collections;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Tracks which types are subscribed to by eager event listeners. Lazy elements of a

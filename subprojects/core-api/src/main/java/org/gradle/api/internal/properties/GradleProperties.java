@@ -16,12 +16,16 @@
 
 package org.gradle.api.internal.properties;
 
-import javax.annotation.Nullable;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
+
 import java.util.Map;
 
 /**
  * Immutable set of Gradle properties loaded at the start of the build.
  */
+@ServiceScope(Scope.Build.class)
 public interface GradleProperties {
 
     @Nullable

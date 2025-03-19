@@ -16,7 +16,8 @@
 
 package org.gradle.jvm.toolchain.internal;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Collections;

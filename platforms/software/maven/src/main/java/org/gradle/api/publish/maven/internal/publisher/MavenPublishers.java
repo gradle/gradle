@@ -19,10 +19,13 @@ package org.gradle.api.publish.maven.internal.publisher;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.internal.Factory;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 
 import java.io.File;
 
+@ServiceScope(Scope.Build.class)
 public class MavenPublishers {
     private final BuildCommencedTimeProvider timeProvider;
     private RepositoryTransportFactory repositoryTransportFactory;

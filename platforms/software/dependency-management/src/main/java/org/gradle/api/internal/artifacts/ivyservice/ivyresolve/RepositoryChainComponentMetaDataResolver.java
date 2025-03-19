@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState;
+import org.gradle.internal.component.external.model.ExternalModuleComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.model.CalculatedValueFactory;
@@ -32,10 +32,10 @@ import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableComponentResolveResult;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -48,7 +48,7 @@ import static org.gradle.internal.resolve.ResolveExceptionAnalyzer.isCriticalFai
 public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDataResolver {
     private static final Logger LOGGER = LoggerFactory.getLogger(RepositoryChainComponentMetaDataResolver.class);
 
-    private final List<ModuleComponentRepository<ModuleComponentGraphResolveState>> repositories = new ArrayList<>();
+    private final List<ModuleComponentRepository<ExternalModuleComponentGraphResolveState>> repositories = new ArrayList<>();
     private final List<String> repositoryNames = new ArrayList<>();
     private final VersionedComponentChooser versionedComponentChooser;
     private final CalculatedValueFactory calculatedValueFactory;
@@ -60,7 +60,7 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
         this.metadataValueContainerCache = CacheBuilder.newBuilder().weakValues().build();
     }
 
-    public void add(ModuleComponentRepository<ModuleComponentGraphResolveState> repository) {
+    public void add(ModuleComponentRepository<ExternalModuleComponentGraphResolveState> repository) {
         repositories.add(repository);
         repositoryNames.add(repository.getName());
     }
@@ -88,8 +88,8 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
     @Override
     public boolean isFetchingMetadataCheap(ComponentIdentifier identifier) {
         if (identifier instanceof ModuleComponentIdentifier) {
-            for (ModuleComponentRepository<ModuleComponentGraphResolveState> repository : repositories) {
-                ModuleComponentRepositoryAccess<ModuleComponentGraphResolveState> localAccess = repository.getLocalAccess();
+            for (ModuleComponentRepository<ExternalModuleComponentGraphResolveState> repository : repositories) {
+                ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> localAccess = repository.getLocalAccess();
                 MetadataFetchingCost fetchingCost = localAccess.estimateMetadataFetchingCost((ModuleComponentIdentifier) identifier);
                 if (fetchingCost.isFast()) {
                     return true;
@@ -108,7 +108,7 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
         BuildableComponentResolveResult result = new DefaultBuildableComponentResolveResult();
 
         List<ComponentMetaDataResolveState> resolveStates = new ArrayList<>();
-        for (ModuleComponentRepository<ModuleComponentGraphResolveState> repository : repositories) {
+        for (ModuleComponentRepository<ExternalModuleComponentGraphResolveState> repository : repositories) {
             resolveStates.add(new ComponentMetaDataResolveState(identifier, componentOverrideMetadata, repository, versionedComponentChooser));
         }
 
@@ -161,7 +161,7 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
         RepositoryChainModuleResolution best = null;
         while (!queue.isEmpty()) {
             ComponentMetaDataResolveState request = queue.removeFirst();
-            BuildableModuleComponentMetaDataResolveResult<ModuleComponentGraphResolveState> metaDataResolveResult;
+            BuildableModuleComponentMetaDataResolveResult<ExternalModuleComponentGraphResolveState> metaDataResolveResult;
             metaDataResolveResult = request.resolve();
             switch (metaDataResolveResult.getState()) {
                 case Failed:

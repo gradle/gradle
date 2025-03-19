@@ -24,7 +24,6 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
-import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
@@ -130,7 +129,7 @@ public abstract class EarPlugin implements Plugin<Project> {
                 deploymentDescriptor.setDescription(project.getDescription());
             }
         }
-        project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(new LazyPublishArtifact(ear, ((ProjectInternal) project).getFileResolver(), taskDependencyFactory));
+        project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).getArtifacts().add(new LazyPublishArtifact(ear, ((ProjectInternal) project).getFileResolver(), taskDependencyFactory));
     }
 
     private void wireEarTaskConventions(Project project, final EarPluginConvention earConvention) {

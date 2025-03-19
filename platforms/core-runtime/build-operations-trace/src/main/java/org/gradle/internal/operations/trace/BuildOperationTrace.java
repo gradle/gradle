@@ -53,8 +53,8 @@ import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.internal.GFileUtils;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -106,7 +106,7 @@ import static org.gradle.internal.Cast.uncheckedCast;
  * The generation of trees can be very memory hungry and thus can be disabled with
  * {@code -Dorg.gradle.internal.operations.trace.tree=false}.
  * </p>
- * The “trace” produced here is different to the trace produced by Gradle Profiler.
+ * The "trace" produced here is different to the trace produced by Gradle Profiler.
  * There, the focus is analyzing the performance profile.
  * Here, the focus is debugging/developing the information structure of build operations.
  *
@@ -152,7 +152,7 @@ public class BuildOperationTrace implements Stoppable {
     private final String basePath;
 
     private final OutputStream logOutputStream;
-    private final ObjectMapper objectMapper = createObjectMapper();
+    private final ObjectMapper objectMapper;
     private final BuildOperationListenerManager buildOperationListenerManager;
 
     public BuildOperationTrace(StartParameter startParameter, BuildOperationListenerManager buildOperationListenerManager) {
@@ -164,8 +164,11 @@ public class BuildOperationTrace implements Stoppable {
             this.logOutputStream = null;
             this.outputTree = false;
             this.listener = null;
+            this.objectMapper = null;
             return;
         }
+
+        this.objectMapper = createObjectMapper();
 
         Set<String> filter = getFilter(internalOptions);
         if (filter != null) {
@@ -395,7 +398,7 @@ public class BuildOperationTrace implements Stoppable {
                             resultMap == null ? null : Collections.unmodifiableMap(resultMap),
                             finish.resultClassName,
                             finish.failureMsg,
-                            convertProgressEvents(pending.progress),
+                            pending.progress,
                             BuildOperationRecord.ORDERING.immutableSortedCopy(children)
                         );
 
@@ -427,8 +430,8 @@ public class BuildOperationTrace implements Stoppable {
                 roots.add(new BuildOperationRecord(
                     -1L, null,
                     "Dangling pending operations",
-                    0, 0, null, null, null, null, null,
-                    convertProgressEvents(danglingProgress),
+                    0L, 0L, null, null, null, null, null,
+                    danglingProgress,
                     Collections.emptyList()
                 ));
             }
@@ -438,19 +441,6 @@ public class BuildOperationTrace implements Stoppable {
             throw UncheckedException.throwAsUncheckedException(e);
         }
 
-    }
-
-    private static List<BuildOperationRecord.Progress> convertProgressEvents(List<SerializedOperationProgress> toConvert) {
-        List<BuildOperationRecord.Progress> progresses = new ArrayList<>();
-        for (SerializedOperationProgress progress : toConvert) {
-            Map<String, ?> progressDetailsMap = uncheckedCast(progress.details);
-            progresses.add(new BuildOperationRecord.Progress(
-                progress.time,
-                progressDetailsMap,
-                progress.detailsClassName
-            ));
-        }
-        return progresses;
     }
 
     private static File logFile(String basePath) {

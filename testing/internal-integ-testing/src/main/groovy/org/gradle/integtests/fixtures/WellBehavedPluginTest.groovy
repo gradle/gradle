@@ -137,6 +137,30 @@ abstract class WellBehavedPluginTest extends AbstractIntegrationSpec {
         }
     }
 
+    def "does not realize all possible configurations"() {
+        applyPlugin()
+
+        buildFile """
+            // Most of our plugins create configurations eagerly.
+            // Just test that we don't realize registered configurations.
+            configurations.register("foo") {
+                assert false
+            }
+            configurations.resolvable("res") {
+                assert false
+            }
+            configurations.consumable("con") {
+                assert false
+            }
+            configurations.dependencyScope("deps") {
+                assert false
+            }
+        """
+
+        expect:
+        succeeds("help")
+    }
+
     def "does not realize all possible tasks if the build is included"() {
         Assume.assumeFalse(pluginName in ['xctest', 'visual-studio', 'xcode', 'play-application'])
 
@@ -168,7 +192,8 @@ abstract class WellBehavedPluginTest extends AbstractIntegrationSpec {
 
     void expectTaskProjectDeprecation() {
         executer.expectDocumentedDeprecationWarning("Invocation of Task.project at execution time has been deprecated. "+
-            "This will fail with an error in Gradle 9.0. " +
+            "This will fail with an error in Gradle 10.0. " +
+            "This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release. " +
             "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_project")
     }
 }

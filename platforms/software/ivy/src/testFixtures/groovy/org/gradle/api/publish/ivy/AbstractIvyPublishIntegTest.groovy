@@ -108,7 +108,7 @@ abstract class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec imple
             }
             repositories {
                 ivy {
-                    url "${ivyRepo.uri}"
+                    url = "${ivyRepo.uri}"
                     metadataSources {
                        ${params.resolveModuleMetadata?'gradleMetadata':'ivyDescriptor'}()
                     }

@@ -18,13 +18,12 @@ package org.gradle.language.base
 
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 
 import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
 @UnsupportedWithConfigurationCache(because = "software model")
-class LanguageSourceSetIntegrationTest extends AbstractIntegrationSpec implements StableConfigurationCacheDeprecations {
+class LanguageSourceSetIntegrationTest extends AbstractIntegrationSpec {
 
     def "can not create a top level LSS for using an implementation class"() {
         buildFile.text = """
@@ -61,7 +60,6 @@ class LanguageSourceSetIntegrationTest extends AbstractIntegrationSpec implement
         """
 
         expect:
-        expectTaskGetProjectDeprecations()
         succeeds("model", "printSourceDirs")
         normaliseFileSeparators(output).contains("${normaliseFileSeparators(testDirectory.path)}/src/main/lss")
     }
@@ -76,7 +74,6 @@ class LanguageSourceSetIntegrationTest extends AbstractIntegrationSpec implement
         """
 
         when:
-        expectTaskGetProjectDeprecations()
         succeeds "model"
 
         then:
@@ -108,7 +105,6 @@ class LanguageSourceSetIntegrationTest extends AbstractIntegrationSpec implement
         """
 
         expect:
-        expectTaskGetProjectDeprecations()
         succeeds "model"
         def buildType = ModelReportOutput.from(output).modelNode.buildType
 
@@ -146,7 +142,6 @@ class LanguageSourceSetIntegrationTest extends AbstractIntegrationSpec implement
         """
 
         expect:
-        expectTaskGetProjectDeprecations()
         succeeds "model"
         def buildType = ModelReportOutput.from(output).modelNode.buildType
 

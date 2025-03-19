@@ -1,0 +1,29 @@
+// tag::custom-config[]
+plugins {
+    id("application")
+}
+
+configurations {
+    create("instrumentedRuntime") {
+        canBeConsumed = false
+        canBeResolved = true
+        attributes {
+            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, "instrumented-jar"))
+        }
+    }
+}
+// end::custom-config[]
+
+// tag::dependency[]
+dependencies {
+    add("instrumentedRuntime", project(":producer"))
+}
+// end::dependency[]
+
+// tag::task[]
+tasks.register("runWithInstrumentation",JavaExec) {
+    classpath = configurations["instrumentedRuntime"]
+    mainClass.set("com.example.Main")
+}
+// end::task[]

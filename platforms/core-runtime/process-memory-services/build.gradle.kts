@@ -12,7 +12,7 @@ dependencies {
     api(projects.baseServices)
     api(projects.messaging)
 
-    api(libs.jsr305)
+    api(libs.jspecify)
 
     implementation(projects.native)
     implementation(projects.serviceLookup)

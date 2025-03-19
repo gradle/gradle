@@ -21,8 +21,8 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableSet;
 import org.apache.http.ssl.SSLInitializationException;
-import org.gradle.api.NonNullApi;
 import org.gradle.internal.SystemProperties;
+import org.jspecify.annotations.NullMarked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,7 +31,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
-@NonNullApi
+@NullMarked
 public class DefaultSslContextFactory implements SslContextFactory {
     private static final Set<String> SSL_SYSTEM_PROPERTIES = ImmutableSet.of(
         "ssl.TrustManagerFactory.algorithm",
@@ -86,7 +86,7 @@ public class DefaultSslContextFactory implements SslContextFactory {
         }
     }
 
-    @NonNullApi
+    @NullMarked
     private static class SslContextLoader {
         private static final Logger LOGGER = LoggerFactory.getLogger(SslContextLoader.class);
 

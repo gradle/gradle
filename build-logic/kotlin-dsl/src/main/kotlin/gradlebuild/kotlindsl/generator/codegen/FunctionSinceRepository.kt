@@ -41,6 +41,8 @@ class FunctionSinceRepository(classPath: Set<File>, sourcePath: Set<File>) : Aut
         "MapProperty.java",
         "Property.java",
         "SetProperty.java",
+        "FileComparisonTestAssertionFailure.java",
+        "TestFailureDetails.java",
     )
 
     private
@@ -97,13 +99,16 @@ class FunctionSinceRepository(classPath: Set<File>, sourcePath: Set<File>) : Aut
                     if (sourceFile.name in filesWithUnsupportedAnnotations) {
                         // This is a hack.
                         //
-                        // qdox doesn't understand annotations placed in generic type parameters
+                        // qdox doesn't understand type-annotations placed in generic type parameters, arrays or varargs
                         // The only place we use this is with Nullable, so this hackily removes the annotation when
                         // the source file is processed by qdox.
                         //
                         // https://github.com/paul-hammant/qdox/issues/182
                         val filteredSourceCode =
-                            sourceFile.bufferedReader().readText().replace("@org.jetbrains.annotations.Nullable", "")
+                            sourceFile.bufferedReader().readText()
+                                .replace("extends @Nullable ", "extends ")
+                                .replace("@Nullable []", "[]")
+                                .replace("@Nullable ...", "...")
                         addSource(StringReader(filteredSourceCode))
                     } else {
                         addSource(sourceFile)

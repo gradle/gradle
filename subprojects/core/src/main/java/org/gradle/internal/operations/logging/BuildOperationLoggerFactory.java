@@ -16,8 +16,12 @@
 
 package org.gradle.internal.operations.logging;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 import java.io.File;
 
+@ServiceScope(Scope.Build.class)
 public interface BuildOperationLoggerFactory {
     BuildOperationLogger newOperationLogger(String taskName, File outputDir);
 }

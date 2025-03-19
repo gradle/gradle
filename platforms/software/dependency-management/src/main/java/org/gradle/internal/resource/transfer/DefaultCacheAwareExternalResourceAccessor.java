@@ -40,10 +40,10 @@ import org.gradle.internal.resource.local.LocallyAvailableResourceCandidates;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaDataCompare;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -118,7 +118,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
             // Either no cached, or it's changed. See if we can find something local with the same checksum
             boolean hasLocalCandidates = additionalCandidates != null && !additionalCandidates.isNone();
             if (hasLocalCandidates) {
-                // The “remote” may have already given us the checksum
+                // The "remote" may have already given us the checksum
                 HashCode remoteChecksum = remoteMetaData.getSha1();
 
                 if (remoteChecksum == null) {

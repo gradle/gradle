@@ -38,6 +38,21 @@ class JavaPluginIntegrationTest extends AbstractIntegrationSpec implements Inspe
         succeeds "expect"
     }
 
+    def "assemble builds the jar"() {
+        given:
+        settingsFile << "rootProject.name = 'test'"
+        buildFile << """
+            apply plugin: 'java'
+        """
+
+        expect:
+        succeeds "assemble"
+
+        and:
+        executed(":jar")
+        file("build/libs/test.jar").exists()
+    }
+
     def "Java plugin adds outgoing variant for main source set"() {
         buildFile << """
             plugins {

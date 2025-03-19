@@ -20,8 +20,8 @@ import org.gradle.internal.taskgraph.NodeIdentity;
 import org.gradle.operations.dependencies.configurations.ConfigurationIdentity;
 import org.gradle.operations.dependencies.variants.Capability;
 import org.gradle.operations.dependencies.variants.ComponentIdentifier;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 

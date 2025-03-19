@@ -27,7 +27,7 @@ class MavenPublishFeaturesJavaPluginIntegTest extends AbstractMavenPublishFeatur
                 feature
             }
 
-            repositories { maven { url "${mavenRepo.uri}" } }
+            repositories { maven { url = "${mavenRepo.uri}" } }
 
             java {
                 registerFeature("feature") {
@@ -97,7 +97,7 @@ class MavenPublishFeaturesJavaPluginIntegTest extends AbstractMavenPublishFeatur
                 feature
             }
 
-            repositories { maven { url "${mavenRepo.uri}" } }
+            repositories { maven { url = "${mavenRepo.uri}" } }
 
             java {
                 registerFeature("feature") {

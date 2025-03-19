@@ -18,8 +18,8 @@ package org.gradle.internal.execution.steps;
 
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Optional;
 
 public class InputChangesContext extends ValidationFinishedContext implements CachingContext {

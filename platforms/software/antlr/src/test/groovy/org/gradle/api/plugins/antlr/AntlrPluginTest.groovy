@@ -18,6 +18,7 @@ package org.gradle.api.plugins.antlr
 
 import org.gradle.api.Action
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import spock.lang.Issue
 
 import static org.gradle.api.reflect.TypeOf.typeOf
 
@@ -92,5 +93,21 @@ class AntlrPluginTest extends AbstractProjectBuilderSpec {
         then:
         def main = project.sourceSets.main
         main.extensions.extensionsSchema.find { it.name == 'antlr' }.publicType == typeOf(AntlrSourceDirectorySet)
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/19555')
+    def 'adds task dependency to sourcesJar'() {
+        when:
+        project.pluginManager.apply(AntlrPlugin)
+
+        and:
+        project.java {
+            withSourcesJar()
+        }
+
+        then:
+        def generateGrammarSource = project.tasks.generateGrammarSource
+        def sourcesJar = project.tasks.sourcesJar
+        sourcesJar.taskDependencies.getDependencies(null).contains(generateGrammarSource)
     }
 }

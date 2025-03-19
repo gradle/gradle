@@ -9,8 +9,5 @@ gradlebuildJava.usedInWorkers()
 dependencies {
     api(projects.stdlibJavaExtensions)
 
-    api(libs.jsr305)
-}
-tasks.isolatedProjectsIntegTest {
-    enabled = false
+    api(libs.jspecify)
 }

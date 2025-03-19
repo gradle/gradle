@@ -17,8 +17,7 @@
 package org.gradle.tooling.provider.model.internal;
 
 import org.gradle.internal.operations.BuildOperationType;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Not used by build scan plugin.

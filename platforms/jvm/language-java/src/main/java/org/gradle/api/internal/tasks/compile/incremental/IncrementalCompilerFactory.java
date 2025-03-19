@@ -25,8 +25,11 @@ import org.gradle.api.internal.tasks.compile.incremental.recomp.CurrentCompilati
 import org.gradle.api.internal.tasks.compile.incremental.recomp.PreviousCompilationAccess;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpecProvider;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.language.base.internal.compile.Compiler;
 
+@ServiceScope(Scope.Build.class)
 public class IncrementalCompilerFactory {
     private final BuildOperationExecutor buildOperationExecutor;
     private final StringInterner interner;

@@ -27,8 +27,8 @@ import org.gradle.internal.logging.events.StyledTextOutputEvent;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.time.Clock;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.PrintStream;
 import java.util.concurrent.atomic.AtomicReference;
 

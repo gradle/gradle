@@ -175,7 +175,7 @@ public abstract class LoggingServiceRegistry implements ServiceRegistrationProvi
         return userInput;
     }
 
-    // Intentionally not a “create” method as this should not be exposed as a service
+    // Intentionally not a "create" method as this should not be exposed as a service
     protected OutputEventRenderer makeOutputEventRenderer() {
         OutputEventRenderer eventRenderer = new OutputEventRenderer(Time.clock(), userInput);
         userInput.attachConsole(eventRenderer);

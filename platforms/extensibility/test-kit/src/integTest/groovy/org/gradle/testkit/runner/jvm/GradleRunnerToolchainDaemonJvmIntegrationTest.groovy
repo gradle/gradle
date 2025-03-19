@@ -31,6 +31,6 @@ class GradleRunnerToolchainDaemonJvmIntegrationTest extends GradleRunnerExplicit
 
     @Override
     def configureRunner(GradleRunner runner, Jvm jvm) {
-        runner.withArguments("-Porg.gradle.java.installations.paths=" + jvm.javaHome.canonicalPath)
+        runner.withArguments(["-Porg.gradle.java.installations.paths=" + jvm.javaHome.canonicalPath] + runner.getArguments())
     }
 }

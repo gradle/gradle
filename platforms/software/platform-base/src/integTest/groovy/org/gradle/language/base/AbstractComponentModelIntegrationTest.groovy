@@ -17,9 +17,8 @@
 package org.gradle.language.base
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
 
-abstract class AbstractComponentModelIntegrationTest extends AbstractIntegrationSpec implements StableConfigurationCacheDeprecations {
+abstract class AbstractComponentModelIntegrationTest extends AbstractIntegrationSpec {
     /**
      * Registers CustomComponent type
      */

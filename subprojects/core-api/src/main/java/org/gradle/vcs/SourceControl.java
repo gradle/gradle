@@ -17,6 +17,8 @@
 package org.gradle.vcs;
 
 import org.gradle.api.Action;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.net.URI;
 
@@ -29,6 +31,7 @@ import java.net.URI;
  *
  * @since 4.4
  */
+@ServiceScope(Scope.Settings.class)
 public interface SourceControl {
     /**
      * Configures VCS mappings.

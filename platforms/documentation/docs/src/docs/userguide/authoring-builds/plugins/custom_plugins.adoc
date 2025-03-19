@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Gradle, Inc.
+// Copyright (C) 2024 Gradle, Inc.
 //
 // Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ By applying plugins, users can easily add new features to their build process wi
 This plugin-based approach allows Gradle to be lightweight and modular.
 It also promotes code reuse and maintainability, as plugins can be shared across projects or within an organization.
 
-Before reading this chapter, it's recommended that you first read <<gradle_directories.adoc#gradle_directories,Learning The Basics>> and complete the <<partr1_gradle_init.adoc#partr1_gradle_init,Tutorial>>.
+Before reading this chapter, it's recommended that you first read <<gradle_directories.adoc#gradle_directories,Learning The Basics>> and complete the <<part1_gradle_init_project.adoc#part1_gradle_init,Tutorial>>.
 
 == Plugins Introduction
 

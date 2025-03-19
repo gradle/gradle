@@ -18,7 +18,6 @@ package org.gradle.api.internal.catalog;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.artifacts.ExternalModuleDependencyBundle;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.MutableVersionConstraint;
@@ -29,16 +28,17 @@ import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
+import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.InternalProblemSpec;
 import org.gradle.api.problems.internal.InternalProblems;
-import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.plugin.use.PluginDependency;
 import org.gradle.util.internal.TextUtil;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -180,7 +180,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
 
     private void writeEntryPoints(String className, EntryPoints entryPoints, boolean deprecated) throws IOException {
         writeLn(" */");
-        writeLn("@NonNullApi");
+        writeLn("@NullMarked");
         writeLn("public class " + className + " extends AbstractExternalDependencyFactory {");
         writeLn();
         indent(() -> {
@@ -208,7 +208,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
     }
 
     private void addImports() throws IOException {
-        addImport(NonNullApi.class);
+        addImport(NullMarked.class);
         addImport(MinimalExternalModuleDependency.class);
         addImport(PluginDependency.class);
         addImport(ExternalModuleDependencyBundle.class);
@@ -513,7 +513,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         assertUnique(plugins, "plugins", "Plugin");
         int size = libraries.size() + bundles.size() + versions.size() + plugins.size();
         if (size > MAX_ENTRIES) {
-            throw throwVersionCatalogProblemException(problemsService.getInternalReporter().create(builder ->
+            throw throwVersionCatalogProblemException(problemsService.getInternalReporter().internalCreate(builder ->
                 configureVersionCatalogError(builder, getProblemPrefix() + "version catalog model contains too many entries (" + size + ").", TOO_MANY_ENTRIES)
                     .details("The maximum number of aliases in a catalog is " + MAX_ENTRIES)
                     .solution("Reduce the number of aliases defined in this catalog")
@@ -521,7 +521,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         }
     }
 
-    private RuntimeException throwVersionCatalogProblemException(Problem problem) {
+    private RuntimeException throwVersionCatalogProblemException(InternalProblem problem) {
         throw throwError(problemsService, ERROR_HEADER, ImmutableList.of(problem));
     }
 
@@ -533,14 +533,14 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
     }
 
     private void assertUnique(List<String> names, String prefix, String suffix) {
-        List<Problem> errors = names.stream()
+        List<InternalProblem> errors = names.stream()
             .collect(groupingBy(AbstractSourceGenerator::toJavaName))
             .entrySet()
             .stream()
             .filter(e -> e.getValue().size() > 1)
             .map(e -> {
                 String errorValues = e.getValue().stream().sorted().collect(oxfordJoin("and"));
-                return this.problemsService.getInternalReporter().create(builder ->
+                return this.problemsService.getInternalReporter().internalCreate(builder ->
                     configureVersionCatalogError(builder, getProblemPrefix() + prefix + " " + errorValues + " are mapped to the same accessor name get" + e.getKey() + suffix + "().", ACCESSOR_NAME_CLASH)
                         .details("A name clash was detected")
                         .solution("Use a different alias for " + errorValues));

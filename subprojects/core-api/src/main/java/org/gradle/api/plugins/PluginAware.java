@@ -51,11 +51,11 @@ public interface PluginAware {
     /**
      * Applies zero or more plugins or scripts.
      * <p>
-     * The given closure is used to configure an {@link ObjectConfigurationAction}, which “builds” the plugin application.
+     * The given closure is used to configure an {@link ObjectConfigurationAction}, which "builds" the plugin application.
      * <p>
      * This method differs from {@link #apply(java.util.Map)} in that it allows methods of the configuration action to be invoked more than once.
      *
-     * @param closure the closure to configure an {@link ObjectConfigurationAction} with before “executing” it
+     * @param closure the closure to configure an {@link ObjectConfigurationAction} with before "executing" it
      * @see #apply(java.util.Map)
      */
     void apply(@DelegatesTo(ObjectConfigurationAction.class) Closure closure);
@@ -63,11 +63,11 @@ public interface PluginAware {
     /**
      * Applies zero or more plugins or scripts.
      * <p>
-     * The given closure is used to configure an {@link ObjectConfigurationAction}, which “builds” the plugin application.
+     * The given closure is used to configure an {@link ObjectConfigurationAction}, which "builds" the plugin application.
      * <p>
      * This method differs from {@link #apply(java.util.Map)} in that it allows methods of the configuration action to be invoked more than once.
      *
-     * @param action the action to configure an {@link ObjectConfigurationAction} with before “executing” it
+     * @param action the action to configure an {@link ObjectConfigurationAction} with before "executing" it
      * @see #apply(java.util.Map)
      */
     void apply(Action<? super ObjectConfigurationAction> action);
@@ -86,7 +86,7 @@ public interface PluginAware {
      *
      * <li>{@code to}: The target delegate object or objects. The default is this plugin aware object. Use this to configure objects other than this object.</li></ul>
      *
-     * @param options the options to use to configure and {@link ObjectConfigurationAction} before “executing” it
+     * @param options the options to use to configure and {@link ObjectConfigurationAction} before "executing" it
      */
     void apply(Map<String, ?> options);
 

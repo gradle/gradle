@@ -32,6 +32,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 
+import static org.gradle.test.fixtures.server.http.BlockingHttpServer.getCurrentTimestamp;
+
 class ExpectMaxNConcurrentRequests implements TrackingHttpHandler, WaitPrecondition, BlockingHttpServer.BlockingHandler {
     private final Lock lock;
     private final Condition condition;
@@ -134,12 +136,12 @@ class ExpectMaxNConcurrentRequests implements TrackingHttpHandler, WaitPrecondit
 
             if (state.isFailed()) {
                 // Broken in another thread
-                System.out.println(String.format("[%d] failure in another thread", id));
+                System.out.printf("[%s][%d] failure in another thread%n", getCurrentTimestamp(), id);
                 return state.alreadyFailed(exchange.getRequestMethod(), path, describeCurrentState());
             }
 
             if (waitingFor == 0) {
-                System.out.println(String.format("[%d] signalling all requests ready", id));
+                System.out.printf("[%s][%d] signalling all requests ready%n", getCurrentTimestamp(), id);
                 onExpectedRequestsReceived(this, notReceived.size());
             }
 
@@ -148,16 +150,16 @@ class ExpectMaxNConcurrentRequests implements TrackingHttpHandler, WaitPrecondit
                 if (waitMs < 0) {
                     ResponseProducer failure;
                     if (waitingFor > 0) {
-                        System.out.println(String.format("[%d] timeout waiting for other requests", id));
+                        System.out.printf("[%s][%d] timeout waiting for other requests%n", getCurrentTimestamp(), id);
                         failure = state.timeout(exchange.getRequestMethod(), path, "waiting for other requests", describeCurrentState());
                     } else {
-                        System.out.println(String.format("[%d] timeout waiting to be released", id));
+                        System.out.printf("[%s][%d] timeout waiting to be released%n", getCurrentTimestamp(), id);
                         failure = state.timeout(exchange.getRequestMethod(), path, "waiting to be released", describeCurrentState());
                     }
                     condition.signalAll();
                     return failure;
                 }
-                System.out.println(String.format("[%d] waiting to be released. Still waiting for %s further requests, already received %s", id, waitingFor, format(received)));
+                System.out.printf("[%s][%d] waiting to be released. Still waiting for %s further requests, already received %s%n", getCurrentTimestamp(), id, waitingFor, format(received));
                 try {
                     condition.await(waitMs, TimeUnit.MILLISECONDS);
                 } catch (InterruptedException e) {
@@ -166,7 +168,7 @@ class ExpectMaxNConcurrentRequests implements TrackingHttpHandler, WaitPrecondit
             }
             if (state.isFailed()) {
                 // Broken in another thread
-                System.out.println(String.format("[%d] failure in another thread", id));
+                System.out.printf("[%s][%d] failure in another thread%n", getCurrentTimestamp(), id);
                 if (waitingFor > 0) {
                     return state.failureWhileWaiting(exchange.getRequestMethod(), path, "waiting for other requests", describeCurrentState());
                 } else {
@@ -242,7 +244,7 @@ class ExpectMaxNConcurrentRequests implements TrackingHttpHandler, WaitPrecondit
             if (!handler.isReceived()) {
                 throw new IllegalStateException("Expected request not received, should wait for pending calls first.");
             }
-            System.out.println(String.format("[%d] releasing %s", testId, handler));
+            System.out.printf("[%s][%d] releasing %s%n", getCurrentTimestamp(), testId, handler);
             released.add(handler);
             handler.released();
             notReleased.remove(handler);
@@ -270,7 +272,7 @@ class ExpectMaxNConcurrentRequests implements TrackingHttpHandler, WaitPrecondit
         try {
             int count = 0;
             for (ResourceHandlerWrapper resourceHandler : notReleased) {
-                System.out.println(String.format("[%d] releasing %s", testId, resourceHandler.getDisplayName()));
+                System.out.printf("[%s][%d] releasing %s%n", getCurrentTimestamp(), testId, resourceHandler.getDisplayName());
                 released.add(resourceHandler);
                 resourceHandler.released();
                 count++;
@@ -291,7 +293,7 @@ class ExpectMaxNConcurrentRequests implements TrackingHttpHandler, WaitPrecondit
             }
             for (int i = 0; i < count; i++) {
                 ResourceHandlerWrapper resourceHandler = notReleased.removeFirst();
-                System.out.println(String.format("[%d] releasing %s", testId, resourceHandler.getDisplayName()));
+                System.out.printf("[%s][%d] releasing %s%n", getCurrentTimestamp(), testId, resourceHandler.getDisplayName());
                 released.add(resourceHandler);
                 resourceHandler.released();
             }
@@ -303,7 +305,7 @@ class ExpectMaxNConcurrentRequests implements TrackingHttpHandler, WaitPrecondit
 
     private void doRelease(int count) {
         waitingFor = Math.min(notReceived.size(), waitingFor + count);
-        System.out.println(String.format("[%d] now expecting %d further requests, received %s, released %s, not yet received %s", testId, waitingFor, format(received), format(released), format(notReceived)));
+        System.out.printf("[%s][%d] now expecting %d further requests, received %s, released %s, not yet received %s%n", getCurrentTimestamp(), testId, waitingFor, format(received), format(released), format(notReceived));
         condition.signalAll();
     }
 
@@ -327,11 +329,11 @@ class ExpectMaxNConcurrentRequests implements TrackingHttpHandler, WaitPrecondit
             while (waitingFor > 0 && !state.isFailed() && failureTracker.getFailure() == null) {
                 long waitMs = mostRecentEvent + timeoutMs - clock.getCurrentTime();
                 if (waitMs < 0) {
-                    System.out.println(String.format("[%d] timeout waiting for expected requests.", testId));
+                    System.out.printf("[%s][%d] timeout waiting for expected requests.%n", getCurrentTimestamp(), testId);
                     timeoutWaitingForRequests();
                     break;
                 }
-                System.out.println(String.format("[%d] waiting for %d further requests, received %s, released %s, not yet received %s", testId, waitingFor, format(received), format(released), format(notReceived)));
+                System.out.printf("[%s][%d] waiting for %d further requests, received %s, released %s, not yet received %s%n", getCurrentTimestamp(), testId, waitingFor, format(received), format(released), format(notReceived));
                 try {
                     condition.await(waitMs, TimeUnit.MILLISECONDS);
                 } catch (InterruptedException e) {
@@ -344,7 +346,7 @@ class ExpectMaxNConcurrentRequests implements TrackingHttpHandler, WaitPrecondit
             if (state.isFailed()) {
                 throw state.getWaitFailure(describeCurrentState());
             }
-            System.out.println(String.format("[%d] expected requests received, received %s, released %s, not yet received %s", testId, format(received), format(released), format(notReceived)));
+            System.out.printf("[%s][%d] expected requests received, received %s, released %s, not yet received %s%n", getCurrentTimestamp(), testId, format(received), format(released), format(notReceived));
         } finally {
             lock.unlock();
         }

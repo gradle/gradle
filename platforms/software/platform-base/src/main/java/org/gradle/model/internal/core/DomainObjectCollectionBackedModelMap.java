@@ -29,8 +29,8 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.Specs;
 import org.gradle.model.ModelMap;
 import org.gradle.model.RuleSource;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;

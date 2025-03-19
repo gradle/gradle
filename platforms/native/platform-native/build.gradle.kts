@@ -10,39 +10,38 @@ errorprone {
         "EqualsUnsafeCast", // 1 occurrences
         "GetClassOnClass", // 1 occurrences
         "HidingField", // 1 occurrences
-        "ImmutableEnumChecker", // 2 occurrences
         "ReferenceEquality", // 2 occurrences
         "StaticAssignmentInConstructor", // 1 occurrences
         "StringCharset", // 2 occurrences
-        "UnnecessaryTypeArgument", // 2 occurrences
         "UnusedMethod", // 11 occurrences
-        "UnusedTypeParameter", // 1 occurrences
         "UnusedVariable", // 6 occurrences
     )
 }
 
 dependencies {
     api(projects.serviceProvider)
+    api(projects.baseDiagnostics)
     api(projects.baseServices)
     api(projects.buildOperations)
     api(projects.core)
     api(projects.coreApi)
-    api(projects.diagnostics)
     api(projects.fileCollections)
     api(projects.files)
     api(projects.hashing)
-    api(projects.stdlibJavaExtensions)
     api(projects.logging)
     api(projects.modelCore)
     api(projects.native)
+    api(projects.softwareDiagnostics)
+    api(projects.stdlibJavaExtensions)
     api(projects.platformBase)
     api(projects.workers)
 
-    api(libs.jsr305)
+    api(libs.jspecify)
     api(libs.inject)
     api(libs.nativePlatform)
     api(libs.slf4jApi)
 
+    implementation(projects.daemonServerWorker)
     implementation(projects.enterpriseLogging)
     implementation(projects.io)
     implementation(projects.loggingApi)
@@ -73,9 +72,9 @@ dependencies {
     testImplementation(testFixtures(projects.messaging))
     testImplementation(testFixtures(projects.platformBase))
     testImplementation(testFixtures(projects.modelCore))
-    testImplementation(testFixtures(projects.diagnostics))
     testImplementation(testFixtures(projects.baseServices))
     testImplementation(testFixtures(projects.snapshots))
+    testImplementation(testFixtures(projects.time))
 
     testRuntimeOnly(projects.distributionsCore) {
         because("ProjectBuilder tests load services from a Gradle distribution.")

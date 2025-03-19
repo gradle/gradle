@@ -69,7 +69,7 @@ class SigningConfigurationsSpec extends SigningProjectSpec {
         when:
         signing {
             signingTasks = sign configurations.produced
-            signingTasks[0].signatureType new ArmoredSignatureType()
+            signingTasks[0].signatureType = new ArmoredSignatureType()
         }
 
         then:

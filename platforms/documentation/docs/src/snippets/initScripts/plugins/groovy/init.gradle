@@ -23,8 +23,8 @@ class EnterpriseRepositoryPlugin implements Plugin<Gradle> {
 
                 // add the enterprise repository
                 maven {
-                    name "STANDARD_ENTERPRISE_REPO"
-                    url ENTERPRISE_REPOSITORY_URL
+                    name = "STANDARD_ENTERPRISE_REPO"
+                    url = ENTERPRISE_REPOSITORY_URL
                 }
             }
         }

@@ -17,11 +17,10 @@
 package org.gradle.language.base
 
 import org.gradle.api.reporting.model.ModelReportOutput
-import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 
 @UnsupportedWithConfigurationCache(because = "software model")
-class ComponentBinariesIntegrationTest extends AbstractComponentModelIntegrationTest implements StableConfigurationCacheDeprecations {
+class ComponentBinariesIntegrationTest extends AbstractComponentModelIntegrationTest {
     def setup() {
         withCustomComponentType()
         withCustomBinaryType()
@@ -43,7 +42,6 @@ model {
 
     def "binaries of a component are visible in the top level binaries container"() {
         when:
-        expectTaskGetProjectDeprecations()
         succeeds "model"
 
         then:
@@ -88,7 +86,6 @@ model {
         """
 
         when:
-        expectTaskGetProjectDeprecations()
         succeeds "model"
 
         then:

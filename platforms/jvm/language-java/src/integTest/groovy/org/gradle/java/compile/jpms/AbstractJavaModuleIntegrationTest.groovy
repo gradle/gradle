@@ -39,7 +39,7 @@ abstract class AbstractJavaModuleIntegrationTest extends AbstractIntegrationSpec
             version = '1.0-beta2'
 
             repositories {
-                maven { url '${mavenRepo.uri}' }
+                maven { url = '${mavenRepo.uri}' }
             }
         """
     }

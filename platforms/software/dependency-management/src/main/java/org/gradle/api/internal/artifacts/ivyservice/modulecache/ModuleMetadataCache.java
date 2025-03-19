@@ -18,11 +18,11 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
-import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState;
+import org.gradle.internal.component.external.model.ExternalModuleComponentGraphResolveState;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ModuleSources;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.time.Duration;
 
 public interface ModuleMetadataCache {
@@ -50,12 +50,12 @@ public interface ModuleMetadataCache {
          * @param key the hash of the rules
          */
         @Nullable
-        ModuleComponentGraphResolveState getProcessedMetadata(int key);
+        ExternalModuleComponentGraphResolveState getProcessedMetadata(int key);
 
         /**
          * Set the processed metadata to be cached in-memory only.
          */
-        void putProcessedMetadata(int key, ModuleComponentGraphResolveState state);
+        void putProcessedMetadata(int key, ExternalModuleComponentGraphResolveState state);
 
         /**
          * Returns a copy of this cached metadata where the module metadata is safe to store

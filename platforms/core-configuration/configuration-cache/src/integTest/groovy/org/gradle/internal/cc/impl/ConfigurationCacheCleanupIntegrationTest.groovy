@@ -44,9 +44,12 @@ class ConfigurationCacheCleanupIntegrationTest
             task recent
         '''
         configurationCacheRunNoDaemon 'outdated'
-        TestFile outdated = single(subDirsOf(configurationCacheDir))
+        // Each CC request requires at least 2 directories:
+        // - the cache key directory holding the list of entries per key
+        // - the actual entry directories, each entry directory with its own fingerprint
+        def outdated = subDirsOf(configurationCacheDir)
         configurationCacheRunNoDaemon 'recent'
-        TestFile recent = single(subDirsOf(configurationCacheDir) - outdated)
+        def recent = subDirsOf(configurationCacheDir) - outdated
 
         and: 'they are 8 days old'
         subDirsOf(configurationCacheDir).each { TestFile dir ->
@@ -63,11 +66,11 @@ class ConfigurationCacheCleanupIntegrationTest
         def cc = newConfigurationCacheFixture()
         configurationCacheRunNoDaemon 'recent'
         cc.reused
-        !outdated.exists()
+        !outdated.any { it.exists() }
 
         and:
         def remaining = configurationCacheDir.list() as Set
-        def expected = [recent.name, 'gc.properties', 'configuration-cache.lock'] as Set
+        def expected = (recent*.name + ['gc.properties', 'configuration-cache.lock']) as Set
         expected == remaining
     }
 
@@ -85,12 +88,5 @@ class ConfigurationCacheCleanupIntegrationTest
 
     private static List<TestFile> subDirsOf(TestFile dir) {
         dir.listFiles().findAll { it.directory }
-    }
-
-    private static <T> T single(List<T> list) {
-        list.with {
-            assert size() == 1
-            get(0)
-        }
     }
 }

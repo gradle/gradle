@@ -341,7 +341,7 @@ class VersionCatalogIntegrationTest extends AbstractIntegrationSpec implements V
             publishing {
                 repositories {
                     maven {
-                        url "$mavenRepo.uri"
+                        url = "$mavenRepo.uri"
                     }
                 }
                 publications {

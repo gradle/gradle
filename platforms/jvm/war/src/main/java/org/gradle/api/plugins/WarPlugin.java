@@ -20,6 +20,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
@@ -28,7 +29,6 @@ import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationCo
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.java.WebApplication;
-import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.JavaPluginHelper;
@@ -78,10 +78,8 @@ public abstract class WarPlugin implements Plugin<Project> {
         this.project = project;
         this.mainFeature = JavaPluginHelper.getJavaComponent(project).getMainFeature();
 
-        @SuppressWarnings("deprecation") final WarPluginConvention pluginConvention = setupPluginConvention(project);
-
         project.getTasks().withType(War.class).configureEach(task -> {
-            task.getWebAppDirectory().convention(project.getLayout().dir(project.provider(() -> DeprecationLogger.whileDisabled(pluginConvention::getWebAppDir))));
+            task.getWebAppDirectory().convention(project.getLayout().getProjectDirectory().dir("src/main/webapp"));
             task.from(task.getWebAppDirectory());
             task.dependsOn((Callable<FileCollection>) () -> mainFeature.getSourceSet().getRuntimeClasspath());
             task.classpath((Callable<FileCollection>) () -> {
@@ -96,16 +94,9 @@ public abstract class WarPlugin implements Plugin<Project> {
         });
 
         PublishArtifact warArtifact = new LazyPublishArtifact(war, ((ProjectInternal) project).getFileResolver(), ((ProjectInternal) project).getTaskDependencyFactory());
-        project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(warArtifact);
+        project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).getArtifacts().add(warArtifact);
         configureConfigurations(((ProjectInternal) project).getConfigurations(), mainFeature);
         configureComponent(project, warArtifact);
-    }
-
-    @SuppressWarnings("deprecation")
-    private WarPluginConvention setupPluginConvention(Project project) {
-        final WarPluginConvention pluginConvention = objectFactory.newInstance(org.gradle.api.plugins.internal.DefaultWarPluginConvention.class, project);
-        DeprecationLogger.whileDisabled(() -> project.getConvention().getPlugins().put("war", pluginConvention));
-        return pluginConvention;
     }
 
     /**

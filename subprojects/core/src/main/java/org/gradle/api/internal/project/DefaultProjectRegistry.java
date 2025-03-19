@@ -17,6 +17,8 @@ package org.gradle.api.internal.project;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
 import org.gradle.util.internal.GUtil;
 
@@ -26,6 +28,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+@ServiceScope(Scope.Build.class)
 public class DefaultProjectRegistry<T extends ProjectIdentifier> implements ProjectRegistry<T>, HoldsProjectState {
     private final Map<String, T> projects = new HashMap<String, T>();
     private final Map<String, Set<T>> subProjects = new HashMap<String, Set<T>>();

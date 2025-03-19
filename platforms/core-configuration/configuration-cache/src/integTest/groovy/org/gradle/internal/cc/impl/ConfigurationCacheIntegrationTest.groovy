@@ -164,7 +164,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
 
             tasks.register("copy", org.gradle.api.tasks.Copy) {
                 it.from(zipTree(${provider}))
-                it.destinationDir(new File(project.buildDir, "copied"))
+                it.destinationDir = new File(project.buildDir, "copied")
             }
         """
         file("a.file") << "42"
@@ -336,7 +336,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
 
         then:
         result.assertTasksExecutedAndNotSkipped(":init")
-        configurationCache.assertStateStored { }
+        configurationCache.assertStateStored {}
         succeeds 'properties'
         def projectName1 = testDirectory.name
         outputContains("name: ${projectName1}")
@@ -408,5 +408,22 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         then:
         configurationCache.assertNoConfigurationCache()
         outputContains("isConfigurationCacheRequested=true")
+    }
+
+    def "internal load-after-store flag is deprecated"() {
+        def configurationCache = newConfigurationCacheFixture()
+
+        when:
+        executer.expectDeprecationWarning("The org.gradle.configuration-cache.internal.load-after-store system property has been deprecated." +
+            " Starting with Gradle 9.0, it will not be possible to disable load-after-store behavior of Configuration Cache." +
+            " The behavior is enabled by default. Avoid using the internal flag.")
+
+        configurationCacheRun "help", "-Dorg.gradle.configuration-cache.internal.load-after-store=$load"
+
+        then:
+        configurationCache.assertStateStored(load)
+
+        where:
+        load << [true, false]
     }
 }

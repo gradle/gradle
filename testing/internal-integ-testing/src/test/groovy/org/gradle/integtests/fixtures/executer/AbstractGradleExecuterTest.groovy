@@ -134,7 +134,7 @@ class AbstractGradleExecuterTest extends Specification {
         executer.startBuildProcessInDebugger { it.server = false }
 
         then:
-        def debugArgument = JvmOptions.getDebugArgument(false, true, "5005")
+        def debugArgument = JvmOptions.getDebugArgument(false, true, "localhost:5005")
         executer.implicitBuildJvmArgs.contains(debugArgument)
         executer.buildInvocation().launcherJvmArgs.contains(debugArgument)
     }
@@ -148,7 +148,7 @@ class AbstractGradleExecuterTest extends Specification {
 
         then:
         def launcherArgs = executer.buildInvocation().launcherJvmArgs
-        def debugArgument = JvmOptions.getDebugArgument(false, true, "myHost:5005")
+        def debugArgument = JvmOptions.getDebugArgument(false, true, "myHost:5006")
         launcherArgs.contains(debugArgument)
         !executer.implicitBuildJvmArgs.contains(debugArgument)
     }

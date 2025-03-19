@@ -34,54 +34,61 @@ class DependencyResolveRulesDisableGlobalDependencySubstitutionIntegrationTest e
         mavenRepo.module("org.test", "m2", "1.0").dependsOn("org.test", "m3", "1.0").withModuleMetadata().publish()
         mavenRepo.module("org.test", "m3", '1.0').withModuleMetadata().publish()
 
-        createDirs("m1", "m2", "m3")
         settingsFile << """
             dependencyResolutionManagement {
-                repositories.maven { url "${mavenRepo.uri}" }
+                repositories.maven { url = "${mavenRepo.uri}" }
             }
             includeBuild '.' // enable global substitution for this build
             include 'm1', 'm2', 'm3'
         """
 
-        buildFile << """
-            allprojects {
-                group = 'org.test'
-                version = '0.9'
-                def conf = configurations.create('conf') {
+        def common = """
+            group = 'org.test'
+            version = '0.9'
+            configurations {
+                conf {
                     canBeConsumed = false
                     canBeResolved = false
                 }
-                configurations.create('runtime') {
+                runtime {
                     extendsFrom(conf)
                     assert canBeConsumed
                     canBeResolved = false
                     attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
                 }
             }
-            project(':m1') {
-                configurations.create('localPath') {
-                    extendsFrom(configurations.conf)
-                    canBeConsumed = false
-                    assert canBeResolved
-                    attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
-                }
-                configurations.create('publishedPath') {
-                    extendsFrom(configurations.conf)
-                    canBeConsumed = false
-                    assert canBeResolved
-                    resolutionStrategy.useGlobalDependencySubstitutionRules.set(false)
-                    attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
-                }
-                dependencies {
-                    conf 'org.test:m2:1.0'
-                }
+        """
+
+        file("m1/build.gradle") << """
+            $common
+
+            configurations.create('localPath') {
+                extendsFrom(configurations.conf)
+                canBeConsumed = false
+                assert canBeResolved
+                attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
             }
-            project(':m2') {
-                dependencies {
-                    conf 'org.test:m3:1.0'
-                }
+            configurations.create('publishedPath') {
+                extendsFrom(configurations.conf)
+                canBeConsumed = false
+                assert canBeResolved
+                resolutionStrategy.useGlobalDependencySubstitutionRules.set(false)
+                attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+            }
+            dependencies {
+                conf 'org.test:m2:1.0'
             }
         """
+
+        file("m2/build.gradle") << """
+            $common
+
+            dependencies {
+                conf 'org.test:m3:1.0'
+            }
+        """
+
+        file("m3/build.gradle") << common
     }
 
     def resolveLocalPath() {
@@ -139,10 +146,8 @@ class DependencyResolveRulesDisableGlobalDependencySubstitutionIntegrationTest e
 
     def "global dependency substitution can be re-enabled"() {
         given:
-        buildFile << """
-            project(':m1') {
-                configurations.publishedPath.resolutionStrategy.useGlobalDependencySubstitutionRules.set(true)
-            }
+        file("m1/build.gradle") << """
+            configurations.publishedPath.resolutionStrategy.useGlobalDependencySubstitutionRules.set(true)
         """
 
         when:
@@ -156,11 +161,9 @@ class DependencyResolveRulesDisableGlobalDependencySubstitutionIntegrationTest e
 
     def "global dependency substitution can be disabled for all configurations"() {
         given:
-        buildFile << """
-            project(':m1') {
-                configurations.all {
-                    resolutionStrategy.useGlobalDependencySubstitutionRules.set(false)
-                }
+        file("m1/build.gradle") << """
+            configurations.all {
+                resolutionStrategy.useGlobalDependencySubstitutionRules.set(false)
             }
         """
 

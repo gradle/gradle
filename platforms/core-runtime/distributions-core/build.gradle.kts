@@ -15,6 +15,9 @@ dependencies {
     pluginsRuntimeOnly(projects.dependencyManagement) {
         because("This is a core extension module (see DynamicModulesClassPathProvider.GRADLE_EXTENSION_MODULES)")
     }
+    pluginsRuntimeOnly(projects.softwareDiagnostics) {
+        because("This should travel with dependency management.")
+    }
     pluginsRuntimeOnly(projects.workers) {
         because("This is a core extension module (see DynamicModulesClassPathProvider.GRADLE_EXTENSION_MODULES)")
     }

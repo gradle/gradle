@@ -255,7 +255,7 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
             publishing {
                 repositories {
                     maven {
-                        url '${mavenRepo.uri}'
+                        url = "${mavenRepo.uri}"
                     }
                 }
             }
@@ -270,7 +270,7 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
             pluginManagement {
                 repositories {
                     maven {
-                        url '${mavenRepo.uri}'
+                        url = "${mavenRepo.uri}"
                     }
                 }
             }

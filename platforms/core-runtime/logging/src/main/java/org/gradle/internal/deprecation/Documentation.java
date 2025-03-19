@@ -16,14 +16,16 @@
 
 package org.gradle.internal.deprecation;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.problems.internal.DocLink;
+import org.gradle.api.problems.DocLink;
+import org.gradle.api.problems.internal.InternalDocLink;
+import org.jspecify.annotations.Nullable;
 
 import javax.annotation.CheckReturnValue;
-import javax.annotation.Nullable;
 
-public abstract class Documentation implements DocLink {
+public abstract class Documentation implements InternalDocLink {
     public static final String RECOMMENDATION = "For more %s, please refer to %s in the Gradle documentation.";
     private static final DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry();
 
@@ -123,6 +125,19 @@ public abstract class Documentation implements DocLink {
             return DOCUMENTATION_REGISTRY.getDocumentationRecommendationFor(topic, page, section);
         }
 
+        @Override
+        public boolean equals(Object o) {
+            if (!(o instanceof UserGuide)) {
+                return false;
+            }
+            UserGuide userGuide = (UserGuide) o;
+            return Objects.equal(page, userGuide.page) && Objects.equal(section, userGuide.section) && Objects.equal(topic, userGuide.topic);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(page, section, topic);
+        }
     }
 
     private static class UpgradeGuide extends UserGuide {
@@ -151,6 +166,19 @@ public abstract class Documentation implements DocLink {
             return DOCUMENTATION_REGISTRY.getDslRefForProperty(targetClass, property);
         }
 
+        @Override
+        public boolean equals(Object o) {
+            if (!(o instanceof DslReference)) {
+                return false;
+            }
+            DslReference that = (DslReference) o;
+            return Objects.equal(targetClass, that.targetClass) && Objects.equal(property, that.property);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(targetClass, property);
+        }
     }
 
     private static class KotlinDslExtensionReference extends SerializableDocumentation {
@@ -165,6 +193,19 @@ public abstract class Documentation implements DocLink {
             return DOCUMENTATION_REGISTRY.getKotlinDslRefForExtension(extensionName);
         }
 
+        @Override
+        public boolean equals(Object o) {
+            if (!(o instanceof KotlinDslExtensionReference)) {
+                return false;
+            }
+            KotlinDslExtensionReference that = (KotlinDslExtensionReference) o;
+            return Objects.equal(extensionName, that.extensionName);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(extensionName);
+        }
     }
 
 }

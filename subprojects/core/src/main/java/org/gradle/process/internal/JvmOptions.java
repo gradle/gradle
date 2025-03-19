@@ -152,7 +152,7 @@ public class JvmOptions {
         }
 
         // These are implemented as a system property, but don't really function like one
-        // So we include it in this “no system property” set.
+        // So we include it in this "no system property" set.
         formatSystemProperties(immutableSystemProperties, args);
 
         if (assertionsEnabled) {
@@ -238,6 +238,9 @@ public class JvmOptions {
             || extraJvmArgString.startsWith("-agentlib:jdwp");
     }
 
+    /**
+     * Adds extra JVM args and implicitly converts given arguments to just Strings
+     */
     public void jvmArgs(Iterable<?> arguments) {
         addExtraJvmArgs(arguments);
         checkDebugConfiguration(extraJvmArgs);
@@ -271,7 +274,7 @@ public class JvmOptions {
                     systemProperty(keyValue.substring(0, equalsIndex), keyValue.substring(equalsIndex + 1));
                 }
             } else {
-                extraJvmArgs.add(argument);
+                extraJvmArgs.add(argStr);
             }
         }
     }

@@ -16,6 +16,7 @@
 
 package gradlebuild.docs;
 
+import com.vladsch.flexmark.ext.anchorlink.AnchorLinkExtension;
 import com.vladsch.flexmark.ext.tables.TablesExtension;
 import com.vladsch.flexmark.html.HtmlRenderer;
 import com.vladsch.flexmark.parser.Parser;
@@ -39,7 +40,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
-import java.util.Collections;
+import java.util.Arrays;
 
 /**
  * Generates release notes file from markdown to HTML
@@ -74,7 +75,11 @@ public abstract class RenderMarkdown extends DefaultTask {
     @TaskAction
     public void process() {
         MutableDataSet options = new MutableDataSet();
-        options.set(Parser.EXTENSIONS, Collections.singletonList(TablesExtension.create()));
+        options.set(Parser.EXTENSIONS, Arrays.asList(
+            TablesExtension.create(),
+            AnchorLinkExtension.create()
+        ));
+
         Parser parser = Parser.builder(options).build();
         HtmlRenderer renderer = HtmlRenderer.builder(options).build();
         File markdownFile = getMarkdownFile().get().getAsFile();

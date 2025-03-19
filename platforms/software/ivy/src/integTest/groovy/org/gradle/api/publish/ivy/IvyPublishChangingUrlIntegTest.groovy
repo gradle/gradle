@@ -67,7 +67,7 @@ class IvyPublishChangingUrlIntegTest extends AbstractIvyPublishIntegTest {
                 }
                 repositories {
                     ivy {
-                        name "testRepo"
+                        name = "testRepo"
                         url = registry.map { it.url }
                     }
                 }

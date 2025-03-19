@@ -127,7 +127,7 @@ class TestVerificationFailureHandlingIntegrationTest extends AbstractIntegration
         withPassingTest()
         buildFile << '''
             tasks.named('test', Test).configure {
-                jvmArgs '-XX:UnknownArgument'
+                jvmArgs('-XX:UnknownArgument')
             }
         '''
     }

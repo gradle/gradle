@@ -18,19 +18,19 @@ package org.gradle.launcher.daemon.protocol;
 /**
  * The base of all kinds of failure results.
  * <p>
- * The “value” of this result will be an exception that represents the failure. It may not be {@code null}.
+ * The "value" of this result will be an exception that represents the failure. It may not be {@code null}.
  */
 public class Failure extends Result<Throwable> {
-    
+
     public Failure(Throwable value) {
         super(assertNotNull(value));
     }
-    
+
     private static Throwable assertNotNull(Throwable value) {
         if (value == null) {
             throw new IllegalArgumentException("The value parameter of a failure cannot be null");
         }
-        
+
         return value;
     }
 }

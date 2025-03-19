@@ -17,8 +17,7 @@
 package org.gradle.platform.base.internal.dependents;
 
 import org.gradle.platform.base.internal.BinarySpecInternal;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Resolve dependent binaries.

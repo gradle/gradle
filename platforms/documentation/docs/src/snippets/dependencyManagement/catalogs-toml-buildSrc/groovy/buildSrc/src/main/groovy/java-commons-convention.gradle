@@ -1,0 +1,29 @@
+plugins {
+    id 'java-library'
+
+    // alias(libs.plugins.jacocolog) - Unfortunately, it is not possible to use the version catalog for plugins in buildSrc
+
+    // Unlike regular Gradle projects, convention plugins in buildSrc do not automatically resolve
+    // external plugins. We must declare them as dependencies in buildSrc/build.gradle.
+    id 'org.barfuin.gradle.jacocolog' // Apply the plugin manually as a workaround
+    // The external plugin version comes from the implementation dependency
+    // artifact in the build file
+}
+
+repositories {
+    mavenCentral()
+}
+
+// Access the version catalog
+def libs = project.extensions.getByType(VersionCatalogsExtension).named("libs")
+
+dependencies {
+    // Access version catalog in buildSrc for dependencies
+    implementation libs.findLibrary("guava").get() // Regular library from version catalog
+    testImplementation platform("org.junit:junit-bom:5.9.1") // Platform dependency
+    testImplementation "org.junit.jupiter:junit-jupiter" // Direct dependency
+}
+
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
+}

@@ -804,13 +804,13 @@ abstract class MavenPublishResolvedVersionsJavaFixture extends AbstractMavenPubl
 
             repositories {
                 // use for resolving
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
 
             publishing {
                 repositories {
                     // used for publishing
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
             }
 

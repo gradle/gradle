@@ -1,9 +1,9 @@
 // tag::custom-plugin-repositories[]
 pluginManagement {
     repositories {
-        maven(url = "./maven-repo")
+        maven(url = file("./maven-repo"))
         gradlePluginPortal()
-        ivy(url = "./ivy-repo")
+        ivy(url = file("./ivy-repo"))
     }
 }
 // end::custom-plugin-repositories[]

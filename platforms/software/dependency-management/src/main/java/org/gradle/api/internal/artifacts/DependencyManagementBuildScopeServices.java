@@ -30,6 +30,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyConstraintFa
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ExternalModuleComponentResolverFactory;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProviderFactories;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StartParameterResolutionOverride;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.CachingVersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator;
@@ -44,8 +45,6 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetadataSe
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleSourcesSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.SuppliedComponentMetadataSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSetResolver;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantCache;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
 import org.gradle.api.internal.artifacts.mvnsettings.DefaultLocalMavenRepositoryLocator;
@@ -101,7 +100,6 @@ import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.management.DefaultDependencyResolutionManagement;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
-import org.gradle.internal.model.BuildTreeObjectFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.reflect.Instantiator;
@@ -128,8 +126,6 @@ import org.gradle.util.internal.SimpleMapInterner;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
 
 /**
  * The set of dependency management services that are created per build in the tree.
@@ -137,9 +133,10 @@ import java.util.function.Function;
 class DependencyManagementBuildScopeServices implements ServiceRegistrationProvider {
     void configure(ServiceRegistration registration) {
         registration.add(TransformStepNodeDependencyResolver.class);
-        registration.add(FileResourceConnector.class);
+        registration.add(FileResourceRepository.class, FileResourceConnector.class);
         registration.add(ResolvedArtifactSetResolver.class);
         registration.add(ExternalModuleComponentResolverFactory.class);
+        registration.add(ResolverProviderFactories.class);
     }
 
     @Provides
@@ -328,17 +325,6 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
     }
 
     @Provides
-    ResolvedVariantCache createResolvedVariantCache() {
-        ConcurrentHashMap<ResolvedVariantCache.CacheKey, ResolvedVariant> map = new ConcurrentHashMap<>();
-        return new ResolvedVariantCache() {
-            @Override
-            public ResolvedVariant computeIfAbsent(ResolvedVariantCache.CacheKey key, Function<? super ResolvedVariantCache.CacheKey, ? extends ResolvedVariant> mappingFunction) {
-                return map.computeIfAbsent(key, mappingFunction);
-            }
-        };
-    }
-
-    @Provides
     VersionSelectorScheme createVersionSelectorScheme(VersionComparator versionComparator, VersionParser versionParser) {
         DefaultVersionSelectorScheme delegate = new DefaultVersionSelectorScheme(versionComparator, versionParser);
         return new CachingVersionSelectorScheme(delegate);
@@ -414,7 +400,7 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
 
     @Provides
     DependenciesAccessors createDependenciesAccessorGenerator(
-        BuildTreeObjectFactory objectFactory,
+        ObjectFactory objectFactory,
         ClassPathRegistry registry,
         DependenciesAccessorsWorkspaceProvider workspace,
         DefaultProjectDependencyFactory factory,

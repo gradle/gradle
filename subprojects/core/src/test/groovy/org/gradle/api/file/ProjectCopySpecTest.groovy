@@ -41,20 +41,20 @@ class ProjectCopySpecTest extends AbstractProjectBuilderSpec {
         copySource.createFile("file")
         def copySpec = project.copySpec {
             copySpecRootCalled = true
-            delegate.duplicatesStrategy "include"
+            delegate.duplicatesStrategy = "include"
             from copySource
 
             from copySource, {
-                delegate.duplicatesStrategy "include"
+                delegate.duplicatesStrategy = "include"
                 delegate.eachFile {
                     copySpecNestedEachFileCalled = true
-                    delegate.duplicatesStrategy "include"
+                    delegate.duplicatesStrategy = "include"
                 }
             }
 
             eachFile {
                 copySpecEachFileCalled = true
-                delegate.duplicatesStrategy "include"
+                delegate.duplicatesStrategy = "include"
             }
         }
 
@@ -65,16 +65,16 @@ class ProjectCopySpecTest extends AbstractProjectBuilderSpec {
             with copySpec
             from copySource
             from copySource, {
-                delegate.duplicatesStrategy "include"
+                delegate.duplicatesStrategy = "include"
                 eachFile {
                     copyNestedEachFileCalled = true
-                    delegate.duplicatesStrategy "include"
+                    delegate.duplicatesStrategy = "include"
                 }
             }
-            delegate.duplicatesStrategy "include"
+            delegate.duplicatesStrategy = "include"
 
             eachFile {
-                delegate.duplicatesStrategy "include"
+                delegate.duplicatesStrategy = "include"
                 copyEachFileCalled = true
             }
         }

@@ -16,15 +16,15 @@
 
 package org.gradle.api.internal.tasks.testing.failure;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.tasks.testing.TestFailure;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * Interface implemented by classes which are responsible to transform between {@link Throwable} and {@link TestFailure}.
  *
  * @see DefaultThrowableToTestFailureMapper
  */
-@NonNullApi
+@NullMarked
 public interface ThrowableToTestFailureMapper {
 
     TestFailure createFailure(Throwable throwable);

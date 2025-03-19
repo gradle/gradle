@@ -2,8 +2,8 @@
 // tag::no-description[]
 tasks.register('copy', Copy) {
 // end::no-description[]
-   group 'other'
-   description 'Copies the resource directory to the target directory.'
+   group = 'other'
+   description = 'Copies the resource directory to the target directory.'
 // tag::no-description[]
    from 'resources'
    into 'target'

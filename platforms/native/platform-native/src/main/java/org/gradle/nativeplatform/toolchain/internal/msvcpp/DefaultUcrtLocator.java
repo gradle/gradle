@@ -16,10 +16,13 @@
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
 import net.rubygrapefruit.platform.WindowsRegistry;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.internal.VersionNumber;
 
 import java.io.File;
 
+@ServiceScope(Scope.BuildSession.class)
 public class DefaultUcrtLocator extends AbstractWindowsKitComponentLocator<UcrtInstall> implements UcrtLocator {
     private static final String DISPLAY_NAME = "Universal C Runtime";
     private static final String COMPONENT_NAME = "ucrt";

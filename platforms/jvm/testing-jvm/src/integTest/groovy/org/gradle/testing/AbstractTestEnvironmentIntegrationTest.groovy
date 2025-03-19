@@ -22,7 +22,6 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 import org.gradle.util.Matchers
-
 import org.junit.Assume
 
 abstract class AbstractTestEnvironmentIntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
@@ -225,8 +224,8 @@ abstract class AbstractTestEnvironmentIntegrationTest extends AbstractTestingMul
 
             test {
                 dependsOn jar
-                systemProperties 'java.system.class.loader':'org.gradle.MySystemClassLoader'
-                jvmArgs "-javaagent:\${jar.archiveFile.asFile.get()}"
+                systemProperties('java.system.class.loader':'org.gradle.MySystemClassLoader')
+                jvmArgs("-javaagent:\${jar.archiveFile.asFile.get()}")
             }
         """.stripIndent()
 

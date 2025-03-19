@@ -28,7 +28,7 @@ class IvyChangingModuleRemoteResolveIntegrationTest extends AbstractHttpDependen
         given:
         buildFile << """
 repositories {
-    ivy { url "${ivyHttpRepo.uri}" }
+    ivy { url = "${ivyHttpRepo.uri}" }
 }
 
 configurations { compile }
@@ -90,7 +90,7 @@ task retrieve(type: Copy) {
         buildFile << """
 def isChanging = providers.gradleProperty('isChanging').isPresent()
 repositories {
-    ivy { url "${ivyHttpRepo.uri}" }
+    ivy { url = "${ivyHttpRepo.uri}" }
 }
 
 configurations { compile }
@@ -137,7 +137,7 @@ task retrieve(type: Copy) {
         given:
         buildFile << """
 repositories {
-    ivy { url "${ivyHttpRepo.uri}" }
+    ivy { url = "${ivyHttpRepo.uri}" }
 }
 
 configurations { compile }
@@ -194,7 +194,7 @@ task retrieve(type: Copy) {
         given:
         buildFile << """
 repositories {
-    ivy { url "${ivyHttpRepo.uri}" }
+    ivy { url = "${ivyHttpRepo.uri}" }
 }
 
 configurations { compile }
@@ -272,7 +272,7 @@ task retrieve(type: Copy) {
         given:
         buildFile << """
             repositories {
-                ivy { url "${ivyHttpRepo.uri}" }
+                ivy { url = "${ivyHttpRepo.uri}" }
             }
 
             configurations { compile }

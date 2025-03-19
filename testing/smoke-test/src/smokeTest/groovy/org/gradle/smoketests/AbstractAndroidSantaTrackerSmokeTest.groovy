@@ -24,6 +24,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.testkit.runner.internal.ToolingApiGradleExecutor
+import org.gradle.util.GradleVersion
 import org.junit.Rule
 
 /**
@@ -59,13 +60,11 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest implements 
     }
 
     protected SmokeTestGradleRunner.SmokeTestBuildResult buildLocation(File projectDir, String agpVersion) {
-        return runnerForLocation(projectDir, agpVersion, "assembleDebug").deprecations(SantaTrackerDeprecations) {
-        }.build()
+        return runnerForLocation(projectDir, agpVersion, "assembleDebug").build()
     }
 
     protected SmokeTestGradleRunner.SmokeTestBuildResult buildCachedLocation(File projectDir, String agpVersion) {
-        return runnerForLocation(projectDir, agpVersion, "assembleDebug").deprecations(SantaTrackerDeprecations) {
-        }.build()
+        return runnerForLocation(projectDir, agpVersion, "assembleDebug").build()
     }
 
     static class SantaTrackerDeprecations extends BaseDeprecations implements WithAndroidDeprecations {
@@ -103,6 +102,25 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest implements 
                 "--add-opens", "jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED",
                 "--add-opens", "jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
                 "--add-opens", "jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED"
+            )
+        }
+        runner.deprecations(SantaTrackerDeprecations) {
+            maybeExpectIsPropertyDeprecationWarnings()
+        }
+        1.times {
+            runner.maybeExpectLegacyDeprecationWarning(
+                "Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 10.0. " +
+                    "Use assignment ('url = <value>') instead. " +
+                    "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#groovy_space_assignment_syntax"
+            )
+        }
+        15.times {
+            runner.maybeExpectLegacyDeprecationWarning(
+                "Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 10.0. " +
+                    "Use assignment ('namespace = <value>') instead. " +
+                    "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#groovy_space_assignment_syntax"
             )
         }
         runner

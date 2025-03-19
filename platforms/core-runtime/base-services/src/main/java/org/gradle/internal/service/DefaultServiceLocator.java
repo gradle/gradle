@@ -18,8 +18,8 @@ package org.gradle.internal.service;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.DirectInstantiator;
+import org.jspecify.annotations.NonNull;
 
-import javax.annotation.Nonnull;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,6 +29,8 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
@@ -144,6 +146,8 @@ public class DefaultServiceLocator implements ServiceLocator {
                 }
             }
         }
+
+        Collections.sort(implementations, new ServiceImplementationComparator<T>());
         return implementations;
     }
 
@@ -183,7 +187,7 @@ public class DefaultServiceLocator implements ServiceLocator {
         }
 
         @Override
-        @Nonnull
+        @NonNull
         public T create() {
             return newInstance();
         }
@@ -194,6 +198,13 @@ public class DefaultServiceLocator implements ServiceLocator {
             } catch (ObjectInstantiationException t) {
                 throw new RuntimeException(String.format("Could not create an implementation of service '%s'.", serviceType.getName()), t);
             }
+        }
+    }
+
+    private static final class ServiceImplementationComparator<T> implements Comparator<Class<? extends T>> {
+        @Override
+        public int compare(Class<? extends T> o1, Class<? extends T> o2) {
+            return o1.getName().compareTo(o2.getName());
         }
     }
 }

@@ -39,7 +39,7 @@ class JavaPlatformEcosystemIntegrationTest extends AbstractHttpDependencyResolut
             version = '1.9'
 
             repositories {
-                maven { url "${mavenHttpRepo.uri}" }
+                maven { url = "${mavenHttpRepo.uri}" }
             }
 
             configurations {

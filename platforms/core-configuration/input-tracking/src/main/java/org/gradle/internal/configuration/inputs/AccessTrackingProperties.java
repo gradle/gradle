@@ -17,8 +17,8 @@
 package org.gradle.internal.configuration.inputs;
 
 import com.google.common.primitives.Primitives;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;

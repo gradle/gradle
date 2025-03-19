@@ -25,6 +25,7 @@ import org.gradle.api.internal.tasks.compile.MinimalGroovyCompilerDaemonForkOpti
 import org.gradle.api.internal.tasks.compile.MinimalJavaCompilerDaemonForkOptions;
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.constants.ConstantsAnalysisResult;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
+import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblemReporter;
@@ -107,21 +108,20 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
         JavaForkOptions javaForkOptions = new BaseForkOptionsConverter(forkOptionsFactory).transform(mergeForkOptions(javaOptions, groovyOptions));
         javaForkOptions.setWorkingDir(daemonWorkingDir);
         javaForkOptions.setExecutable(javaOptions.getExecutable());
-        if (jvmVersionDetector.getJavaVersionMajor(javaForkOptions.getExecutable()) >= 9) {
-            javaForkOptions.jvmArgs(JpmsConfiguration.GROOVY_JPMS_ARGS);
-        } else {
+        int javaVersionMajor = jvmVersionDetector.getJavaVersionMajor(javaOptions.getExecutable());
+        javaForkOptions.jvmArgs(JpmsConfiguration.forGroovyProcesses(javaVersionMajor));
+        if (javaVersionMajor <= 8) {
             // In JDK 8 and below, we need to attach the 'tools.jar' to the classpath.
             File javaExecutable = new File(javaForkOptions.getExecutable());
             JavaInfo jvm = Jvm.forHome(javaExecutable.getParentFile().getParentFile());
             File toolsJar = jvm.getToolsJar();
             if (toolsJar == null) {
                 String contextualMessage = String.format("The 'tools.jar' cannot be found in the JDK '%s'.", jvm.getJavaHome());
-                throw problemReporter.throwing(problemSpec -> problemSpec
-                    .id("groovy-daemon-compiler", "Missing tools.jar", GradleCoreProblemGroup.compilation().groovy())
+                ProblemId problemId = ProblemId.create("missing-tools-jar", "Missing tools.jar", GradleCoreProblemGroup.compilation().groovy());
+                throw problemReporter.throwing(new IllegalStateException(contextualMessage), problemId, problemSpec -> problemSpec
                     .contextualLabel(contextualMessage)
                     .solution("Check if the installation is not a JRE but a JDK.")
                     .severity(Severity.ERROR)
-                    .withException(new IllegalStateException(contextualMessage))
                 );
             } else {
                 languageGroovyClasspath = languageGroovyClasspath.plus(Collections.singletonList(toolsJar));

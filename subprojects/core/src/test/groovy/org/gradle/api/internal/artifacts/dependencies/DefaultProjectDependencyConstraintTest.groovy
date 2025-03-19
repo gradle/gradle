@@ -79,7 +79,8 @@ class DefaultProjectDependencyConstraintTest extends Specification {
             TestFiles.taskDependencyFactory(),
             Mock(ProjectStateRegistry)
         )
-        def projectDependency = dependencyFactory.create(project, "mockConfiguration")
+        def projectDependency = dependencyFactory.create(project)
+        projectDependency.setTargetConfiguration("mockConfiguration")
         new DefaultProjectDependencyConstraint(projectDependency)
     }
 }

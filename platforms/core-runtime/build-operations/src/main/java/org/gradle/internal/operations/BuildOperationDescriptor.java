@@ -16,7 +16,7 @@
 
 package org.gradle.internal.operations;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Meta-data about a build operation.

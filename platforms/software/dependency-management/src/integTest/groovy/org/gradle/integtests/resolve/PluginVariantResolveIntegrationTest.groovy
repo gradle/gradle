@@ -61,7 +61,7 @@ class PluginVariantResolveIntegrationTest extends AbstractIntegrationSpec {
                 buildscript {
                     repositories {
                         maven {
-                            url "%repoloc%"
+                            url = "%repoloc%"
                         }
                     }
                     dependencies {
@@ -120,8 +120,8 @@ class PluginVariantResolveIntegrationTest extends AbstractIntegrationSpec {
                 publishing {
                     repositories {
                        maven {
-                           name 'build'
-                           url "\$buildDir/repo"
+                           name = 'build'
+                           url = layout.buildDirectory.dir('repo')
                        }
                     }
                 }

@@ -33,8 +33,8 @@ import static org.gradle.launcher.daemon.server.api.DaemonState.Idle;
 /**
  * A daemon registry for daemons running in the same JVM.
  * <p>
- * This implementation is thread safe in that its getAll(), getIdle() and getBusy() methods are expected to be called from “consumer” threads,
- * while the newEntry() method is expected to be called by “producer” threads.
+ * This implementation is thread safe in that its getAll(), getIdle() and getBusy() methods are expected to be called from "consumer" threads,
+ * while the newEntry() method is expected to be called by "producer" threads.
  * <p>
  * The collections returned by the consumer methods do not return live collections so may not reflect the precise state of the registry
  * by the time they are returned to the caller. Clients must therefore be prepared for this and expect connection failures, either through

@@ -18,7 +18,6 @@ package org.gradle.api.internal.changedetection.changes;
 
 import org.gradle.StartParameter;
 import org.gradle.api.InvalidUserCodeException;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskExecutionMode;
 import org.gradle.api.internal.changedetection.TaskExecutionModeResolver;
@@ -26,8 +25,9 @@ import org.gradle.api.internal.project.taskfactory.IncrementalTaskAction;
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.api.specs.AndSpec;
+import org.jspecify.annotations.NullMarked;
 
-@NonNullApi
+@NullMarked
 public class DefaultTaskExecutionModeResolver implements TaskExecutionModeResolver {
 
     private final StartParameter startParameter;

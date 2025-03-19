@@ -21,13 +21,15 @@ import jetbrains.buildServer.configs.kotlin.triggers.ScheduleTrigger
 import jetbrains.buildServer.configs.kotlin.triggers.schedule
 import vcsroots.gradlePromotionBranches
 
-class PublishNightlySnapshot(branch: VersionedSettingsBranch) : PublishGradleDistributionFullBuild(
-    promotedBranch = branch.branchName,
-    prepTask = branch.prepNightlyTaskName(),
-    promoteTask = branch.promoteNightlyTaskName(),
-    triggerName = "ReadyforNightly",
-    vcsRootId = gradlePromotionBranches
-) {
+class PublishNightlySnapshot(
+    branch: VersionedSettingsBranch,
+) : PublishGradleDistributionFullBuild(
+        promotedBranch = branch.branchName,
+        prepTask = branch.prepNightlyTaskName(),
+        promoteTask = branch.promoteNightlyTaskName(),
+        triggerName = "ReadyforNightly",
+        vcsRootId = gradlePromotionBranches,
+    ) {
     init {
         id("Promotion_Nightly")
         name = "Nightly Snapshot"
@@ -37,14 +39,16 @@ class PublishNightlySnapshot(branch: VersionedSettingsBranch) : PublishGradleDis
             branch.nightlyPromotionTriggerHour?.let { triggerHour ->
                 schedule {
                     if (branch.isMainBranch) {
-                        schedulingPolicy = daily {
-                            this.hour = triggerHour
-                        }
+                        schedulingPolicy =
+                            daily {
+                                this.hour = triggerHour
+                            }
                     } else {
-                        schedulingPolicy = weekly {
-                            this.dayOfWeek = ScheduleTrigger.DAY.Saturday
-                            this.hour = triggerHour
-                        }
+                        schedulingPolicy =
+                            weekly {
+                                this.dayOfWeek = ScheduleTrigger.DAY.Saturday
+                                this.hour = triggerHour
+                            }
                     }
                     triggerBuild = always()
                     withPendingChangesOnly = branch.isMainBranch

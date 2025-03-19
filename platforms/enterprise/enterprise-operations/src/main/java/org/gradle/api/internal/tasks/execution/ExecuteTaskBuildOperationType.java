@@ -18,15 +18,15 @@ package org.gradle.api.internal.tasks.execution;
 
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.NotUsedByScanPlugin;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 /**
  * The overall execution of a task, including:
  *
  * - User lifecycle callbacks (TaskExecutionListener.beforeExecute and TaskExecutionListener.afterExecute)
- * - Gradle execution mechanics (e.g. up-to-date and build cache “checks”, property validation, build cache output store, etc.)
+ * - Gradle execution mechanics (e.g. up-to-date and build cache "checks", property validation, build cache output store, etc.)
  *
  * That is, this operation does not represent just the execution of task actions.
  *
@@ -96,8 +96,7 @@ public final class ExecuteTaskBuildOperationType implements BuildOperationType<E
          *
          * @since 8.7
          */
-        @Nullable
-        byte[] getOriginBuildCacheKeyBytes();
+        byte @Nullable [] getOriginBuildCacheKeyBytes();
 
         /**
          * If task was UP_TO_DATE or FROM_CACHE, this will convey the execution time of the task in the build that produced the outputs being reused.
@@ -132,7 +131,7 @@ public final class ExecuteTaskBuildOperationType implements BuildOperationType<E
         /**
          * Opaque messages describing why the task was not up to date.
          * In the order emitted by Gradle.
-         * Null if execution did not get so far as to test “up-to-date-ness”.
+         * Null if execution did not get so far as to test "up-to-date-ness".
          * Empty if tested, but task was considered up to date.
          */
         @Nullable

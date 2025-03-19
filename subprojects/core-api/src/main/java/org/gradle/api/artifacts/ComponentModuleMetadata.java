@@ -16,7 +16,7 @@
 
 package org.gradle.api.artifacts;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Contains immutable component module metadata information.

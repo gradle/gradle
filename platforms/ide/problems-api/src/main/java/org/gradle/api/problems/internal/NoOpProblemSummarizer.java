@@ -17,13 +17,24 @@
 package org.gradle.api.problems.internal;
 
 import org.gradle.internal.operations.OperationIdentifier;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
+import java.io.File;
 
 public class NoOpProblemSummarizer implements ProblemSummarizer {
 
     @Override
-    public void emit(Problem problem, @Nullable OperationIdentifier id) {
+    public void emit(InternalProblem problem, @Nullable OperationIdentifier id) {
         // no op
+    }
+
+    @Override
+    public String getId() {
+        return "";
+    }
+
+    @Override
+    public void report(File reportDir, ProblemConsumer validationFailures) {
+        //no op
     }
 }

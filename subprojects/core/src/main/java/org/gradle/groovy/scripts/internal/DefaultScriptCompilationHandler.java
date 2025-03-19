@@ -33,6 +33,7 @@ import org.codehaus.groovy.syntax.SyntaxException;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
@@ -57,14 +58,16 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 import org.gradle.util.internal.GFileUtils;
 import org.gradle.util.internal.TextUtil;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.FileInputStream;
@@ -79,6 +82,7 @@ import java.util.List;
 import java.util.Map;
 
 @SuppressWarnings("deprecation")
+@ServiceScope(Scope.Build.class)
 public class DefaultScriptCompilationHandler implements ScriptCompilationHandler {
     private final Logger logger = LoggerFactory.getLogger(DefaultScriptCompilationHandler.class);
     private static final NoOpGroovyResourceLoader NO_OP_GROOVY_RESOURCE_LOADER = new NoOpGroovyResourceLoader();
@@ -216,8 +220,8 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         SyntaxException syntaxError = e.getErrorCollector().getSyntaxError(0);
         int lineNumber = syntaxError == null ? -1 : syntaxError.getLine();
         String message = String.format("Could not compile %s.", source.getDisplayName());
-        throw ((InternalProblems) getProblemsService()).getInternalReporter().throwing(builder -> builder
-            .id(TextUtil.screamingSnakeToKebabCase("compilation-failed"), "Groovy DSL script compilation problem", GradleCoreProblemGroup.compilation().groovyDsl())
+        ProblemId problemId = ProblemId.create(TextUtil.screamingSnakeToKebabCase("compilation-failed"), "Groovy DSL script compilation problem", GradleCoreProblemGroup.compilation().groovyDsl());
+        throw ((InternalProblems) getProblemsService()).getInternalReporter().throwing(new ScriptCompilationException(message, e, source, lineNumber), problemId, builder -> builder
             .contextualLabel(message)
             .lineInFileLocation(source.getFileName(), lineNumber)
             .severity(Severity.ERROR)
@@ -431,7 +435,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         }
 
         @Override
-        public byte[] instrumentClass(@Nullable String className, ProtectionDomain protectionDomain, byte[] classfileBuffer) {
+        public byte @Nullable [] instrumentClass(@Nullable String className, ProtectionDomain protectionDomain, byte[] classfileBuffer) {
             return replacer.getInstrumentedClass(className, protectionDomain);
         }
 

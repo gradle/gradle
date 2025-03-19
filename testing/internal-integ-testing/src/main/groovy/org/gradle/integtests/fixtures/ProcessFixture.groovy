@@ -92,12 +92,12 @@ class ProcessFixture {
 
     private String execute(Object[] commandLine, InputStream input) {
         def output = new ByteArrayOutputStream()
-        def e = TestFiles.execHandleFactory().newExec()
+        def e = TestFiles.execHandleFactory().newExecHandleBuilder()
                 .commandLine(commandLine)
                 .redirectErrorStream()
                 .setStandardInput(input)
                 .setStandardOutput(output)
-                .workingDir(new File(".").absoluteFile) //does not matter
+                .setWorkingDir(new File(".").absoluteFile) //does not matter
                 .build()
         e.start()
         def result = e.waitForFinish()

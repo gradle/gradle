@@ -74,7 +74,7 @@ class TestCapability implements Capability {
 
             publishing {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
                 publications {
                     maven(MavenPublication) {
@@ -118,7 +118,7 @@ class TestCapability implements Capability {
 
             publishing {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
                 publications {
                     maven(MavenPublication) {
@@ -166,7 +166,7 @@ class TestCapability implements Capability {
 
             publishing {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
                 publications {
                     maven(MavenPublication) {
@@ -217,7 +217,7 @@ class TestCapability implements Capability {
 
             publishing {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
                 publications {
                     maven(MavenPublication) {
@@ -262,7 +262,7 @@ class TestCapability implements Capability {
 
             publishing {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
                 publications {
                     maven(MavenPublication) {
@@ -307,7 +307,7 @@ class TestCapability implements Capability {
 
             publishing {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
                 publications {
                     maven(MavenPublication) {
@@ -354,7 +354,7 @@ class TestCapability implements Capability {
 
             publishing {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
                 publications {
                     maven(MavenPublication) {
@@ -397,7 +397,7 @@ class TestCapability implements Capability {
 
             publishing {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
                 publications {
                     maven(MavenPublication) {
@@ -439,7 +439,7 @@ class TestCapability implements Capability {
 
                 publishing {
                     repositories {
-                        maven { url "${mavenRepo.uri}" }
+                        maven { url = "${mavenRepo.uri}" }
                     }
                 }
             }
@@ -531,7 +531,7 @@ class TestCapability implements Capability {
 
             publishing {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
                 publications {
                     maven(MavenPublication) {
@@ -597,7 +597,7 @@ class TestCapability implements Capability {
 
             publishing {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
                 publications {
                     maven(MavenPublication) {
@@ -651,7 +651,7 @@ class TestCapability implements Capability {
 
             publishing {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
                 publications {
                     maven(MavenPublication) {
@@ -711,7 +711,7 @@ class TestCapability implements Capability {
 
             publishing {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
                 publications {
                     maven(MavenPublication) {
@@ -755,7 +755,7 @@ class TestCapability implements Capability {
 
             publishing {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
                 publications {
                     maven(MavenPublication) {
@@ -814,7 +814,7 @@ class TestCapability implements Capability {
 
             publishing {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
                 publications {
                     maven(MavenPublication) {
@@ -877,7 +877,7 @@ class TestCapability implements Capability {
 
             publishing {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
                 publications {
                     maven(MavenPublication) {
@@ -938,7 +938,7 @@ class TestCapability implements Capability {
 
             publishing {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
                 publications {
                     maven(MavenPublication) {

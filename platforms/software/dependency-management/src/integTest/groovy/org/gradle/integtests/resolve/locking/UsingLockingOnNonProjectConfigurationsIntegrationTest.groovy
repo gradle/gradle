@@ -206,7 +206,7 @@ buildscript {
 pluginManagement {
     repositories {
         maven {
-            url '$pluginRepo.uri'
+            url = '$pluginRepo.uri'
         }
     }
 }
@@ -254,7 +254,7 @@ plugins {
 pluginManagement {
     repositories {
         maven {
-            url '$pluginRepo.uri'
+            url = '$pluginRepo.uri'
         }
     }
 }
@@ -417,7 +417,7 @@ buildscript {
         settingsFile.text = """
             pluginManagement {
                 repositories {
-                    maven { url "$pluginRepo.uri" }
+                    maven { url = "$pluginRepo.uri" }
                 }
             }
             buildscript {

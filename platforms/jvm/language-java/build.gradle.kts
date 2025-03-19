@@ -1,6 +1,5 @@
 plugins {
     id("gradlebuild.distribution.api-java")
-    id("gradlebuild.instrumented-java-project")
 }
 
 description = "Source for JavaCompile, JavaExec and Javadoc tasks, it also contains logic for incremental Java compilation"
@@ -21,51 +20,53 @@ errorprone {
 }
 
 dependencies {
-    api(projects.stdlibJavaExtensions)
-    api(projects.serialization)
-    api(projects.serviceProvider)
     api(projects.baseServices)
     api(projects.buildEvents)
     api(projects.buildOperations)
+    api(projects.buildProcessServices)
+    api(projects.classloaders)
     api(projects.core)
     api(projects.coreApi)
+    api(projects.daemonServerWorker)
     api(projects.dependencyManagement)
     api(projects.fileCollections)
     api(projects.fileOperations)
     api(projects.files)
     api(projects.hashing)
+    api(projects.jvmServices)
     api(projects.languageJvm)
+    api(projects.modelCore)
     api(projects.persistentCache)
     api(projects.platformBase)
     api(projects.platformJvm)
     api(projects.problemsApi)
     api(projects.processServices)
+    api(projects.serialization)
+    api(projects.serviceProvider)
     api(projects.snapshots)
+    api(projects.stdlibJavaExtensions)
     api(projects.testSuitesBase)
     api(projects.toolchainsJvm)
     api(projects.toolchainsJvmShared)
     api(projects.workerMain)
     api(projects.workers)
-    api(projects.buildProcessServices)
 
     api(libs.asm)
     api(libs.fastutil)
     api(libs.groovy)
     api(libs.guava)
-    api(libs.jsr305)
+    api(libs.jspecify)
     api(libs.inject)
 
     implementation(projects.concurrent)
     implementation(projects.serviceLookup)
     implementation(projects.time)
     implementation(projects.fileTemp)
-    implementation(projects.jvmServices)
     implementation(projects.logging)
     implementation(projects.loggingApi)
     implementation(projects.logging)
-    implementation(projects.modelCore)
-    implementation(projects.toolingApi)
     implementation(projects.problemsRendering)
+    implementation(projects.toolingApi)
 
     api(libs.slf4jApi)
     implementation(libs.commonsLang)
@@ -75,9 +76,11 @@ dependencies {
     runtimeOnly(projects.javaCompilerPlugin)
 
     testImplementation(projects.baseServicesGroovy)
+    testImplementation(projects.native)
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.platformBase))
     testImplementation(testFixtures(projects.toolchainsJvm))
+    testImplementation(testFixtures(projects.toolchainsJvmShared))
 
     testImplementation(libs.commonsIo)
     testImplementation(libs.nativePlatform) {
@@ -87,6 +90,7 @@ dependencies {
     integTestImplementation(projects.messaging)
     // TODO: Make these available for all integration tests? Maybe all tests?
     integTestImplementation(libs.jetbrainsAnnotations)
+    integTestImplementation(libs.commonsHttpclient)
 
     testFixturesApi(testFixtures(projects.languageJvm))
     testFixturesImplementation(projects.baseServices)
@@ -126,15 +130,14 @@ packageCycles {
 integTest.usesJavadocCodeSnippets = true
 
 tasks.javadoc {
-    // This project accesses JDK internals.
-    // We would ideally add --add-exports flags for the required packages, however
-    // due to limitations in the javadoc modeling API, we cannot specify multiple
-    // flags for the same key.
-    // Instead, we disable failure on javadoc errors.
-    isFailOnError = false
     options {
         this as StandardJavadocDocletOptions
-        addBooleanOption("quiet", true)
+        // This project accesses JDK internals, which we need to open up so that javadoc can access them
+        addMultilineStringsOption("-add-exports").value = listOf(
+            "jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED",
+            "jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
+            "jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED"
+        )
     }
 }
 tasks.isolatedProjectsIntegTest {

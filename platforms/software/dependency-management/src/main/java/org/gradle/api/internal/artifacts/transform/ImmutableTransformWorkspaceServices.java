@@ -20,9 +20,12 @@ import org.gradle.cache.Cache;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.Closeable;
 
+@ServiceScope(Scope.UserHome.class)
 public interface ImmutableTransformWorkspaceServices extends Closeable {
     ImmutableWorkspaceProvider getWorkspaceProvider();
 

@@ -31,8 +31,8 @@ import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.plugins.signing.signatory.Signatory;
 import org.gradle.plugins.signing.type.SignatureType;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Date;
 import java.util.concurrent.Callable;
@@ -150,7 +150,7 @@ public class Signature extends AbstractPublishArtifact {
     /**
      * Creates a signature artifact for the file returned by the {@code toSign} closure.
      *
-     * <p>The closures will be “evaluated” on demand whenever the value is needed (e.g. at generation time)</p>
+     * <p>The closures will be "evaluated" on demand whenever the value is needed (e.g. at generation time)</p>
      *
      * @param toSign A closure that produces a File for the object to sign (non File return values will be used as the path to the file)
      * @param classifier A closure that produces the classifier to assign to the signature artifact on demand
@@ -168,7 +168,7 @@ public class Signature extends AbstractPublishArtifact {
     /**
      * Creates a signature artifact for the file returned by the {@code toSign} closure.
      *
-     * <p>The closures will be “evaluated” on demand whenever the value is needed (e.g. at generation time)</p>
+     * <p>The closures will be "evaluated" on demand whenever the value is needed (e.g. at generation time)</p>
      *
      * @param toSign A closure that produces a File for the object to sign (non File return values will be used as the path to the file)
      * @param classifier A closure that produces the classifier to assign to the signature artifact on demand

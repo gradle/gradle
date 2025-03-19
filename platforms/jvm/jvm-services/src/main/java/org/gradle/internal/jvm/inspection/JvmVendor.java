@@ -22,19 +22,19 @@ public interface JvmVendor {
 
     enum KnownJvmVendor {
         ADOPTIUM("adoptium", "temurin|adoptium|eclipse foundation", "Eclipse Temurin"),
-        ADOPTOPENJDK("adoptopenjdk", "AdoptOpenJDK"),
-        AMAZON("amazon", "Amazon Corretto"),
+        ADOPTOPENJDK("adoptopenjdk", "aoj|adoptopenjdk", "AdoptOpenJDK"),
+        AMAZON("amazon", "amazon|corretto", "Amazon Corretto"),
         APPLE("apple", "Apple"),
-        AZUL("azul systems", "Azul Zulu"),
-        BELLSOFT("bellsoft", "BellSoft Liberica"),
-        GRAAL_VM("graalvm community", "GraalVM Community"),
-        HEWLETT_PACKARD("hewlett-packard", "HP-UX"),
-        IBM("ibm", "ibm|international business machines corporation", "IBM"),
-        JETBRAINS("jetbrains", "JetBrains"),
+        AZUL("azul systems", "azul|zulu", "Azul Zulu"),
+        BELLSOFT("bellsoft", "bellsoft|liberica", "BellSoft Liberica"),
+        GRAAL_VM("graalvm community", "graalvm|graal vm", "GraalVM Community"),
+        HEWLETT_PACKARD("hewlett-packard", "hp|hewlett", "HP-UX"),
+        IBM("ibm", "ibm|semeru|international business machines corporation", "IBM"),
+        JETBRAINS("jetbrains", "jbr|jetbrains", "JetBrains"),
         MICROSOFT("microsoft", "Microsoft"),
         ORACLE("oracle", "Oracle"),
-        SAP("sap se", "SAP SapMachine"),
-        TENCENT("tencent", "Tencent"),
+        SAP("sap se", "sap", "SAP SapMachine"),
+        TENCENT("tencent", "tencent|kona", "Tencent"),
         UNKNOWN("gradle", "Unknown Vendor");
 
         private final String indicatorString;
@@ -62,6 +62,9 @@ public interface JvmVendor {
                 return UNKNOWN;
             }
             for (KnownJvmVendor jvmVendor : KnownJvmVendor.values()) {
+                if (jvmVendor.name().equals(rawVendor)) {
+                    return jvmVendor;
+                }
                 if (jvmVendor.indicatorString.equals(rawVendor)) {
                     return jvmVendor;
                 }

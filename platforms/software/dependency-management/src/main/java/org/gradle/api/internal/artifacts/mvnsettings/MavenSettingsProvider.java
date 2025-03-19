@@ -17,7 +17,10 @@ package org.gradle.api.internal.artifacts.mvnsettings;
 
 import org.apache.maven.settings.Settings;
 import org.apache.maven.settings.building.SettingsBuildingException;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
+@ServiceScope(Scope.Build.class)
 public interface MavenSettingsProvider {
     Settings buildSettings() throws SettingsBuildingException;
     String getLocalRepository();

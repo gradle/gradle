@@ -22,24 +22,26 @@ plugins {
 
 description = "Java 6-compatible entry point of the `gradle` command. Bootstraps the implementation in :gradle-cli."
 
-gradlebuildJava.usedForStartup()
+gradlebuildJava {
+    usedForStartup()
+    usesIncompatibleDependencies = true
+}
 
 app {
     mainClassName = "org.gradle.launcher.GradleMain"
 }
 
 dependencies {
-    implementation(projects.stdlibJavaExtensions)
     implementation(projects.buildProcessServices)
+
+    implementation(libs.jspecify)
 
     manifestClasspath(projects.stdlibJavaExtensions)
     manifestClasspath(projects.buildProcessServices)
     manifestClasspath(projects.baseServices)
+    manifestClasspath(projects.classloaders)
     manifestClasspath(projects.concurrent)
     manifestClasspath(projects.serviceLookup)
 
     agentsClasspath(projects.instrumentationAgent)
-}
-tasks.isolatedProjectsIntegTest {
-    enabled = false
 }

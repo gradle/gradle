@@ -17,8 +17,8 @@ package org.gradle.api.internal.artifacts.dependencies;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.MutableVersionConstraint;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.Serializable;
 
 public class DefaultMutableMinimalDependency extends DefaultExternalModuleDependency implements MinimalExternalModuleDependencyInternal, Serializable {

@@ -38,7 +38,7 @@ class IvyPublishDescriptorCustomizationIntegTest extends AbstractIvyPublishInteg
 
             publishing {
                 repositories {
-                    ivy { url "${ivyRepo.uri}" }
+                    ivy { url = "${ivyRepo.uri}" }
                 }
                 publications {
                     ivy(IvyPublication) {
@@ -65,8 +65,8 @@ class IvyPublishDescriptorCustomizationIntegTest extends AbstractIvyPublishInteg
                 publications {
                     ivy {
                         descriptor {
-                            status "custom-status"
-                            branch "custom-branch"
+                            status = "custom-status"
+                            branch = "custom-branch"
                             license {
                                 name = 'The Apache License, Version 2.0'
                                 url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
@@ -238,7 +238,7 @@ class IvyPublishDescriptorCustomizationIntegTest extends AbstractIvyPublishInteg
         buildFile << """
             publishing {
                 repositories {
-                    ivy { url "${mavenRepo.uri}" }
+                    ivy { url = "${mavenRepo.uri}" }
                 }
                 publications {
                     ivy {

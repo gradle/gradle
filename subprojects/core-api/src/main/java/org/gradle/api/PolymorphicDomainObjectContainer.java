@@ -27,13 +27,12 @@ import org.gradle.internal.HasInternalProtocol;
 public interface PolymorphicDomainObjectContainer<T> extends NamedDomainObjectContainer<T> {
     /**
      * Creates a domain object with the specified name and type, and adds it to the container.
+     * <p>
+     * This operation is eager, the element is realized before being returned.
      *
      * @param name the name of the domain object to be created
-     *
      * @param type the type of the domain object to be created
-     *
      * @param <U> the type of the domain object to be created
-     *
      * @return the created domain object
      *
      * @throws InvalidUserDataException if a domain object with the specified name already exists
@@ -43,11 +42,12 @@ public interface PolymorphicDomainObjectContainer<T> extends NamedDomainObjectCo
 
     /**
      * Looks for an item with the given name and type, creating and adding it to this container if it does not exist.
+     * <p>
+     * This operation is eager, the element is realized before being returned.
      *
      * @param name the name of the domain object to be created
      * @param type the type of the domain object to be created
      * @param <U> the type of the domain object to be created
-     *
      * @return the found or created domain object, never <code>null</code>.
      *
      * @throws InvalidUserDataException if the container does not support creating a domain object with the specified type
@@ -58,15 +58,13 @@ public interface PolymorphicDomainObjectContainer<T> extends NamedDomainObjectCo
     /**
      * Creates a domain object with the specified name and type, adds it to the container, and configures
      * it with the specified action.
+     * <p>
+     * This operation is eager, the element is realized before being returned.
      *
      * @param name the name of the domain object to be created
-     *
      * @param type the type of the domain object to be created
-     *
      * @param configuration an action for configuring the domain object
-     *
      * @param <U> the type of the domain object to be created
-     *
      * @return the created domain object
      *
      * @throws InvalidUserDataException if a domain object with the specified name already exists
@@ -76,6 +74,8 @@ public interface PolymorphicDomainObjectContainer<T> extends NamedDomainObjectCo
 
     /**
      * Creates a regular container that wraps the polymorphic container presenting all elements of a specified type.
+     * <p>
+     * This method is an intermediate operation. It does not change the realized/unrealized state of the elements in the collection.
      *
      * @param type the type of the container elements
      * @param <U> the type of the container elements
@@ -85,8 +85,12 @@ public interface PolymorphicDomainObjectContainer<T> extends NamedDomainObjectCo
 
     /**
      * Defines a new object, which will be created and configured when it is required. A object is 'required' when the object is located using query methods such as {@link #getByName(String)} or when {@link Provider#get()} is called on the return value of this method.
-     *
-     * <p>It is generally more efficient to use this method instead of {@link #create(String, Class, Action)} or {@link #create(String, Class)}, as those methods will eagerly create and configure the object, regardless of whether that object is required for the current build or not. This method, on the other hand, will defer creation and configuration until required.</p>
+     * <p>
+     * It is generally more efficient to use this method instead of {@link #create(String, Class, Action)} or {@link #create(String, Class)}, as those methods will eagerly create and configure the object, regardless of whether that object is required for the current build or not.
+     * This method, on the other hand, will defer creation and configuration until required.
+     * <p>
+     * This operation is lazy, the returned element is NOT realized.
+     * A {@link NamedDomainObjectProvider lazy wrapper} is returned, allowing to continue to use it with other lazy APIs.
      *
      * @param name The name of the object.
      * @param type The object type.
@@ -100,8 +104,12 @@ public interface PolymorphicDomainObjectContainer<T> extends NamedDomainObjectCo
 
     /**
      * Defines a new object, which will be created when it is required. A object is 'required' when the object is located using query methods such as {@link #getByName(String)} or when {@link Provider#get()} is called on the return value of this method.
-     *
-     * <p>It is generally more efficient to use this method instead of {@link #create(String, Class, Action)} or {@link #create(String, Class)}, as those methods will eagerly create and configure the object, regardless of whether that object is required for the current build or not. This method, on the other hand, will defer creation until required.</p>
+     * <p>
+     * It is generally more efficient to use this method instead of {@link #create(String, Class, Action)} or {@link #create(String, Class)}, as those methods will eagerly create and configure the object, regardless of whether that object is required for the current build or not.
+     * This method, on the other hand, will defer creation until required.
+     * <p>
+     * This operation is lazy, the returned element is NOT realized.
+     * A {@link NamedDomainObjectProvider lazy wrapper} is returned, allowing to continue to use it with other lazy APIs.
      *
      * @param name The name of the object.
      * @param type The object type.

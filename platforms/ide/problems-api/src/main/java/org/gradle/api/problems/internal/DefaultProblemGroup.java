@@ -16,14 +16,17 @@
 
 package org.gradle.api.problems.internal;
 
+import com.google.common.base.Objects;
 import org.gradle.api.Incubating;
 import org.gradle.api.problems.ProblemGroup;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.Serializable;
 
+import static com.google.common.base.Objects.equal;
+
 @Incubating
-public class DefaultProblemGroup implements ProblemGroup, Serializable {
+public class DefaultProblemGroup extends ProblemGroup implements Serializable {
 
     private final String name;
     private final String displayName;
@@ -63,19 +66,12 @@ public class DefaultProblemGroup implements ProblemGroup, Serializable {
         if (o == null || o.getClass().isAssignableFrom(ProblemGroup.class)) {
             return false;
         }
-
         ProblemGroup that = (ProblemGroup) o;
-
-        if (!name.equals(that.getName())) {
-            return false;
-        }
-        return parent != null ? parent.equals(that.getParent()) : that.getParent() == null;
+        return equal(parent, that.getParent()) && equal(name, that.getName());
     }
 
     @Override
     public int hashCode() {
-        int result = name.hashCode();
-        result = 31 * result + (parent != null ? parent.hashCode() : 0);
-        return result;
+        return Objects.hashCode(name, parent);
     }
 }

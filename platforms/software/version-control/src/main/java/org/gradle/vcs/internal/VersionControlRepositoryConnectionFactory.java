@@ -16,8 +16,11 @@
 
 package org.gradle.vcs.internal;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.vcs.VersionControlSpec;
 
+@ServiceScope(Scope.BuildSession.class)
 public interface VersionControlRepositoryConnectionFactory {
     VersionControlRepositoryConnection create(VersionControlSpec spec);
 }

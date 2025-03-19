@@ -16,7 +16,8 @@
 
 package org.gradle.api.problems.internal;
 
-import javax.annotation.Nullable;
+import com.google.common.base.Objects;
+import org.jspecify.annotations.Nullable;
 
 public class DefaultDeprecationData implements DeprecationData {
 
@@ -29,6 +30,20 @@ public class DefaultDeprecationData implements DeprecationData {
     @Override
     public Type getType() {
         return type;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof DefaultDeprecationData)) {
+            return false;
+        }
+        DefaultDeprecationData that = (DefaultDeprecationData) o;
+        return type == that.type;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(type);
     }
 
     public static AdditionalDataBuilder<DeprecationData> builder(@Nullable DeprecationData from) {

@@ -3,13 +3,13 @@ plugins {
     id 'maven-publish'
 }
 
-group "org.sample"
-version "1.0"
+group = "org.sample"
+version = "1.0"
 
 publishing {
     repositories {
         maven {
-            url file("../../local-repo")
+            url = file("../../local-repo")
         }
     }
     publications {

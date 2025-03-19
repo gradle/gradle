@@ -547,7 +547,7 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
                 }
             }
         """
-        def cause = """Cannot convert the provided notation to a File or URI: 5.
+        def cause = """Cannot convert the provided notation to a File: 5.
 The following types/formats are supported:
   - A String or CharSequence path, for example 'src/main/java' or '/usr/include'.
   - A String or CharSequence URI, for example 'file:/usr/include'.
@@ -555,7 +555,7 @@ The following types/formats are supported:
   - A Path instance.
   - A Directory instance.
   - A RegularFile instance.
-  - A URI or URL instance.
+  - A URI or URL instance of file.
   - A TextResource instance."""
 
         when:

@@ -22,6 +22,8 @@ import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.File;
 import java.net.URL;
@@ -30,6 +32,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+@ServiceScope(Scope.UserHome.class)
 public class ClassLoaderStructureProvider {
     private final ClassLoaderRegistry classLoaderRegistry;
 

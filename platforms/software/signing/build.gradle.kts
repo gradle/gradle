@@ -1,6 +1,5 @@
 plugins {
     id("gradlebuild.distribution.api-java")
-    id("gradlebuild.instrumented-java-project")
 }
 
 description = "Plugin for cryptographic signing of publications, artifacts or files."
@@ -14,7 +13,7 @@ dependencies {
     api(projects.stdlibJavaExtensions)
 
     api(libs.bouncycastlePgp)
-    api(libs.jsr305)
+    api(libs.jspecify)
     api(libs.groovy)
     api(libs.inject)
 

@@ -24,7 +24,7 @@ import org.gradle.api.internal.artifacts.ComponentMetadataProcessorFactory
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
-import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy
+import org.gradle.api.internal.artifacts.ivyservice.CacheExpirationControl
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.DependencyVerificationOverride
@@ -109,7 +109,7 @@ class ExternalModuleComponentResolverFactoryTest extends Specification {
 
     def "returns an empty resolver when no repositories are configured"() {
         when:
-        def resolver = newFactory().createResolvers(Collections.emptyList(), Stub(ComponentMetadataProcessorFactory), Stub(ComponentSelectionRulesInternal), false, Mock(CachePolicy), ImmutableAttributes.EMPTY, ImmutableAttributesSchema.EMPTY)
+        def resolver = newFactory().createResolvers(Collections.emptyList(), Stub(ComponentMetadataProcessorFactory), Stub(ComponentSelectionRulesInternal), false, Mock(CacheExpirationControl), ImmutableAttributes.EMPTY, ImmutableAttributesSchema.EMPTY)
 
         then:
         resolver instanceof NoRepositoriesResolver
@@ -125,7 +125,7 @@ class ExternalModuleComponentResolverFactoryTest extends Specification {
         def componentSelectionRules = Stub(ComponentSelectionRulesInternal)
 
         when:
-        def resolver = newFactory().createResolvers(repositories, Stub(ComponentMetadataProcessorFactory), componentSelectionRules, false, Mock(CachePolicy), ImmutableAttributes.EMPTY, ImmutableAttributesSchema.EMPTY)
+        def resolver = newFactory().createResolvers(repositories, Stub(ComponentMetadataProcessorFactory), componentSelectionRules, false, Mock(CacheExpirationControl), ImmutableAttributes.EMPTY, ImmutableAttributesSchema.EMPTY)
 
         then:
         assert resolver instanceof UserResolverChain

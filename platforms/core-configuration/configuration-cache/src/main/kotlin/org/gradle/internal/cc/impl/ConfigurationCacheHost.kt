@@ -18,8 +18,11 @@ package org.gradle.internal.cc.impl
 
 import org.gradle.internal.Factory
 import org.gradle.internal.cc.base.serialize.HostServiceProvider
+import org.gradle.internal.service.scopes.Scope.Build
+import org.gradle.internal.service.scopes.ServiceScope
 import java.io.File
 
+@ServiceScope(Build::class)
 interface ConfigurationCacheHost : HostServiceProvider {
 
     val currentBuild: VintageGradleBuild
@@ -28,5 +31,5 @@ interface ConfigurationCacheHost : HostServiceProvider {
 
     fun visitBuilds(visitor: (VintageGradleBuild) -> Unit)
 
-    fun <T> factory(serviceType: Class<T>): Factory<T>
+    fun <T : Any> factory(serviceType: Class<T>): Factory<T>
 }

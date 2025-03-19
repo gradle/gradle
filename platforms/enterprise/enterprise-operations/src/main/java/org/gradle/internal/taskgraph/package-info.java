@@ -17,5 +17,7 @@
 /**
  * Build operations and data types for execution plan.
  */
-@org.gradle.api.NonNullApi
+@NullMarked
 package org.gradle.internal.taskgraph;
+
+import org.jspecify.annotations.NullMarked;

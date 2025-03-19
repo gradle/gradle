@@ -16,9 +16,8 @@
 
 package org.gradle.internal.deprecation;
 
-import org.gradle.api.problems.internal.DocLink;
-
-import javax.annotation.Nullable;
+import org.gradle.api.problems.DocLink;
+import org.jspecify.annotations.Nullable;
 
 class DeprecationMessage {
 

@@ -16,11 +16,11 @@
 
 package org.gradle.internal.serialize;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.IOException;
 
-@NonNullApi
+@NullMarked
 public class DecoderExtensions {
 
     public static short[] readLengthPrefixedShorts(Decoder decoder) throws IOException {

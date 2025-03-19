@@ -20,8 +20,8 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.InternalTransformers;
 import org.gradle.internal.Pair;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.lang.reflect.Array;
 import java.util.AbstractList;
 import java.util.ArrayList;
@@ -265,7 +265,16 @@ public abstract class CollectionUtils {
         }
     }
 
-    public static <T> List<T> toList(Iterable<? extends T> things) {
+    /**
+     * Repacks an {@link Iterable} into a {@link List}.
+     * <p>
+     * When the input is a {@link List}, it is returned as is.
+     * Otherwise, the input is iterated and the elements are added to a new {@link List}.
+     *
+     * @param things The things to repack
+     * @return an empty list if the input is null, otherwise {@link List} containing the elements of the input otherwise
+     */
+    public static <T> List<T> toList(@Nullable Iterable<? extends T> things) {
         if (things instanceof List) {
             @SuppressWarnings("unchecked") List<T> castThings = (List<T>) things;
             return castThings;
@@ -441,6 +450,7 @@ public abstract class CollectionUtils {
      * @param <T> The element type of t1
      * @return t1
      */
+    @SuppressWarnings("unchecked")
     public static <T, C extends Collection<? super T>> C addAll(C t1, T... t2) {
         Collections.addAll(t1, t2);
         return t1;
@@ -459,14 +469,14 @@ public abstract class CollectionUtils {
     }
 
     /**
-     * Provides a “diff report” of how the two sets are similar and how they are different, comparing the entries by some aspect.
+     * Provides a "diff report" of how the two sets are similar and how they are different, comparing the entries by some aspect.
      *
      * The transformer is used to generate the value to use to compare the entries by. That is, the entries are not compared by equals by an attribute or characteristic.
      *
      * The transformer is expected to produce a unique value for each entry in a single set. Behaviour is undefined if this condition is not met.
      *
-     * @param left The set on the “left” side of the comparison.
-     * @param right The set on the “right” side of the comparison.
+     * @param left The set on the "left" side of the comparison.
+     * @param right The set on the "right" side of the comparison.
      * @param compareBy Provides the value to compare entries from either side by
      * @param <T> The type of the entry objects
      * @return A representation of the difference

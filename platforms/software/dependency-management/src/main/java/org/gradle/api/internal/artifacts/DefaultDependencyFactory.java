@@ -36,8 +36,8 @@ import org.gradle.api.internal.notations.ProjectDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 
 

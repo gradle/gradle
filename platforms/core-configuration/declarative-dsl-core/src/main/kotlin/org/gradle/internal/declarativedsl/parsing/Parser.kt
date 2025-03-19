@@ -9,12 +9,6 @@ import org.jetbrains.kotlin.parsing.KotlinParserDefinition
 
 
 private
-val lexer by lazy {
-    KotlinLexer()
-}
-
-
-private
 val parserDefinition by lazy {
     KotlinParserDefinition()
 }
@@ -36,6 +30,7 @@ data class ParsedLightTree(
 
 fun parse(@Language("dcl") code: String): ParsedLightTree {
     val (wrappedCode, codeOffset, suffixLength) = wrapScriptIntoClassInitializerBlock(code)
+    val lexer = KotlinLexer()
     return ParsedLightTree(
         KotlinLightParser.parse(psiBuilderFactory.createBuilder(parserDefinition, lexer, wrappedCode)),
         wrappedCode,

@@ -26,6 +26,8 @@ import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.resources.TextResourceFactory;
 import org.gradle.api.resources.internal.ReadableResourceInternal;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 public class DefaultResourceHandler implements ResourceHandler {
     private final ResourceResolver resourceResolver;
@@ -51,6 +53,7 @@ public class DefaultResourceHandler implements ResourceHandler {
         return textResourceFactory;
     }
 
+    @ServiceScope({Scope.Build.class, Scope.Project.class})
     public interface Factory {
         ResourceHandler create(FileOperations fileOperations);
 

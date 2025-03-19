@@ -433,7 +433,7 @@ performanceTest.registerAndroidTestProject("nowInAndroidBuild", RemoteProject) {
 performanceTest.registerAndroidTestProject("santaTrackerAndroidBuild", RemoteProject) {
     remoteUri = 'https://github.com/gradle/santa-tracker-android.git'
     // Pinned from main branch
-    ref = 'e9419cad3583427caca97958301ff98fc8e9a1c3'
+    ref = '3f5f79b06da263670c77a734ec2db6220dcf311c'
     doLast {
         addGoogleServicesJson(outputDirectory)
     }
@@ -589,8 +589,9 @@ performanceTest.registerTestProject("workerApiProject", Copy) {
 }
 
 tasks.withType(JvmProjectGeneratorTask).configureEach {
-    if (project.hasProperty("springDmPluginVersion")) {
-        templateArgs['springDmPluginVersion'] = springDmPluginVersion
+    def springDmPluginVersion = providers.gradleProperty("springDmPluginVersion")
+    if (springDmPluginVersion.isPresent()) {
+        templateArgs['springDmPluginVersion'] = springDmPluginVersion.get()
     }
     templateArgs['projectDependencies'] = true
 }

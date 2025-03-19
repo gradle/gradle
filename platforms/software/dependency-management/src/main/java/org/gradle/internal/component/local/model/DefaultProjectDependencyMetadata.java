@@ -78,4 +78,9 @@ public class DefaultProjectDependencyMetadata extends DelegatingDependencyMetada
         }
         return this;
     }
+
+    @Override
+    public String toString() {
+        return "ProjectDependencyMetadata: " + selector;
+    }
 }

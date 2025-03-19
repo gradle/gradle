@@ -36,11 +36,11 @@ import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.GFileUtils;
 import org.gradle.util.internal.VersionNumber;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
-import javax.annotation.Nullable;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;

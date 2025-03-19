@@ -17,6 +17,8 @@ package org.gradle.kotlin.dsl.provider
 
 import org.gradle.cache.internal.CrossBuildInMemoryCache
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory
+import org.gradle.internal.service.scopes.Scope
+import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.kotlin.dsl.execution.CompiledScript
 
 import org.gradle.kotlin.dsl.execution.ProgramId
@@ -24,16 +26,17 @@ import org.gradle.kotlin.dsl.execution.ProgramId
 import javax.inject.Inject
 
 
+@ServiceScope(Scope.UserHome::class)
 internal
 class KotlinScriptClassloadingCache @Inject constructor(
     cacheFactory: CrossBuildInMemoryCacheFactory
 ) {
 
     private
-    val cache: CrossBuildInMemoryCache<ProgramId, CompiledScript> = cacheFactory.newCache()
+    val cache: CrossBuildInMemoryCache<ProgramId, CompiledScript> = cacheFactory.newCache { reused -> reused.onReuse() }
 
     fun get(key: ProgramId): CompiledScript? =
-        cache.getIfPresent(key)?.also { it.onReuse() }
+        cache.getIfPresent(key)
 
     fun put(key: ProgramId, loadedScriptClass: CompiledScript) {
         cache.put(key, loadedScriptClass)

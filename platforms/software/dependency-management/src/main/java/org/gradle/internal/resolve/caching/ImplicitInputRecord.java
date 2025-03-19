@@ -15,7 +15,7 @@
  */
 package org.gradle.internal.resolve.caching;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public interface ImplicitInputRecord<IN, OUT> {
     IN getInput();

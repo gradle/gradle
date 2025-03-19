@@ -16,9 +16,9 @@
 package org.gradle.plugins.ide.eclipse
 
 import org.gradle.api.JavaVersion
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.junit.Rule
 import org.junit.Test
@@ -50,7 +50,7 @@ apply plugin: 'java'
 apply plugin: 'eclipse'
 
 repositories {
-    maven { url "${mavenRepo.uri}" }
+    maven { url = "${mavenRepo.uri}" }
     ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition()}
 }
 
@@ -89,7 +89,7 @@ apply plugin: 'java'
 apply plugin: 'eclipse'
 
 repositories {
-    maven { url "${mavenRepo.uri}" }
+    maven { url = "${mavenRepo.uri}" }
 }
 
 configurations {
@@ -138,7 +138,7 @@ apply plugin: 'java'
 apply plugin: 'eclipse'
 
 repositories {
-    maven { url "${mavenRepo.uri}" }
+    maven { url = "${mavenRepo.uri}" }
 }
 
 dependencies {
@@ -173,7 +173,7 @@ subprojects {
     apply plugin: 'eclipse'
 
     repositories {
-        maven { url "${mavenRepo.uri}" }
+        maven { url = "${mavenRepo.uri}" }
     }
 }
 
@@ -220,7 +220,7 @@ subprojects {
     apply plugin: 'eclipse'
 
     repositories {
-        maven { url "${mavenRepo.uri}" }
+        maven { url = "${mavenRepo.uri}" }
     }
 }
 
@@ -265,7 +265,7 @@ subprojects {
     apply plugin: 'eclipse'
 
     repositories {
-        maven { url "${mavenRepo.uri}" }
+        maven { url = "${mavenRepo.uri}" }
     }
 }
 
@@ -298,7 +298,7 @@ subprojects {
     apply plugin: 'eclipse'
 
     repositories {
-        maven { url "${mavenRepo.uri}" }
+        maven { url = "${mavenRepo.uri}" }
     }
 }
 
@@ -347,7 +347,7 @@ subprojects {
     apply plugin: 'eclipse'
 
     repositories {
-        maven { url "${mavenRepo.uri}" }
+        maven { url = "${mavenRepo.uri}" }
     }
 }
 
@@ -402,7 +402,7 @@ apply plugin: 'java'
 apply plugin: 'eclipse'
 
 repositories {
-    maven { url "${mavenRepo.uri}" }
+    maven { url = "${mavenRepo.uri}" }
 }
 
 dependencies {
@@ -498,7 +498,7 @@ apply plugin: 'java'
 apply plugin: 'eclipse'
 
 repositories {
-    maven { url "${mavenRepo.uri}" }
+    maven { url = "${mavenRepo.uri}" }
 }
 
 sourceSets.main.java.srcDirs.each { it.mkdirs() }
@@ -612,7 +612,7 @@ configurations {
 }
 
 repositories {
-    maven { url "${mavenRepo.uri}" }
+    maven { url = "${mavenRepo.uri}" }
 }
 
 dependencies {
@@ -650,7 +650,7 @@ apply plugin: 'java'
 apply plugin: 'eclipse'
 
 repositories {
-    maven { url "${mavenRepo.uri}" }
+    maven { url = "${mavenRepo.uri}" }
 }
 
 dependencies {
@@ -687,7 +687,7 @@ apply plugin: 'java'
 apply plugin: 'eclipse'
 
 repositories {
-    maven { url "${mavenRepo.uri}" }
+    maven { url = "${mavenRepo.uri}" }
 }
 
 dependencies {
@@ -1033,7 +1033,7 @@ allprojects {
 }
 
 repositories {
-    maven { url "${mavenRepo.uri}" }
+    maven { url = "${mavenRepo.uri}" }
 }
 
 dependencies {
@@ -1064,7 +1064,7 @@ apply plugin: 'scala'
 apply plugin: 'eclipse'
 
 repositories {
-    maven { url "${mavenRepo.uri}" }
+    maven { url = "${mavenRepo.uri}" }
     ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition()}
 }
 
@@ -1119,7 +1119,7 @@ apply plugin: 'java'
 apply plugin: 'eclipse'
 
 repositories {
-    maven { url "${mavenRepo.uri}" }
+    maven { url = "${mavenRepo.uri}" }
 }
 
 dependencies {
@@ -1148,7 +1148,7 @@ allprojects {
     apply plugin: 'eclipse'
 
     repositories {
-        maven { url "${mavenRepo.uri}" }
+        maven { url = "${mavenRepo.uri}" }
     }
 }
 
@@ -1191,7 +1191,7 @@ project(':b') {
                 apply plugin: 'eclipse'
 
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
             }
 
@@ -1239,7 +1239,7 @@ project(':b') {
                 apply plugin: 'eclipse'
 
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
             }
 
@@ -1287,7 +1287,7 @@ project(':b') {
                 apply plugin: 'eclipse'
 
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
             }
 
@@ -1335,7 +1335,7 @@ project(':b') {
                 apply plugin: 'eclipse'
 
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
             }
 

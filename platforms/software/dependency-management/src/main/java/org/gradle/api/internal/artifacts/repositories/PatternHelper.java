@@ -71,8 +71,8 @@ public class PatternHelper {
         boolean tokenSeen = false;
         boolean tokenHadValue = false;
 
-        for (char ch : pattern.toCharArray()) {
-            int i = pattern.indexOf(ch);
+        for (int i = 0; i < pattern.length(); i++) {
+            char ch = pattern.charAt(i);
             switch (ch) {
                 case '(':
                     if (insideOptionalPart) {

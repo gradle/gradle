@@ -60,7 +60,7 @@ abstract class AbstractSourceDependencyMultiprojectIntegrationTest extends Abstr
         buildFile << """
             apply plugin: 'base'
 
-            repositories { maven { url "${mavenRepo.uri}" } }
+            repositories { maven { url = "${mavenRepo.uri}" } }
 
             configurations {
                 conf

@@ -17,9 +17,19 @@
 package org.gradle.api.problems.internal;
 
 import org.gradle.internal.operations.OperationIdentifier;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.problems.buildtree.ProblemReporter;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
-
-public interface ProblemSummarizer {
-    void emit(Problem problem, @Nullable OperationIdentifier id);
+@ServiceScope(Scope.BuildTree.class)
+public interface ProblemSummarizer extends ProblemReporter {
+    /**
+     * Emits the given problem in an implementation specific way.
+     * <p>
+     * The problem will be associated with the given operation identifier.
+     *
+     * @param problem The problem to emit.
+     */
+    void emit(InternalProblem problem, @Nullable OperationIdentifier id);
 }

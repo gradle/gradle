@@ -17,8 +17,11 @@
 package org.gradle.kotlin.dsl.provider
 
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.internal.service.scopes.Scope
+import org.gradle.internal.service.scopes.ServiceScope
 
 
+@ServiceScope(Scope.UserHome::class)
 interface KotlinScriptBasePluginsApplicator {
 
     fun apply(project: ProjectInternal)

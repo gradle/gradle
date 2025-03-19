@@ -24,8 +24,8 @@ import org.gradle.tooling.events.internal.DefaultOperationDescriptor;
 import org.gradle.tooling.events.task.TaskOperationDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalTaskDescriptor;
 import org.gradle.tooling.model.internal.Exceptions;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Set;
 
 /**

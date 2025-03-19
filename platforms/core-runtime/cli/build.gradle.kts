@@ -4,8 +4,8 @@ plugins {
 
 description = "Utilities for parsing command line arguments"
 
-gradlebuildJava.usedInWorkers()
-
-tasks.isolatedProjectsIntegTest {
-    enabled = false
+gradlebuildJava {
+    usedForStartup() // Used in the wrapper
+    usesIncompatibleDependencies = true // For test dependencies
 }
+

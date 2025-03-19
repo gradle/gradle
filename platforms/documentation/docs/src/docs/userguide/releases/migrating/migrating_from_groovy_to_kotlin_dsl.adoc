@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Gradle, Inc.
+// Copyright (C) 2024 Gradle, Inc.
 //
 // Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
@@ -81,7 +81,7 @@ For example,
 =====
 [source,groovy]
 ----
-group 'com.acme'
+group = 'com.acme'
 dependencies {
     implementation 'com.acme:example:1.0'
 }

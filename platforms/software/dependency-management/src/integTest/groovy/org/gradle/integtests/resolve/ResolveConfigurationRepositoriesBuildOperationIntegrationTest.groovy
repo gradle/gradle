@@ -82,7 +82,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         module.pom.expectGetBroken()
         buildFile << """
             buildscript {
-                repositories { maven { url '${mavenHttpRepo.uri}' } }
+                repositories { maven { url = '${mavenHttpRepo.uri}' } }
                 dependencies { classpath 'org:foo:1.0' }
             }
         """
@@ -116,7 +116,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         module.pom.expectGetBroken()
         settingsFile << """
         pluginManagement {
-            repositories { maven { url '${mavenHttpRepo.uri}' } }
+            repositories { maven { url = '${mavenHttpRepo.uri}' } }
         }
         """
         buildFile << """
@@ -183,20 +183,25 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
 
     def "repositories shared across projects are stable"() {
         setup:
-        createDirs("child")
         settingsFile << """
             include 'child'
-        """
-        buildFile << """
-            allprojects {
-                apply plugin: 'java'
-                ${mavenCentralRepoBlock()}
-                task resolve {
-                    def files = configurations.compileClasspath
-                    doLast { files.files }
-                }
+            dependencyResolutionManagement {
+                ${mavenCentralRepository()}
             }
         """
+
+        def common = """
+            plugins {
+                id("java-library")
+            }
+            task resolve {
+                def files = configurations.compileClasspath
+                doLast { files.files }
+            }
+        """
+
+        buildFile << common
+        file("child/build.gradle") << common
 
         when:
         succeeds 'resolve'
@@ -218,8 +223,8 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
                     artifactUrls 'http://foo.com/artifacts1'
                     metadataSources { gradleMetadata(); artifact() }
                     credentials {
-                        username 'user'
-                        password 'pass'
+                        username = 'user'
+                        password = 'pass'
                     }
                     authentication {
                         digest(DigestAuthentication)
@@ -281,19 +286,19 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
             repositories {
                 ivy {
                     name = 'custom repo'
-                    url 'http://myCompanyBucket/ivyrepo'
-                    artifactPattern 'http://myCompanyBucket/ivyrepo/[organisation]/[module]/[artifact]-[revision]'
-                    ivyPattern 'http://myCompanyBucket/ivyrepo/[organisation]/[module]/ivy-[revision].xml'
+                    url = 'http://myCompanyBucket/ivyrepo'
+                    artifactPattern('http://myCompanyBucket/ivyrepo/[organisation]/[module]/[artifact]-[revision]')
+                    ivyPattern('http://myCompanyBucket/ivyrepo/[organisation]/[module]/ivy-[revision].xml')
                     patternLayout {
-                        artifact '[module]/[organisation]/[revision]/[artifact]'
-                        artifact '3rd-party/[module]/[organisation]/[revision]/[artifact]'
-                        ivy '[module]/[organisation]/[revision]/ivy.xml'
+                        artifact('[module]/[organisation]/[revision]/[artifact]')
+                        artifact('3rd-party/[module]/[organisation]/[revision]/[artifact]')
+                        ivy('[module]/[organisation]/[revision]/ivy.xml')
                         m2compatible = true
                     }
                     metadataSources { gradleMetadata(); ivyDescriptor(); artifact() }
                     credentials {
-                        username 'user'
-                        password 'pass'
+                        username = 'user'
+                        password = 'pass'
                     }
                     authentication {
                         basic(BasicAuthentication)
@@ -396,7 +401,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         where:
         definition               | success | artifactPattern
         "url = 'http://foo.com'" | true    | false
-        "artifactPattern 'foo'"  | true    | true
+        "artifactPattern('foo')" | true | true
         ''                       | false   | false
     }
 
@@ -432,7 +437,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
     }
 
     private static String mavenRepoBlock() {
-        "repositories { maven { url '<<URL>>' } }"
+        "repositories { maven { url = '<<URL>>' } }"
     }
 
     private static Map expectedMavenRepo() {
@@ -468,7 +473,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
     }
 
     private static String ivyRepoBlock() {
-        "repositories { ivy { url '<<URL>>' } }"
+        "repositories { ivy { url = '<<URL>>' } }"
     }
 
     private static Map expectedIvyRepo() {
@@ -489,7 +494,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
     }
 
     private static String ivyRepoNoUrlBlock() {
-        "repositories { ivy { artifactPattern 'artifactPattern' } }"
+        "repositories { ivy { artifactPattern('artifactPattern') } }"
     }
 
     private static Map expectedIvyRepoNoUrl() {

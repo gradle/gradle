@@ -16,6 +16,10 @@
 
 package org.gradle.api.problems.internal;
 
+import com.google.common.base.Objects;
+import org.gradle.api.problems.FileLocation;
+import org.gradle.api.problems.LineInFileLocation;
+
 public class DefaultLineInFileLocation extends DefaultFileLocation implements LineInFileLocation {
 
     private final int line;
@@ -54,5 +58,19 @@ public class DefaultLineInFileLocation extends DefaultFileLocation implements Li
 
     public static FileLocation from(String path, Integer line, Integer column, Integer length) {
         return new DefaultLineInFileLocation(path, line, column, length);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof DefaultLineInFileLocation)) {
+            return false;
+        }
+        DefaultLineInFileLocation that = (DefaultLineInFileLocation) o;
+        return line == that.line && column == that.column && length == that.length && Objects.equal(getPath(), that.getPath());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(line, column, length, getPath());
     }
 }

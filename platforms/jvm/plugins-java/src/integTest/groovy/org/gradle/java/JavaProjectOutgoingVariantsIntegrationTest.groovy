@@ -44,7 +44,7 @@ abstract class JavaProjectOutgoingVariantsIntegrationTest extends AbstractIntegr
 def artifactType = Attribute.of('artifactType', String)
 
 allprojects {
-    repositories { maven { url '${mavenRepo.uri}' } }
+    repositories { maven { url = '${mavenRepo.uri}' } }
 }
 
 project(':other-java') {

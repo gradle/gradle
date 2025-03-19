@@ -4,7 +4,7 @@ import org.yaml.snakeyaml.Yaml
 buildscript {
     repositories { // Where to find the plugin or library
         maven {
-            url uri("https://plugins.gradle.org/m2/")
+            url = uri("https://plugins.gradle.org/m2/")
         }
         mavenCentral()
     }

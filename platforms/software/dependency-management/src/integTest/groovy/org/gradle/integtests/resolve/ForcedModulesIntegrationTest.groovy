@@ -21,36 +21,34 @@ import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 class ForcedModulesIntegrationTest extends AbstractIntegrationSpec {
     private ResolveTestFixture resolve = new ResolveTestFixture(buildFile)
 
-    def setup() {
-        resolve.addDefaultVariantDerivationStrategy()
-    }
-
     void "can force the version of a particular module"() {
         mavenRepo.module("org", "foo", '1.3.3').publish()
         mavenRepo.module("org", "foo", '1.4.4').publish()
 
         buildFile << """
-apply plugin: 'java'
-repositories { maven { url "${mavenRepo.uri}" } }
+            plugins {
+                id("java-library")
+            }
+            ${mavenTestRepository()}
 
-dependencies {
-    implementation 'org:foo:1.3.3'
-}
+            dependencies {
+                implementation 'org:foo:1.3.3'
+            }
 
-configurations.all {
-    resolutionStrategy.force 'org:foo:1.4.4'
-}
+            configurations.all {
+                resolutionStrategy.force 'org:foo:1.4.4'
+            }
 
-task checkDeps {
-    def compileClasspath = configurations.compileClasspath
-    doLast {
-        assert compileClasspath*.name == ['foo-1.4.4.jar']
-    }
-}
-"""
+            task checkDeps {
+                def compileClasspath = configurations.compileClasspath
+                doLast {
+                    assert compileClasspath*.name == ['foo-1.4.4.jar']
+                }
+            }
+        """
 
         expect:
-        run("checkDeps")
+        succeeds("checkDeps")
     }
 
     void "can force the version of a transitive dependency module"() {
@@ -60,75 +58,86 @@ task checkDeps {
         mavenRepo.module("org", "bar", '1.0').publish()
 
         buildFile << """
-apply plugin: 'java'
-repositories { maven { url "${mavenRepo.uri}" } }
+            plugins {
+                id("java-library")
+            }
+            ${mavenTestRepository()}
 
-dependencies {
-    implementation 'org:foo:1.3.3'
-}
+            dependencies {
+                implementation 'org:foo:1.3.3'
+            }
 
-configurations.all {
-    resolutionStrategy.force 'org:bar:1.0'
-}
+            configurations.all {
+                resolutionStrategy.force 'org:bar:1.0'
+            }
 
-task checkDeps {
-    def compileClasspath = configurations.compileClasspath
-    doLast {
-        assert compileClasspath*.name == ['foo-1.3.3.jar', 'bar-1.0.jar']
-    }
-}
-"""
+            task checkDeps {
+                def compileClasspath = configurations.compileClasspath
+                doLast {
+                    assert compileClasspath*.name == ['foo-1.3.3.jar', 'bar-1.0.jar']
+                }
+            }
+        """
 
         expect:
-        run("checkDeps")
+        succeeds("checkDeps")
     }
 
     void "can force already resolved version of a module and avoid conflict"() {
         mavenRepo.module("org", "foo", '1.3.3').publish()
         mavenRepo.module("org", "foo", '1.4.4').publish()
 
-        createDirs("api", "impl", "tool")
-        settingsFile << "include 'api', 'impl', 'tool'"
+        settingsFile << """
+            include 'api'
+            include 'impl'
+            include 'tool'
+            dependencyResolutionManagement {
+                ${mavenTestRepository()}
+            }
+        """
 
-        buildFile << """
-allprojects {
-	apply plugin: 'java'
-	repositories { maven { url "${mavenRepo.uri}" } }
-}
+        file("api/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+            configurations.all {
+                resolutionStrategy {
+                    force 'org:foo:1.3.3'
+                    failOnVersionConflict()
+                }
+            }
+            dependencies {
+                implementation (group: 'org', name: 'foo', version:'1.4.4')
+            }
+        """
 
-project(':api') {
-	dependencies {
-		implementation (group: 'org', name: 'foo', version:'1.4.4')
-	}
-}
+        file("impl/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+            dependencies {
+                implementation (group: 'org', name: 'foo', version:'1.3.3')
+            }
+        """
 
-project(':impl') {
-	dependencies {
-		implementation (group: 'org', name: 'foo', version:'1.3.3')
-	}
-}
-
-project(':tool') {
-
-	dependencies {
-		implementation project(':api')
-		implementation project(':impl')
-	}
-}
-
-allprojects {
-    configurations.all {
-	    resolutionStrategy {
-	        force 'org:foo:1.3.3'
-	        failOnVersionConflict()
-	    }
-	}
-}
-
-"""
+        file("tool/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+            configurations.all {
+                resolutionStrategy {
+                    force 'org:foo:1.3.3'
+                    failOnVersionConflict()
+                }
+            }
+            dependencies {
+                implementation project(':api')
+                implementation project(':impl')
+            }
+        """
 
         expect:
-        run("api:dependencies", "tool:dependencies")
+        succeeds("api:dependencies", "tool:dependencies")
     }
 
     void "can force arbitrary version of a module and avoid conflict"() {
@@ -137,51 +146,67 @@ allprojects {
         mavenRepo.module("org", "foo", '1.4.4').publish()
         mavenRepo.module("org", "foo", '1.5.5').publish()
 
-        createDirs("api", "impl", "tool")
-        settingsFile << "include 'api', 'impl', 'tool'"
+        settingsFile << """
+            include 'api'
+            include 'impl'
+            include 'tool'
+            dependencyResolutionManagement {
+                ${mavenTestRepository()}
+            }
+        """
 
-        buildFile << """
-allprojects {
-	apply plugin: 'java'
-	repositories { maven { url "${mavenRepo.uri}" } }
-	group = 'org.foo.unittests'
-	version = '1.0'
-}
+        file("api/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
 
-project(':api') {
-	dependencies {
-		implementation (group: 'org', name: 'foo', version:'1.4.4')
-	}
-}
+            group = 'org.foo.unittests'
+            version = '1.0'
 
-project(':impl') {
-	dependencies {
-		implementation (group: 'org', name: 'foo', version:'1.3.3')
-	}
-}
+            dependencies {
+                implementation (group: 'org', name: 'foo', version:'1.4.4')
+            }
+        """
 
-project(':tool') {
-	dependencies {
-		implementation project(':api')
-		implementation project(':impl')
-	}
-}
+        file('impl/build.gradle') << """
+            plugins {
+                id("java-library")
+            }
 
-allprojects {
-    configurations.all {
-        resolutionStrategy {
-            failOnVersionConflict()
-            force 'org:foo:1.5.5'
-        }
-    }
-}
+            group = 'org.foo.unittests'
+            version = '1.0'
 
-"""
+            dependencies {
+                implementation (group: 'org', name: 'foo', version:'1.3.3')
+            }
+        """
+
+        file("tool/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+
+            group = 'org.foo.unittests'
+            version = '1.0'
+
+            dependencies {
+                implementation project(':api')
+                implementation project(':impl')
+            }
+
+            configurations.all {
+                resolutionStrategy {
+                    failOnVersionConflict()
+                    force 'org:foo:1.5.5'
+                }
+            }
+        """
+
         resolve.expectDefaultConfiguration("runtimeElements")
         resolve.prepare("runtimeClasspath")
 
         expect:
-        run(":tool:checkDeps")
+        succeeds(":tool:checkDeps")
         resolve.expectGraph {
             root(":tool", "org.foo.unittests:tool:1.0") {
                 project(":api", "org.foo.unittests:api:1.0") {
@@ -200,49 +225,60 @@ allprojects {
         mavenRepo.module("org", "foo", '1.3.3').publish()
         mavenRepo.module("org", "foo", '1.4.4').publish()
 
-        createDirs("api", "impl", "tool")
-        settingsFile << "include 'api', 'impl', 'tool'"
+        settingsFile << """
+            include 'api'
+            include 'impl'
+            include 'tool'
+            dependencyResolutionManagement {
+                ${mavenTestRepository()}
+            }
+        """
 
-        buildFile << """
-allprojects {
-	apply plugin: 'java'
-	repositories { maven { url "${mavenRepo.uri}" } }
-}
+        file("api/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
 
-project(':api') {
-	dependencies {
-		implementation (group: 'org', name: 'foo', version:'1.3.3')
-	}
-}
+            dependencies {
+                implementation (group: 'org', name: 'foo', version:'1.3.3')
+            }
+        """
 
-project(':impl') {
-	dependencies {
-		implementation (group: 'org', name: 'foo', version:'1.4.4')
-	}
-}
+        file("impl/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
 
-project(':tool') {
-	dependencies {
-		implementation project(':api')
-		implementation project(':impl')
-	}
-	configurations.all {
-	    resolutionStrategy {
-	        failOnVersionConflict()
-	        force 'org:foo:1.3.3'
-	    }
-	}
-    task checkDeps {
-        def runtimeClasspath = configurations.runtimeClasspath
-        doLast {
-            assert runtimeClasspath*.name == ['api.jar', 'impl.jar', 'foo-1.3.3.jar']
-        }
-    }
-}
-"""
+            dependencies {
+                implementation (group: 'org', name: 'foo', version:'1.4.4')
+            }
+        """
+
+        file("tool/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+
+            dependencies {
+                implementation project(':api')
+                implementation project(':impl')
+            }
+            configurations.all {
+                resolutionStrategy {
+                    failOnVersionConflict()
+                    force 'org:foo:1.3.3'
+                }
+            }
+            task checkDeps {
+                def runtimeClasspath = configurations.runtimeClasspath
+                doLast {
+                    assert runtimeClasspath*.name == ['api.jar', 'impl.jar', 'foo-1.3.3.jar']
+                }
+            }
+        """
 
         expect:
-        run("tool:checkDeps")
+        succeeds("tool:checkDeps")
     }
 
     void "forcing transitive dependency does not add extra dependency"() {
@@ -250,57 +286,61 @@ project(':tool') {
         mavenRepo.module("hello", "world", '1.4.4').publish()
 
         buildFile << """
-apply plugin: 'java'
-repositories { maven { url "${mavenRepo.uri}" } }
+            plugins {
+                id("java-library")
+            }
+            ${mavenTestRepository()}
 
-dependencies {
-    implementation 'org:foo:1.3.3'
-}
+            dependencies {
+                implementation 'org:foo:1.3.3'
+            }
 
-configurations.all {
-    resolutionStrategy.force 'hello:world:1.4.4'
-}
+            configurations.all {
+                resolutionStrategy.force 'hello:world:1.4.4'
+            }
 
-task checkDeps {
-    def compileClasspath = configurations.compileClasspath
-    doLast {
-        assert compileClasspath*.name == ['foo-1.3.3.jar']
-    }
-}
-"""
+            task checkDeps {
+                def compileClasspath = configurations.compileClasspath
+                doLast {
+                    assert compileClasspath*.name == ['foo-1.3.3.jar']
+                }
+            }
+        """
 
         expect:
-        run("checkDeps")
+        succeeds("checkDeps")
     }
 
     void "when forcing the same module last declaration wins"() {
         mavenRepo.module("org", "foo", '1.9').publish()
 
         buildFile << """
-apply plugin: 'java'
-repositories { maven { url "${mavenRepo.uri}" } }
+            plugins {
+                id("java-library")
+            }
+            ${mavenTestRepository()}
 
-dependencies {
-    implementation 'org:foo:1.0'
-}
+            dependencies {
+                implementation 'org:foo:1.0'
+            }
 
-configurations.all {
-    resolutionStrategy {
-        force 'org:foo:1.5'
-        force 'org:foo:2.0'
-        force 'org:foo:1.9'
-    }
-}
+            configurations.all {
+                resolutionStrategy {
+                    force 'org:foo:1.5'
+                    force 'org:foo:2.0'
+                    force 'org:foo:1.9'
+                }
+            }
 
-task checkDeps {
-    def compileClasspath = configurations.compileClasspath
-    doLast {
-        assert compileClasspath*.name == ['foo-1.9.jar']
-    }
-}
-"""
+            task checkDeps {
+                def compileClasspath = configurations.compileClasspath
+                doLast {
+                    assert compileClasspath*.name == ['foo-1.9.jar']
+                }
+            }
+        """
 
         expect:
-        run("checkDeps")
+        succeeds("checkDeps")
     }
 }

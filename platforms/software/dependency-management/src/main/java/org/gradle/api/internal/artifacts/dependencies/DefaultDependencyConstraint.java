@@ -32,8 +32,7 @@ import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class DefaultDependencyConstraint extends AbstractDependencyConstraint {
 
@@ -50,12 +49,6 @@ public class DefaultDependencyConstraint extends AbstractDependencyConstraint {
     public DefaultDependencyConstraint(String group, String name, String version) {
         this.moduleIdentifier = DefaultModuleIdentifier.newId(group, name);
         this.versionConstraint = new DefaultMutableVersionConstraint(version);
-    }
-
-    public static DefaultDependencyConstraint strictly(String group, String name, String strictVersion) {
-        DefaultMutableVersionConstraint versionConstraint = new DefaultMutableVersionConstraint((String) null);
-        versionConstraint.strictly(strictVersion);
-        return new DefaultDependencyConstraint(DefaultModuleIdentifier.newId(group, name), versionConstraint);
     }
 
     public DefaultDependencyConstraint(ModuleIdentifier module, VersionConstraint versionConstraint) {

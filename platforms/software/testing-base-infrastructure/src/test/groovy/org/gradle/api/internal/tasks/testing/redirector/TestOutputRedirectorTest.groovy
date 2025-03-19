@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.testing.redirector
 import org.gradle.api.internal.tasks.testing.DefaultTestOutputEvent
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.api.tasks.testing.TestOutputEvent
+import org.gradle.internal.time.FixedClock
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -27,7 +28,7 @@ class TestOutputRedirectorTest extends Specification {
     TestResultProcessor processor = Mock(TestResultProcessor)
     StandardOutputRedirector redir = Mock(StandardOutputRedirector)
 
-    @Subject redirector = new TestOutputRedirector(processor, redir)
+    @Subject redirector = new TestOutputRedirector(new FixedClock(123), processor, redir)
 
     def "starts redirecting output and error"() {
         when:
@@ -66,7 +67,7 @@ class TestOutputRedirectorTest extends Specification {
     }
 
     def "passes output events"() {
-        def f = new TestOutputRedirector.Forwarder(processor, TestOutputEvent.Destination.StdErr)
+        def f = new TestOutputRedirector.Forwarder(new FixedClock(123), processor, TestOutputEvent.Destination.StdErr)
         f.outputOwner = "5"
 
         when: f.onOutput("ala")

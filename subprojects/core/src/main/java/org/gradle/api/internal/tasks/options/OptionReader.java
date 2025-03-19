@@ -24,9 +24,11 @@ import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.internal.reflect.JavaReflectionUtil;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.internal.CollectionUtils;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -43,6 +45,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+@ServiceScope(Scope.Gradle.class)
 public class OptionReader {
     private final ListMultimap<Class<?>, OptionElement> cachedOptionElements = ArrayListMultimap.create();
     private final Map<OptionElement, JavaMethod<Object, ?>> cachedOptionValueMethods = new HashMap<>();

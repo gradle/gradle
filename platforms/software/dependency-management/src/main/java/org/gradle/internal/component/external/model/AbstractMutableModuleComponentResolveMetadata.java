@@ -42,8 +42,8 @@ import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.component.model.MutableModuleSources;
 import org.gradle.internal.component.model.VariantResolveMetadata;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -525,7 +525,7 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
                 && Objects.equal(reason, that.reason)
                 && Objects.equal(attributes, that.attributes)
                 && Objects.equal(requestedCapabilities, that.requestedCapabilities)
-                && Objects.equal(endorsing, that.endorsing)
+                && endorsing == that.endorsing
                 && Objects.equal(dependencyArtifact, that.dependencyArtifact);
         }
 

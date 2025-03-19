@@ -58,7 +58,7 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
           pluginManagement {
             repositories {
               ${repo instanceof MavenRepository ? "maven" : "ivy"} {
-                  url "${PathType.ABSOLUTE.equals(pathType) ? repo.uri : repo.rootDir.name}"
+                  url = uri("${PathType.ABSOLUTE.equals(pathType) ? repo.uri : repo.rootDir.name}")
               }
             }
           }
@@ -236,7 +236,7 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
           pluginManagement {
             repositories {
                 maven {
-                  url "${mavenRepo.uri}"
+                  url = uri("${mavenRepo.uri}")
                 }
             }
           }
@@ -257,7 +257,7 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
           buildscript {
             repositories {
                 maven {
-                    url '${new MavenFileRepository(file("other-repo")).uri}'
+                    url = file("${new MavenFileRepository(file("other-repo")).uri}")
                 }
             }
           }
@@ -326,7 +326,7 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
             pluginManagement {
                 repositories {
                     maven {
-                        url '${mavenRepo.uri}'
+                        url = uri("${mavenRepo.uri}")
                     }
                 }
             }

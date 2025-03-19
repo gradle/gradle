@@ -16,12 +16,12 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.cache.internal.CacheVersion;
-import org.gradle.cache.internal.CacheVersionMapping;
+import org.gradle.internal.versionedcache.CacheVersionMapping;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 
-import static org.gradle.cache.internal.CacheVersionMapping.introducedIn;
+import static org.gradle.internal.versionedcache.CacheVersionMapping.introducedIn;
 
 /**
  * Versioned locations of global caches.
@@ -90,6 +90,7 @@ public enum CacheLayout {
     );
 
     private final String name;
+    @SuppressWarnings("ImmutableEnumChecker")
     private final CacheVersionMapping versionMapping;
 
     CacheLayout(@Nullable CacheLayout parent, String name, CacheVersionMapping.Builder versionMappingBuilder) {

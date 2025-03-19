@@ -54,11 +54,12 @@ public class DefaultBuildIncluder implements BuildIncluder {
     @Override
     public CompositeBuildParticipantBuildState includeBuild(IncludedBuildSpec includedBuildSpec) {
         RootBuildState rootBuild = buildRegistry.getRootBuild();
+        BuildDefinition buildDefinition = toBuildDefinition(includedBuildSpec, gradle);
         if (includedBuildSpec.rootDir.equals(rootBuild.getBuildRootDir())) {
+            buildRegistry.onRootBuildInclude(rootBuild, gradle.getOwner(), buildDefinition.isPluginBuild());
             coordinator.prepareRootBuildForInclusion();
             return rootBuild;
         } else {
-            BuildDefinition buildDefinition = toBuildDefinition(includedBuildSpec, gradle);
             IncludedBuildState build = buildRegistry.addIncludedBuild(buildDefinition, gradle.getOwner());
             coordinator.prepareForInclusion(build, buildDefinition.isPluginBuild());
             return build;

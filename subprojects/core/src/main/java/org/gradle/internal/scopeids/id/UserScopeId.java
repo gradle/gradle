@@ -17,18 +17,21 @@
 package org.gradle.internal.scopeids.id;
 
 import org.gradle.internal.id.UniqueId;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * A persistent ID of a user.
  *
  * It is effectively the Gradle user home dir.
- * That is, two builds by the same operating system user, potentially of different “projects”,
+ * That is, two builds by the same operating system user, potentially of different "projects",
  * share the same user ID.
  *
  * This ID is persisted in the Gradle user home dir.
  * If this directory is destroyed, or a build is run with a different gradle user home,
  * a new ID will be issued.
  */
+@ServiceScope(Scope.BuildSession.class)
 public final class UserScopeId extends ScopeId {
 
     public UserScopeId(UniqueId id) {

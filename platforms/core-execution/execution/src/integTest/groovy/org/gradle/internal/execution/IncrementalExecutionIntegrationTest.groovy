@@ -19,9 +19,9 @@ package org.gradle.internal.execution
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.Iterables
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.problems.ProblemId
 import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
-import org.gradle.api.problems.internal.ProblemsProgressEventEmitterHolder
 import org.gradle.cache.Cache
 import org.gradle.cache.ManualEvictionInMemoryCache
 import org.gradle.caching.internal.controller.BuildCacheController
@@ -108,6 +108,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
     def changeDetector = new DefaultExecutionStateChangeDetector()
     def overlappingOutputDetector = new DefaultOverlappingOutputDetector()
     def deleter = TestFiles.deleter()
+    def problems = TestUtil.problemsService()
 
     ExecutionEngine createExecutor() {
         TestExecutionEngineFactory.createExecutionEngine(
@@ -121,12 +122,9 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
             outputSnapshotter,
             overlappingOutputDetector,
             validationWarningReporter,
-            virtualFileSystem
+            virtualFileSystem,
+            problems
         )
-    }
-
-    def setup() {
-        ProblemsProgressEventEmitterHolder.init(TestUtil.problemsService())
     }
 
     def "outputs are created"() {
@@ -249,7 +247,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
                 context
                     .forType(UnitOfWork, false)
                     .visitPropertyProblem {
-                        it.id("test-problem", "Validation problem", GradleCoreProblemGroup.validation())
+                        it.id(ProblemId.create("test-problem", "Validation problem", GradleCoreProblemGroup.validation().type()))
                             .severity(Severity.WARNING)
                             .documentedAt(Documentation.userManual("id", "section"))
                             .details("Test")
@@ -558,7 +556,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
                 validationContext.forType(Object, true).visitTypeProblem {
                     it
                         .withAnnotationType(Object)
-                        .id("test-problem", "Validation error", GradleCoreProblemGroup.validation())
+                        .id(ProblemId.create("test-problem", "Validation error", GradleCoreProblemGroup.validation().type()))
                         .documentedAt(Documentation.userManual("id", "section"))
                         .details("Test")
                         .severity(Severity.ERROR)
@@ -596,28 +594,33 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
 
     def "reports max three file changes"() {
         given:
+        def outputDir = file("parent")
         def files = [
-            "file1": file("parent1/outFile"),
-            "file2": file("parent2/outFile"),
-            "file3": file("parent3/outFile"),
-            "file4": file("parent4/outFile")
+            outputDir.createFile("outFile1"),
+            outputDir.createFile("outFile2"),
+            outputDir.createFile("outFile3"),
+            outputDir.createFile("outFile4"),
+            outputDir.createFile("outFile5"),
+            outputDir.createFile("outFile6")
         ]
-        def unitOfWork = builder.withOutputFiles(files).withWork { ->
+        def unitOfWork = builder.withOutputDirs(outputDir).withWork { ->
+            files.each { it.createFile() }
             UnitOfWork.WorkResult.DID_WORK
         }.build()
         execute(unitOfWork)
 
         when:
-        files.each {
-            it.value.createFile()
-        }
+        outputDir.deleteDir()
         def result = execute(unitOfWork)
 
         then:
-        def executionReasons = files.take(3).collect {
-            "Output property '${it.key}' file ${it.value.absolutePath} has been added.".toString()
-        } + ["and more..."]
-        result.executionReasons == executionReasons
+        def executionReasons = [
+            "Output property 'defaultDir0' file ${outputDir.absolutePath} has been removed.",
+            "Output property 'defaultDir0' file ${files[0].absolutePath} has been removed.",
+            "Output property 'defaultDir0' file ${files[1].absolutePath} has been removed.",
+            "and more..."
+        ]
+        result.executionReasons as List<String> == executionReasons
     }
 
     List<String> inputFilesRemoved(Map<String, List<File>> removedFiles) {

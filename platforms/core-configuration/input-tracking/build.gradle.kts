@@ -5,11 +5,6 @@ plugins {
 description = "Configuration input discovery code"
 
 dependencies {
-    api(libs.jsr305)
+    api(libs.jspecify)
     api(libs.guava)
-
-    implementation(projects.stdlibJavaExtensions)
-}
-tasks.isolatedProjectsIntegTest {
-    enabled = false
 }

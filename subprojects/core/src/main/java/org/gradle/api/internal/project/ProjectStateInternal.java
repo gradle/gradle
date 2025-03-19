@@ -27,7 +27,7 @@ import java.util.List;
  * Represents the lifecycle state of a project, with regard to configuration.
  *
  * There are three synonymous terms mixed in here (configure, evaluate, execute) for legacy reasons.
- * Where not bound to backwards compatibility constraints, we use the term “configure”.
+ * Where not bound to backwards compatibility constraints, we use the term "configure".
  *
  * @see org.gradle.configuration.project.LifecycleProjectEvaluator
  */
@@ -46,7 +46,7 @@ public class ProjectStateInternal implements ProjectState {
 
     @Override
     public boolean getExecuted() {
-        // We intentionally consider “execution” done before doing afterEvaluate.
+        // We intentionally consider "execution" done before doing afterEvaluate.
         // The Android plugin relies on this behaviour.
         return state.ordinal() > State.IN_EVALUATE.ordinal();
     }

@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Gradle, Inc.
+// Copyright (C) 2024 Gradle, Inc.
 //
 // Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
@@ -123,7 +123,7 @@ include::{snippetsPath}/dependencyManagement/inspectingDependencies-dependencies
 [[sec:identifying-reason-dependency-selection]]
 == Identify the selected version using the `dependencyInsight` task
 
-A project may request two different versions of the same dependency either directly or transitively that may result in a <<variant_model.adoc#sec:version-conflict,version conflict>>.
+A project may request two different versions of the same dependency either directly or transitively that may result in a <<graph_resolution.adoc#sec:version-conflict,version conflict>>.
 
 The following example introduces a conflict with `commons-codec:commons-codec`, added both as a direct dependency and a transitive dependency of JGit:
 
@@ -182,7 +182,7 @@ May be followed by a `because` text.
 
 | By conflict resolution : between versions <version>
 | The dependency appeared multiple times, with different version requests.
-This resulted in <<variant_model.adoc#sec:version-conflict, conflict resolution>> to select the most appropriate version.
+This resulted in <<graph_resolution.adoc#sec:version-conflict, conflict resolution>> to select the most appropriate version.
 
 | By constraint
 | A <<dependency_constraints#sec:adding-constraints-transitive-deps, dependency constraint>> participated in the version selection.
@@ -199,7 +199,7 @@ May be followed by a `because` text.
 | A `ComponentSelection.reject` link:{groovyDslPath}/org.gradle.api.artifacts.ComponentSelection.html#org.gradle.api.artifacts.ComponentSelection:reject(java.lang.String)[rejected the given version] of the dependency.
 
 | Rejection: version <version>: <attributes information>
-| The dependency has a dynamic version and some versions did not match the <<variant_model#sec:variant-aware-matching, requested attributes>>.
+| The dependency has a dynamic version and some versions did not match the <<variant_aware_resolution.adoc#sec:variant-aware-matching, requested attributes>>.
 
 | Forced
 | The build enforces the version of the dependency through an enforced platform or resolution strategy.
@@ -218,3 +218,25 @@ Head over to the `Dependencies` tab and navigate to your desired dependency.
 Select the `Required By` tab to see the selection reason and origin of the dependency:
 
 image::dependency-management-dependency-insight-report-build-scan.png[]
+
+[[sub:resolving-unsafe-configuration-resolution-errors]]
+== Resolving unsafe configuration resolution errors
+
+Resolving a configuration can have side effects on Gradle's project model, so Gradle needs manage access to each project's configurations.
+There are a number of ways a configuration might be resolved unsafely.
+Gradle will produce a deprecation warning for each unsafe access.
+Each of these are bad practices and can cause strange and indeterminate errors.
+
+If your build has an unsafe access deprecation warning, it needs to be fixed.
+
+For example:
+
+* A task from one project directly resolves a configuration in another project in the task's action.
+* A task specifies a configuration from another project as an input file collection.
+* A build script for one project resolves a configuration in another project during evaluation.
+* Project configurations are resolved in the settings file.
+
+In most cases, this issue can be resolved by creating a cross-project dependency on the other project.
+See the how-to guide for <<how_to_share_outputs_between_projects.adoc#variant-aware-sharing, sharing outputs between projects>> for more information.
+
+If you find a use case that can't be resolved using these techniques, please let us know by filing a https://github.com/gradle/gradle/issues[GitHub Issue] adhering to our issue guidelines.

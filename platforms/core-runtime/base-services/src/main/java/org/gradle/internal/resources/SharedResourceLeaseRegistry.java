@@ -16,9 +16,13 @@
 
 package org.gradle.internal.resources;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+@ServiceScope(Scope.Build.class)
 public class SharedResourceLeaseRegistry extends AbstractResourceLockRegistry<String, ResourceLock> {
     private final Map<String, LeaseHolder> sharedResources = new ConcurrentHashMap<String, LeaseHolder>();
     private final ResourceLockCoordinationService coordinationService;

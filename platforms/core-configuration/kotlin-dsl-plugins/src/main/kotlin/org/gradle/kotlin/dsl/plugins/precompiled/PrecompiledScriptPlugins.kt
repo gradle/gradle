@@ -24,12 +24,15 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.internal.Factory
 import org.gradle.internal.deprecation.DeprecationLogger
-
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.plugins.dsl.KotlinDslPluginOptions
+import org.gradle.kotlin.dsl.precompile.v1.PrecompiledPluginsBlock
 import org.gradle.kotlin.dsl.provider.PrecompiledScriptPluginsSupport
 import org.gradle.kotlin.dsl.provider.gradleKotlinDslJarsOf
 import org.gradle.kotlin.dsl.support.serviceOf
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.plugin.KotlinBaseApiPlugin
+import org.jetbrains.kotlin.gradle.scripting.internal.ScriptingGradleSubplugin
 
 
 /**
@@ -41,12 +44,49 @@ abstract class PrecompiledScriptPlugins : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
 
-        if (serviceOf<PrecompiledScriptPluginsSupport>().enableOn(Target(project))) {
+        apply<KotlinBaseApiPlugin>()
+        apply<ScriptingGradleSubplugin>()
+        plugins.withType(KotlinBaseApiPlugin::class.java) { kotlinBaseApiPlugin ->
 
-            dependencies {
-                "kotlinCompilerPluginClasspath"(gradleKotlinDslJarsOf(project))
-                "kotlinCompilerPluginClasspath"(gradleApi())
+            val target = Target(project)
+
+            registerCompileKotlinPluginsBlocks(kotlinBaseApiPlugin, target)
+
+            if (serviceOf<PrecompiledScriptPluginsSupport>().enableOn(target)) {
+
+                dependencies {
+                    "kotlinCompilerPluginClasspath"(gradleKotlinDslJarsOf(project))
+                    "kotlinCompilerPluginClasspath"(gradleApi())
+                }
             }
+        }
+    }
+
+    private fun Project.registerCompileKotlinPluginsBlocks(
+        kotlinBaseApiPlugin: KotlinBaseApiPlugin,
+        target: Target,
+    ) {
+        val taskName = "compilePluginsBlocks"
+        val pluginDependencyScope = configurations.dependencyScope("${taskName}PluginClasspath")
+        val pluginClasspath = configurations.resolvable("${taskName}PluginClasspathElements") {
+            it.extendsFrom(pluginDependencyScope.get())
+        }
+        dependencies {
+            pluginDependencyScope.name(kotlin("scripting-compiler-embeddable"))
+        }
+
+        kotlinBaseApiPlugin.registerKotlinJvmCompileTask(
+            taskName = taskName,
+            moduleName = "gradle-kotlin-dsl-plugins-blocks",
+        ).configure { task ->
+            task.enabled = false
+            task.multiPlatformEnabled.set(false)
+            if (target.jvmTarget.isPresent) {
+                task.compilerOptions.jvmTarget.set(target.jvmTarget.map { JvmTarget.fromTarget(it.toString()) })
+            }
+            task.libraries.from(sourceSets["main"].compileClasspath)
+            task.pluginClasspath.from(pluginClasspath.get())
+            task.compilerOptions.freeCompilerArgs.addAll(listOf("-script-templates", PrecompiledPluginsBlock::class.qualifiedName!!))
         }
     }
 

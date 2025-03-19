@@ -11,10 +11,10 @@ abstract class MyCreateFileTask extends DefaultTask {
     abstract Property<String> getFileText()
 
     @Input
-    String fileName = project.rootDir.toString() + "/myfile.txt"
+    String filePath = project.layout.settingsDirectory.file("myfile.txt").asFile.path
 
     @OutputFile
-    File myFile = new File(fileName)
+    File myFile = new File(filePath)
 
     @TaskAction
     void action() {

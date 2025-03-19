@@ -16,15 +16,20 @@
 
 package org.gradle.internal.operations;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public final class OperationProgressEvent {
 
     private final long time;
     private final Object details;
 
-    public OperationProgressEvent(long time, @Nullable Object details) {
-        this.time = time;
+    /**
+     * Create a new progress event to carry a progress event's details.
+     * @param currentTime This should always be the current time when this operation is created, not the time of the event itself.
+     * @param details the details to carry
+     */
+    public OperationProgressEvent(long currentTime, @Nullable Object details) {
+        this.time = currentTime;
         this.details = details;
     }
 

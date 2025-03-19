@@ -16,6 +16,10 @@
 
 package org.gradle.initialization;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
+@ServiceScope(Scope.Build.class)
 public interface SettingsLoaderFactory {
     /**
      * Create a SettingsLoader for a top-level build.

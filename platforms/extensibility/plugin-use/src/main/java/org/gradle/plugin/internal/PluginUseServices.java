@@ -17,8 +17,6 @@
 package org.gradle.plugin.internal;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.NonNullApi;
-import org.gradle.api.Project;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
@@ -27,7 +25,9 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ScriptClassPathResolver;
 import org.gradle.api.internal.initialization.StandaloneDomainObjectContext;
 import org.gradle.api.internal.plugins.PluginInspector;
+import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.software.SoftwareType;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory;
 import org.gradle.api.problems.internal.InternalProblems;
@@ -45,13 +45,13 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.plugin.management.PluginManagementSpec;
+import org.gradle.plugin.management.internal.DefaultPluginHandler;
 import org.gradle.plugin.management.internal.DefaultPluginManagementSpec;
 import org.gradle.plugin.management.internal.DefaultPluginResolutionStrategy;
 import org.gradle.plugin.management.internal.PluginHandler;
 import org.gradle.plugin.management.internal.PluginResolutionStrategyInternal;
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginRegistry;
 import org.gradle.plugin.management.internal.autoapply.CompositeAutoAppliedPluginRegistry;
-import org.gradle.plugin.management.internal.DefaultPluginHandler;
 import org.gradle.plugin.management.internal.autoapply.InjectedAutoAppliedPluginRegistry;
 import org.gradle.plugin.software.internal.DefaultModelDefaultsApplicator;
 import org.gradle.plugin.software.internal.DefaultSoftwareFeatureApplicator;
@@ -66,11 +66,13 @@ import org.gradle.plugin.use.internal.DefaultPluginRequestApplicator;
 import org.gradle.plugin.use.internal.InjectedPluginClasspath;
 import org.gradle.plugin.use.internal.PluginDependencyResolutionServices;
 import org.gradle.plugin.use.internal.PluginRepositoryHandlerProvider;
+import org.gradle.plugin.use.internal.PluginRequestApplicator;
 import org.gradle.plugin.use.internal.PluginResolverFactory;
 import org.gradle.plugin.use.resolve.service.internal.ClientInjectedClasspathPluginResolver;
 import org.gradle.plugin.use.resolve.service.internal.DefaultInjectedClasspathPluginResolver;
 import org.gradle.plugin.use.resolve.service.internal.InjectedClasspathInstrumentationStrategy;
 import org.gradle.plugin.use.tracker.internal.PluginVersionTracker;
+import org.jspecify.annotations.NullMarked;
 
 import java.lang.annotation.Annotation;
 import java.util.Collections;
@@ -98,7 +100,7 @@ public class PluginUseServices extends AbstractGradleModuleServices {
         registration.addProvider(new ProjectScopeServices());
     }
 
-    @NonNullApi
+    @NullMarked
     private static class GlobalScopeServices implements ServiceRegistrationProvider {
         @Provides
         PropertyAnnotationHandler createSoftwareTypeAnnotationHandler() {
@@ -123,7 +125,7 @@ public class PluginUseServices extends AbstractGradleModuleServices {
         @Provides
         void configure(ServiceRegistration registration) {
             registration.add(PluginResolverFactory.class);
-            registration.add(DefaultPluginRequestApplicator.class);
+            registration.add(PluginRequestApplicator.class, DefaultPluginRequestApplicator.class);
             registration.add(PluginVersionTracker.class);
         }
 
@@ -203,11 +205,17 @@ public class PluginUseServices extends AbstractGradleModuleServices {
 
     }
 
-    @NonNullApi
+    @NullMarked
     private static class ProjectScopeServices implements ServiceRegistrationProvider {
         @Provides
-        SoftwareFeatureApplicator createSoftwareFeatureApplicator(Project project, ModelDefaultsApplicator modelDefaultsApplicator, PluginScheme pluginScheme, InternalProblems problems) {
-            return new DefaultSoftwareFeatureApplicator(project, modelDefaultsApplicator, pluginScheme.getInspectionScheme(), problems);
+        SoftwareFeatureApplicator createSoftwareFeatureApplicator(
+            ModelDefaultsApplicator modelDefaultsApplicator,
+            PluginScheme pluginScheme,
+            InternalProblems problems,
+            PluginManagerInternal pluginManager,
+            ProjectInternal project
+        ) {
+            return new DefaultSoftwareFeatureApplicator(modelDefaultsApplicator, pluginScheme.getInspectionScheme(), problems, pluginManager, project.getClassLoaderScope());
         }
 
         @Provides

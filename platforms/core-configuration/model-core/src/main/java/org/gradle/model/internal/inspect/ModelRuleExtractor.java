@@ -56,8 +56,8 @@ import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.registry.RuleContext;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.internal.CollectionUtils;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;

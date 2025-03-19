@@ -96,7 +96,7 @@ class BuildProgressCrossVersionSpec extends AbstractProgressCrossVersionSpec {
 
             publishing {
                 repositories {
-                    maven { url "${mavenHttpRepo.uri}" }
+                    maven { url = "${mavenHttpRepo.uri}" }
                 }
                 publications {
                     maven(MavenPublication) {

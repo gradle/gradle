@@ -6,7 +6,7 @@ pluginManagement {
 // end::configure-plugin-version[]
   repositories {
       maven {
-        url './maven-repo'
+          url = file('./maven-repo')
       }
   }
 // tag::configure-plugin-version[]

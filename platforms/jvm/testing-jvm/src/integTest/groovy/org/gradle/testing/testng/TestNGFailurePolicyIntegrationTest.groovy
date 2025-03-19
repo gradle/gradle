@@ -67,7 +67,7 @@ class TestNGFailurePolicyIntegrationTest extends AbstractTestNGVersionIntegratio
                             all {
                                 testTask.configure {
                                     options {
-                                        configFailurePolicy "continue"
+                                        configFailurePolicy = "continue"
                                     }
                                 }
                             }
@@ -97,7 +97,7 @@ class TestNGFailurePolicyIntegrationTest extends AbstractTestNGVersionIntegratio
                             all {
                                 testTask.configure {
                                     options {
-                                        configFailurePolicy "continue"
+                                        configFailurePolicy = "continue"
                                     }
                                 }
                             }

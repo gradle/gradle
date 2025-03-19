@@ -20,8 +20,10 @@ import org.gradle.kotlin.dsl.*
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.UnexpectedBuildFailure
-import org.hamcrest.CoreMatchers
+import org.hamcrest.Matcher
 import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.Matchers
+import org.intellij.lang.annotations.Language
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -40,28 +42,28 @@ abstract class AbstractBinaryCompatibilityTest {
         get() = tmpDir.root
 
     internal
-    fun checkBinaryCompatibleKotlin(v1: String = "", v2: String, block: CheckResult.() -> Unit = {}): CheckResult =
+    fun checkBinaryCompatibleKotlin(@Language("kotlin") v1: String = "", @Language("kotlin") v2: String, block: CheckResult.() -> Unit = {}): CheckResult =
         runKotlinBinaryCompatibilityCheck(v1, v2) {
             assertBinaryCompatible()
             block()
         }
 
     internal
-    fun checkNotBinaryCompatibleKotlin(v1: String = "", v2: String, block: CheckResult.() -> Unit = {}): CheckResult =
+    fun checkNotBinaryCompatibleKotlin(@Language("kotlin") v1: String = "", @Language("kotlin") v2: String, block: CheckResult.() -> Unit = {}): CheckResult =
         runKotlinBinaryCompatibilityCheck(v1, v2) {
             assertNotBinaryCompatible()
             block()
         }
 
     internal
-    fun checkBinaryCompatibleJava(v1: String = "", v2: String, block: CheckResult.() -> Unit = {}): CheckResult =
+    fun checkBinaryCompatibleJava(@Language("java") v1: String = "", @Language("java") v2: String, block: CheckResult.() -> Unit = {}): CheckResult =
         runJavaBinaryCompatibilityCheck(v1, v2) {
             assertBinaryCompatible()
             block()
         }
 
     internal
-    fun checkNotBinaryCompatibleJava(v1: String = "", v2: String, block: CheckResult.() -> Unit = {}): CheckResult =
+    fun checkNotBinaryCompatibleJava(@Language("java") v1: String = "", @Language("java") v2: String, block: CheckResult.() -> Unit = {}): CheckResult =
         runJavaBinaryCompatibilityCheck(v1, v2) {
             assertNotBinaryCompatible()
             block()
@@ -106,26 +108,24 @@ abstract class AbstractBinaryCompatibilityTest {
     fun runKotlinBinaryCompatibilityCheck(v1: String, v2: String, block: CheckResult.() -> Unit = {}): CheckResult =
         runBinaryCompatibilityCheck(
             v1 = {
-                withFile(
+                withKotlinFile(
                     "kotlin/com/example/Source.kt",
                     """
                     package com.example
 
                     import org.gradle.api.Incubating
-                    import javax.annotation.Nullable
 
                     $v1
                     """
                 )
             },
             v2 = {
-                withFile(
+                withKotlinFile(
                     "kotlin/com/example/Source.kt",
                     """
                     package com.example
 
                     import org.gradle.api.Incubating
-                    import javax.annotation.Nullable
 
                     $v2
                     """
@@ -138,26 +138,24 @@ abstract class AbstractBinaryCompatibilityTest {
     fun runJavaBinaryCompatibilityCheck(v1: String, v2: String, block: CheckResult.() -> Unit = {}): CheckResult =
         runBinaryCompatibilityCheck(
             v1 = {
-                withFile(
+                withJavaFile(
                     "java/com/example/Source.java",
                     """
                     package com.example;
 
                     import org.gradle.api.Incubating;
-                    import javax.annotation.Nullable;
 
                     $v1
                     """
                 )
             },
             v2 = {
-                withFile(
+                withJavaFile(
                     "java/com/example/Source.java",
                     """
                     package com.example;
 
                     import org.gradle.api.Incubating;
-                    import javax.annotation.Nullable;
 
                     $v2
                     """
@@ -270,6 +268,8 @@ abstract class AbstractBinaryCompatibilityTest {
                         dependencies {
                             "implementation"(gradleApi())
                             "implementation"(kotlin("stdlib"))
+                            // TODO remove once JSpecify is part of the Gradle API
+                            "implementation"("org.jspecify:jspecify:1.0.0")
                         }
                     }
                     project(":v1") {
@@ -380,23 +380,23 @@ abstract class AbstractBinaryCompatibilityTest {
         }
 
         fun assertHasErrors(vararg errors: String) {
-            assertThat("Has errors", richReport.errors.map { it.message }, CoreMatchers.equalTo(errors.toList()))
+            assertThat("Has errors", richReport.errors.map { it.message }, inAnyOrder(errors))
         }
 
         fun assertHasWarnings(vararg warnings: String) {
-            assertThat("Has warnings", richReport.warnings.map { it.message }, CoreMatchers.equalTo(warnings.toList()))
+            assertThat("Has warnings", richReport.warnings.map { it.message }, inAnyOrder(warnings))
         }
 
         fun assertHasInformation(vararg information: String) {
-            assertThat("Has information", richReport.information.map { it.message }, CoreMatchers.equalTo(information.toList()))
+            assertThat("Has information", richReport.information.map { it.message }, inAnyOrder(information))
         }
 
         fun assertHasAccepted(vararg accepted: String) {
-            assertThat("Has accepted", richReport.accepted.map { it.message }, CoreMatchers.equalTo(accepted.toList()))
+            assertThat("Has accepted", richReport.accepted.map { it.message }, inAnyOrder(accepted))
         }
 
         fun assertHasAccepted(vararg accepted: Pair<String, List<String>>) {
-            assertThat("Has accepted", richReport.accepted, CoreMatchers.equalTo(accepted.map { ReportMessage(it.first, it.second) }))
+            assertThat("Has accepted", richReport.accepted, inAnyOrder(accepted.map { ReportMessage(it.first, it.second) }))
         }
 
         fun assertHasErrors(vararg errors: List<String>) {
@@ -404,8 +404,18 @@ abstract class AbstractBinaryCompatibilityTest {
         }
 
         fun assertHasErrors(vararg errorWithDetail: Pair<String, List<String>>) {
-            assertThat("Has errors", richReport.errors, CoreMatchers.equalTo(errorWithDetail.map { ReportMessage(it.first, it.second) }))
+            assertThat("Has errors", richReport.errors, inAnyOrder(errorWithDetail.map { ReportMessage(it.first, it.second) }))
         }
+
+        private
+        inline fun <reified T> inAnyOrder(items: List<T>): Matcher<Iterable<T>> = inAnyOrder(items.toTypedArray())
+
+        /**
+         * Matcher checking each item is present exactly once in a given iterable, but an any position,
+         * and that there are no unexpected items.
+         */
+        private
+        fun <T> inAnyOrder(items: Array<out T>): Matcher<Iterable<T>> = Matchers.containsInAnyOrder(*items)
 
         fun newApi(thing: String, desc: String): String =
             "$thing ${describe(thing, desc)}: New public API in 2.0 (@Incubating)"
@@ -433,6 +443,15 @@ abstract class AbstractBinaryCompatibilityTest {
             parentFile.mkdirs()
             writeText(text.trimIndent())
         }
+
+    protected
+    fun File.withKotlinFile(path: String, @Language("kotlin") text: String): File = withFile(path, text)
+
+    protected
+    fun File.withJavaFile(path: String, @Language("java") text: String): File = withFile(path, text)
+
+    protected
+    fun File.withJsonFile(path: String, @Language("json") text: String): File = withFile(path, text)
 
     private
     fun File.withUniqueDirectory(prefixPath: String): File =

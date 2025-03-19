@@ -8,7 +8,7 @@ version = rootProject.version
 publishing {
     repositories {
         maven {
-            url "${rootProject.buildDir}/repo"
+            url = layout.buildDirectory.dir("repo")
         }
     }
 }

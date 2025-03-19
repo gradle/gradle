@@ -16,27 +16,27 @@
 
 package org.gradle.nativeplatform.toolchain.internal;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableList;
 import org.gradle.internal.os.OperatingSystem;
 
 import java.util.List;
 
 public enum SymbolExtractorOsConfig {
-    OBJCOPY("objcopy", Lists.newArrayList("--only-keep-debug"), ".debug"),
-    DSYMUTIL("dsymutil", Lists.<String>newArrayList("-f"), ".dwarf") {
+    OBJCOPY("objcopy", ImmutableList.of("--only-keep-debug"), ".debug"),
+    DSYMUTIL("dsymutil", ImmutableList.of("-f"), ".dwarf") {
         @Override
         public List<String> getInputOutputFileArguments(String inputFilePath, String outputFilePath) {
-            return Lists.newArrayList("-o", outputFilePath, inputFilePath);
+            return ImmutableList.of("-o", outputFilePath, inputFilePath);
         }
     };
 
     private static final OperatingSystem OS = OperatingSystem.current();
 
     private final String executable;
-    private final List<String> arguments;
+    private final ImmutableList<String> arguments;
     private final String extension;
 
-    SymbolExtractorOsConfig(String executable, List<String> arguments, String extension) {
+    SymbolExtractorOsConfig(String executable, ImmutableList<String> arguments, String extension) {
         this.executable = executable;
         this.arguments = arguments;
         this.extension = extension;
@@ -59,7 +59,7 @@ public enum SymbolExtractorOsConfig {
     }
 
     public List<String> getInputOutputFileArguments(String inputFilePath, String outputFilePath) {
-        return Lists.newArrayList(inputFilePath, outputFilePath);
+        return ImmutableList.of(inputFilePath, outputFilePath);
     }
 
     public String getExtension() {

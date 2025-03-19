@@ -1,0 +1,246 @@
+// Copyright 2025 Gradle and contributors.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.
+// You may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[convert_single_to_multi_project]]
+= How to Convert a Single-Project Build into a Multi-Project Build in Gradle
+
+When your Gradle project grows, you may want to split it into multiple subprojects to improve modularity, maintainability, and parallel execution.
+
+This guide explains how to convert a single-project build into a *multi-project build*.
+
+[[why_multi_project]]
+== Why Use a Multi-Project Build?
+
+A single-project build manages all source code and dependencies in one `build.gradle(.kts)` file.
+
+In contrast, a multi-project build consists of:
+
+* A **root project** that contains shared configurations and dependencies, as defined in `settings.gradle(.kts)`.
+* Multiple **subprojects**, each with its own `build.gradle(.kts)`, dependencies, and tasks.
+
+== Step 1: Project Structure
+
+Let's start with a typical single-project setup, created by `gradle init`:
+
+[source,text]
+----
+root
+├── settings.gradle(.kts) // <1>
+└── app // <2>
+    ├── build.gradle(.kts)
+    └── src/
+----
+<1> Defines the root project settings
+<2> The single application module
+
+Alternatively, your single project may look like this:
+
+[source,text]
+----
+app (root) // <1>
+├── build.gradle(.kts)
+├── settings.gradle(.kts)
+└── src/
+----
+<1> The project root, also acting as the application module
+
+TIP: If your project looks like this, nest the `app` folder inside a new `root` folder before your get started.
+
+After converting it into a multi-project build, the structure will look like this:
+
+[source,text]
+----
+root
+├── settings.gradle(.kts) // <1>
+├── app // <2>
+│   ├── build.gradle(.kts)
+│   └── src/
+└── library // <3>
+    ├── build.gradle(.kts)
+    └── src/
+----
+<1> Defines the subprojects
+<2> The original application module, now a subproject
+<3> A new library module
+
+== Step 2: Create One or More New Subprojects
+
+Now you can create your additional projects as directories in the `root`.
+They will all become subprojects of the root.
+
+To continue our example, we create a new subproject called `library`:
+
+[source,shell]
+----
+cd root
+mkdir library
+----
+
+Ensure that the original project (`app`) remains at the same level as the new `library` subproject:
+
+[source,text]
+----
+root
+├── app // <1>
+│   └── some files
+└── library // <2>
+----
+<1> The original application module
+<2> The newly created subproject
+
+Move source files into their appropriate folders.
+
+In our example, the reusable code is moved to the `library` subproject:
+
+[source,text]
+----
+root
+├── app // <1>
+│   └── src/
+└── library // <2>
+    └── src/
+----
+<1> The application module, containing its own source code
+<2> The new library module, storing reusable code
+
+== Step 3: Update `settings.gradle(.kts)`
+
+Ensure that `settings.gradle(.kts)` is located in the root directory:
+
+[source,text]
+----
+root
+├── settings.gradle(.kts) // <1>
+├── app // <2>
+│   └── src/
+└── library // <3>
+    └── src/
+----
+<1> The single settings file for the entire build
+<2> The application module
+<3> The new library module
+
+Modify `settings.gradle(.kts)` to include the new subprojects.
+
+In our example, we add `library` to our `include`:
+
+====
+include::sample[dir="snippets/how-to/single-multi-build/kotlin",files="settings.gradle.kts[]"]
+include::sample[dir="snippets/how-to/single-multi-build/groovy",files="settings.gradle[]"]
+====
+
+*There should be no other settings files*.
+
+== Step 4: Create `build.gradle(.kts)` Files for Each Subproject
+
+Each subproject must have its own `build.gradle(.kts)` file:
+
+[source,text]
+----
+root
+├── settings.gradle(.kts) // <1>
+├── app // <2>
+│   ├── build.gradle(.kts) // <3>
+│   └── src/
+└── library // <4>
+    ├── build.gradle(.kts) // <5>
+    └── src/
+----
+<1> Defines the subprojects
+<2> The application subproject
+<3> Defines the `app` build
+<4> The library subproject
+<5> Defines the `library` build
+
+The `app` build file should look very similar to the original build file.
+It holds all the dependencies and configurations needed to build the `app` subproject.
+
+Now, it also has a dependency on the `library` subproject:
+
+====
+include::sample[dir="snippets/how-to/single-multi-build/kotlin",files="app/build.gradle.kts[]"]
+include::sample[dir="snippets/how-to/single-multi-build/groovy",files="app/build.gradle[]"]
+====
+
+The `library` build file should be new.
+It holds all the dependencies and configurations needed to build the `library` subproject:
+
+====
+include::sample[dir="snippets/how-to/single-multi-build/kotlin",files="library/build.gradle.kts[]"]
+include::sample[dir="snippets/how-to/single-multi-build/groovy",files="library/build.gradle[]"]
+====
+
+== Step 5: Modify or Delete the Root `build.gradle(.kts)`
+
+A build file in the root project is **optional**:
+
+[source,text]
+----
+root
+├── settings.gradle(.kts) // <1>
+├── build.gradle(.kts) // <2>
+├── app // <3>
+│   ├── build.gradle(.kts)
+│   └── src/
+└── library // <4>
+    ├── build.gradle(.kts)
+    └── src/
+----
+<1> Defines the subprojects
+<2> Optional (for shared configurations)
+<3> The application module
+<4> The new library module
+
+If you need to configure **shared repositories and settings**, you can use the root `build.gradle(.kts)`:
+
+====
+include::sample[dir="snippets/how-to/single-multi-build/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/how-to/single-multi-build/groovy",files="build.gradle[]"]
+====
+
+You can take a look back at how the common 3rd party plugin called `org.jetbrains.kotlin.plugin.serialization` is applied in each build file.
+
+However, **shared logic should be handled using <<sharing_build_logic_between_subprojects.adoc#sharing_build_logic_between_subprojects,convention plugins>>** rather than the root build file.
+
+[[summary]]
+== Summary
+
+This process can be repeated indefinitely to add more subprojects:
+
+[source,text]
+----
+root
+├── settings.gradle(.kts) // <1>
+├── app // <2>
+│   ├── build.gradle(.kts)
+│   └── src/
+├── library-a // <3>
+│   ├── build.gradle(.kts)
+│   └── src/
+├── library-b // <4>
+│   ├── build.gradle(.kts)
+│   └── src/
+└── library-c // <5>
+    ├── build.gradle(.kts)
+    └── src/
+----
+<1> Defines the subprojects
+<2> The application module
+<3> A shared library module
+<4> Another library module
+<5> Yet Another library module
+
+By following these steps, you can modularize your project, improve maintainability, and enable parallel execution.
+
+If you wanted one of your libraries to be its own build, you should consider using <<composite_builds.adoc#composite_builds,Composite Builds>> (i.e., included builds) instead.

@@ -26,7 +26,7 @@ class MavenPublishPomPackagingIntegTest extends AbstractMavenPublishIntegTest {
         given:
         createBuildScripts """
             artifact("content.txt") {
-                classifier "custom"
+                classifier = "custom"
             }
 """
 
@@ -44,7 +44,7 @@ class MavenPublishPomPackagingIntegTest extends AbstractMavenPublishIntegTest {
         createBuildScripts """
             artifact("content.txt")
             artifact("content.txt") {
-                extension "rtf"
+                extension = "rtf"
             }
 """
 
@@ -76,10 +76,10 @@ class MavenPublishPomPackagingIntegTest extends AbstractMavenPublishIntegTest {
     def "can specify packaging when no artifact is unclassified"() {
         given:
         createBuildScripts """
-            pom.packaging "foo"
+            pom.packaging = "foo"
 
             artifact("content.txt") {
-                classifier "custom"
+                classifier = "custom"
             }
 """
 
@@ -96,10 +96,10 @@ class MavenPublishPomPackagingIntegTest extends AbstractMavenPublishIntegTest {
     def "can set packaging to the extension of an unclassified artifact"() {
         given:
         createBuildScripts """
-            pom.packaging "txt"
+            pom.packaging = "txt"
 
             artifact("content.txt") {
-                classifier "custom"
+                classifier = "custom"
             }
 """
 
@@ -116,10 +116,10 @@ class MavenPublishPomPackagingIntegTest extends AbstractMavenPublishIntegTest {
     def "can override packaging with single unclassified artifact"() {
         given:
         createBuildScripts """
-            pom.packaging "foo"
+            pom.packaging = "foo"
 
             artifact("content.txt") {
-                extension "txt"
+                extension = "txt"
             }
 """
 
@@ -135,10 +135,10 @@ class MavenPublishPomPackagingIntegTest extends AbstractMavenPublishIntegTest {
     def "can specify packaging for known jar packaging without changing artifact extension"() {
         given:
         createBuildScripts """
-            pom.packaging "ejb"
+            pom.packaging = "ejb"
 
             artifact("content.txt") {
-                extension "jar"
+                extension = "jar"
             }
 """
 
@@ -154,11 +154,11 @@ class MavenPublishPomPackagingIntegTest extends AbstractMavenPublishIntegTest {
     def "can specify packaging with multiple unclassified artifacts"() {
         given:
         createBuildScripts """
-            pom.packaging "other"
+            pom.packaging = "other"
 
             artifact("content.txt")
             artifact("content.txt") {
-                extension "other"
+                extension = "other"
             }
 """
 
@@ -184,7 +184,7 @@ class MavenPublishPomPackagingIntegTest extends AbstractMavenPublishIntegTest {
 
             publishing {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
                 publications {
                     maven(MavenPublication) {

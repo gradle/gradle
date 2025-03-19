@@ -40,7 +40,7 @@ import java.lang.annotation.Target;
  * If the element implements {@link org.gradle.api.Named}, then the property name is composed of {@link org.gradle.api.Named#getName()} and the index, e.g. {@code name$1}.
  * The ordering of the elements in the iterable is crucial for reliable up-to-date checks and caching.</p>
  *
- * <p>This annotation supports ${@link java.util.Map} values by treating each value of the map as a separate nested bean.
+ * <p>This annotation supports {@link java.util.Map} values by treating each value of the map as a separate nested bean.
  * The keys of the map are used as property names.</p>
  */
 @Retention(RetentionPolicy.RUNTIME)

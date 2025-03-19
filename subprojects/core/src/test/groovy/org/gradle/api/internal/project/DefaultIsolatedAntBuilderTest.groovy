@@ -30,6 +30,7 @@ import org.gradle.internal.classloader.DefaultClassLoaderFactory
 import org.gradle.internal.installation.CurrentGradleInstallation
 import org.gradle.internal.logging.ConfigureLogging
 import org.gradle.internal.logging.TestOutputEventListener
+import org.gradle.util.TestUtil
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -45,7 +46,7 @@ import static org.junit.Assert.fail
 class DefaultIsolatedAntBuilderTest {
     private final ModuleRegistry moduleRegistry = new DefaultModuleRegistry(CurrentGradleInstallation.get())
     private final ClassPathRegistry registry = new DefaultClassPathRegistry(new DefaultClassPathProvider(moduleRegistry))
-    private final DefaultIsolatedAntBuilder builder = new DefaultIsolatedAntBuilder(registry, new DefaultClassLoaderFactory(), moduleRegistry)
+    private final DefaultIsolatedAntBuilder builder = TestUtil.newInstance(DefaultIsolatedAntBuilder, registry, new DefaultClassLoaderFactory(), moduleRegistry)
     private final TestOutputEventListener outputEventListener = new TestOutputEventListener()
     @Rule
     public final ConfigureLogging logging = new ConfigureLogging(outputEventListener, LogLevel.INFO)
@@ -103,8 +104,8 @@ class DefaultIsolatedAntBuilderTest {
         def classpath = ClasspathUtil.getClasspathForClass(TestAntTask)
 
         builder.withClasspath([classpath]).execute {
-            taskdef(name: 'loggingTask', classname: TestAntTask.name)
-            loggingTask()
+            it.taskdef(name: 'loggingTask', classname: TestAntTask.name)
+            it.loggingTask()
         }
 
         assertThat(outputEventListener.toString(), containsString('[[INFO] [ant-test] a jcl log message]'))
@@ -123,11 +124,11 @@ class DefaultIsolatedAntBuilderTest {
     void reusesAntGroovyClassloader() {
         ClassLoader antClassLoader = null
         builder.withClasspath([new File("no-existo.jar")]).execute {
-            antClassLoader = project.class.classLoader
+            antClassLoader = it.project.class.classLoader
         }
         ClassLoader antClassLoader2 = null
         builder.withClasspath([new File("unknown.jar")]).execute {
-            antClassLoader2 = project.class.classLoader
+            antClassLoader2 = it.project.class.classLoader
         }
 
         assertThat(antClassLoader, sameInstance(antClassLoader2))
@@ -139,9 +140,9 @@ class DefaultIsolatedAntBuilderTest {
         ClassLoader loader2 = null
         def classpath = [new File("no-existo.jar")]
         builder.withClasspath(classpath).execute {
-            loader1 = delegate.antlibClassLoader
+            loader1 = it.antlibClassLoader
             owner.builder.withClasspath(classpath).execute {
-                loader2 = delegate.antlibClassLoader
+                loader2 = it.antlibClassLoader
             }
         }
 
@@ -151,7 +152,7 @@ class DefaultIsolatedAntBuilderTest {
 
         ClassLoader loader3 = null
         builder.withClasspath(classpath + [new File("unknown.jar")]).execute {
-            loader3 = delegate.antlibClassLoader
+            loader3 = it.antlibClassLoader
         }
 
         assertThat(loader1, not(sameInstance(loader3)))

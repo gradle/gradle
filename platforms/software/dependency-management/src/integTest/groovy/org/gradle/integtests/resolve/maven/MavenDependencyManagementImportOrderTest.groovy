@@ -157,7 +157,7 @@ task verifyUndertowVersion {
 		buildFile.text = '''
 repositories {
 	maven {
-		url uri(file('mavenRoot'))
+		url = uri(file('mavenRoot'))
 	}
 }
 configurations {

@@ -15,6 +15,9 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 import javax.inject.Inject;
 import java.util.List;
 
@@ -28,6 +31,7 @@ import java.util.List;
  * of resolver provider factories. Injecting this class is much cheaper, as the service registry only needs
  * to parse this short constructor, and the type that this class is injected into can remain generic-free.
  */
+@ServiceScope(Scope.Build.class)
 public class ResolverProviderFactories {
 
     private final List<ResolverProviderFactory> factories;

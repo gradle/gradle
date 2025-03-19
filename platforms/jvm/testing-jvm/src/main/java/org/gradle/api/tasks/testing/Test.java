@@ -22,7 +22,6 @@ import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
@@ -30,6 +29,7 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
+import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.tasks.testing.JvmTestExecutionSpec;
 import org.gradle.api.internal.tasks.testing.TestExecutableUtils;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
@@ -70,7 +70,6 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
@@ -89,8 +88,9 @@ import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 import org.gradle.util.internal.ConfigureUtil;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
@@ -139,7 +139,7 @@ import static org.gradle.util.internal.ConfigureUtil.configureUsing;
  *   maxHeapSize = "512m"
  *
  *   // set JVM arguments for the test JVM(s)
- *   jvmArgs '-XX:MaxPermSize=256m'
+ *   jvmArgs('-XX:MaxPermSize=256m')
  *
  *   // listen to events in the test execution lifecycle
  *   beforeTest { descriptor -&gt;
@@ -164,7 +164,7 @@ import static org.gradle.util.internal.ConfigureUtil.configureUsing;
  * gradle someTestTask --debug-jvm
  * </pre>
  */
-@NonNullApi
+@NullMarked
 @CacheableTask
 public abstract class Test extends AbstractTestTask implements JavaForkOptions, PatternFilterable {
 
@@ -205,26 +205,13 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     }
 
     private Provider<JavaLauncher> createJavaLauncherConvention() {
-        final ObjectFactory objectFactory = getObjectFactory();
         final JavaToolchainService javaToolchainService = getJavaToolchainService();
-        Provider<JavaToolchainSpec> executableOverrideToolchainSpec = getProviderFactory().provider(new Callable<JavaToolchainSpec>() {
-            @Override
-            public JavaToolchainSpec call() {
-                return TestExecutableUtils.getExecutableToolchainSpec(Test.this, objectFactory);
-            }
-        });
+        PropertyFactory propertyFactory = getPropertyFactory();
+        Provider<JavaToolchainSpec> executableOverrideToolchainSpec = getProviderFactory().provider(() -> TestExecutableUtils.getExecutableToolchainSpec(Test.this, propertyFactory));
 
         return executableOverrideToolchainSpec
-            .flatMap(new Transformer<Provider<JavaLauncher>, JavaToolchainSpec>() {
-                @Override
-                public Provider<JavaLauncher> transform(JavaToolchainSpec spec) {
-                    return javaToolchainService.launcherFor(spec);
-                }
-            })
-            .orElse(javaToolchainService.launcherFor(new Action<JavaToolchainSpec>() {
-                @Override
-                public void execute(JavaToolchainSpec javaToolchainSpec) {}
-            }));
+            .flatMap((Transformer<Provider<JavaLauncher>, JavaToolchainSpec>) javaToolchainService::launcherFor)
+            .orElse(javaToolchainService.launcherFor(javaToolchainSpec -> {}));
     }
 
     /**
@@ -713,14 +700,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
             throw new UnsupportedJavaRuntimeException("Support for test execution using Java 5 or earlier was removed in Gradle 3.0.");
         }
         if (!javaVersion.isJava8Compatible()) {
-            if (testFramework.get() instanceof JUnitPlatformTestFramework) {
-                throw new UnsupportedJavaRuntimeException("Running tests with JUnit platform requires a Java 8+ toolchain.");
-            } else {
-                DeprecationLogger.deprecate("Running tests on Java versions earlier than 8")
-                    .willBecomeAnErrorInGradle9()
-                    .withUpgradeGuideSection(8, "minimum_test_jvm_version")
-                    .nagUser();
-            }
+            throw new UnsupportedJavaRuntimeException("Support for test execution using Java 7 or earlier was removed in Gradle 9.0.");
         }
 
         if (getDebug()) {
@@ -1193,34 +1173,6 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     }
 
     /**
-     * Sets the maximum number of test classes to execute in a forked test process.
-     * <p>
-     * By default, Gradle automatically uses a separate JVM when executing tests, so changing this property is usually not necessary.
-     * </p>
-     *
-     * @param forkEvery The maximum number of test classes. Use null or 0 to specify no maximum.
-     * @deprecated Use {@link #setForkEvery(long)} instead.
-     */
-    @Deprecated
-    public void setForkEvery(@Nullable Long forkEvery) {
-        if (forkEvery == null) {
-            DeprecationLogger.deprecateBehaviour("Setting Test.forkEvery to null.")
-                .withAdvice("Set Test.forkEvery to 0 instead.")
-                .willBecomeAnErrorInGradle9()
-                .withDslReference(Test.class, "forkEvery")
-                .nagUser();
-            setForkEvery(0);
-        } else {
-            DeprecationLogger.deprecateMethod(Test.class, "setForkEvery(Long)")
-                .replaceWith("Test.setForkEvery(long)")
-                .willBeRemovedInGradle9()
-                .withDslReference(Test.class, "forkEvery")
-                .nagUser();
-            setForkEvery(forkEvery.longValue());
-        }
-    }
-
-    /**
      * Returns the maximum number of test processes to start in parallel.
      *
      * <p>
@@ -1330,6 +1282,11 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
 
     @Inject
     protected ObjectFactory getObjectFactory() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected PropertyFactory getPropertyFactory() {
         throw new UnsupportedOperationException();
     }
 

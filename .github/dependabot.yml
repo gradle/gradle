@@ -13,3 +13,12 @@ updates:
       - "@dev-productivity"
       - "a:chore"
       - "in:building-gradle"
+  - package-ecosystem: "gradle"
+    open-pull-requests-limit: 0
+    directory: "/"
+    schedule:
+      interval: "daily"
+    labels:
+      - "@dev-productivity"
+      - "a:chore"
+      - "in:building-gradle"

@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Gradle, Inc.
+// Copyright (C) 2024 Gradle, Inc.
 //
 // Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ The initialization phase in the Gradle Build lifecycle finds the root project an
 
 image::author-gradle-6.png[]
 
-Then, for each project included in the settings file, Gradle creates a link:{javadocPath}org/gradle/api/Project.html[`Project`] instance.
+Then, for each project included in the settings file, Gradle creates a link:{javadocPath}/org/gradle/api/Project.html[`Project`] instance.
 
 Gradle then looks for a corresponding build script file, which is used in the configuration phase.
 
@@ -176,9 +176,6 @@ include::sample[dir="snippets/plugins/simple/groovy/sub-project-a", files="build
 
 In the example, the `application` plugin, which is included with Gradle, has been applied, describing our project as a Java application.
 
-The Kotlin gradle plugin, version 1.9.0, has also been applied.
-This plugin is not included with Gradle and, therefore, has to be described using a `plugin id` and a `plugin version` so that Gradle can find and apply it.
-
 === 2. Define the locations where dependencies can be found
 
 A project generally has a number of dependencies it needs to do its work.
@@ -334,6 +331,20 @@ include::{snippetsPath}/tutorial/dynamic/tests/dynamic.out[]
 ----
 ====
 
+[[sec:gradle_types]]
+=== Gradle Types
+
+In Gradle, **types**, **properties**, and **providers** are foundational for managing and configuring build logic:
+
+- **Types**: Gradle defines types (like `Task`, `Configuration`, `File`, etc.) to represent build components.
+You can extend these types to create custom tasks or domain objects.
+- **Properties**: Gradle properties (e.g., `Property<T>`, `ListProperty<T>`, `SetProperty<T>`) are used for build configuration.
+They allow lazy evaluation, meaning their values are calculated only when needed, enhancing flexibility and performance.
+- **Providers**: A `Provider<T>` represents a value that is computed or retrieved lazily.
+Providers are often used with properties to defer value computation until necessary. This is especially useful for integrating dynamic, runtime values into your build.
+
+You can learn more about this in <<properties_providers.adoc#properties_and_providers,Understanding Gradle Types>>.
+
 [[sec:declaring_variables]]
 === Declare Variables
 
@@ -356,7 +367,7 @@ include::sample[dir="snippets/tutorial/localVariables/groovy",files="build.gradl
 [[sec:extra_properties]]
 ==== Extra Properties
 
-Gradle's enhanced objects, including projects, tasks, and source sets, can hold user-defined properties.
+<<properties_providers.adoc#properties_and_providers,Gradle's enhanced objects>>, including projects, tasks, and source sets, can hold user-defined properties.
 
 [.multi-language-text.lang-kotlin]
 Add, read, and set extra properties via the owning object's `extra` property. Alternatively, you can access extra properties via Kotlin delegated properties using `by extra`.

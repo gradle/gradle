@@ -20,8 +20,8 @@ import com.google.common.collect.Sets;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.provider.Provider;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.Objects;
@@ -33,7 +33,7 @@ import java.util.TreeMap;
  * container will override attributes in the fallback container. All mutation operations are
  * forwarded to the primary container.
  */
-final class HierarchicalMutableAttributeContainer extends AbstractAttributeContainer {
+/* package */ final class HierarchicalMutableAttributeContainer extends AbstractAttributeContainer {
     private final AttributesFactory attributesFactory;
     private final AttributeContainerInternal fallback;
     private final AttributeContainerInternal primary;
@@ -64,6 +64,10 @@ final class HierarchicalMutableAttributeContainer extends AbstractAttributeConta
     @Nullable
     @Override
     public <T> T getAttribute(Attribute<T> key) {
+        if (!isValidAttributeRequest(key)) {
+            return null;
+        }
+
         T attribute = primary.getAttribute(key);
         if (attribute != null) {
             return attribute;
@@ -83,7 +87,7 @@ final class HierarchicalMutableAttributeContainer extends AbstractAttributeConta
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(@Nullable Object o) {
         if (this == o) {
             return true;
         }

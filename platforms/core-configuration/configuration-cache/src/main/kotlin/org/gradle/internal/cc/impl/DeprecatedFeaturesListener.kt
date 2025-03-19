@@ -92,7 +92,8 @@ class DeprecatedFeaturesListener(
     private
     fun nagUserAbout(action: String, upgradeGuideMajorVersion: Int, upgradeGuideSection: String) {
         DeprecationLogger.deprecateAction(action)
-            .willBecomeAnErrorInGradle9()
+            .withContext("This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release.")
+            .willBecomeAnErrorInGradle10()
             .withUpgradeGuideSection(upgradeGuideMajorVersion, upgradeGuideSection)
             .nagUser()
     }

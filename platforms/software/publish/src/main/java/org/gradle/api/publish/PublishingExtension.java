@@ -20,7 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 
 /**
- * The configuration of how to “publish” the different components of a project.
+ * The configuration of how to "publish" the different components of a project.
  *
  * @since 1.3
  */
@@ -50,10 +50,10 @@ public interface PublishingExtension {
      *
      * publishing {
      *   repositories {
-     *     // Create an ivy publication destination named “releases”
+     *     // Create an ivy publication destination named "releases"
      *     ivy {
-     *       name "releases"
-     *       url "http://my.org/ivy-repos/releases"
+     *       name = "releases"
+     *       url = "http://my.org/ivy-repos/releases"
      *     }
      *   }
      * }
@@ -85,7 +85,7 @@ public interface PublishingExtension {
      * by building the project. An example of a publication would be an Ivy Module (i.e. {@code ivy.xml} and artifacts), or
      * Maven Project (i.e. {@code pom.xml} and artifacts).
      * <p>
-     * Actual publication implementations and the ability to create them are provided by different plugins. The “publishing” plugin itself does not provide any publication types.
+     * Actual publication implementations and the ability to create them are provided by different plugins. The "publishing" plugin itself does not provide any publication types.
      * For example, given that the 'maven-publish' plugin provides a {@link org.gradle.api.publish.maven.MavenPublication} type, you can create a publication like:
      * <pre class='autoTested'>
      * plugins {

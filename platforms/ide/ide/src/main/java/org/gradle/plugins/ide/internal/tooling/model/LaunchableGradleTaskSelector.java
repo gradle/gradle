@@ -19,8 +19,8 @@ package org.gradle.plugins.ide.internal.tooling.model;
 import org.gradle.TaskExecutionRequest;
 import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
 import org.gradle.tooling.internal.protocol.InternalLaunchable;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.Serializable;
 import java.util.Collections;

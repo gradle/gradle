@@ -729,6 +729,8 @@ public class AvailableToolChains {
                     return getVersion().getMajor() == 5;
                 case SWIFTC_5_OR_OLDER:
                     return getVersion().getMajor() <= 5;
+                case SWIFTC_6:
+                    return getVersion().getMajor() == 6;
                 default:
                     return false;
             }

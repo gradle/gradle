@@ -14,5 +14,7 @@
  * limitations under the License.
  */
 
-@org.gradle.api.NonNullApi
+@GroovyNullMarked
 package org.gradle.testfixtures.internal;
+
+import org.gradle.util.GroovyNullMarked;

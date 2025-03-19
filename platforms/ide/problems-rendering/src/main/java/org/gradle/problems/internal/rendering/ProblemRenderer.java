@@ -16,20 +16,18 @@
 
 package org.gradle.problems.internal.rendering;
 
-import org.gradle.api.NonNullApi;
-import org.gradle.api.problems.ProblemId;
+import com.google.common.base.Strings;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
-import org.gradle.api.problems.internal.Problem;
+import org.gradle.api.problems.internal.InternalProblem;
+import org.gradle.util.internal.TextUtil;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.PrintWriter;
 import java.io.Writer;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-@NonNullApi
+@NullMarked
 public class ProblemRenderer {
 
     private final PrintWriter output;
@@ -38,28 +36,24 @@ public class ProblemRenderer {
         output = new PrintWriter(writer);
     }
 
-    public void render(List<Problem> problems) {
-        Map<ProblemId, List<Problem>> renderingGroups = new HashMap<>();
-        for (Problem problem : problems) {
-            List<Problem> groupedProblems = renderingGroups.computeIfAbsent(
-                problem.getDefinition().getId(),
-                id -> new ArrayList<>()
-            );
-            groupedProblems.add(problem);
+    public void render(List<InternalProblem> problems) {
+        render(output, problems);
+    }
+
+    public void render(InternalProblem problem) {
+        render(Collections.singletonList(problem));
+    }
+
+    private static void render(PrintWriter output, List<InternalProblem> problems) {
+        String sep = "";
+        for (InternalProblem problem : problems) {
+            output.printf(sep);
+            renderProblem(output, problem);
+            sep = "%n";
         }
-
-        renderingGroups.forEach((id, groupedProblems) -> renderProblemGroup(output, id, groupedProblems));
     }
 
-    public void render(Problem problem) {
-        this.render(Collections.singletonList(problem));
-    }
-
-    static void renderProblemGroup(PrintWriter output, ProblemId id, List<Problem> groupedProblems) {
-        groupedProblems.forEach(problem -> renderProblem(output, problem));
-    }
-
-    static void renderProblem(PrintWriter output, Problem problem) {
+    static void renderProblem(PrintWriter output, InternalProblem problem) {
         boolean isJavaCompilationProblem = problem.getDefinition().getId().getGroup().equals(GradleCoreProblemGroup.compilation().java());
         if (isJavaCompilationProblem) {
             formatMultiline(output, problem.getDetails(), 0);
@@ -70,17 +64,19 @@ public class ProblemRenderer {
                 formatMultiline(output, problem.getDefinition().getId().getDisplayName(), 1);
             }
             if (problem.getDetails() != null) {
+                output.printf("%n");
                 formatMultiline(output, problem.getDetails(), 2);
             }
         }
     }
 
     static void formatMultiline(PrintWriter output, String message, int level) {
-        for (String line : message.split("\n")) {
-            for (int i = 0; i < level; i++) {
-                output.print("  ");
-            }
-            output.printf("%s%n", line);
+        if (message == null) {
+            return;
         }
+        @SuppressWarnings("InlineMeInliner")
+        String prefix = Strings.repeat(" ", level * 2);
+        String formatted = TextUtil.indent(message, prefix);
+        output.print(formatted);
     }
 }

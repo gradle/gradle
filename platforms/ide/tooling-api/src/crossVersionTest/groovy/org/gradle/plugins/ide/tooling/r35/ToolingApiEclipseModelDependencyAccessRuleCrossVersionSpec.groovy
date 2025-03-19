@@ -46,7 +46,7 @@ class ToolingApiEclipseModelDependencyAccessRuleCrossVersionSpec extends Tooling
             }
 
             repositories {
-               maven { url '${mavenRepo.uri}' }
+               maven { url = '${mavenRepo.uri}' }
             }
 
             dependencies {

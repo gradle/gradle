@@ -42,8 +42,8 @@ import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -194,9 +194,6 @@ public class DefaultPluginManager implements PluginManagerInternal {
             // plugins.withType() callbacks waiting to build on what the plugin did
             instances.put(pluginClass, pluginInstance);
             pluginContainer.pluginAdded(pluginInstance);
-
-            // Apply any build-level model defaults for the target
-            target.applySoftwareFeatures(pluginInstance);
         } else {
             target.applyRules(pluginId, pluginClass);
         }

@@ -17,9 +17,9 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.StartParameter;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.verification.DependencyVerificationMode;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.ChecksumAndSignatureVerificationOverride;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.DependencyVerificationOverride;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.writer.WriteDependencyVerificationFile;
@@ -31,9 +31,8 @@ import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.Factory;
-import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState;
+import org.gradle.internal.component.external.model.ExternalModuleComponentGraphResolveState;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
-import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
@@ -55,8 +54,8 @@ import org.gradle.internal.resource.transfer.ExternalResourceConnector;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 
@@ -68,14 +67,6 @@ public class StartParameterResolutionOverride {
     public StartParameterResolutionOverride(StartParameter startParameter, File gradleDir) {
         this.startParameter = startParameter;
         this.gradleDir = gradleDir;
-    }
-
-    public void applyToCachePolicy(CachePolicy cachePolicy) {
-        if (startParameter.isOffline()) {
-            cachePolicy.setOffline();
-        } else if (startParameter.isRefreshDependencies()) {
-            cachePolicy.setRefreshDependencies();
-        }
     }
 
     public ModuleComponentRepository<ModuleComponentResolveMetadata> overrideModuleVersionRepository(ModuleComponentRepository<ModuleComponentResolveMetadata> original) {
@@ -147,8 +138,8 @@ public class StartParameterResolutionOverride {
         }
 
         @Override
-        public void listModuleVersions(ModuleDependencyMetadata dependency, BuildableModuleVersionListingResolveResult result) {
-            result.failed(new ModuleVersionResolveException(dependency.getSelector(), () -> String.format("No cached version listing for %s available for offline mode.", dependency.getSelector())));
+        public void listModuleVersions(ModuleComponentSelector selector, ComponentOverrideMetadata overrideMetadata, BuildableModuleVersionListingResolveResult result) {
+            result.failed(new ModuleVersionResolveException(selector, () -> String.format("No cached version listing for %s available for offline mode.", selector)));
         }
 
         @Override
@@ -223,7 +214,7 @@ public class StartParameterResolutionOverride {
         }
 
         @Override
-        public ModuleComponentRepository<ModuleComponentGraphResolveState> overrideDependencyVerification(ModuleComponentRepository<ModuleComponentGraphResolveState> original) {
+        public ModuleComponentRepository<ExternalModuleComponentGraphResolveState> overrideDependencyVerification(ModuleComponentRepository<ExternalModuleComponentGraphResolveState> original) {
             throw new DependencyVerificationException("Dependency verification cannot be performed", error);
         }
     }

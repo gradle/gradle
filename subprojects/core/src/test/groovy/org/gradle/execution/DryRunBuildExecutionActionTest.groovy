@@ -20,7 +20,6 @@ import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.execution.plan.FinalizedExecutionPlan
 import org.gradle.execution.plan.QueryableExecutionPlan
-import org.gradle.internal.SystemProperties
 import org.gradle.internal.logging.text.TestStyledTextOutputFactory
 import org.gradle.util.Path
 import spock.lang.Specification
@@ -28,7 +27,7 @@ import spock.lang.Specification
 import static org.gradle.util.internal.WrapUtil.toList
 
 class DryRunBuildExecutionActionTest extends Specification {
-    private static final String EOL = SystemProperties.instance.lineSeparator
+
     def delegate = Mock(BuildWorkExecutor)
     def executionPlan = Mock(FinalizedExecutionPlan)
     def gradle = Mock(GradleInternal)
@@ -43,7 +42,6 @@ class DryRunBuildExecutionActionTest extends Specification {
     def "print all selected tasks before proceeding when dry run is enabled"() {
         def task1 = Mock(TaskInternal.class)
         def task2 = Mock(TaskInternal.class)
-        def category = DryRunBuildExecutionAction.class.name
         def contents = Mock(QueryableExecutionPlan)
 
         given:
@@ -55,7 +53,10 @@ class DryRunBuildExecutionActionTest extends Specification {
         action.execute(gradle, executionPlan)
 
         then:
-        textOutputFactory.toString() == "{$category}:task1 {progressstatus}SKIPPED${EOL}{$category}:task2 {progressstatus}SKIPPED$EOL"
+        textOutputFactory.category == DryRunBuildExecutionAction.canonicalName
+        textOutputFactory.output == """:task1 {progressstatus}SKIPPED
+:task2 {progressstatus}SKIPPED
+"""
         1 * task1.getIdentityPath() >> Path.path(':task1')
         1 * task2.getIdentityPath() >> Path.path(':task2')
         0 * delegate.execute(_, _)

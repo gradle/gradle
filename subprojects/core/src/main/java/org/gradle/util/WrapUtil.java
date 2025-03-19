@@ -44,7 +44,7 @@ public class WrapUtil {
     private static void logDeprecation(int majorVersion) {
         DeprecationLogger.deprecateType(WrapUtil.class)
             .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(7, "org_gradle_util_reports_deprecations")
+            .withUpgradeGuideSection(majorVersion, "org_gradle_util_reports_deprecations" + (majorVersion == 8 ? "_80" : ""))
             .nagUser();
     }
 

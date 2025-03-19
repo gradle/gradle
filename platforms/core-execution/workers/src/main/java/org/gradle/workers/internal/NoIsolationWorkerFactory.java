@@ -27,8 +27,8 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.workers.WorkAction;
 import org.gradle.workers.WorkParameters;
 import org.gradle.workers.WorkerExecutor;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collections;
 
 public class NoIsolationWorkerFactory implements WorkerFactory {

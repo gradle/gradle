@@ -17,6 +17,8 @@
 package org.gradle.internal.resource.transfer;
 
 import org.gradle.api.resources.ResourceException;
+import org.gradle.internal.logging.progress.ProgressLoggingInputStream;
+import org.gradle.internal.logging.progress.ResourceOperation;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRunner;
@@ -27,8 +29,8 @@ import org.gradle.internal.resource.ExternalResourceReadBuildOperationType;
 import org.gradle.internal.resource.ExternalResourceReadMetadataBuildOperationType;
 import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.net.URI;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -138,7 +140,7 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
                         context.failed(ResourceExceptions.getMissing(metaData.getLocation()));
                         return null;
                     }
-                    ProgressLoggingInputStream stream = new ProgressLoggingInputStream(inputStream, downloadOperation);
+                    ProgressLoggingInputStream stream = new ProgressLoggingInputStream(inputStream, downloadOperation::logProcessedBytes);
                     return action.execute(stream, metaData);
                 });
             } finally {

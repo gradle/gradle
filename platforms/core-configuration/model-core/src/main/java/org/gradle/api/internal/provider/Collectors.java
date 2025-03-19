@@ -20,12 +20,8 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import org.gradle.api.Action;
 import org.gradle.api.provider.Provider;
-import org.gradle.internal.Cast;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Arrays;
 
@@ -49,20 +45,14 @@ public class Collectors {
         }
 
         @Override
-        public Collector<T> absentIgnoring() {
-            // always present
-            return this;
-        }
-
-        @Override
         public Value<Void> collectEntries(ValueConsumer consumer, ValueCollector<T> collector, ImmutableCollection.Builder<T> collection) {
             collector.add(element, collection);
             return Value.present();
         }
 
         @Override
-        public void calculateExecutionTimeValue(Action<? super ExecutionTimeValue<? extends Iterable<? extends T>>> visitor) {
-            visitor.execute(ExecutionTimeValue.fixedValue(ImmutableList.of(element)));
+        public ExecutionTimeValue<? extends Iterable<? extends T>> calculateExecutionTimeValue() {
+            return ExecutionTimeValue.fixedValue(ImmutableList.of(element));
         }
 
         @Override
@@ -106,11 +96,6 @@ public class Collectors {
         }
 
         @Override
-        public Collector<T> absentIgnoring() {
-            return new ElementsFromCollectionProvider<>(provider.map(ImmutableList::of), true);
-        }
-
-        @Override
         public boolean calculatePresence(ValueConsumer consumer) {
             return provider.calculatePresence(consumer);
         }
@@ -132,9 +117,9 @@ public class Collectors {
         }
 
         @Override
-        public void calculateExecutionTimeValue(Action<? super ExecutionTimeValue<? extends Iterable<? extends T>>> visitor) {
+        public ExecutionTimeValue<? extends Iterable<? extends T>> calculateExecutionTimeValue() {
             ExecutionTimeValue<? extends T> value = provider.calculateExecutionTimeValue();
-            visitValue(visitor, value);
+            return visitValue(value);
         }
 
         @Override
@@ -170,14 +155,14 @@ public class Collectors {
         }
     }
 
-    private static <T> void visitValue(Action<? super ValueSupplier.ExecutionTimeValue<? extends Iterable<? extends T>>> visitor, ValueSupplier.ExecutionTimeValue<? extends T> value) {
+    private static <T> ValueSupplier.ExecutionTimeValue<? extends Iterable<? extends T>> visitValue(ValueSupplier.ExecutionTimeValue<? extends T> value) {
         if (value.isMissing()) {
-            visitor.execute(ValueSupplier.ExecutionTimeValue.missing());
+            return ValueSupplier.ExecutionTimeValue.missing();
         } else if (value.hasFixedValue()) {
             // transform preserving side effects
-            visitor.execute(ValueSupplier.ExecutionTimeValue.value(value.toValue().transform(ImmutableList::of)));
+            return ValueSupplier.ExecutionTimeValue.value(value.toValue().transform(ImmutableList::of));
         } else {
-            visitor.execute(ValueSupplier.ExecutionTimeValue.changingValue(value.getChangingValue().map(transformer(ImmutableList::of))));
+            return ValueSupplier.ExecutionTimeValue.changingValue(value.getChangingValue().map(transformer(ImmutableList::of)));
         }
     }
 
@@ -194,20 +179,14 @@ public class Collectors {
         }
 
         @Override
-        public Collector<T> absentIgnoring() {
-            // always present
-            return this;
-        }
-
-        @Override
         public Value<Void> collectEntries(ValueConsumer consumer, ValueCollector<T> collector, ImmutableCollection.Builder<T> collection) {
             collector.addAll(value, collection);
             return Value.present();
         }
 
         @Override
-        public void calculateExecutionTimeValue(Action<? super ExecutionTimeValue<? extends Iterable<? extends T>>> visitor) {
-            visitor.execute(ExecutionTimeValue.fixedValue(value));
+        public ExecutionTimeValue<? extends Iterable<? extends T>> calculateExecutionTimeValue() {
+            return ExecutionTimeValue.fixedValue(value);
         }
 
         @Override
@@ -249,30 +228,14 @@ public class Collectors {
 
     public static class ElementsFromCollectionProvider<T> implements ProvidedCollector<T> {
         private final ProviderInternal<? extends Iterable<? extends T>> provider;
-        private final boolean ignoreAbsent;
 
         public ElementsFromCollectionProvider(ProviderInternal<? extends Iterable<? extends T>> provider) {
-            this(provider, false);
-        }
-
-        private ElementsFromCollectionProvider(ProviderInternal<? extends Iterable<? extends T>> provider, boolean ignoreAbsent) {
-            this.provider = ignoreAbsent ? neverMissing(Cast.uncheckedNonnullCast(provider)) : provider;
-            this.ignoreAbsent = ignoreAbsent;
-        }
-
-        @Nonnull
-        private static <T> ProviderInternal<? extends Iterable<? extends T>> neverMissing(ProviderInternal<Iterable<? extends T>> provider) {
-            return Cast.uncheckedNonnullCast(provider.orElse(ImmutableList.of()));
-        }
-
-        @Override
-        public Collector<T> absentIgnoring() {
-            return ignoreAbsent ? this : new ElementsFromCollectionProvider<>(provider, true);
+            this.provider = provider;
         }
 
         @Override
         public boolean calculatePresence(ValueConsumer consumer) {
-            return ignoreAbsent || provider.calculatePresence(consumer);
+            return provider.calculatePresence(consumer);
         }
 
         @Override
@@ -283,7 +246,7 @@ public class Collectors {
 
         private ValueSupplier.Value<Void> collectEntriesFromValue(ValueCollector<T> collector, ImmutableCollection.Builder<T> collection, ValueSupplier.Value<? extends Iterable<? extends T>> value) {
             if (value.isMissing()) {
-                return ignoreAbsent ? Value.present() : value.asType();
+                return value.asType();
             }
 
             collector.addAll(value.getWithoutSideEffect(), collection);
@@ -291,8 +254,8 @@ public class Collectors {
         }
 
         @Override
-        public void calculateExecutionTimeValue(Action<? super ExecutionTimeValue<? extends Iterable<? extends T>>> visitor) {
-            visitor.execute(provider.calculateExecutionTimeValue());
+        public ExecutionTimeValue<? extends Iterable<? extends T>> calculateExecutionTimeValue() {
+            return provider.calculateExecutionTimeValue();
         }
 
         @Override
@@ -350,12 +313,6 @@ public class Collectors {
         }
 
         @Override
-        public Collector<T> absentIgnoring() {
-            // always present
-            return this;
-        }
-
-        @Override
         public Value<Void> collectEntries(ValueConsumer consumer, ValueCollector<T> collector, ImmutableCollection.Builder<T> dest) {
             for (T t : value) {
                 collector.add(t, dest);
@@ -364,8 +321,8 @@ public class Collectors {
         }
 
         @Override
-        public void calculateExecutionTimeValue(Action<? super ExecutionTimeValue<? extends Iterable<? extends T>>> visitor) {
-            visitor.execute(ExecutionTimeValue.fixedValue(ImmutableList.copyOf(value)));
+        public ExecutionTimeValue<? extends Iterable<? extends T>> calculateExecutionTimeValue() {
+            return ExecutionTimeValue.fixedValue(ImmutableList.copyOf(value));
         }
 
         @Override
@@ -401,11 +358,6 @@ public class Collectors {
         }
 
         @Override
-        public Collector<T> absentIgnoring() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
         public boolean calculatePresence(ValueConsumer consumer) {
             return delegate.calculatePresence(consumer);
         }
@@ -425,8 +377,8 @@ public class Collectors {
         }
 
         @Override
-        public void calculateExecutionTimeValue(Action<? super ExecutionTimeValue<? extends Iterable<? extends T>>> visitor) {
-            delegate.calculateExecutionTimeValue(visitor);
+        public ExecutionTimeValue<? extends Iterable<? extends T>> calculateExecutionTimeValue() {
+            return delegate.calculateExecutionTimeValue();
         }
 
         @Override

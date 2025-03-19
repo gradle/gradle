@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,129 +16,28 @@
 
 package org.gradle.cache.internal.locklistener;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
-import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketAddress;
-import java.net.SocketException;
+import java.util.Optional;
 import java.util.Set;
 
-import static org.gradle.cache.internal.locklistener.FileLockPacketType.LOCK_RELEASE_CONFIRMATION;
-import static org.gradle.cache.internal.locklistener.FileLockPacketType.UNLOCK_REQUEST;
-import static org.gradle.cache.internal.locklistener.FileLockPacketType.UNLOCK_REQUEST_CONFIRMATION;
-import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
+@NullMarked
+public interface FileLockCommunicator {
+    boolean pingOwner(InetAddress address, int ownerPort, long lockId, String displayName);
 
-public class FileLockCommunicator {
-    private static final Logger LOGGER = LoggerFactory.getLogger(FileLockCommunicator.class);
-    private static final String SOCKET_OPERATION_NOT_PERMITTED_ERROR_MESSAGE = "Operation not permitted";
-    private static final String SOCKET_NETWORK_UNREACHABLE_ERROR_MESSAGE = "Network is unreachable";
-    private static final String SOCKET_CANNOT_ASSIGN_ADDRESS_ERROR_MESSAGE = "Cannot assign requested address";
+    Optional<DatagramPacket> receive() throws IOException;
 
-    private final DatagramSocket socket;
-    private final InetAddressProvider inetAddressProvider;
-    private volatile boolean stopped;
+    FileLockPacketPayload decode(DatagramPacket receivedPacket);
 
-    public FileLockCommunicator(InetAddressProvider inetAddressProvider) {
-        this.inetAddressProvider = inetAddressProvider;
-        try {
-            socket = new DatagramSocket(0, inetAddressProvider.getWildcardBindingAddress());
-        } catch (SocketException e) {
-            throw throwAsUncheckedException(e);
-        }
-    }
+    void confirmUnlockRequest(SocketAddress requesterAddress, long lockId);
 
-    public boolean pingOwner(int ownerPort, long lockId, String displayName) {
-        boolean pingSentSuccessfully = false;
-        try {
-            byte[] bytesToSend = FileLockPacketPayload.encode(lockId, UNLOCK_REQUEST);
-            for (InetAddress address : inetAddressProvider.getCommunicationAddresses()) {
-                try {
-                    socket.send(new DatagramPacket(bytesToSend, bytesToSend.length, address, ownerPort));
-                    pingSentSuccessfully = true;
-                } catch (IOException e) {
-                    String message = e.getMessage();
-                    if (message != null && (
-                        message.startsWith(SOCKET_OPERATION_NOT_PERMITTED_ERROR_MESSAGE)
-                            || message.startsWith(SOCKET_NETWORK_UNREACHABLE_ERROR_MESSAGE)
-                            || message.startsWith(SOCKET_CANNOT_ASSIGN_ADDRESS_ERROR_MESSAGE)
-                    )) {
-                        LOGGER.debug("Failed attempt to ping owner of lock for {} (lock id: {}, port: {}, address: {})", displayName, lockId, ownerPort, address);
-                    } else {
-                        throw e;
-                    }
-                }
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(String.format("Failed to ping owner of lock for %s (lock id: %s, port: %s)", displayName, lockId, ownerPort), e);
-        }
-        return pingSentSuccessfully;
-    }
+    void confirmLockRelease(Set<SocketAddress> requesterAddresses, long lockId);
 
-    public DatagramPacket receive() throws GracefullyStoppedException {
-        try {
-            byte[] bytes = new byte[FileLockPacketPayload.MAX_BYTES];
-            DatagramPacket packet = new DatagramPacket(bytes, bytes.length);
-            socket.receive(packet);
-            return packet;
-        } catch (IOException e) {
-            if (!stopped) {
-                throw new RuntimeException(e);
-            }
-            throw new GracefullyStoppedException();
-        }
-    }
+    void stop();
 
-    public FileLockPacketPayload decode(DatagramPacket receivedPacket) {
-        try {
-            return FileLockPacketPayload.decode(receivedPacket.getData(), receivedPacket.getLength());
-        } catch (IOException e) {
-            if (!stopped) {
-                throw new RuntimeException(e);
-            }
-            throw new GracefullyStoppedException();
-        }
-    }
-
-    public void confirmUnlockRequest(SocketAddress address, long lockId) {
-        try {
-            byte[] bytes = FileLockPacketPayload.encode(lockId, UNLOCK_REQUEST_CONFIRMATION);
-            DatagramPacket packet = new DatagramPacket(bytes, bytes.length);
-            packet.setSocketAddress(address);
-            socket.send(packet);
-        } catch (IOException e) {
-            if (!stopped) {
-                throw new RuntimeException(e);
-            }
-            throw new GracefullyStoppedException();
-        }
-    }
-
-    public void confirmLockRelease(Set<SocketAddress> addresses, long lockId) {
-        byte[] bytes = FileLockPacketPayload.encode(lockId, LOCK_RELEASE_CONFIRMATION);
-        for (SocketAddress address : addresses) {
-            DatagramPacket packet = new DatagramPacket(bytes, bytes.length);
-            packet.setSocketAddress(address);
-            LOGGER.debug("Confirming lock release to Gradle process at port {} for lock with id {}.", packet.getPort(), lockId);
-            try {
-                socket.send(packet);
-            } catch (IOException e) {
-                if (!stopped) {
-                    LOGGER.debug("Failed to confirm lock release to Gradle process at port {} for lock with id {}.", packet.getPort(), lockId);
-                }
-            }
-        }
-    }
-
-    public void stop() {
-        stopped = true;
-        socket.close();
-    }
-
-    public int getPort() {
-        return socket.getLocalPort();
-    }
+    int getPort();
 }

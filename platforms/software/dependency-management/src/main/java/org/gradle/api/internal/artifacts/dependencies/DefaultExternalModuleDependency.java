@@ -21,8 +21,7 @@ import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.internal.deprecation.DeprecationLogger;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class DefaultExternalModuleDependency extends AbstractExternalModuleDependency implements ExternalModuleDependency {
 
@@ -40,7 +39,7 @@ public class DefaultExternalModuleDependency extends AbstractExternalModuleDepen
 
     @Override
     public ExternalModuleDependency copy() {
-        DefaultExternalModuleDependency copiedModuleDependency = new DefaultExternalModuleDependency(getGroup(), getName(), getVersion(), getTargetConfiguration());
+        DefaultExternalModuleDependency copiedModuleDependency = new DefaultExternalModuleDependency(getModule(), new DefaultMutableVersionConstraint(getVersionConstraint()), getTargetConfiguration());
         copyTo(copiedModuleDependency);
         return copiedModuleDependency;
     }

@@ -8,8 +8,5 @@ description = "Develocity plugin dependencies that also need to be exposed to wo
 gradlebuildJava.usedInWorkers()
 
 dependencies {
-    api(libs.jsr305)
-}
-tasks.isolatedProjectsIntegTest {
-    enabled = false
+    api(libs.jspecify)
 }

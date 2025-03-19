@@ -33,29 +33,28 @@ class InvalidConfigurationResolutionIntegrationTest extends AbstractIntegrationS
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
-            allprojects {
-                configurations {
-                    implementation
-                    compile.canBeDeclared = false
-                    compile.canBeConsumed = false
-                    compile.canBeResolved = false
-                    compileOnly.canBeResolved = false
-                    apiElements {
-                        assert canBeConsumed
-                        canBeResolved = false
-                        extendsFrom compile
-                        extendsFrom compileOnly
-                        extendsFrom implementation
-                    }
-                    compileClasspath {
-                        canBeConsumed = false
-                        assert canBeResolved
-                        extendsFrom compile
-                        extendsFrom compileOnly
-                        extendsFrom implementation
-                    }
+
+            configurations {
+                implementation
+                compile.canBeDeclared = false
+                compile.canBeConsumed = false
+                compile.canBeResolved = false
+                compileOnly.canBeResolved = false
+                apiElements {
+                    assert canBeConsumed
+                    canBeResolved = false
+                    extendsFrom compile
+                    extendsFrom compileOnly
+                    extendsFrom implementation
+                }
+                compileClasspath {
+                    canBeConsumed = false
+                    assert canBeResolved
+                    extendsFrom compile
+                    extendsFrom compileOnly
+                    extendsFrom implementation
                 }
             }
         """
@@ -74,6 +73,24 @@ class InvalidConfigurationResolutionIntegrationTest extends AbstractIntegrationS
 
         then:
         failure.hasErrorOutput("Dependencies can not be declared against the `compile` configuration.")
+    }
+
+    def "failures adding dependencies to resolvable configurations emitted from configure closure are reported"() {
+        given:
+        buildFile << """
+            configurations.resolvable('foo') {
+                dependencies.add(project.dependencies.create('com.example:foo:4.2'))
+            }
+
+            // Realize the configuration
+            configurations.foo
+        """
+
+        when:
+        fails("help")
+
+        then:
+        failure.hasErrorOutput("Dependencies can not be declared against the `foo` configuration.")
     }
 
     def "fail if a dependency constraint is declared on a configuration which can not be declared against"() {

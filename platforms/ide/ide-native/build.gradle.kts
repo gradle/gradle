@@ -19,7 +19,7 @@ dependencies {
     api(libs.groovy)
     api(libs.guava)
     api(libs.inject)
-    api(libs.jsr305)
+    api(libs.jspecify)
     api(libs.plist)
     api(projects.baseIdePlugins)
     api(projects.baseServices)
@@ -39,6 +39,7 @@ dependencies {
     implementation(projects.serviceLookup)
     implementation(projects.functional)
     implementation(libs.commonsLang)
+    implementation(libs.jsr305)
 
     runtimeOnly(projects.dependencyManagement)
     runtimeOnly(projects.testingBase)

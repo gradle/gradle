@@ -18,11 +18,14 @@ package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.test.fixtures.dsl.GradleDsl
+import org.gradle.testdistribution.LocalOnly
 import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.util.internal.VersionNumber
 import spock.lang.Issue
 
+@LocalOnly(because = "Needs Android environment")
 class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest implements RunnerFactory {
 
     @Issue('https://github.com/gradle/gradle/issues/23014')
@@ -77,7 +80,7 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest implements R
 
             android {
                 namespace = "org.gradle.smoketests.androidrecipes"
-                compileSdkVersion(29)
+                compileSdk = 29
                 buildToolsVersion("${TestedVersions.androidTools}")
                 buildFeatures { buildConfig = true }
                 kotlinOptions { jvmTarget = "1.8" }
@@ -128,10 +131,15 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest implements R
 
         and:
         def runner = mixedRunner(false, agpVersion, kotlinVersionNumber, taskName)
+            .deprecations(AndroidDeprecations) {
+                maybeExpectIsPropertyDeprecationWarnings()
+            }
 
         when: 'running the build for the 1st time'
         beforeAndroidBuild(runner)
-        def result = runner.build()
+        def result = runner.deprecations(AndroidDeprecations) {
+            maybeExpectIsPropertyDeprecationWarnings()
+        }.build()
 
         then:
         result.task(":app:$taskName").outcome == TaskOutcome.SUCCESS
@@ -142,7 +150,9 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest implements R
         }
 
         when: 'running the build for the 2nd time'
-        result = runner.build()
+        result = runner.deprecations(AndroidDeprecations) {
+            maybeExpectIsPropertyDeprecationWarnings()
+        }.build()
 
         then:
         result.task(":app:$taskName").outcome == TaskOutcome.UP_TO_DATE
@@ -171,7 +181,7 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest implements R
             ]
         ].combinations()
         providerType = provider['type']
-        kotlinVersionNumber = VersionNumber.parse('1.8.0')
+        kotlinVersionNumber = VersionNumber.parse(new KotlinGradlePluginVersions().latestStableOrRC)
         taskName = 'compileDebugKotlin'
     }
 

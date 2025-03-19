@@ -36,8 +36,8 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.internal.GUtil;
 import org.gradle.work.DisableCachingByDefault;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 
 /**
@@ -120,11 +120,10 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * @since 5.1
      */
     @OutputFile
-    @SuppressWarnings("DanglingJavadoc")
     public Provider<RegularFile> getArchiveFile() {
         // TODO: Turn this into an `@implSpec` annotation on the comment above:
         // https://github.com/gradle/gradle/issues/7486
-        /**
+        /*
          * This returns a provider of {@link RegularFile} instead of {@link RegularFileProperty} in order to
          * prevent users calling {@link org.gradle.api.provider.Property#set} and causing a plugin or users using
          * {@link AbstractArchiveTask#getArchivePath()} to break or have strange behaviour.
@@ -326,6 +325,6 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
         Instantiator instantiator = getInstantiator();
         FileSystem fileSystem = getFileSystem();
 
-        return new CopyActionExecuter(instantiator, getObjectFactory(), fileSystem, isReproducibleFileOrder(), getDocumentationRegistry());
+        return new CopyActionExecuter(instantiator, getPropertyFactory(), fileSystem, isReproducibleFileOrder(), getDocumentationRegistry());
     }
 }

@@ -28,7 +28,7 @@ class MavenComponentMetadataRulesChangingModulesIntegrationTest extends Componen
 """
 repositories {
     maven {
-        url "$repo.uri"
+        url = "$repo.uri"
     }
 }
 """

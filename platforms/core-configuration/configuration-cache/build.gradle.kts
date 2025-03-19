@@ -13,6 +13,7 @@ tasks.configCacheIntegTest {
 
 dependencies {
     api(projects.baseServices)
+    api(projects.buildOperations)
     api(projects.concurrent)
     api(projects.configurationCacheBase)
     api(projects.configurationProblemsBase)
@@ -29,7 +30,7 @@ dependencies {
     api(projects.serviceLookup)
     api(projects.serviceProvider)
     api(projects.stdlibJavaExtensions)
-    api(projects.snapshots)
+    api(projects.snapshotsWorker)
 
     api(libs.groovy)
     api(libs.inject)
@@ -37,8 +38,9 @@ dependencies {
 
     // TODO - it might be good to allow projects to contribute state to save and restore, rather than have this project know about everything
     implementation(projects.buildEvents)
-    implementation(projects.buildOperations)
     implementation(projects.buildOption)
+    implementation(projects.buildProcessServices)
+    implementation(projects.classloaders)
     implementation(projects.coreKotlinExtensions)
     implementation(projects.coreSerializationCodecs)
     implementation(projects.dependencyManagementSerializationCodecs)
@@ -60,12 +62,14 @@ dependencies {
     implementation(projects.persistentCache)
     implementation(projects.problemsApi)
     implementation(projects.serialization)
+    implementation(projects.snapshots)
     implementation(projects.stdlibKotlinExtensions)
     implementation(projects.stdlibSerializationCodecs)
     implementation(projects.toolingApi)
 
     implementation(libs.fastutil)
     implementation(libs.guava)
+    implementation(libs.jspecify)
     implementation(libs.kryo)
     implementation(libs.slf4jApi)
 
@@ -83,23 +87,24 @@ dependencies {
     testImplementation(libs.mockitoKotlin2)
     testImplementation(libs.kotlinCoroutinesDebug)
 
+    integTestImplementation(projects.cli)
+    integTestImplementation(projects.ide)
     integTestImplementation(projects.jvmServices)
-    integTestImplementation(projects.toolingApi)
+    integTestImplementation(projects.launcher)
     integTestImplementation(projects.platformJvm)
     integTestImplementation(projects.testKit)
-    integTestImplementation(projects.launcher)
-    integTestImplementation(projects.cli)
+    integTestImplementation(projects.toolingApi)
     integTestImplementation(projects.workers)
 
-    integTestImplementation(libs.guava)
     integTestImplementation(libs.ant)
+    integTestImplementation(libs.guava)
     integTestImplementation(libs.inject)
     integTestImplementation("com.microsoft.playwright:playwright:1.20.1")
 
     integTestImplementation(testFixtures(projects.toolingApi))
     integTestImplementation(testFixtures(projects.dependencyManagement))
     integTestImplementation(testFixtures(projects.jacoco))
-    integTestImplementation(testFixtures(projects.modelCore))
+    integTestImplementation(testFixtures(projects.modelReflect))
 
     crossVersionTestImplementation(projects.cli)
 

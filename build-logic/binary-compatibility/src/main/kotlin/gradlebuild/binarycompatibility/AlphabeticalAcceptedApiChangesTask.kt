@@ -63,6 +63,6 @@ abstract class AlphabeticalAcceptedApiChangesTask : AbstractAcceptedApiChangesMa
                 "$formattedMismatches\n"
         }.joinToString(separator = "\n")
 
-        return "$messages\nTo automatically alphabetize these changes run: 'gradlew :architecture-test:sortAcceptedApiChanges'"
+        return "$messages\nTo automatically alphabetize these changes run: './gradlew :architecture-test:sortAcceptedApiChanges'"
     }
 }

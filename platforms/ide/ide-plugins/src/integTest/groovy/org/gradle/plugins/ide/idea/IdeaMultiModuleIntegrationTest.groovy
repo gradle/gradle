@@ -15,8 +15,8 @@
  */
 package org.gradle.plugins.ide.idea
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.plugins.ide.AbstractIdeIntegrationTest
 import org.junit.Rule
 import org.junit.Test
@@ -443,7 +443,7 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
                 apply plugin: 'idea'
 
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
             }
 

@@ -461,7 +461,7 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
 
         and:
         buildFile << """
-repositories { ivy { url "${ivyRepo.uri}" } }
+repositories { ivy { url = "${ivyRepo.uri}" } }
 configurations {
     merged
 }
@@ -480,6 +480,49 @@ task syncMerged(type: Sync) {
 
         then:
         file("libs").assertHasDescendants(['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'e-1.0.jar'] as String[])
+    }
+
+    def "build dependencies of artifacts excluded by name-based excludes are still executed"() {
+        // This is not necessarily desired behavior, but is a consequence of artifact selection occurring
+        // before task dependencies are executed. name-based excludes are applied to the resolved files,
+        // after the task dependencies that produce them are executed.
+
+        IvyModule moduleA = ivyRepo.module('a').dependsOn('b')
+        if (excludeAttributes != null) {
+            addExcludeRuleToModuleDependency(moduleA, 'b', excludeAttributes)
+        }
+        ivyRepo.module('b').dependsOn('c').publish()
+        moduleA.publish()
+
+        settingsFile << """
+            includeBuild('c')
+        """
+
+        file("c/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+
+            group = 'org.gradle.test'
+            version = '1.0'
+        """
+
+        when:
+        succeedsDependencyResolution()
+
+        then:
+        assertResolvedFiles(resolvedJars)
+        if (taskDependenciesExecuted) {
+            result.assertTaskExecuted(":c:compileJava")
+        } else {
+            result.assertTaskNotExecuted(":c:compileJava")
+        }
+
+        where:
+        excludeAttributes | resolvedJars                            | taskDependenciesExecuted
+        null              | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar'] | true
+        [module: 'c']     | ['a-1.0.jar', 'b-1.0.jar']              | false
+        [name: 'c']       | ['a-1.0.jar', 'b-1.0.jar']              | true
     }
 
     private void addExcludeRuleToModuleDependency(IvyModule module, String dependencyName, Map<String, String> excludeAttributes) {

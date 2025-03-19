@@ -27,8 +27,8 @@ import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaExecSpec;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.InputStream;
 import java.io.OutputStream;

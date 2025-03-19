@@ -16,6 +16,8 @@
 
 package org.gradle.api.artifacts.repositories;
 
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+
 import java.net.URI;
 
 /**
@@ -30,6 +32,7 @@ public interface UrlArtifactRepository {
      *
      * @return The URL.
      */
+    @ToBeReplacedByLazyProperty
     URI getUrl();
 
     /**
@@ -61,6 +64,7 @@ public interface UrlArtifactRepository {
      * See also:
      * <a href="https://medium.com/bugbountywriteup/want-to-take-over-the-java-ecosystem-all-you-need-is-a-mitm-1fc329d898fb">Want to take over the Java ecosystem? All you need is a MITM!</a>
      */
+    @ToBeReplacedByLazyProperty
     boolean isAllowInsecureProtocol();
 
     /**

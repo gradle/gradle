@@ -156,13 +156,13 @@ Full list of tags (in order):
 | 1  | `@param`      | Methods and constructors only                                                  | Include this if applicable                                                                                                                                                                                         |
 | 2  | `@return`     | Methods only                                                                   | Include this if applicable                                                                                                                                                                                         |
 | 3  | `@throws`     | Same as `@exception`                                                           | Include this if applicable                                                                                                                                                                                         |
-| 4  | `@see`        | Adds a “See Also” heading with a link or text entry that points to a reference | `@see string`<br>`@see <a href=”URL#value”>label</a>`<br>`@see package.class#member label`                                                                                                                         |
-| 5  | `@since`      | Adds a “Since” heading                                                         | Include the Gradle version if applicable                                                                                                                                                                           |
+| 4  | `@see`        | Adds a "See Also" heading with a link or text entry that points to a reference | `@see string`<br>`@see <a href="URL#value">label</a>`<br>`@see package.class#member label`                                                                                                                         |
+| 5  | `@since`      | Adds a "Since" heading                                                         | Include the Gradle version if applicable                                                                                                                                                                           |
 | 6  | `@deprecated` | Adds a comment indicating that this API should no longer be used               | Make sure to have an alternative API linked                                                                                                                                                                        |
-| 7  | `@apiSpec`    | Adds a “API Requirements” heading                                              | A description that applies equally to all valid implementations of the method, including preconditions, postconditions, etc                                                                                        |
-| 8  | `@apiNote`    | Adds a “API Note” heading                                                      | A commentary, rationale, or example pertaining to the API                                                                                                                                                          |
-| 9  | `@implSpec`   | Adds a “Implementation Requirements” heading                                   | This is where the default implementation (or an overrideable implementation in a class) is specified                                                                                                               |
-| 10 | `@implNote`   | Adds a “Implementation Note” heading                                           | This section contains informative notes about the implementation, such as advice to implementors, or performance characteristics that are specific to the implementation in this class of this version of the JDK  |
+| 7  | `@apiSpec`    | Adds a "API Requirements" heading                                              | A description that applies equally to all valid implementations of the method, including preconditions, postconditions, etc                                                                                        |
+| 8  | `@apiNote`    | Adds a "API Note" heading                                                      | A commentary, rationale, or example pertaining to the API                                                                                                                                                          |
+| 9  | `@implSpec`   | Adds a "Implementation Requirements" heading                                   | This is where the default implementation (or an overrideable implementation in a class) is specified                                                                                                               |
+| 10 | `@implNote`   | Adds a "Implementation Note" heading                                           | This section contains informative notes about the implementation, such as advice to implementors, or performance characteristics that are specific to the implementation in this class of this version of the JDK  |
 
 ## 1.2 The summary fragment
 
@@ -232,7 +232,17 @@ Your project must have a test class that extends [`AbstractAutoTestedSamplesTest
 At the minimum, Javadoc is present for every public type (including public inner types), and every public or protected member of such a type, with a few exceptions such as overrides and self-explanatory members:
 
 ```java
-public Image getImage(URL url, String name) {}
+/**
+ * Public Method that requires Javadoc
+ */
+public Image getImage(URL url, String name) {
+    // Method implementation
+}
+
+// Private Method that doesn't require Javadoc
+private Image getImage(URL url) {
+    // Method implementation
+}
 ```
 
 ## 1.5 A note on IDEs
@@ -241,19 +251,21 @@ public Image getImage(URL url, String name) {}
 
 IntelliJ IDEA will display `<p>` or an empty `*` as a new line:
 
-```java
+```text
 /**
  * A
  *
  * B
- ```
+ */
+```
 
-```java
+```text
 /**
  * A
  * <p>
  * B
- ```
+ */
+```
 
 Render as:
 
@@ -267,11 +279,12 @@ If you want to stop IntelliJ IDEA from auto closing HTML tags:
 
 ### 1.5.2 Android Studio
 
-Android studio will not display javadoc following a `<p>` so make sure your summary fragment is well detailed:
+Android studio will not display Javadoc following a `<p>` so make sure your summary fragment is well detailed:
 
-```java
+```text
 /**
  * A // Displayed
  * <p>
  * B // Not displayed
- ```
+ */
+```

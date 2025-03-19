@@ -137,10 +137,9 @@ This method is only meant to be called on configurations which allow the (non-de
 
     def "cannot add a dependency on a configuration role #role"() {
         given:
-        createDirs("a", "b")
         file('settings.gradle') << 'include "a", "b"'
-        buildFile << """
-        project(':a') {
+
+        file("a/build.gradle") << """
             configurations {
                 compile
             }
@@ -152,15 +151,14 @@ This method is only meant to be called on configurations which allow the (non-de
                 def files = configurations.compile
                 doLast { files.files }
             }
-        }
-        project(':b') {
+        """
+
+        file("b/build.gradle") << """
             configurations {
                 internal {
                     $code
                 }
             }
-        }
-
         """
 
         when:
@@ -177,10 +175,9 @@ This method is only meant to be called on configurations which allow the (non-de
 
     def "cannot depend on default configuration if it's not consumable (#role)"() {
         given:
-        createDirs("a", "b")
         file('settings.gradle') << 'include "a", "b"'
-        buildFile << """
-        project(':a') {
+
+        file("a/build.gradle") << """
             configurations {
                 compile
             }
@@ -192,15 +189,14 @@ This method is only meant to be called on configurations which allow the (non-de
                 def files = configurations.compile
                 doLast { files.files }
             }
-        }
-        project(':b') {
+        """
+
+        file("b/build.gradle") << """
             configurations {
                 'default' {
                     $code
                 }
             }
-        }
-
         """
 
         when:

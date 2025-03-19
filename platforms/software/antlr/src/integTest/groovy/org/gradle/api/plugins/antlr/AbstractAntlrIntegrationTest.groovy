@@ -23,33 +23,44 @@ abstract class AbstractAntlrIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         // So we can assert on which version of ANTLR is used at runtime
         executer.withArgument("-i")
-        buildFile << """
-            allprojects {
-                apply plugin: 'java'
-                ${mavenCentralRepository()}
-                tasks.withType(JavaCompile) {
-                    options.compilerArgs << "-proc:none"
-                }
-            }
-            project(":grammar-builder") {
-                apply plugin: "antlr"
 
-                dependencies {
-                    antlr '$antlrDependency'
-                }
-            }
-            project(":grammar-user") {
-
-                dependencies {
-                    implementation project(":grammar-builder")
-                }
-            }
-"""
-        createDirs("grammar-builder", "grammar-user")
-        settingsFile << """
+        settingsFile """
             include 'grammar-builder'
             include 'grammar-user'
-"""
+        """
+
+        buildFile "grammar-builder/build.gradle", """
+            plugins {
+                id("java")
+                id("antlr")
+            }
+
+            ${mavenCentralRepository()}
+
+            dependencies {
+                antlr '$antlrDependency'
+            }
+
+            tasks.withType(JavaCompile).configureEach {
+                options.compilerArgs << "-proc:none"
+            }
+        """
+
+        buildFile "grammar-user/build.gradle", """
+            plugins {
+                id("java")
+            }
+
+            ${mavenCentralRepository()}
+
+            dependencies {
+                implementation project(":grammar-builder")
+            }
+
+            tasks.withType(JavaCompile).configureEach {
+                options.compilerArgs << "-proc:none"
+            }
+        """
     }
 
     abstract String getAntlrDependency()

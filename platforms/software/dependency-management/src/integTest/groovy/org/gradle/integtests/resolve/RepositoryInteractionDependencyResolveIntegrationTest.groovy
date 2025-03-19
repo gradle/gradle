@@ -83,7 +83,7 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
         """
         repositories {
             ${isMaven ? 'maven' : 'ivy'} {
-                url "${repo.uri}"
+                url = "${repo.uri}"
                 metadataSources { ${gradleMetadata ? 'gradleMetadata()' : isMaven ? 'mavenPom()' : 'ivyDescriptor()'} }
             }
         }

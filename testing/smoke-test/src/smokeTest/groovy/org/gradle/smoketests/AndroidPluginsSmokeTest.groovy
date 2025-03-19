@@ -73,7 +73,11 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         def runner = agpRunner(agpVersion, 'sourceSets')
 
         when:
-        def result = runner.build()
+        def result = runner
+            .deprecations(AndroidDeprecations) {
+                expectIsPropertyDeprecationWarnings()
+            }
+            .build()
 
         then:
         result.task(':app:sourceSets').outcome == TaskOutcome.SUCCESS
@@ -101,10 +105,13 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
             'connectedDebugAndroidTest',
             "-Pandroid.injected.invoked.from.ide=$ide"
         )
-
         when: 'first build'
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(runner.projectDir, IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
-        def result = runner.build()
+        def result = runner
+            .deprecations(AndroidDeprecations) {
+                expectIsPropertyDeprecationWarnings()
+            }
+            .build()
 
         then:
         result.task(':app:compileDebugJavaWithJavac').outcome == TaskOutcome.SUCCESS
@@ -121,7 +128,11 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
 
         when: 'up-to-date build'
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(runner.projectDir, IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
-        result = runner.build()
+        result = runner
+            .deprecations(AndroidDeprecations) {
+                maybeExpectIsPropertyDeprecationWarnings()
+            }
+            .build()
 
         then:
         result.task(':app:compileDebugJavaWithJavac').outcome == TaskOutcome.UP_TO_DATE
@@ -346,23 +357,23 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
 
         """
             android {
-                compileSdkVersion 30
-                buildToolsVersion "${TestedVersions.androidTools}"
+                compileSdk = 30
+                buildToolsVersion = "${TestedVersions.androidTools}"
 
-                namespace "${appPackage}"
+                namespace = "${appPackage}"
                 defaultConfig {
-                    minSdkVersion 22
-                    targetSdkVersion 26
-                    versionCode 1
-                    versionName "1.0"
+                    minSdk = 22
+                    targetSdk = 26
+                    versionCode = 1
+                    versionName = "1.0"
                 }
                 compileOptions {
-                    sourceCompatibility JavaVersion.${targetJvm.name()}
-                    targetCompatibility JavaVersion.${targetJvm.name()}
+                    sourceCompatibility = JavaVersion.${targetJvm.name()}
+                    targetCompatibility = JavaVersion.${targetJvm.name()}
                 }
                 buildTypes {
                     release {
-                        minifyEnabled false
+                        minifyEnabled = false
                     }
                 }
             }
@@ -396,8 +407,8 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
             buildFile << """
                 android {
                     namespace = "org.gradle.android.example.app"
-                    compileSdkVersion 24
-                    buildToolsVersion '${TestedVersions.androidTools}'
+                    compileSdk = 24
+                    buildToolsVersion = '${TestedVersions.androidTools}'
                 }
             """
         }

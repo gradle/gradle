@@ -28,7 +28,7 @@ class EclipseTestConfigurationsWithExternalDependenciesIntegrationTest extends A
             }
 
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
         """
     }

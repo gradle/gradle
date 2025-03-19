@@ -123,7 +123,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         buildFile << """
             apply plugin: 'cpp-application'
             application.binaries.get { it.optimized }.configure {
-                compileTask.get().macros(WITH_FEATURE: "true")
+                compileTask.get().setMacros(WITH_FEATURE: "true")
             }
          """
 
@@ -700,13 +700,13 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
                     implementation project(':hello')
                 }
                 application.binaries.get { it.optimized }.configure {
-                    compileTask.get().macros(WITH_FEATURE: "true")
+                    compileTask.get().setMacros(WITH_FEATURE: "true")
                 }
             }
             project(':hello') {
                 apply plugin: 'cpp-library'
                 library.binaries.get { it.optimized }.configure {
-                    compileTask.get().macros(WITH_FEATURE: "true")
+                    compileTask.get().setMacros(WITH_FEATURE: "true")
                 }
             }
         """

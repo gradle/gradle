@@ -74,6 +74,7 @@ public class BinarySourceTransformations {
 
                 final SourceTransformTaskConfig taskConfig = languageTransform.getTransformTask();
                 String taskName = getTransformTaskName(languageTransform, taskConfig, binary, sourceSetToCompile);
+                @SuppressWarnings("deprecation")
                 Task task = tasks.create(taskName, taskConfig.getTaskType());
                 taskConfig.configureTask(task, binary, sourceSetToCompile, serviceRegistry);
 

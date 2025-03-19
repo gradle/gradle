@@ -22,7 +22,7 @@ import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.SwiftApp
 
-@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_5_OR_OLDER)
+@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 class SwiftToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     def setup() {

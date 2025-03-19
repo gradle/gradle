@@ -1,5 +1,5 @@
 // tag::using-root-dir-property[]
-File configFile = file("$rootDir/shared/config.xml")
+File configFile = layout.settingsDirectory.file("shared/config.xml").asFile
 // end::using-root-dir-property[]
 
 tasks.register('checkConfigFile') {

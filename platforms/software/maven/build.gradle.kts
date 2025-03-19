@@ -1,6 +1,5 @@
 plugins {
     id("gradlebuild.distribution.api-java")
-    id("gradlebuild.instrumented-java-project")
 }
 
 description = "Implementation of the Maven Publish Plugin that provides the ability to publish build artifacts to Maven repositories."
@@ -28,7 +27,7 @@ dependencies {
 
     api(libs.guava)
     api(libs.inject)
-    api(libs.jsr305)
+    api(libs.jspecify)
     api(libs.maven3Model) {
         because("We use the metadata model classes to create POM metadata files for components")
     }

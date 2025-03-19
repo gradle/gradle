@@ -22,8 +22,8 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.util.internal.CollectionUtils;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;

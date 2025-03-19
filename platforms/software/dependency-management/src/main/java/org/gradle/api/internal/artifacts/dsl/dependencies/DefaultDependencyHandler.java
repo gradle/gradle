@@ -59,8 +59,8 @@ import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.metaobject.MethodAccess;
 import org.gradle.internal.metaobject.MethodMixIn;
 import org.gradle.util.internal.ConfigureUtil;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.Map;
 
@@ -324,7 +324,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
 
     @Override
     public ArtifactTypeContainer getArtifactTypes() {
-        return artifactTypeContainer.create();
+        return artifactTypeContainer.getArtifactTypeContainer();
     }
 
     @Override
@@ -409,6 +409,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
         return dependencyProvider.map(dep -> {
             DefaultExternalModuleDependencyVariantSpec spec = objects.newInstance(DefaultExternalModuleDependencyVariantSpec.class, objects, dep);
             variantSpec.execute(spec);
+            // TODO: We "lose" endorsingStrictVersions here. We should copy that over to the returned variant.
             return new DefaultMinimalDependencyVariant(dep, spec.attributesAction, spec.capabilitiesMutator, spec.classifier, spec.artifactType);
         });
     }

@@ -56,8 +56,8 @@ import org.gradle.normalization.InputNormalizationHandler;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
 import org.gradle.process.JavaExecSpec;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.net.URI;
 import java.util.List;
@@ -467,7 +467,10 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param name The name of the task to be created
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
+     *
+     * @deprecated Use {@link TaskContainer#register(String) tasks.register(String)} instead
      */
+    @Deprecated
     Task task(String name) throws InvalidUserDataException;
 
     /**
@@ -510,7 +513,10 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param name The name of the task to be created
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
+     *
+     * @deprecated Use a {@link TaskContainer#register(String, Class, Action) tasks.register} variant instead
      */
+    @Deprecated
     Task task(Map<String, ?> args, String name) throws InvalidUserDataException;
 
     /**
@@ -529,7 +535,10 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param configureClosure The closure to use to configure the created task.
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
+     *
+     * @deprecated Use a {@link TaskContainer#register(String, Class, Action) tasks.register} variant instead
      */
+    @Deprecated
     Task task(Map<String, ?> args, String name, Closure configureClosure);
 
     /**
@@ -542,7 +551,10 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param configureClosure The closure to use to configure the created task.
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
+     *
+     * @deprecated Use {@link TaskContainer#register(String, Action) tasks.register(String, Action)} instead
      */
+    @Deprecated
     Task task(String name, @DelegatesTo(Task.class) Closure configureClosure);
 
     /**
@@ -557,7 +569,10 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
      * @see TaskContainer#create(String, Action)
      * @since 4.10
+     *
+     * @deprecated Use {@link TaskContainer#register(String, Action) tasks.register(String, Action)} instead
      */
+    @Deprecated
     Task task(String name, Action<? super Task> configureAction);
 
     /**
@@ -1003,7 +1018,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @see org.gradle.api.provider.ProviderFactory#provider(Callable)
      * @since 4.0
      */
-    <T> Provider<T> provider(Callable<? extends @org.jetbrains.annotations.Nullable T> value);
+    <T> Provider<T> provider(Callable<? extends @Nullable T> value);
 
     /**
      * Provides access to methods to create various kinds of {@link Provider} instances.

@@ -22,18 +22,18 @@ class JavaClassUtilTest extends Specification {
 
     def "can extract java class file major version"() {
         expect:
-        JavaClassUtil.getClassMajorVersion(JavaClassUtil.class) == 50
+        JavaClassUtil.getClassMajorVersion(JavaClassUtil.class) == 52
     }
 
     def "can extract java class name major version"() {
         expect:
-        JavaClassUtil.getClassMajorVersion(JavaClassUtil.class.getName(), JavaClassUtil.getClassLoader()) == 50
+        JavaClassUtil.getClassMajorVersion(JavaClassUtil.class.getName(), JavaClassUtil.getClassLoader()) == 52
     }
 
     def "can extract java class input stream major version"() {
         expect:
         def stream = JavaClassUtil.getClassLoader().getResourceAsStream(JavaClassUtil.getName().replace(".", "/") + ".class")
-        JavaClassUtil.getClassMajorVersion(stream) == 50
+        JavaClassUtil.getClassMajorVersion(stream) == 52
     }
 
 }

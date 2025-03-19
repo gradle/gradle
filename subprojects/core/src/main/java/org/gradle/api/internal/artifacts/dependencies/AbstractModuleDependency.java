@@ -36,8 +36,8 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.typeconversion.NotationParser;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -61,10 +61,6 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
     private String configuration;
     private boolean transitive = true;
     private boolean endorsing;
-
-    protected AbstractModuleDependency(@Nullable String configuration) {
-        this.configuration = configuration;
-    }
 
     @Override
     public boolean isTransitive() {
@@ -168,6 +164,9 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
             target.moduleDependencyCapabilities = moduleDependencyCapabilities.copy();
         }
         target.endorsing = endorsing;
+        if (configuration != null) {
+            target.setTargetConfiguration(configuration);
+        }
     }
 
     protected boolean isKeyEquals(ModuleDependency dependencyRhs) {

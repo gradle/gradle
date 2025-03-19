@@ -32,7 +32,7 @@ import org.gradle.internal.component.external.model.AbstractRealisedModuleCompon
 import org.gradle.internal.component.external.model.AdditionalVariant;
 import org.gradle.internal.component.external.model.ComponentVariant;
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata;
-import org.gradle.internal.component.external.model.ExternalVariantGraphResolveMetadata;
+import org.gradle.internal.component.external.model.ExternalModuleVariantGraphResolveMetadata;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.external.model.LazyToRealisedModuleComponentResolveMetadataHelper;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
@@ -46,8 +46,8 @@ import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ModuleConfigurationMetadata;
 import org.gradle.internal.component.model.ModuleSources;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -256,7 +256,7 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
     }
 
     @Override
-    protected Optional<List<? extends ExternalVariantGraphResolveMetadata>> maybeDeriveVariants() {
+    protected Optional<List<? extends ExternalModuleVariantGraphResolveMetadata>> maybeDeriveVariants() {
         return Optional.of(getDerivedVariants());
     }
 

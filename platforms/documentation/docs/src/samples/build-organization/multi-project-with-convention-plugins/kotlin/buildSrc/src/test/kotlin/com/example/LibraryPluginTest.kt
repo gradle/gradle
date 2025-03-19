@@ -45,7 +45,7 @@ class LibraryPluginTest : PluginTest() {
                 repositories {
                     maven {
                         name = "testRepo"
-                        url = uri("build/test-repo")
+                        url = layout.buildDirectory.dir("test-repo")
                     }
                 }
             }

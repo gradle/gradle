@@ -16,8 +16,7 @@
 package org.gradle.api.publish.maven;
 
 import org.gradle.internal.HasInternalProtocol;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A dependency declared as part of an {@link MavenPublication}.

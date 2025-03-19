@@ -19,8 +19,8 @@ package org.gradle.internal;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.specs.Spec;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -216,6 +216,7 @@ public abstract class Actions {
         };
     }
 
+    @SuppressWarnings("unchecked")
     public static <T> Action<T> set(Action<T>... actions) {
         return ImmutableActionSet.of(actions);
     }

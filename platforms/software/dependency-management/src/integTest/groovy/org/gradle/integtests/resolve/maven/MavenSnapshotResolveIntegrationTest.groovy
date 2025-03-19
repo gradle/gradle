@@ -71,7 +71,7 @@ dependencies {
         given:
         buildFile << """
 repositories {
-    maven { url "${repo2.uri}" }
+    maven { url = "${repo2.uri}" }
 }
 
 dependencies {
@@ -131,7 +131,7 @@ task retrieve(type: Sync) {
 repositories.clear() // Do not use default repo
 repositories {
     maven {
-        url "${repo1.uri}"
+        url = "${repo1.uri}"
         artifactUrls "${repo2.uri}"
     }
 }
@@ -494,38 +494,42 @@ task retrieve(type: Sync) {
         def module = publishModule("org.gradle.integtests.resolve", "testproject", "1.0-SNAPSHOT")
 
         and:
-        createDirs("a", "b")
         settingsFile << """
-include 'a', 'b'
-"""
+            include 'a', 'b'
+            dependencyResolutionManagement {
+                repositories {
+                    maven { url = "${mavenHttpRepo.uri}" }
+                }
+            }
+        """
+        def common = """
+            configurations { compile }
+
+            configurations.all {
+                resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+            }
+
+            dependencies {
+                compile "org.gradle.integtests.resolve:testproject:1.0-SNAPSHOT"
+            }
+
+            task retrieve(type: Sync) {
+                into 'build'
+                from configurations.compile
+            }
+        """
+
         buildFile << """
-subprojects {
-    repositories {
-        maven { url "${mavenHttpRepo.uri}" }
-    }
+            $common
 
-    configurations { compile }
-}
+            //imposing an artificial order so that the parallel build retrieves sequentially, GRADLE-2788
+            retrieve.dependsOn ":a:retrieve"
+            tasks.getByPath(":a:retrieve").dependsOn ":b:retrieve"
+        """
 
-allprojects {
-    configurations.all {
-        resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
-    }
+        file("a/build.gradle") << common
+        file("b/build.gradle") << common
 
-    dependencies {
-        compile "org.gradle.integtests.resolve:testproject:1.0-SNAPSHOT"
-    }
-
-    task retrieve(type: Sync) {
-        into 'build'
-        from configurations.compile
-    }
-}
-
-//imposing an artificial order so that the parallel build retrieves sequentially, GRADLE-2788
-retrieve.dependsOn ":a:retrieve"
-tasks.getByPath(":a:retrieve").dependsOn ":b:retrieve"
-"""
         when: "Module is requested once"
         expectModuleServed(module)
 
@@ -557,7 +561,7 @@ tasks.getByPath(":a:retrieve").dependsOn ":b:retrieve"
 
         and:
         def module = publishModule(mavenHttpRepo, "group", "projectA", "1.1-SNAPSHOT", false)
-        // Set the last modified to something that's not going to be anything “else”.
+        // Set the last modified to something that's not going to be anything "else".
         // There are lots of dates floating around in a resolution and we want to make
         // sure we use this.
         module.artifactFile.setLastModified(2000)
@@ -867,7 +871,7 @@ task retrieve(type: Sync) {
 repositories.clear() // Not using default repo
 repositories {
     maven {
-        url "${fileRepo.uri}"
+        url = "${fileRepo.uri}"
     }
 }
 
@@ -1031,7 +1035,7 @@ Required by:
 repositories.clear()
 repositories {
     maven {
-      url "${mavenHttpRepo.uri}"
+      url = "${mavenHttpRepo.uri}"
       metadataSources {
           ${metadataSources.code}
       }

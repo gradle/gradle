@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.file.archive;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 import java.io.Closeable;
 import java.io.File;
 
@@ -35,6 +38,7 @@ import java.io.File;
  * There currently are no checks on modifications to files in the expanded directory. This can cause problems if the expanded directory is used
  * by multiple tasks and each task expects different modifications to be made to the extracted files.
  */
+@ServiceScope(Scope.BuildSession.class)
 public interface DecompressionCoordinator extends Closeable {
 
     /**

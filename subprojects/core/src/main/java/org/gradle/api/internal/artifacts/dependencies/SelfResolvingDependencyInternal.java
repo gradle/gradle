@@ -17,8 +17,7 @@
 package org.gradle.api.internal.artifacts.dependencies;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Used by Kotlin here:

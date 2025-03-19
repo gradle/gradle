@@ -68,6 +68,9 @@ public class GradleBuildDocumentationPlugin implements Plugin<Project> {
             // release notes goes in the root of the docs
             task.from(extension.getReleaseNotes().getRenderedDocumentation());
 
+            // release notes assets go into $root/$assetsName/
+            task.from(extension.getReleaseNotes().getReleaseNotesAssets(), sub -> sub.into(extension.getReleaseNotes().getReleaseNotesAssets().map(dir -> dir.getAsFile().getName())));
+
             // DSL reference goes into dsl/
             task.from(extension.getDslReference().getRenderedDocumentation(), sub -> sub.into("dsl"));
 

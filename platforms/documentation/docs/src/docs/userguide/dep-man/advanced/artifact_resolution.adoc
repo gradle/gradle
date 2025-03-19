@@ -1,0 +1,386 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[artifact-resolution]]
+= Artifact Resolution
+
+After constructing a dependency graph, Gradle performs *artifact resolution*, mapping the resolved graph to a set of artifacts that will be downloaded during the build.
+
+== Artifacts
+
+An *artifact* is a file that is produced or consumed during the build process.
+*Artifacts* are typically files such as compiled libraries, JAR files, AAR files, DLLs, or ZIPs.
+
+Let's look at the *metadata* for `org.jetbrains.kotlin:kotlin-stdlib:1.8.10` which showcases several *variants* and *artifacts*:
+
+[source,json]
+.kotlin-stdlib-1.8.10.module
+----
+{
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": "8",
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "files": [
+        {
+          "name": "kotlin-stdlib-1.8.10-public.jar"
+        },
+        {
+          "name": "kotlin-stdlib-1.8.10-private.jar"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": "8",
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "kotlin-stdlib-1.8.10.jar"
+        }
+      ]
+    },
+    {
+      "name": "jdk7ApiElements",
+      "attributes": {
+        "org.gradle.usage": "java-api",
+        "org.gradle.jvm.version": "7"
+      },
+      "files": [
+        {
+          "name": "kotlin-stdlib-jdk7-1.8.10.jar"
+        }
+      ]
+    },
+    {
+      "name": "jdk8ApiElements",
+      "attributes": {
+        "org.gradle.usage": "java-api",
+        "org.gradle.jvm.version": "8"
+      },
+      "files": [
+        {
+          "name": "kotlin-stdlib-jdk8-1.8.10.jar"
+        }
+      ]
+    }
+  ]
+}
+----
+
+As we can see there are a number of *artifacts* available in the *metadata*:
+
+[cols="1,1"]
+|===
+| Variant | Artifact(s) | Purpose
+
+| `apiElements`
+| `kotlin-stdlib-1.8.10-public.jar`, `kotlin-stdlib-1.8.10-private.jar`
+| Standard Kotlin runtime (default).
+
+| `runtimeElements`
+| `kotlin-stdlib-jdk7-1.8.10.jar`
+| Provides additional APIs for Java 7 compatibility.
+
+| `jdk7ApiElements`
+| `kotlin-stdlib-jdk8-1.8.10.jar`
+| Provides additional APIs for Java 8 compatibility.
+
+| `jdk8ApiElements`
+| `kotlin-stdlib-common-1.8.10.jar`
+| Shared standard library for Kotlin Multiplatform.
+|===
+
+Typically, once a *variant* is selected, its associated *artifacts* can be automatically resolved.
+However, there are specific reasons why *artifact* selection still happens _after_ *variant* selection.
+
+For example, what if the metadata for `org.jetbrains.kotlin:kotlin-stdlib:1.8.10` looked like this:
+
+[source,json]
+.kotlin-stdlib-1.8.10.module
+----
+{
+  "variants": [
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": "8",
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "kotlin-stdlib-1.8.10.jar"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": "8",
+        "org.gradle.libraryelements": "classes",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "build/classes/java/main/"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": "8",
+        "org.gradle.libraryelements": "resources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "build/resources/main/"
+        }
+      ]
+    }
+  ]
+}
+
+----
+
+How would Gradle know which file to download?
+
+== Artifact Sets
+
+An *artifact set* is a group of *artifacts* that belong to a single *variant* of a *module*.
+
+A single *variant* can include multiple *artifact sets*, each serving a different purpose.
+
+Let's look at the `org.jetbrains.kotlin:kotlin-stdlib:1.8.10` example:
+
+[cols="2,1,~"]
+|===
+| Variant | Set | Artifacts in the Set
+
+| `apiElements`
+| 1
+| jar → The packaged library JAR (`kotlin-stdlib-1.8.10.jar`)
+
+|
+| 2
+| tar → The packaged library TAR (`kotlin-stdlib-1.8.10.tar`)
+
+| `runtimeElements`
+| 1
+| jar → The packaged library JAR (`kotlin-stdlib-1.8.10.jar`)
+
+|
+| 2
+| classes → The compiled .class files (`build/classes/java/main/`)
+
+|
+| 3
+| resources → The associated resource files (`build/resources/main/`)
+
+| `jdk8ApiElements`
+| 1
+| jar → The packaged library JAR (`kotlin-stdlib-jdk8-1.8.10.jar`)
+
+| `jdk7ApiElements`
+| 1
+| jar → The packaged library JAR (`kotlin-stdlib-jdk7-1.8.10.jar`)
+|===
+
+The `apiElements` *variant* of `org.jetbrains.kotlin:kotlin-stdlib:1.8.10` provides two *artifact sets*—`jar`, and `tar`—each representing the same distributable in a different form.
+The `runtimeElements` *variant* of `org.jetbrains.kotlin:kotlin-stdlib:1.8.10` provides three *artifact sets*—`jar`, `classes`, and `resources`—each representing the same distributable in a different form.
+
+Gradle must now follow a specific process to determine the most appropriate *artifact set* for the build.
+
+[[sec:artifact-selection]]
+== Artifact Resolution Flow
+
+*Artifact selection* operates on the dependency graph on a __node-by-node__ basis.
+
+Each _node_ (i.e., *variant*) in the graph may expose multiple sets of *artifacts*, but only one of those sets may be selected.
+
+image::dep-man-adv-4.png[]
+
+For each _node_, or *variant*, in a graph, Gradle performs *attribute* matching over each set of *artifacts* exposed by that _node_ to determine the best *artifact set*.
+
+If no *artifact sets* match the requested *attributes*, Gradle will attempt to construct an <<artifact_transforms.adoc#artifact-transforms,artifact transform>> chain to satisfy the request.
+
+For more details on the *attribute* matching process, see the previous <<variant_aware_resolution.adoc#sec:understanding-variant-selection,section>>.
+
+== Available APIs
+
+Gradle APIs can be used to influence the process of *artifact selection*.
+
+Gradle can then expose the results of artifact selection as an `ArtifactCollection`.
+More commonly, the results are exposed as a `FileCollection`, which is a flat list of files.
+
+[[sec:implicit-artifact-selection]]
+=== Implicit Artifact Selection
+
+By default, the *attributes* used for *artifact* selection are the same as those used for *variant* selection during graph resolution.
+These *attributes* are specified by the link:{javadocPath}/org/gradle/api/attributes/HasAttributes.html#getAttributes()[`Configuration.getAttributes()`] property.
+
+To perform *artifact* selection (and implicitly, graph resolution) using these default *attributes*, use the `FileCollection` and `ArtifactCollection` APIs.
+
+NOTE: Files can also be accessed from the configuration's `ResolvedConfiguration`, `LenientConfiguration`, `ResolvedArtifact` and `ResolvedDependency` APIs.
+However, these APIs are in maintenance mode and are discouraged for use in new development.
+These APIs perform artifact selection using the default attributes.
+
+==== Resolving files
+
+To resolve files, we first define a task that accepts a `ConfigurableFileCollection` as input:
+
+====
+include::sample[dir="snippets/dependencyManagement/performingResolution-artifactResolution/kotlin",files="build.gradle.kts[tags=file-resolution-task]"]
+include::sample[dir="snippets/dependencyManagement/performingResolution-artifactResolution/groovy",files="build.gradle[tags=file-resolution-task]"]
+====
+
+Then, we can wire up a resolvable configuration's files to the task's input.
+The `Configuration` directly implements `FileCollection` and can be wired directly:
+
+====
+include::sample[dir="snippets/dependencyManagement/performingResolution-artifactResolution/kotlin",files="build.gradle.kts[tags=implicit-file-resolution]"]
+include::sample[dir="snippets/dependencyManagement/performingResolution-artifactResolution/groovy",files="build.gradle[tags=implicit-file-resolution]"]
+====
+
+Running the `resolveConfiguration` task produces:
+
+----
+include::{snippetsPath}/dependencyManagement/performingResolution-artifactResolution/tests/resolve-files.out[]
+----
+
+==== Resolving artifacts
+
+Instead of consuming the files directly from the implicit *artifact* selection process, we can consume the *artifacts*, which contain both the files and the metadata.
+
+This process is slightly more complicated, as in order to maintain Configuration Cache compatibility, we need to split the fields of `ResolvedArtifactResult` into two task inputs:
+
+====
+include::sample[dir="snippets/dependencyManagement/performingResolution-artifactResolution/kotlin",files="build.gradle.kts[tags=artifact-resolution-task]"]
+include::sample[dir="snippets/dependencyManagement/performingResolution-artifactResolution/groovy",files="build.gradle[tags=artifact-resolution-task]"]
+====
+
+This task is initialized similarly to the file resolution task:
+
+====
+include::sample[dir="snippets/dependencyManagement/performingResolution-artifactResolution/kotlin",files="build.gradle.kts[tags=implicit-artifact-resolution]"]
+include::sample[dir="snippets/dependencyManagement/performingResolution-artifactResolution/groovy",files="build.gradle[tags=implicit-artifact-resolution]"]
+====
+
+Running this task, we can see that file metadata is included in the output:
+
+----
+include::{snippetsPath}/dependencyManagement/performingResolution-artifactResolution/tests/resolve-artifacts.out[]
+----
+
+[[sec:customizing-artifact-selection]]
+=== Custom Artifact Selection
+
+The link:{javadocPath}/org/gradle/api/artifacts/ArtifactView.html[`ArtifactView`] API operates on top of the resolved graph, defined by a {javadocPath}/org/gradle/api/artifacts/result/ResolutionResult.html[`ResolutionResult`].
+
+The API provides flexible ways to access the resolved artifacts:
+
+- link:{javadocPath}/org/gradle/api/file/FileCollection.html[`FileCollection`] - A flat list of files, which is the most commonly way to work with resolved artifacts.
+- link:{javadocPath}/org/gradle/api/artifacts/ArtifactCollection.html[`ArtifactCollection`] - Offers access to both the metadata and the files of resolved artifacts, allowing for more advanced artifact handling.
+
+When you call a configuration's `getFiles()`, Gradle selects *artifacts* based on the *attributes* used during _graph resolution_.
+However, the  `ArtifactView` API is more flexible.
+It allows you to resolve *artifacts* from the graph with _custom_ *attributes*.
+
+=== Artifact views
+
+An `ArtifactView` allows you to:
+
+1. *Query artifacts with different attributes*:
+* Suppose the graph resolved a dependency's `runtime` *variant*. You can use an `ArtifactView` to extract artifacts from its `api` *variant* instead, even if they weren't originally part of the resolved graph.
+2. *Extract specific types of artifacts*:
+* You can request only the `.jar` files or a specific *artifact* type (e.g., sources, Javadoc) by specifying an attribute like `artifactType`.
+3. *Avoid side effects*:
+* Using an `ArtifactView` allows you to extract artifacts without changing the underlying dependency resolution logic or configuration state.
+
+In the following example, a _producer_ project creates a library with typical Java library *variants* (`runtimeElements`, `apiElements`).
+We also create a custom *variant* called `apiProductionElements` with the artifact `production.jar` and attribute `org.gradle.category:production`:
+
+====
+include::sample[dir="snippets/dependencyManagement/artifactViews-simple/kotlin",files="producer/build.gradle.kts[tags=artifact-views-lib]"]
+include::sample[dir="snippets/dependencyManagement/artifactViews-simple/groovy",files="producer/build.gradle[tags=artifact-views-lib]"]
+====
+
+We can view the available *variants* of this library as well as their corresponding *artifacts* and *attributes* with a custom task called `checkProducerAttributes`.
+Here is an abridged output showing the relevant *variants* of this library, along with their corresponding *artifacts* and *attributes*:
+----
+include::{snippetsPath}/dependencyManagement/artifactViews-simple/tests/producer-attributes.out[]
+----
+
+A Java application is a consumer of this Java library:
+
+====
+include::sample[dir="snippets/dependencyManagement/artifactViews-simple/kotlin",files="consumer/build.gradle.kts[tags=artifact-views-app]"]
+include::sample[dir="snippets/dependencyManagement/artifactViews-simple/groovy",files="consumer/build.gradle[tags=artifact-views-app]"]
+====
+
+By default, the application, as the consumer, will consume the expected *variant* when it is run.
+We can verify this with another custom task called `checkResolvedVariant` that prints out the following:
+
+----
+include::{snippetsPath}/dependencyManagement/artifactViews-simple/tests/consumer-attributes.out[]
+----
+
+As expected, for the `runtimeClasspath`, the application consumes the `runtimeElements` *variant* of the library which is available as the *artifact* `producer.jar`.
+It uses the *attributes* `org.gradle.category:library` and `org.gradle.usage:java-runtime` to select this *variant*.
+
+Now, let's create an `ArtifactView` to select one of the other *artifacts* provided by the library.
+We do this by using an `ArtifactView` with the *attribute* `org.gradle.category:classes` so that instead of the jar file, we get the sources:
+
+====
+include::sample[dir="snippets/dependencyManagement/artifactViews-simple/kotlin",files="consumer/build.gradle.kts[tags=artifact-views-sel]"]
+include::sample[dir="snippets/dependencyManagement/artifactViews-simple/groovy",files="consumer/build.gradle[tags=artifact-views-sel]"]
+====
+
+We run the task `artifactWithAttributeAndView` to see that we get the main *artifact* instead:
+
+----
+include::{snippetsPath}/dependencyManagement/artifactViews-simple/tests/artifactview-attributes.out[]
+----
+
+Now, let's create an `ArtifactView` to select our custom *variant* `apiProductionElements` by specifying the attribute `org.gradle.category:production` and forcing Gradle to reselect a new *variant*:
+
+====
+include::sample[dir="snippets/dependencyManagement/artifactViews-simple/kotlin",files="consumer/build.gradle.kts[tags=artifact-views-resel]"]
+include::sample[dir="snippets/dependencyManagement/artifactViews-simple/groovy",files="consumer/build.gradle[tags=artifact-views-resel]"]
+====
+
+As expected, the `apiProductionElements` variant is selected along with the `production.jar` artifact:
+
+----
+include::{snippetsPath}/dependencyManagement/artifactViews-simple/tests/artifactview-attributes.out[]
+----

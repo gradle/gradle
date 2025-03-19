@@ -20,8 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.internal.HasInternalProtocol;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Allows adding 'namespaced' DSL extensions to a target object.
@@ -233,7 +232,7 @@ public interface ExtensionContainer {
     /**
      * The extra properties extension in this extension container.
      *
-     * This extension is always present in the container, with the name “ext”.
+     * This extension is always present in the container, with the name "ext".
      *
      * @return The extra properties extension in this extension container.
      */

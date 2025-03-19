@@ -21,16 +21,16 @@ import org.apache.sshd.common.NamedFactory
 import org.apache.sshd.common.file.virtualfs.VirtualFileSystemFactory
 import org.apache.sshd.common.keyprovider.AbstractKeyPairProvider
 import org.apache.sshd.common.session.SessionContext
-import org.apache.sshd.server.channel.ChannelSession
-import org.apache.sshd.sftp.common.SftpConstants
 import org.apache.sshd.common.util.buffer.Buffer
 import org.apache.sshd.common.util.buffer.ByteArrayBuffer
+import org.apache.sshd.scp.server.ScpCommandFactory
 import org.apache.sshd.server.SshServer
 import org.apache.sshd.server.auth.password.PasswordAuthenticator
 import org.apache.sshd.server.auth.pubkey.PublickeyAuthenticator
+import org.apache.sshd.server.channel.ChannelSession
 import org.apache.sshd.server.command.Command
-import org.apache.sshd.scp.server.ScpCommandFactory
 import org.apache.sshd.server.session.ServerSession
+import org.apache.sshd.sftp.common.SftpConstants
 import org.apache.sshd.sftp.server.SftpSubsystem
 import org.apache.sshd.sftp.server.SftpSubsystemConfigurator
 import org.apache.sshd.sftp.server.SftpSubsystemFactory
@@ -269,8 +269,8 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
     String getValidCredentials() {
         return """
             credentials {
-                username 'sftp'
-                password 'sftp'
+                username = 'sftp'
+                password = 'sftp'
             }
         """
     }

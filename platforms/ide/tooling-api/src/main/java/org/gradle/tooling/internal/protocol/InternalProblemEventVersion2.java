@@ -16,9 +16,9 @@
 
 package org.gradle.tooling.internal.protocol;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.tooling.internal.protocol.events.InternalProgressEvent;
 import org.gradle.tooling.internal.protocol.problem.InternalProblemDetailsVersion2;
+import org.jspecify.annotations.NullMarked;
 
 
 /**
@@ -26,7 +26,7 @@ import org.gradle.tooling.internal.protocol.problem.InternalProblemDetailsVersio
  *
  * since 8.8
  */
-@NonNullApi
+@NullMarked
 public interface InternalProblemEventVersion2 extends InternalProgressEvent {
 
     InternalProblemDetailsVersion2 getDetails();

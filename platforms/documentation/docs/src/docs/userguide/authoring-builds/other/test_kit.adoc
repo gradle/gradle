@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Gradle, Inc.
+// Copyright (C) 2024 Gradle, Inc.
 //
 // Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ include::sample[dir="snippets/testKit/junitQuickstart/kotlin",files="build.gradl
 include::sample[dir="snippets/testKit/junitQuickstart/groovy",files="build.gradle[tags=declare-gradle-testkit-dependency]"]
 ====
 
-The `gradleTestKit()` encompasses the classes of the TestKit, as well as the <<third_party_integration.adoc#embedding,Gradle Tooling API client>>. It does not include a version of https://junit.org[JUnit], https://testng.org[TestNG], or any other test execution framework. Such a dependency must be explicitly declared.
+The `gradleTestKit()` encompasses the classes of the TestKit, as well as the <<tooling_api.adoc#embedding,Gradle Tooling API client>>. It does not include a version of https://junit.org[JUnit], https://testng.org[TestNG], or any other test execution framework. Such a dependency must be explicitly declared.
 
 .Declaring the JUnit dependency
 ====
@@ -41,7 +41,7 @@ include::sample[dir="snippets/testKit/junitQuickstart/groovy",files="build.gradl
 
 The link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html[GradleRunner] facilitates programmatically executing Gradle builds, and inspecting the result.
 
-A contrived build can be created (e.g. programmatically, or from a template) that exercises the “logic under test”. The build can then be executed, potentially in a variety of ways (e.g. different combinations of tasks and arguments). The correctness of the logic can then be verified by asserting the following, potentially in combination:
+A contrived build can be created (e.g. programmatically, or from a template) that exercises the "logic under test". The build can then be executed, potentially in a variety of ways (e.g. different combinations of tasks and arguments). The correctness of the logic can then be verified by asserting the following, potentially in combination:
 
 * The build's output;
 * The build's logging (i.e. console output);
@@ -78,12 +78,12 @@ It is a common practice to implement any custom build logic (like plugins and ta
 [[sub:test-kit-classpath-injection]]
 == Getting the plugin-under-test into the test build
 
-The GradleRunner uses the <<third_party_integration.adoc#embedding,Tooling API>> to execute builds. An implication of this is that the builds are executed in a separate process (i.e. not the same process executing the tests). Therefore, the test build does not share the same classpath or classloaders as the test process and the code under test is not implicitly available to the test build.
+The GradleRunner uses the <<tooling_api.adoc#embedding,Tooling API>> to execute builds. An implication of this is that the builds are executed in a separate process (i.e. not the same process executing the tests). Therefore, the test build does not share the same classpath or classloaders as the test process and the code under test is not implicitly available to the test build.
 
 [NOTE]
 ====
 GradleRunner supports the same range of Gradle versions as the Tooling API.
-The supported versions are defined in the <<third_party_integration.adoc#sec:embedding_compatibility,compatibility matrix>>.
+The supported versions are defined in the <<tooling_api.adoc#sec:embedding_compatibility,compatibility matrix>>.
 
 Builds with older Gradle versions _may_ still work but there are no guarantees.
 ====
@@ -210,11 +210,11 @@ The following table lists the features that are sensitive to the Gradle version 
 [[sub:test-kit-debug]]
 == Debugging build logic
 
-The runner uses the <<third_party_integration.adoc#embedding,Tooling API>> to execute builds. An implication of this is that the builds are executed in a separate process (i.e. not the same process executing the tests). Therefore, executing your _tests_ in debug mode does not allow you to debug your build logic as you may expect. Any breakpoints set in your IDE will be not be tripped by the code being exercised by the test build.
+The runner uses the <<tooling_api.adoc#embedding,Tooling API>> to execute builds. An implication of this is that the builds are executed in a separate process (i.e. not the same process executing the tests). Therefore, executing your _tests_ in debug mode does not allow you to debug your build logic as you may expect. Any breakpoints set in your IDE will be not be tripped by the code being exercised by the test build.
 
 The TestKit provides two different ways to enable the debug mode:
 
-* Setting “`org.gradle.testkit.debug`” system property to `true` for the JVM _using_ the `GradleRunner` (i.e. not the build being executed with the runner);
+* Setting "`org.gradle.testkit.debug`" system property to `true` for the JVM _using_ the `GradleRunner` (i.e. not the build being executed with the runner);
 * Calling the link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#withDebug-boolean-[GradleRunner.withDebug(boolean)] method.
 
 The system property approach can be used when it is desirable to enable debugging support without making an adhoc change to the runner configuration. Most IDEs offer the capability to set JVM system properties for test execution, and such a feature can be used to set this system property.

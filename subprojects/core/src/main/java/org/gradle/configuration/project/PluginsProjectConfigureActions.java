@@ -31,7 +31,7 @@ public class PluginsProjectConfigureActions implements ProjectConfigureAction, I
     public static <T extends Action<ProjectInternal>> ProjectConfigureAction of(Class<T> serviceType,
                                                                                 ServiceLocator serviceLocator) {
         return new PluginsProjectConfigureActions(
-            ImmutableList.<Action<ProjectInternal>>copyOf(
+            ImmutableList.copyOf(
                 serviceLocator.getAll(serviceType)));
     }
 

@@ -28,17 +28,6 @@ class PlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
 
     def setup() {
         settingsFile << "rootProject.name = 'test'"
-        buildFile << """
-            apply plugin: 'java-library'
-
-            allprojects {
-                repositories {
-                    maven { url "${mavenHttpRepo.uri}" }
-                }
-                group = 'org.test'
-                version = '1.9'
-            }
-        """
     }
 
     // When publishing a platform, the Gradle metadata will _not_ contain enforced platforms
@@ -53,6 +42,12 @@ class PlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
         def foo11 = mavenHttpRepo.module("org", "foo", "1.1").withModuleMetadata().publish()
 
         buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            ${mavenHttpRepo()}
+
             dependencies {
                 api enforcedPlatform("org:platform:1.0")
                 api "org:foo:1.1"
@@ -73,7 +68,7 @@ class PlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
 
         then:
         resolve.expectGraph {
-            root(":", "org.test:test:1.9") {
+            root(":", ":test:") {
                 edge("org:platform:{strictly 1.0}", "org:platform:1.0") {
                     configuration = "enforcedApi"
                     variant("enforcedApi", [
@@ -101,6 +96,12 @@ class PlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
 
         when:
         buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            ${mavenHttpRepo()}
+
             dependencies {
                 constraints {
                    api "org:platform:1.0"
@@ -114,7 +115,7 @@ class PlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
 
         then:
         resolve.expectGraph {
-            root(":", "org.test:test:1.9") {
+            root(":", ":test:") {
                 edge("org:platform", "org:platform:1.0") {
                     variant("platform-compile", [
                         'org.gradle.usage': 'java-api',
@@ -143,33 +144,45 @@ class PlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
             .allowAll()
             .publish()
 
-        createDirs("sub")
         settingsFile << """
             include 'sub'
         """
 
         when:
         buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            ${mavenHttpRepo()}
+
             dependencies {
                 api platform("org:platform") // no version, will select the "platform" component
                 api project(":sub")
             }
-            project(":sub") {
-                apply plugin: 'java-library'
-                dependencies {
-                    constraints {
-                       api "org:platform:1.0"
-                    }
+        """
+
+        file("sub/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+
+            group = "org.test"
+            version = "1.9"
+            dependencies {
+                constraints {
+                   api "org:platform:1.0"
                 }
             }
         """
+
         checkConfiguration("compileClasspath")
 
         run ":checkDeps"
 
         then:
         resolve.expectGraph {
-            root(":", "org.test:test:1.9") {
+            root(":", ":test:") {
                 edge("org:platform", "org:platform:1.0") {
                     variant("platform-compile", [
                         'org.gradle.usage': 'java-api',
@@ -207,6 +220,12 @@ class PlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
 
         when:
         buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            ${mavenHttpRepo()}
+
             dependencies {
                 api enforcedPlatform("org:top:1.0")
             }
@@ -218,7 +237,7 @@ class PlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
 
         then:
         resolve.expectGraph {
-            root(":", "org.test:test:1.9") {
+            root(":", ":test:") {
                 edge("org:top:{strictly 1.0}", "org:top:1.0") {
                     variant("enforced-platform-compile", [
                         'org.gradle.category': 'enforced-platform',
@@ -236,7 +255,15 @@ class PlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
 
         when:
         buildFile << """
-            configurations { conf }
+            plugins {
+                id("java-library")
+            }
+
+            ${mavenHttpRepo()}
+
+            configurations {
+                conf
+            }
             dependencies {
                 conf "org:platform:1.0"
             }
@@ -249,7 +276,7 @@ class PlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
 
         then:
         resolve.expectGraph {
-            root(":", "org.test:test:1.9") {
+            root(":", ":test:") {
                 module("org:platform:1.0") {
                     variant("runtime", [
                         'org.gradle.category': 'platform',
@@ -267,6 +294,12 @@ class PlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
 
         when:
         buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            ${mavenHttpRepo()}
+
             dependencies {
                 api platform("org:platform:1.0")
                 api enforcedPlatform("org:platform:1.0")
@@ -283,7 +316,7 @@ class PlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
         def regularVariant = "${usage}"
         def enforcedVariant = "enforced${usage.capitalize()}"
         resolve.expectGraph {
-            root(":", "org.test:test:1.9") {
+            root(":", ":test:") {
                 edge("org:platform:{strictly 1.0}", "org:platform:1.0") {
                     variant(regularVariant, [
                         'org.gradle.category': 'platform',
@@ -333,8 +366,14 @@ class PlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
         platform.allowAll()
 
         buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            ${mavenHttpRepo()}
+
             configurations {
-                conf.dependencies.clear()
+                conf
             }
 
             dependencies {
@@ -344,14 +383,13 @@ class PlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
             }
 """
         checkConfiguration("conf")
-        resolve.expectDefaultConfiguration("runtime")
 
         when:
         succeeds 'checkDeps'
 
         then:
         resolve.expectGraph {
-            root(":", "org.test:test:1.9") {
+            root(":", ":test:") {
                 edge("org.test:depA", "org.test:depA:1.0") {
                     byConstraint()
                 }
@@ -420,8 +458,14 @@ class PlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
         otherPlatform11.allowAll()
 
         buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            ${mavenHttpRepo()}
+
             configurations {
-                conf.dependencies.clear()
+                conf
             }
 
             dependencies {
@@ -429,9 +473,9 @@ class PlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
                 conf platform('org.test:otherPlatform:1.0')
                 conf 'org.test:depC:1.0'
             }
-"""
+        """
+
         checkConfiguration("conf")
-        resolve.expectDefaultConfiguration("runtime")
 
         expect:
         succeeds 'checkDeps'
@@ -471,17 +515,23 @@ class PlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
         platform11.allowAll()
 
         buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            ${mavenHttpRepo()}
+
             configurations {
-                conf.dependencies.clear()
+                conf
             }
 
             dependencies {
                 conf 'org.test:depA:1.0'
                 conf 'org.test:depB:1.1'
             }
-"""
+        """
+
         checkConfiguration("conf")
-        resolve.expectDefaultConfiguration("runtime")
 
         expect:
         succeeds 'checkDeps'
@@ -551,8 +601,14 @@ class PlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
         depSpring2.allowAll()
 
         buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            ${mavenHttpRepo()}
+
             configurations {
-                conf.dependencies.clear()
+                conf
             }
 
             dependencies {
@@ -563,7 +619,6 @@ class PlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
             }
 """
         checkConfiguration("conf")
-        resolve.expectDefaultConfiguration("runtime")
 
         expect:
         succeeds 'checkDeps'
@@ -624,8 +679,14 @@ class PlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
         depSwag.allowAll()
 
         buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            ${mavenHttpRepo()}
+
             configurations {
-                conf.dependencies.clear()
+                conf
             }
 
             dependencies {
@@ -650,7 +711,14 @@ class PlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
 
     private void checkConfiguration(String configuration) {
         resolve = new ResolveTestFixture(buildFile, configuration)
-        resolve.expectDefaultConfiguration("compile")
         resolve.prepare()
+    }
+
+    String mavenHttpRepo() {
+        """
+            repositories {
+                maven { url = "${mavenHttpRepo.uri}" }
+            }
+        """
     }
 }

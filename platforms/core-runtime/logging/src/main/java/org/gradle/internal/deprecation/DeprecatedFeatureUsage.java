@@ -18,11 +18,11 @@ package org.gradle.internal.deprecation;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.internal.DeprecationData;
-import org.gradle.api.problems.internal.DocLink;
+import org.gradle.api.problems.internal.InternalDocLink;
 import org.gradle.internal.featurelifecycle.FeatureUsage;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import static org.apache.commons.lang.StringUtils.isNotEmpty;
 
@@ -98,7 +98,7 @@ public class DeprecatedFeatureUsage extends FeatureUsage {
         USER_CODE_INDIRECT,
 
         /**
-         * The key characteristic is that there is no useful “where was it used information”,
+         * The key characteristic is that there is no useful "where was it used information",
          * as the usage relates to how/where Gradle was invoked.
          *
          * Example: deprecated CLI switch.
@@ -172,7 +172,7 @@ public class DeprecatedFeatureUsage extends FeatureUsage {
         append(outputBuilder, contextualAdvice);
         append(outputBuilder, advice);
         if (documentation != null) {
-            append(outputBuilder, documentation.getConsultDocumentationMessage());
+            append(outputBuilder, ((InternalDocLink) documentation).getConsultDocumentationMessage());
         }
         return outputBuilder.toString();
     }

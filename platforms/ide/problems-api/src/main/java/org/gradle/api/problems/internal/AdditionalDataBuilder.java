@@ -16,6 +16,8 @@
 
 package org.gradle.api.problems.internal;
 
-public interface AdditionalDataBuilder<T extends AdditionalData>  {
+import org.gradle.api.problems.AdditionalData;
+
+public interface AdditionalDataBuilder<T extends AdditionalData> {
     T build();
 }

@@ -135,6 +135,25 @@ class TreeFormatterTest extends Specification {
   - ${longText}""")
     }
 
+    def "formats short node with single child on separate lines when asked alwaysChildrenOnNewLines = #alwaysChildrenOnNewLines"() {
+        given:
+        formatter = new TreeFormatter(alwaysChildrenOnNewLines)
+
+        when:
+        formatter.node("introduction")
+        formatter.startChildren()
+        formatter.node("hello = world")
+        formatter.endChildren()
+
+        then:
+        formatter.toString() == toPlatformLineSeparators(expectation)
+
+        where:
+        alwaysChildrenOnNewLines    || expectation
+        true                        || "introduction:\n  - hello = world"
+        false                       || "introduction: hello = world"
+    }
+
     def "formats node with trailing '.'"() {
         when:
         formatter.node("Some things.")
@@ -339,9 +358,11 @@ Some thing.''')
         formatter.appendMethod(String.getMethod("charAt", int.class))
         formatter.append(" ")
         formatter.appendMethod(String.getMethod("getBytes", String.class))
+        formatter.append(" ")
+        formatter.appendMethod(String.getMethod("getClass"))
 
         then:
-        formatter.toString() == toPlatformLineSeparators("thing String.length() String.charAt(int) String.getBytes(String)")
+        formatter.toString() == toPlatformLineSeparators("thing String.length(): int String.charAt(int): char String.getBytes(String): byte[] Object.getClass(): Class<?>")
     }
 
     def "can append annoation name"() {

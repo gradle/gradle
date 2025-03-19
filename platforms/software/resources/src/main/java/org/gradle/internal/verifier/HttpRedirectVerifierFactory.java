@@ -17,8 +17,8 @@
 package org.gradle.internal.verifier;
 
 import org.gradle.util.internal.GUtil;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.net.URI;
 import java.util.Collection;
 import java.util.function.Consumer;

@@ -31,7 +31,7 @@ class ArtifactFilterIntegrationTest extends AbstractHttpDependencyResolutionTest
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
 
             project(':libInclude') {

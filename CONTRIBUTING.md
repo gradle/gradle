@@ -14,18 +14,19 @@ This guide will help you to...
 
 ## Before you start
 
-Before starting to work on a feature or a bug fix, please open an issue to discuss the use case or bug with us. This can save everyone a lot of time and frustration.
+Before starting to work on a feature or a bug fix, please open an issue to discuss the use case or bug with us, or post a comment in the relevant issue. 
+This can save everyone a lot of time and frustration.
 
 For any non-trivial change, we need to be able to answer these questions:
 
 * Why is this change done? What's the use case?
-* For user facing features, what will the API look like?
+* For user-facing features, what will the API look like?
 * What test cases should it have? What could go wrong?
 * How will it roughly be implemented? We'll happily provide code pointers to save you time.
 
 We may ask you to answer these questions directly in the GitHub issue or (for large changes) in a shared Google Doc.
 
-If you are looking for good first issues, take a look at the list of [good first issues](https://github.com/gradle/gradle/labels/good%20first%20issue) that should be actionable and ready for a contribution.
+Please note that some features may be out of the team's current focus, and it can take significant time for the team to review the PR thoroughly and address it fully.
 
 ### Security vulnerabilities
 
@@ -40,6 +41,18 @@ Contributors must follow the Code of Conduct outlined at [https://gradle.org/con
 If you run into any trouble, please reach out to us on the issue you are working on.
 There is a `#contributing` channel on the community Slack which you can use
 to ask any questions.
+
+## Finding issues to work on
+
+If you are looking for good first issues, take a look at the list of [good first issues](https://github.com/gradle/gradle/labels/good%20first%20issue) that should be actionable and ready for a contribution.
+
+If you are looking for a contribution that is more substantial, you can look at the [help wanted issues](https://github.com/gradle/gradle/issues?q=is%3Aissue%20state%3Aopen%20label%3A%22%F0%9F%8C%B3%20help%20wanted%22).
+These issues are more complex and might be challenging for first-time contributors.
+
+You can share your interest in fixing the issue by commenting on it.
+If somebody shared their interest in the issue, please consider letting them work on it.
+However, if there are no changes for more than a week, it's safe to assume that the issue is up for grabs.
+There is no need to ask for an assignment or for permission to work on those issues, just comment and start working on it.
 
 ## Setting up your development environment
 
@@ -115,10 +128,14 @@ The commit messages that accompany your code changes are an important piece of d
 
 After making changes, you can test your code in 2 ways:
 
-1. Run tests.
+#### Run tests
+
 - Run `./gradlew :<subproject>:quickTest` where `<subproject>` is the name of the subproject you've changed. 
 - For example: `./gradlew :launcher:quickTest`.
-2. Install Gradle locally and try out a change in behavior manually. 
+
+#### Install Gradle locally
+
+and try out a change in behavior manually. 
 - Install: `./gradlew install -Pgradle_installPath=/any/path`
 - Use: `/any/path/bin/gradle taskName`.
 
@@ -130,6 +147,66 @@ It's also a good idea to run `./gradlew sanityCheck` before submitting your chan
 > a local machine without necessary parallelization and caching.
 > The full test suites are executed on the CI instance for multiple configurations,
 > and you can rely on it after doing initial sanity check and targeted local testing.
+
+### Copyright and License
+
+When updating/modifying a file, please do not make changes to the copyright header.
+
+When creating a new file, please make sure to add a header as defined below.
+
+#### Required Files for Copyright Headers:
+
+- Source code files (e.g., `.java`, `.kt`, `.groovy`).
+- Documentation files, where applicable (e.g., `.adoc`, `.md`).
+
+#### Exempt Files for Copyright Headers:
+
+- Scripts critical to builds, CI, or deployment (e.g., `.kts`, `.groovy`).
+- Auto-generated files (e.g., by code generators).
+- Minor configuration files (e.g., `.gitignore`).
+- Documentation samples and code snippets (e.g., `.java`, `.kt`, `.groovy`, `.kts`).
+- Release notes (e.g., `.md`).
+- READMEs (e.g., `.md`).
+
+#### Copyright Header for Source Files:
+
+```
+/*
+ * Copyright [YEAR OF FILE CREATION] Gradle and contributors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+```
+
+#### Copyright Header for Documentation Files:
+
+```
+/*
+ * Copyright [YEAR OF FILE CREATION] Gradle and contributors.
+ *
+ * Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.
+ * You may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://creativecommons.org/licenses/by-nc-sa/4.0/
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+```
 
 ### Submitting Your Change
 
@@ -146,7 +223,7 @@ This may help you better understand and contribute to Gradle.
 
 ### Debugging Gradle
 
-You can debug Gradle by adding `-Dorg.gradle.debug=true` to the command-line. Gradle will wait for you to attach a debugger at `localhost:5005` by default.
+See the [Debugging Gradle](./contributing/Debugging.md) guide for tips on debugging Gradle.
 
 If you made changes to build logic in the `build-logic` included build, you can run its tests by executing `./gradlew :build-logic:check`.
 
@@ -261,7 +338,7 @@ To create a Gradle distribution from the source tree you can run either of the f
 
     ./gradlew :distributions-full:binDistributionZip
 
-This will create a minimal distribution at `subprojects/distributions-full/build/distributions/gradle-<version>-bin.zip`, just what's needed to run Gradle (i.e. no sources nor docs).
+This will create a minimal distribution at `packaging/distributions-full/build/distributions/gradle-<version>-bin.zip`, just what's needed to run Gradle (i.e. no sources nor docs).
 
 You can then use it as a Gradle Wrapper local distribution in a Gradle based project by using a `file:/` URL pointing to the built distribution:
 
@@ -271,7 +348,7 @@ To create a full distribution (includes sources and docs):
 
     ./gradlew :distributions-full:allDistributionZip
 
-The full distribution will be created at `subprojects/distributions-full/build/distributions/gradle-<version>-all.zip`. You can then use it as a Gradle Wrapper local distribution:
+The full distribution will be created at `packaging/distributions-full/build/distributions/gradle-<version>-all.zip`. You can then use it as a Gradle Wrapper local distribution:
 
     ./gradlew wrapper --gradle-distribution-url=file:/path/to/gradle-<version>-all.zip
 

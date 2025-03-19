@@ -27,14 +27,13 @@ import org.gradle.test.fixtures.file.TestDirectoryProvider
 import java.lang.reflect.InvocationTargetException
 
 /**
- * Implicitly tests that the build emits usable build operation notifications,
- * with the listener subscribing as the root project is loaded.
- *
+ * Implicitly tests that the build emits usable build operation notifications.
+ * <p>
  * This exercises the store-and-replay behaviour of the notification dispatcher
  * that allows a listener to observe all of the notifications from the very start of the build.
- *
+ * <p>
  * This fixture reflectively exercises the details/results objects of the notifications,
- * ensuring that they are “usable”.
+ * ensuring that they are "usable".
  */
 class BuildOperationNotificationsFixture {
 
@@ -49,12 +48,18 @@ class BuildOperationNotificationsFixture {
         }
     }
 
+    /**
+     * @see org.gradle.internal.operations.notify.BuildOperationNotificationBridge
+     */
     static String injectNotificationListenerBuildLogic() {
+        // The registration of the listener must happen before the BuildOperationNotificationValve is closed preemptively
+        // The actual Develocity plugin register a listener before `projectsLoaded`.
+        // Here, we rely on the order of `projectLoaded` callback registrations.
         """
-            rootProject {
-                if(gradle.isRootBuild()) {
+            gradle.projectsLoaded {
+                if (gradle.isRootBuild()) {
                     def listener = new BuildOperationNotificationsEvaluationListener()
-                    def registrar = project.services.get($BuildOperationNotificationListenerRegistrar.name)
+                    def registrar = gradle.rootProject.services.get($BuildOperationNotificationListenerRegistrar.name)
                     registrar.register(listener)
                 }
             }

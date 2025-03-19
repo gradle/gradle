@@ -20,10 +20,8 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithCppLibrary
 import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 import org.gradle.vcs.fixtures.GitFileRepository
-import spock.lang.Ignore
 
 @DoesNotSupportNonAsciiPaths(reason = "Swift sometimes fails when executed from non-ASCII directory")
-@Ignore("Inconsistent Swift SDK and tooling discovered on our Intel Macs")
 class SwiftDependenciesCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLanguageIntegrationTest {
     def app = new SwiftAppWithCppLibrary()
 

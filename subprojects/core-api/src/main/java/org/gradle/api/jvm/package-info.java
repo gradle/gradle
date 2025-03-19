@@ -17,7 +17,7 @@
 /**
  * Interfaces for configuring the Java Platform Module System (JPMS).
  */
-@NonNullApi
+@NullMarked
 package org.gradle.api.jvm;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;

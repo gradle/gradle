@@ -16,7 +16,6 @@
 
 package org.gradle.api.artifacts.dsl;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Dependency;
 
 /**
@@ -27,7 +26,6 @@ import org.gradle.api.artifacts.Dependency;
  *
  * @since 7.6
  */
-@Incubating
 public interface GradleDependencies extends Dependencies {
     /**
      * Creates a dependency on the API of the current version of Gradle.

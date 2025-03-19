@@ -24,11 +24,9 @@ description = "Tools to work with managed executors"
 gradlebuildJava.usedInWorkers()
 
 dependencies {
-    api(libs.jsr305)
     api(projects.stdlibJavaExtensions)
 
+    api(libs.jspecify)
+
     implementation(libs.slf4jApi)
-}
-tasks.isolatedProjectsIntegTest {
-    enabled = false
 }

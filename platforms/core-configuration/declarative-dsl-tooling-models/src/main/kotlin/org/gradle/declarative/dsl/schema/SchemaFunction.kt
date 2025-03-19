@@ -22,6 +22,8 @@ import java.io.Serializable
 
 @ToolingModelContract(subTypes = [
     SchemaMemberFunction::class,
+        DataBuilderFunction::class,
+        DataMemberFunction::class,
     DataTopLevelFunction::class,
     DataConstructor::class
 ])

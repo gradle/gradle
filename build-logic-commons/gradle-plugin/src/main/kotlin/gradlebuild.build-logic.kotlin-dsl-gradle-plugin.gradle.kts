@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import gradlebuild.commons.configureJavaToolChain
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import gradlebuild.basics.skipBuildLogicTests
 
 plugins {
     id("java-library")
@@ -25,8 +25,6 @@ plugins {
     id("gradlebuild.test-retry")
     id("gradlebuild.private-javadoc")
 }
-
-java.configureJavaToolChain()
 
 dependencies {
     api(platform("gradlebuild:build-platform"))
@@ -56,5 +54,6 @@ tasks.validatePlugins {
 }
 
 tasks.withType<Test>().configureEach {
+    enabled = !skipBuildLogicTests
     useJUnitPlatform()
 }

@@ -17,10 +17,13 @@
 package org.gradle.language.internal;
 
 import org.gradle.api.component.SoftwareComponent;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * This is intended to become public at some point.
  */
+@ServiceScope({Scope.Build.class, Scope.Project.class})
 public interface NativeComponentFactory {
     /**
      * Creates a new top-level component.

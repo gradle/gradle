@@ -139,7 +139,8 @@ class PrecompiledGroovyScript {
         if (!Character.isJavaIdentifierStart(s.charAt(0))) {
             sb.append("_");
         }
-        for (char c : s.toCharArray()) {
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
             if (Character.isJavaIdentifierPart(c)) {
                 sb.append(c);
             } else {

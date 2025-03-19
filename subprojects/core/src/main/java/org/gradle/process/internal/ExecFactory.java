@@ -30,6 +30,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 /**
  * Manages forking/spawning processes.
  */
+@SuppressWarnings("deprecation")
 @ServiceScope({Scope.Global.class, Scope.UserHome.class, Scope.BuildSession.class, Scope.Build.class, Scope.Project.class})
 public interface ExecFactory extends ExecActionFactory, ExecHandleFactory, JavaExecHandleFactory, JavaForkOptionsFactory, ProcessOperations {
 

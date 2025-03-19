@@ -16,9 +16,13 @@
 
 package org.gradle.internal.work;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 /**
  * Provides new {@link ConditionalExecutionQueue} objects
  */
+@ServiceScope(Scope.BuildSession.class)
 public interface ConditionalExecutionQueueFactory {
     /**
      * Provides a {@link ConditionalExecutionQueue} that can process {@link ConditionalExecution} objects that

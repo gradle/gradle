@@ -20,6 +20,7 @@ import com.google.common.base.Splitter
 import groovy.transform.CompileStatic
 import groovy.transform.TypeCheckingMode
 import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.integtests.fixtures.versions.PublishedVersionDeterminer
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.performance.results.ResultsStoreHelper
 import org.gradle.util.GradleVersion
@@ -73,7 +74,7 @@ class BaselineVersionResolver {
             case 'last':
                 return releases.mostRecentRelease.version.version
             case 'nightly':
-                return LatestNightlyBuildDeterminer.latestNightlyVersion
+                return PublishedVersionDeterminer.latestNightlyVersion
             case 'defaults':
                 throw new IllegalArgumentException("'defaults' shouldn't be used in target versions.")
             default:

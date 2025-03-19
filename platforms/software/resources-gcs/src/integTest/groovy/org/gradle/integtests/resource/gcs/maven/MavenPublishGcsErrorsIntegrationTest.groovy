@@ -58,7 +58,7 @@ class MavenPublishGcsErrorsIntegrationTest extends AbstractMavenPublishIntegTest
     publishing {
         repositories {
                 maven {
-                   url "${mavenGcsRepo.uri}"
+                   url = "${mavenGcsRepo.uri}"
                 }
             }
         publications {

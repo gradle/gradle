@@ -48,7 +48,8 @@ class Antlr2PluginIntegrationTest extends AbstractAntlrIntegrationTest {
     }
 
     def "uses antlr v2 if no explicit dependency is set"() {
-        buildFile.text = buildFile.text.replace("antlr '$antlrDependency'", "")
+        def grammarBuilder = file("grammar-builder/build.gradle")
+        grammarBuilder.text = grammarBuilder.text.replace("antlr '$antlrDependency'", "")
 
         goodGrammar()
         goodProgram()

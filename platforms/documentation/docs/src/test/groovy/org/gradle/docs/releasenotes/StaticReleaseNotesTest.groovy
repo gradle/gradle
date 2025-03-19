@@ -35,7 +35,7 @@ class StaticReleaseNotesTest extends Specification {
 
     def "has fixed issues holder"() {
         expect:
-        !renderedDocument.body().select("h2#fixed-issues").empty
+        !renderedDocument.body().select("#fixed-issues").empty
     }
 
     def "no duplicate ids"() {

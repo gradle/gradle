@@ -33,6 +33,7 @@ import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.ResolvableDependencies
 import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.ResolvedConfiguration
+import org.gradle.api.artifacts.UnresolvedDependency
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.DocumentationRegistry
@@ -40,14 +41,12 @@ import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultExcludeRule
-import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultResolverResults
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper
 import org.gradle.api.internal.artifacts.ResolverResults
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
 import org.gradle.api.internal.artifacts.ivyservice.TypedResolveException
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
@@ -71,18 +70,14 @@ import org.gradle.api.tasks.TaskDependency
 import org.gradle.internal.Describables
 import org.gradle.internal.Factories
 import org.gradle.internal.code.UserCodeApplicationContext
-import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ImmutableCapabilities
-import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.dispatch.Dispatch
 import org.gradle.internal.event.AnonymousListenerBroadcast
 import org.gradle.internal.event.ListenerManager
-import org.gradle.internal.locking.DefaultDependencyLockingState
 import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.internal.work.WorkerThreadRegistry
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.Path
@@ -106,7 +101,6 @@ class DefaultConfigurationSpec extends Specification {
     def resolver = Mock(ConfigurationResolver)
     def listenerManager = Mock(ListenerManager)
     def metaDataProvider = Mock(DependencyMetaDataProvider)
-    def dependencyLockingProvider = Mock(DependencyLockingProvider)
     def resolutionStrategy = Mock(ResolutionStrategyInternal)
     def attributesFactory = AttributeTestUtil.attributesFactory()
     def rootComponentMetadataBuilder = Mock(RootComponentMetadataBuilder)
@@ -741,7 +735,7 @@ class DefaultConfigurationSpec extends Specification {
 
         where:
         baseRole << [
-            ConfigurationRoles.LEGACY,
+            ConfigurationRoles.ALL,
             ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE,
             ConfigurationRoles.CONSUMABLE_DEPENDENCY_SCOPE
         ] + ConfigurationRolesForMigration.ALL
@@ -1050,7 +1044,7 @@ class DefaultConfigurationSpec extends Specification {
         def resolvedComponentResult = Mock(ResolvedComponentResultInternal)
         Supplier<ResolvedComponentResultInternal> rootSource = () -> resolvedComponentResult
         def result = new MinimalResolutionResult(0, rootSource, ImmutableAttributes.EMPTY)
-        def graphResults = new DefaultVisitedGraphResults(result, [] as Set, null)
+        def graphResults = new DefaultVisitedGraphResults(result, [] as Set)
 
         resolver.resolveGraph(config) >> DefaultResolverResults.graphResolved(graphResults, visitedArtifacts(), Mock(ResolverResults.LegacyResolverResults))
 
@@ -1422,19 +1416,6 @@ class DefaultConfigurationSpec extends Specification {
         conf.attributes.getAttribute(buildType).name == 'release'
     }
 
-    def "cannot define two attributes with the same name but different types"() {
-        def conf = conf()
-        def flavor = Attribute.of('flavor', Flavor)
-
-        when:
-        conf.getAttributes().attribute(flavor, new FlavorImpl(name: 'free'))
-        conf.getAttributes().attribute(Attribute.of('flavor', String.class), 'paid')
-
-        then:
-        def e = thrown(IllegalArgumentException)
-        e.message == 'Cannot have two attributes with the same name but different types. This container already has an attribute named \'flavor\' of type \'org.gradle.api.internal.artifacts.configurations.DefaultConfigurationSpec$Flavor\' and you are trying to store another one of type \'java.lang.String\''
-    }
-
     def "can overwrite a configuration attribute"() {
         def conf = conf()
         def flavor = Attribute.of(Flavor)
@@ -1467,7 +1448,7 @@ class DefaultConfigurationSpec extends Specification {
         def a1 = Attribute.of('a1', String)
 
         when:
-        conf.markAsObserved()
+        conf.markAsObserved("reason")
         conf.getAttributes().attribute(a1, "a1")
 
         then:
@@ -1485,7 +1466,7 @@ class DefaultConfigurationSpec extends Specification {
         def containerImmutable = conf.getAttributes().asImmutable()
 
         when:
-        conf.markAsObserved()
+        conf.markAsObserved("reason")
         def containerWrapped = conf.getAttributes()
 
         then:
@@ -1649,7 +1630,7 @@ class DefaultConfigurationSpec extends Specification {
     def "observation changes prevents #usageName usage changes"() {
         given:
         def conf = conf()
-        conf.markAsObserved()
+        conf.markAsObserved("reason")
 
         when:
         changeUsage(conf)
@@ -1665,69 +1646,19 @@ class DefaultConfigurationSpec extends Specification {
         'declarable'            | { it.setCanBeDeclared(!it.isCanBeDeclared()) }
     }
 
-    def 'locking constraints are attached to a configuration and not its children'() {
-        given:
-        def constraint = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId('org', 'foo'), '1.1')
-        resolutionStrategy.isDependencyLockingEnabled() >> true
-        dependencyLockingProvider.loadLockState("conf", _) >> new DefaultDependencyLockingState(true, [constraint] as Set, { entry -> false })
-        dependencyLockingProvider.loadLockState("child", _) >> DefaultDependencyLockingState.EMPTY_LOCK_CONSTRAINT
-
-        when:
-        def child = conf("child")
-        def conf = conf()
-        child.extendsFrom(conf)
-
-        then:
-        conf.syntheticDependencies.size() == 1
-        child.syntheticDependencies.size() == 0
-    }
-
-    def 'locking constraints are not transitive'() {
-        given:
-        def constraint = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId('org', 'foo'), '1.1')
-        resolutionStrategy.isDependencyLockingEnabled() >> true
-        dependencyLockingProvider.loadLockState("conf", _) >> new DefaultDependencyLockingState(true, [constraint] as Set, {entry -> false })
-
-        when:
-        def conf = conf()
-
-        then:
-        conf.syntheticDependencies.size() == 1
-        conf.syntheticDependencies.each {
-            assert !it.transitive
-        }
-    }
-
-    def 'provides useful reason for locking constraints (#strict)'() {
-        given:
-        def constraint = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId('org', 'foo'), '1.1')
-        resolutionStrategy.isDependencyLockingEnabled() >> true
-        dependencyLockingProvider.loadLockState("conf", _) >> new DefaultDependencyLockingState(strict, [constraint] as Set, {entry -> false })
-
-        when:
-        def conf = conf()
-
-        then:
-        conf.syntheticDependencies.size() == 1
-        conf.syntheticDependencies.each { DependencyMetadata dep ->
-            assert dep.reason == reason
-        }
-
-        where:
-        reason                                                          | strict
-        "dependency was locked to version '1.1'"                        | true
-        "dependency was locked to version '1.1' (update/lenient mode)"  | false
-    }
-
     private ResolverResults buildDependenciesResolved() {
         def resolutionResult = new MinimalResolutionResult(0, () -> Stub(ResolvedComponentResultInternal), ImmutableAttributes.EMPTY)
-        def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [] as Set, null)
+        def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [] as Set)
         DefaultResolverResults.buildDependenciesResolved(visitedGraphResults, visitedArtifacts([] as Set), Mock(ResolverResults.LegacyResolverResults))
     }
 
     private ResolverResults graphResolved(ResolveException failure) {
         def resolutionResult = new MinimalResolutionResult(0, () -> Stub(ResolvedComponentResultInternal), ImmutableAttributes.EMPTY)
-        def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [] as Set, failure)
+        def unresolved = Mock(UnresolvedDependency) {
+            getProblem() >> failure
+        }
+
+        def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [unresolved] as Set)
 
         def visitedArtifactSet = Stub(VisitedArtifactSet) {
             select(_) >> selectedArtifacts(failure)
@@ -1745,7 +1676,7 @@ class DefaultConfigurationSpec extends Specification {
 
     private ResolverResults graphResolved(Set<File> files = []) {
         def resolutionResult = new MinimalResolutionResult(0, () -> Stub(ResolvedComponentResultInternal), ImmutableAttributes.EMPTY)
-        def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [] as Set, null)
+        def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [] as Set)
 
         def legacyResults = DefaultResolverResults.DefaultLegacyResolverResults.graphResolved(
             depSpec -> selectedArtifacts(files),
@@ -1801,7 +1732,7 @@ class DefaultConfigurationSpec extends Specification {
         new DefaultExternalModuleDependency(group, name, version)
     }
 
-    private DefaultConfiguration conf(String confName = "conf", String projectPath = ":", String buildPath = ":", ConfigurationRole role = ConfigurationRoles.LEGACY) {
+    private DefaultConfiguration conf(String confName = "conf", String projectPath = ":", String buildPath = ":", ConfigurationRole role = ConfigurationRoles.ALL) {
         return confFactory(projectPath, buildPath).create(confName, configurationsProvider, Factories.constant(resolutionStrategy), rootComponentMetadataBuilder, role)
     }
 
@@ -1831,7 +1762,6 @@ class DefaultConfigurationSpec extends Specification {
             DirectInstantiator.INSTANCE,
             resolver,
             listenerManager,
-            dependencyLockingProvider,
             domainObjectContext,
             TestFiles.fileCollectionFactory(),
             new TestBuildOperationRunner(),
@@ -1840,12 +1770,13 @@ class DefaultConfigurationSpec extends Specification {
             new ResolveExceptionMapper(Mock(DomainObjectContext), Mock(DocumentationRegistry)),
             new AttributeDesugaring(AttributeTestUtil.attributesFactory()),
             userCodeApplicationContext,
+            CollectionCallbackActionDecorator.NOOP,
             projectStateRegistry,
-            Stub(WorkerThreadRegistry),
             TestUtil.domainObjectCollectionFactory(),
             calculatedValueContainerFactory,
             TestFiles.taskDependencyFactory(),
-            TestUtil.problemsService()
+            TestUtil.problemsService(),
+            new DocumentationRegistry()
         )
     }
 

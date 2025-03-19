@@ -48,9 +48,9 @@ class IvyPublishMultiProjectIntegTest extends AbstractIvyPublishIntegTest {
 project(":project3") {
     publishing {
         publications.ivy {
-            organisation "changed.org"
-            module "changed-module"
-            revision "changed"
+            organisation = "changed.org"
+            module = "changed-module"
+            revision = "changed"
         }
     }
 }
@@ -80,14 +80,14 @@ project(":project2") {
         publications {
             extraComponent(IvyPublication) {
                 from components.java
-                organisation "extra.org"
-                module "extra-module"
-                revision "extra"
+                organisation = "extra.org"
+                module = "extra-module"
+                revision = "extra"
             }
             extra(IvyPublication) {
-                organisation "extra.org"
-                module "extra-module-2"
-                revision "extra"
+                organisation = "extra.org"
+                module = "extra-module-2"
+                revision = "extra"
             }
         }
     }
@@ -111,9 +111,9 @@ project(":project3") {
     publishing {
         publications {
             extra(IvyPublication) {
-                organisation "extra.org"
-                module "extra-module-2"
-                revision "extra"
+                organisation = "extra.org"
+                module = "extra-module-2"
+                revision = "extra"
             }
         }
     }
@@ -141,15 +141,15 @@ project(":project3") {
         publications {
             extra1(IvyPublication) {
                 from e1
-                organisation "extra.org"
-                module "extra-1"
-                revision "extra"
+                organisation = "extra.org"
+                module = "extra-1"
+                revision = "extra"
             }
             extra2(IvyPublication) {
                 from e2
-                organisation "custom"
-                module "custom3"
-                revision "456"
+                organisation = "custom"
+                module = "custom3"
+                revision = "456"
             }
         }
     }
@@ -210,7 +210,7 @@ project(":project1") {
 
     publishing {
         repositories {
-            ivy { url "${ivyRepo.uri}" }
+            ivy { url = "${ivyRepo.uri}" }
         }
         publications {
             ivy(IvyPublication) {
@@ -272,7 +272,7 @@ project(':project2') {
 
     publishing {
         repositories {
-            ivy { url "${ivyRepo.uri}" }
+            ivy { url = "${ivyRepo.uri}" }
         }
         publications {
             ivy(IvyPublication) {
@@ -312,7 +312,7 @@ subprojects {
 
     publishing {
         repositories {
-            ivy { url "${ivyRepo.uri}" }
+            ivy { url = "${ivyRepo.uri}" }
         }
         publications {
             ivy(IvyPublication) {

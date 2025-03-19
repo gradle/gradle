@@ -20,6 +20,7 @@ import org.gradle.api.tasks.testing.TestOutputEvent
 import org.gradle.api.tasks.testing.TestOutputEvent.Destination
 
 class SimpleTestOutputEvent implements TestOutputEvent {
+    long logTime = 0
     Destination destination = Destination.StdOut
     String message = "message to standard out"
 }

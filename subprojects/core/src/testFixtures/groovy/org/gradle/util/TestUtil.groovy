@@ -23,6 +23,7 @@ import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.MutationGuard
 import org.gradle.api.internal.MutationGuards
+import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.collections.DefaultDomainObjectCollectionFactory
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory
 import org.gradle.api.internal.file.DefaultFilePropertyFactory
@@ -41,11 +42,18 @@ import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory
 import org.gradle.api.internal.tasks.TaskDependencyFactory
 import org.gradle.api.internal.tasks.properties.annotations.OutputPropertyRoleAnnotationHandler
 import org.gradle.api.model.ObjectFactory
-import org.gradle.api.problems.Problems
+import org.gradle.api.problems.Problem
+import org.gradle.api.problems.ProblemReporter
 import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.api.problems.internal.ExceptionProblemRegistry
-import org.gradle.api.problems.internal.NoOpProblemSummarizer
+import org.gradle.api.problems.internal.InternalProblem
+import org.gradle.api.problems.internal.InternalProblemBuilder
+import org.gradle.api.problems.internal.InternalProblemReporter
+import org.gradle.api.problems.internal.InternalProblems
+import org.gradle.api.problems.internal.ProblemSummarizer
+import org.gradle.api.problems.internal.ProblemsInfrastructure
 import org.gradle.api.provider.ProviderFactory
+import org.gradle.api.reflect.ObjectInstantiationException
 import org.gradle.api.tasks.util.internal.PatternSets
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.hash.ChecksumService
@@ -58,11 +66,16 @@ import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.model.InMemoryCacheFactory
 import org.gradle.internal.model.StateTransitionControllerFactory
 import org.gradle.internal.operations.CurrentBuildOperationRef
+import org.gradle.internal.operations.DefaultBuildOperationsParameters
+import org.gradle.internal.operations.OperationIdentifier
+import org.gradle.internal.operations.TestBuildOperationRunner
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistrationProvider
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.service.scopes.CrossBuildSessionParameters
 import org.gradle.internal.state.ManagedFactoryRegistry
 import org.gradle.internal.work.DefaultWorkerLimits
 import org.gradle.test.fixtures.file.TestDirectoryProvider
@@ -71,7 +84,9 @@ import org.gradle.test.fixtures.work.TestWorkerLeaseService
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.testfixtures.internal.ProjectBuilderImpl
+import org.spockframework.lang.Wildcard
 
+import javax.annotation.Nullable
 import java.util.function.Supplier
 
 class TestUtil {
@@ -137,8 +152,8 @@ class TestUtil {
         return services().get(ObjectFactory)
     }
 
-    static Problems problemsService() {
-        return services().get(Problems)
+    static TestProblems problemsService() {
+        return services().get(TestProblems)
     }
 
     static ObjectFactory objectFactory(TestFile baseDir) {
@@ -156,7 +171,8 @@ class TestUtil {
     }
 
     static StateTransitionControllerFactory stateTransitionControllerFactory() {
-        return new StateTransitionControllerFactory(new TestWorkerLeaseService())
+        def buildOperationsParameters = new DefaultBuildOperationsParameters(new CrossBuildSessionParameters(new StartParameterInternal()))
+        return new StateTransitionControllerFactory(new TestWorkerLeaseService(), buildOperationsParameters, new TestBuildOperationRunner())
     }
 
     private static ServiceRegistry createServices(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Action<ServiceRegistration> registrations = {}) {
@@ -189,18 +205,21 @@ class TestUtil {
                 @Provides
                 ProjectLayout createProjectLayout() {
                     def filePropertyFactory = new DefaultFilePropertyFactory(PropertyHost.NO_OP, fileResolver, fileCollectionFactory)
-                    return new DefaultProjectLayout(fileResolver.resolve("."), fileResolver, DefaultTaskDependencyFactory.withNoAssociatedProject(), PatternSets.getNonCachingPatternSetFactory(), PropertyHost.NO_OP, fileCollectionFactory, filePropertyFactory, filePropertyFactory)
+                    return new DefaultProjectLayout(
+                        fileResolver.resolve("."),
+                        fileResolver.resolve("."),
+                        fileResolver,
+                        DefaultTaskDependencyFactory.withNoAssociatedProject(),
+                        PatternSets.getNonCachingPatternSetFactory(),
+                        PropertyHost.NO_OP,
+                        fileCollectionFactory,
+                        filePropertyFactory,
+                        filePropertyFactory)
                 }
 
                 @Provides
-                Problems createProblems() {
-                    return new DefaultProblems(
-                        new NoOpProblemSummarizer(),
-                        null,
-                        CurrentBuildOperationRef.instance(),
-                        new ExceptionProblemRegistry(),
-                        null
-                    )
+                TestProblems createProblemsService() {
+                    new TestProblems()
                 }
 
                 @Provides
@@ -364,4 +383,103 @@ class TestUtil {
 
 interface TestClosure {
     Object call(Object param);
+}
+
+class MockInstantiator implements Instantiator {
+
+    @Override
+    def <T> T newInstance(Class<? extends T> type, Object... parameters) throws ObjectInstantiationException {
+        return null
+    }
+}
+
+class TestProblems implements InternalProblems {
+    private final TestProblemSummarizer summarizer
+    private final InternalProblems delegate
+
+    TestProblems() {
+        this.summarizer = new TestProblemSummarizer()
+        this.delegate = new DefaultProblems(
+            summarizer,
+            null,
+            new TestCurrentBuildOperationRef(),
+            new ExceptionProblemRegistry(),
+            null,
+            new MockInstantiator(),
+            null,
+            null,
+            null
+        )
+    }
+
+    @Override
+    ProblemReporter getReporter() {
+        delegate.reporter
+    }
+
+    @Override
+    InternalProblemReporter getInternalReporter() {
+        delegate.internalReporter
+    }
+
+    @Override
+    ProblemsInfrastructure getInfrastructure() {
+        return delegate.getInfrastructure()
+    }
+
+    @Override
+    InternalProblemBuilder getProblemBuilder() {
+        delegate.getProblemBuilder()
+    }
+
+    void assertProblemEmittedOnce(Object expectedProblem) {
+        assert summarizer.emitted.size() == 1
+        def actualProblem = summarizer.emitted[0]
+        if (expectedProblem instanceof Closure) {
+            assert expectedProblem.call(actualProblem)
+        } else if (expectedProblem instanceof Problem) {
+            assert expectedProblem == actualProblem
+        } else {
+            assert expectedProblem instanceof Wildcard
+        }
+    }
+
+    void recordEmittedProblems() {
+        summarizer.reset()
+    }
+
+    void resetRecordedProblems() {
+        summarizer.reset()
+    }
+}
+
+class TestProblemSummarizer implements ProblemSummarizer {
+    List emitted = []
+
+    @Override
+    void emit(InternalProblem problem, @Nullable OperationIdentifier id) {
+        emitted.add(problem)
+    }
+
+    void reset() {
+        emitted.clear()
+    }
+
+    @Override
+    String getId() {
+        //no op
+        return ""
+    }
+
+    @Override
+    void report(File reportDir, ProblemConsumer validationFailures) {
+        //no op
+    }
+}
+
+class TestCurrentBuildOperationRef extends CurrentBuildOperationRef {
+    @Override
+    OperationIdentifier getId() {
+        new OperationIdentifier(42)
+    }
 }

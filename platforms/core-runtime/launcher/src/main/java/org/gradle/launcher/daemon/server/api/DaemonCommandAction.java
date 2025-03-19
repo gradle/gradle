@@ -25,7 +25,7 @@ public interface DaemonCommandAction {
     /**
      * Executes this action.
      * <p>
-     * The execution object is a kind of continuation and also carries the “result” of the action.
+     * The execution object is a kind of continuation and also carries the "result" of the action.
      * For example, if an exception arises as part of actioning the command, the exception should be
      * set on the execution object and not thrown. The implication of this is that any exceptions
      * thrown by DaemonCommandAction implementations are programming errors in the implementation

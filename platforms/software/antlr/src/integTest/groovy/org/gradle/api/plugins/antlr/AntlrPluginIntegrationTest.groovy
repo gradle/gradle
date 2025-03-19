@@ -16,6 +16,7 @@
 package org.gradle.api.plugins.antlr
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
+import spock.lang.Issue
 
 import static org.gradle.test.fixtures.dsl.GradleDsl.GROOVY
 import static org.gradle.test.fixtures.dsl.GradleDsl.KOTLIN
@@ -36,20 +37,7 @@ class AntlrPluginIntegrationTest extends WellBehavedPluginTest {
         """
         and:
 
-        file("src/main/antlr/org/acme/TestGrammar.g") << """ class TestGrammar extends Parser;
-        options {
-            buildAST = true;
-        }
-
-        expr:   mexpr (PLUS^ mexpr)* SEMI!
-        ;
-
-        mexpr
-        :   atom (STAR^ atom)*
-        ;
-
-        atom:   INT
-        ;"""
+        file("src/main/antlr/org/acme/TestGrammar.g") << testGrammarSource
 
         when:
         succeeds("generateGrammarSource")
@@ -102,5 +90,46 @@ class AntlrPluginIntegrationTest extends WellBehavedPluginTest {
 
         expect:
         succeeds 'help'
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/19555')
+    def "creates proper dependency wiring between generated source set and source generation task"() {
+        given:
+        buildFile << """
+            apply plugin: "java"
+            apply plugin: "antlr"
+
+            ${mavenCentralRepository()}
+
+            java {
+                withSourcesJar()
+            }
+        """
+
+        and:
+        file("src/main/antlr/TestGrammar.g") << testGrammarSource
+
+        when:
+        succeeds('sourcesJar')
+
+        then:
+        executed(':generateGrammarSource')
+    }
+
+    private static String getTestGrammarSource() {
+        return """ class TestGrammar extends Parser;
+        options {
+            buildAST = true;
+        }
+
+        expr:   mexpr (PLUS^ mexpr)* SEMI!
+        ;
+
+        mexpr
+        :   atom (STAR^ atom)*
+        ;
+
+        atom:   INT
+        ;"""
     }
 }

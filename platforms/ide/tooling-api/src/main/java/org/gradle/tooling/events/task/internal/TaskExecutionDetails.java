@@ -18,8 +18,8 @@ package org.gradle.tooling.events.task.internal;
 
 import org.gradle.tooling.events.task.TaskExecutionResult;
 import org.gradle.tooling.model.internal.Exceptions;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 public abstract class TaskExecutionDetails {

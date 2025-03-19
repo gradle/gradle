@@ -33,7 +33,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CapabilitiesConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ModuleConflictHandler;
@@ -45,6 +44,7 @@ import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
+import org.gradle.internal.component.local.model.LocalVariantGraphResolveState;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentGraphSpecificResolveState;
 import org.gradle.internal.component.model.ComponentIdGenerator;
@@ -53,8 +53,8 @@ import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Comparator;
@@ -100,7 +100,8 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
 
     public ResolveState(
         ComponentIdGenerator idGenerator,
-        RootComponentMetadataBuilder.RootComponentState root,
+        LocalComponentGraphResolveState rootComponentState,
+        LocalVariantGraphResolveState rootVariant,
         DependencyToComponentIdResolver idResolver,
         ComponentMetaDataResolver metaDataResolver,
         Spec<? super DependencyMetadata> edgeFilter,
@@ -139,8 +140,6 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
         this.replaceSelectionWithConflictResultAction = new ReplaceSelectionWithConflictResultAction(this);
         this.variantSelector = variantSelector;
 
-        LocalComponentGraphResolveState rootComponentState = root.getRootComponent();
-        VariantGraphResolveState rootVariant = root.getRootVariant();
         ModuleVersionIdentifier rootModuleVersionId = rootComponentState.getModuleVersionId();
         ComponentIdentifier rootComponentId = rootComponentState.getId();
         this.consumerSchema = rootComponentState.getMetadata().getAttributesSchema();
@@ -234,7 +233,7 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
         boolean isVirtualPlatformEdge = dependencyState.getDependency() instanceof LenientPlatformDependencyMetadata;
         SelectorState selectorState = selectors.computeIfAbsent(new SelectorCacheKey(dependencyState.getRequested(), ignoreVersion, isVirtualPlatformEdge), req -> {
             ModuleIdentifier moduleIdentifier = dependencyState.getModuleIdentifier();
-            return new SelectorState(idGenerator.nextGraphNodeId(), dependencyState, idResolver, this, moduleIdentifier, ignoreVersion);
+            return new SelectorState(dependencyState, idResolver, this, moduleIdentifier, ignoreVersion);
         });
         selectorState.update(dependencyState);
         return selectorState;

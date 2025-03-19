@@ -37,11 +37,11 @@ class RepositoriesBuilder extends MultiSectionHandler implements SectionBuilder 
     }
 
     void maven(URI uri) {
-        sections << new GenericSection({ """maven { url "$uri" }""" }, { """maven { setUrl("$uri") }""" })
+        sections << new GenericSection({ """maven { url = "$uri" }""" }, { """maven { setUrl("$uri") }""" })
     }
 
     void ivy(URI uri) {
-        sections << new GenericSection({ """ivy { url "$uri" }""" }, { """ivy { setUrl("$uri") }""" })
+        sections << new GenericSection({ """ivy { url = "$uri" }""" }, { """ivy { setUrl("$uri") }""" })
     }
 
 }

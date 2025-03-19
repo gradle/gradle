@@ -24,8 +24,8 @@ import org.gradle.internal.build.BuildState;
 import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.util.Path;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;
 import java.util.Set;
@@ -61,6 +61,18 @@ public interface ProjectState extends ModelContainer<ProjectInternal> {
      * Returns the direct children of this project, in public iteration order.
      */
     Set<ProjectState> getChildProjects();
+
+    /**
+     * Returns the direct children of this project in no particular order.
+     */
+    Iterable<ProjectState> getUnorderedChildProjects();
+
+    /**
+     * Checks whether this project has child projects.
+     *
+     * @return true when this project has child projects.
+     */
+    boolean hasChildren();
 
     /**
      * Returns the name of this project (which may not necessarily be unique).
@@ -114,6 +126,13 @@ public interface ProjectState extends ModelContainer<ProjectInternal> {
      * May also configure the parent of this project.
      */
     void ensureConfigured();
+
+    /**
+     * Configures the mutable model for this project, if not already.
+     *
+     * @throws IllegalStateException when the parent of this model is not already configured.
+     */
+    void ensureSelfConfigured();
 
     /**
      * Configure the mutable model for this project and discovers any registered tasks, if not already done.

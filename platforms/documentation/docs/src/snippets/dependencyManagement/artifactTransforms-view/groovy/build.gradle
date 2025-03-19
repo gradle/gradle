@@ -1,0 +1,61 @@
+import org.gradle.api.artifacts.transform.TransformAction
+import org.gradle.api.artifacts.transform.TransformOutputs
+import org.gradle.api.artifacts.transform.TransformParameters
+import org.gradle.api.file.FileSystemLocation
+import org.gradle.api.provider.Provider
+import org.gradle.api.attributes.Attribute
+import org.gradle.api.artifacts.type.ArtifactTypeDefinition
+
+plugins {
+    id('java-library')
+}
+
+repositories {
+    mavenCentral()
+}
+
+// tag::artifact-views-with-custom-attribute[]
+// The TestTransform class implements TransformAction,
+// transforming input JAR files into text files with specific content
+abstract class TestTransform implements TransformAction<TransformParameters.None> {
+    @InputArtifact
+    abstract Provider<FileSystemLocation> getInputArtifact()
+
+    @Override
+    void transform(TransformOutputs outputs) {
+        def outputFile = outputs.file("transformed-stub.txt")
+        outputFile.text = "Transformed from ${getInputArtifact().get().asFile.name}"
+    }
+}
+
+// The transform is registered to convert artifacts from the type "jar" to "stub"
+dependencies {
+    registerTransform(TestTransform) {
+        from.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, "jar")
+        to.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, "stub")
+    }
+}
+
+dependencies {
+    runtimeOnly("com.github.javafaker:javafaker:1.0.2")
+}
+
+// The testArtifact task queries and prints the attributes of resolved artifacts,
+// showing the type conversion in action.
+tasks.register("testArtifact") {
+    def resolvedArtifacts = configurations.runtimeClasspath.incoming.artifactView {
+        attributes {
+            attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, "stub")
+        }
+    }.artifacts.resolvedArtifacts
+
+    resolvedArtifacts.get().each {
+        println "Resolved artifact variant:"
+        println "- ${it.variant}"
+        println "Resolved artifact attributes:"
+        println "- ${it.variant.attributes}"
+        println "Resolved artifact type:"
+        println "- ${it.variant.attributes.getAttribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE)}"
+    }
+}
+// end::artifact-views-with-custom-attribute[]

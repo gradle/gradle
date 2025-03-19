@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.tooling.r812
 
+import org.gradle.integtests.tooling.fixture.ProblemsApiGroovyScriptUtils
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
@@ -26,9 +27,7 @@ import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.problems.ProblemSummariesEvent
 import org.gradle.tooling.events.problems.SingleProblemEvent
 
-import static org.gradle.api.problems.ReportingScript.getProblemReportingScript
-import static org.gradle.api.problems.internal.DefaultProblemSummarizer.THRESHOLD_DEFAULT_VALUE
-import static org.gradle.api.problems.internal.DefaultProblemSummarizer.THRESHOLD_OPTION
+import static org.gradle.api.problems.fixtures.ReportingScript.getProblemReportingScript
 import static org.gradle.integtests.tooling.r86.ProblemsServiceModelBuilderCrossVersionTest.getBuildScriptSampleContent
 import static org.gradle.integtests.tooling.r89.ProblemProgressEventCrossVersionTest.failureMessage
 
@@ -36,10 +35,12 @@ import static org.gradle.integtests.tooling.r89.ProblemProgressEventCrossVersion
 @TargetGradleVersion(">=8.12")
 class ProblemThresholdCrossVersionTest extends ToolingApiSpecification {
 
+    private static final int THRESHOLD = 15
+
     def "The summary shows the amount of additional skipped events"() {
         given:
         def exceedingCount = 2
-        buildFile getProblemReportingScript("${getProblemReportingBody(THRESHOLD_DEFAULT_VALUE + exceedingCount)}")
+        buildFile getProblemReportingScript("${getProblemReportingBody(THRESHOLD + exceedingCount)}")
         def listener = new ProblemProgressListener()
 
         when:
@@ -52,8 +53,8 @@ class ProblemThresholdCrossVersionTest extends ToolingApiSpecification {
 
         then:
         def problems = listener.problems
-        problems.size() == THRESHOLD_DEFAULT_VALUE
-        validateFirstNProblems(THRESHOLD_DEFAULT_VALUE, problems)
+        problems.size() == THRESHOLD
+        validateProblemsRange(0..(THRESHOLD - 1), problems)
         def problemSummariesEvent = listener.summariesEvent as ProblemSummariesEvent
         problemSummariesEvent != null
 
@@ -63,7 +64,7 @@ class ProblemThresholdCrossVersionTest extends ToolingApiSpecification {
     }
 
     def "No summaries if no events exceeded the threshold"() {
-        def totalSentEventsCount = THRESHOLD_DEFAULT_VALUE + exceedingCount
+        def totalSentEventsCount = THRESHOLD + exceedingCount
         given:
         buildFile getProblemReportingScript("${getProblemReportingBody(totalSentEventsCount)}")
         def listener = new ProblemProgressListener()
@@ -79,7 +80,7 @@ class ProblemThresholdCrossVersionTest extends ToolingApiSpecification {
         then:
         def problems = listener.problems
         problems.size() == totalSentEventsCount
-        validateFirstNProblems(totalSentEventsCount, problems)
+        validateProblemsRange(0..(totalSentEventsCount - 1), problems)
         def problemSummariesEvent = listener.summariesEvent as ProblemSummariesEvent
         problemSummariesEvent != null
         def summaries = problemSummariesEvent.problemSummaries
@@ -93,7 +94,7 @@ class ProblemThresholdCrossVersionTest extends ToolingApiSpecification {
     def "No summaries received from Gradle versions before 8.12"() {
         given:
         def exceedingCount = 2
-        buildFile getBuildScriptSampleContent(false, false, targetVersion, THRESHOLD_DEFAULT_VALUE + exceedingCount)
+        buildFile getBuildScriptSampleContent(false, false, targetVersion, THRESHOLD + exceedingCount)
         def listener = new ProblemProgressListener()
 
         when:
@@ -106,7 +107,7 @@ class ProblemThresholdCrossVersionTest extends ToolingApiSpecification {
         then:
         def problems = listener.problems
         problems.size() == 1 // 1 because older version does aggregation and only sends the first one.
-        validateFirstNProblems(1, problems)
+        validateProblemsRange(0..0, problems)
         failureMessage(problems[0].problem.failure) == 'test'
         listener.summariesEvent == null
     }
@@ -115,7 +116,7 @@ class ProblemThresholdCrossVersionTest extends ToolingApiSpecification {
         given:
         def exceedingCount = 2
         def differentProblemCount = 4
-        def threshold = THRESHOLD_DEFAULT_VALUE + exceedingCount
+        def threshold = THRESHOLD + exceedingCount
         buildFile getProblemReportingScript("""
             ${getProblemReportingBody(threshold)}
             ${getProblemReportingBody(differentProblemCount, "testCategory2", "label2")}
@@ -132,11 +133,40 @@ class ProblemThresholdCrossVersionTest extends ToolingApiSpecification {
 
         then:
         def problems = listener.problems
-        problems.size() == THRESHOLD_DEFAULT_VALUE + differentProblemCount
-        validateFirstNProblems(THRESHOLD_DEFAULT_VALUE, problems)
+        problems.size() == THRESHOLD + differentProblemCount
+        validateProblemsRange(0..(THRESHOLD - 1), problems)
         def problemSummariesEvent = listener.summariesEvent as ProblemSummariesEvent
         def summaries = problemSummariesEvent.problemSummaries
         summaries.size() == 1
+    }
+
+    def "Two problem ids exceed threshold"() {
+        given:
+        def exceedingCount = 2
+        def differentProblemCount = 4
+        def threshold = THRESHOLD + exceedingCount
+        buildFile getProblemReportingScript("""
+            ${getProblemReportingBody(threshold)}
+            ${getProblemReportingBody(threshold, "testCategory2", "label2")}
+            """)
+        def listener = new ProblemProgressListener()
+
+        when:
+        withConnection {
+            it.newBuild()
+                .addProgressListener(listener)
+                .forTasks("reportProblem")
+                .run()
+        }
+
+        then:
+        def problems = listener.problems
+        problems.size() == THRESHOLD * 2
+        validateProblemsRange(0..(THRESHOLD - 1), problems)
+        validateProblemsRange(THRESHOLD..(problems.size() - 1), problems, "label2", "Generic")
+        def problemSummariesEvent = listener.summariesEvent as ProblemSummariesEvent
+        def summaries = problemSummariesEvent.problemSummaries
+        summaries.size() == 2
     }
 
     def "Problem summarization threshold can be set by an internal option"() {
@@ -152,7 +182,7 @@ class ProblemThresholdCrossVersionTest extends ToolingApiSpecification {
         when:
         withConnection {
             it.newBuild()
-                .withSystemProperties([(THRESHOLD_OPTION.systemPropertyName): thresholdInOption.toString()])
+                .withSystemProperties([('org.gradle.internal.problem.summary.threshold'): thresholdInOption.toString()])
                 .addProgressListener(listener, OperationType.PROBLEMS)
                 .forTasks("reportProblem")
                 .run()
@@ -161,27 +191,17 @@ class ProblemThresholdCrossVersionTest extends ToolingApiSpecification {
         then:
         def problems = listener.problems
         problems.size() == thresholdInOption
-        validateFirstNProblems(thresholdInOption, problems)
+        validateProblemsRange(0..(thresholdInOption - 1), problems)
         def problemSummariesEvent = listener.summariesEvent as ProblemSummariesEvent
         def summaries = problemSummariesEvent.problemSummaries
         summaries.size() == 1
     }
 
-    boolean validateFirstNProblems(int totalSentEventsCount, Collection<SingleProblemEvent> problems) {
-        (0..totalSentEventsCount - 1).every { int index ->
-            problems[index].problem.definition.id.displayName == 'label' &&
-                problems[index].problem.definition.id.group.displayName == 'Generic'
+    boolean validateProblemsRange(IntRange range, Collection<SingleProblemEvent> problems, String id = "label", String group = "Generic") {
+        range.every { int index ->
+            problems[index].problem.definition.id.displayName == id &&
+                problems[index].problem.definition.id.group.displayName == group
         }
-    }
-
-    String getProblemReportingBody(int threshold, String category = "testcategory", String label = "label") {
-        """($threshold).times {
-                 problems.getReporter().reporting {
-                    it.id("$category", "$label")
-                      .details('Wrong API usage, will not show up anywhere')
-                 }
-             }
-        """
     }
 
     static class ProblemProgressListener implements ProgressListener {
@@ -206,5 +226,15 @@ class ProblemThresholdCrossVersionTest extends ToolingApiSpecification {
                 summariesEvent = event
             }
         }
+    }
+    String getProblemReportingBody(int threshold, String category = "testcategory", String label = "label") {
+        """
+           ($threshold).times {
+                 getProblems().${ProblemsApiGroovyScriptUtils.report(targetVersion, category, label)} {
+                    it.${ProblemsApiGroovyScriptUtils.id(targetVersion, category, label)}
+                      .details("Wrong API usage, will not show up anywhere \$it")
+                 }
+             }
+        """
     }
 }

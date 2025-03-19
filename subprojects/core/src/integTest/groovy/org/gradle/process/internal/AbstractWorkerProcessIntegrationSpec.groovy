@@ -81,11 +81,12 @@ abstract class AbstractWorkerProcessIntegrationSpec extends Specification {
     final ModuleRegistry moduleRegistry = services.get(ModuleRegistry)
     final WorkerProcessClassPathProvider workerProcessClassPathProvider = new WorkerProcessClassPathProvider(globalScopedCache, moduleRegistry)
     final ClassPathRegistry classPathRegistry = new DefaultClassPathRegistry(new DefaultClassPathProvider(moduleRegistry), workerProcessClassPathProvider)
-    final JavaExecHandleFactory execHandleFactory = TestFiles.javaExecHandleFactory(tmpDir.testDirectory)
+    final JavaExecHandleFactory javaExecHandleFactory = TestFiles.javaExecHandleFactory(tmpDir.testDirectory)
+    final ClientExecHandleBuilderFactory execHandleFactory = TestFiles.execHandleFactory(tmpDir.testDirectory)
     final OutputEventListener outputEventListener = new TestOutputEventListener()
     final TemporaryFileProvider tmpDirTemporaryFileProvider = TestFiles.tmpDirTemporaryFileProvider(tmpDir.testDirectory)
     final DefaultJvmMetadataDetector defaultJvmMetadataDetector = new DefaultJvmMetadataDetector(
-        execHandleFactory as ExecHandleFactory,
+        execHandleFactory,
         tmpDirTemporaryFileProvider
     )
     DefaultWorkerProcessFactory workerFactory = new DefaultWorkerProcessFactory(
@@ -95,7 +96,7 @@ abstract class AbstractWorkerProcessIntegrationSpec extends Specification {
         new LongIdGenerator(),
         tmpDir.file("gradleUserHome"),
         tmpDirTemporaryFileProvider,
-        execHandleFactory,
+        javaExecHandleFactory,
         new DefaultJvmVersionDetector(new CachingJvmMetadataDetector(defaultJvmMetadataDetector)),
         outputEventListener,
         Stub(MemoryManager)

@@ -16,8 +16,8 @@
 package org.gradle.api.file;
 
 import org.gradle.internal.file.FilePathUtil;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.Serializable;
 import java.nio.CharBuffer;
@@ -202,6 +202,7 @@ public class RelativePath implements Serializable, Comparable<RelativePath>, Cha
      *
      * @return The parent of this path, or null if this is the root path.
      */
+    @Nullable
     public RelativePath getParent() {
         switch (segments.length) {
             case 0:

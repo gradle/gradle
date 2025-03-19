@@ -17,5 +17,7 @@
 /**
  * Build operations used in the execution engine.
  */
-@org.gradle.api.NonNullApi
+@NullMarked
 package org.gradle.operations.execution;
+
+import org.jspecify.annotations.NullMarked;

@@ -16,7 +16,7 @@
 
 package org.gradle.internal.fingerprint.impl;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.CachingFileSystemLocationSnapshotHasher;
 import org.gradle.api.internal.changedetection.state.LineEndingNormalizingFileSystemLocationSnapshotHasher;
@@ -31,8 +31,11 @@ import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.fingerprint.classpath.impl.DefaultClasspathFingerprinter;
 import org.gradle.internal.fingerprint.classpath.impl.DefaultCompileClasspathFingerprinter;
 import org.gradle.internal.fingerprint.hashing.FileSystemLocationSnapshotHasher;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -43,6 +46,7 @@ import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static java.util.Arrays.stream;
 import static org.gradle.internal.execution.impl.FingerprinterRegistration.registration;
 
+@ServiceScope(Scope.BuildSession.class)
 public class FileCollectionFingerprinterRegistrations {
     private final Set<FingerprinterRegistration> registrants;
 
@@ -99,7 +103,7 @@ public class FileCollectionFingerprinterRegistrations {
         FileCollectionSnapshotter fileCollectionSnapshotter,
         FileSystemLocationSnapshotHasher normalizedContentHasher
     ) {
-        return Lists.newArrayList(
+        return ImmutableList.of(
             new AbsolutePathFileCollectionFingerprinter(directorySensitivity, fileCollectionSnapshotter, normalizedContentHasher),
             new RelativePathFileCollectionFingerprinter(stringInterner, directorySensitivity, fileCollectionSnapshotter, normalizedContentHasher),
             new NameOnlyFileCollectionFingerprinter(directorySensitivity, fileCollectionSnapshotter, normalizedContentHasher)
@@ -119,7 +123,7 @@ public class FileCollectionFingerprinterRegistrations {
         Map<String, ResourceEntryFilter> propertiesFileFilters,
         StringInterner stringInterner
     ) {
-        return Lists.newArrayList(
+        return ImmutableList.of(
             new IgnoredPathFileCollectionFingerprinter(fileCollectionSnapshotter, normalizedContentHasher),
             new DefaultClasspathFingerprinter(
                 resourceSnapshotterCacheService,
@@ -137,7 +141,7 @@ public class FileCollectionFingerprinterRegistrations {
      * These fingerprinters do not care about line ending or directory sensitivity at all
      */
     private static List<? extends FileCollectionFingerprinter> insensitiveFingerprinters(ResourceSnapshotterCacheService resourceSnapshotterCacheService, FileCollectionSnapshotter fileCollectionSnapshotter, StringInterner stringInterner) {
-        return Lists.newArrayList(
+        return Collections.singletonList(
             new DefaultCompileClasspathFingerprinter(resourceSnapshotterCacheService, fileCollectionSnapshotter, stringInterner)
         );
     }

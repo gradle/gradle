@@ -22,6 +22,7 @@ import org.gradle.declarative.dsl.schema.ConfigureAccessor
 import org.gradle.declarative.dsl.schema.DataConstructor
 import org.gradle.declarative.dsl.schema.DataTopLevelFunction
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
+import org.gradle.internal.declarativedsl.InstanceAndPublicType
 import org.gradle.internal.declarativedsl.analysis.ConfigureAccessorInternal
 import org.gradle.internal.declarativedsl.analysis.DefaultDataMemberFunction
 import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsInternal
@@ -29,17 +30,18 @@ import org.gradle.internal.declarativedsl.demo.resolve
 import org.gradle.internal.declarativedsl.schemaBuilder.DataSchemaBuilder
 import org.gradle.internal.declarativedsl.schemaBuilder.DefaultFunctionExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
+import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingHost
 import org.gradle.internal.declarativedsl.schemaBuilder.isPublicAndRestricted
 import org.gradle.internal.declarativedsl.schemaBuilder.kotlinFunctionAsConfigureLambda
 import org.gradle.internal.declarativedsl.schemaBuilder.plus
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
-import org.gradle.internal.declarativedsl.schemaBuilder.toDataTypeRef
 import org.gradle.internal.declarativedsl.schemaBuilder.treatInterfaceAsConfigureLambda
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.Test
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
+import kotlin.reflect.typeOf
 
 
 class AccessorTest {
@@ -81,24 +83,24 @@ class AccessorTest {
 
     // don't make this private, will produce failures on Java 8 (due to https://youtrack.jetbrains.com/issue/KT-37660)
     val runtimeCustomAccessors = object : RuntimeCustomAccessors {
-        override fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessor.Custom): Any? =
+        override fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessor.Custom): InstanceAndPublicType =
             if (receiverObject is MyReceiver && accessor.customAccessorIdentifier == "test")
-                receiverObject.myHiddenInstance.value
-            else null
+                InstanceAndPublicType.unknownPublicType(receiverObject.myHiddenInstance.value)
+            else InstanceAndPublicType.NULL
     }
 
     // don't make this private, will produce failures on Java 8 (due to https://youtrack.jetbrains.com/issue/KT-37660)
     val functionContributorWithCustomAccessor = object : FunctionExtractor {
-        override fun memberFunctions(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<SchemaMemberFunction> =
+        override fun memberFunctions(host: SchemaBuildingHost, kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<SchemaMemberFunction> =
             if (kClass == MyReceiver::class) {
                 listOf(
                     DefaultDataMemberFunction(
-                        MyReceiver::class.toDataTypeRef(),
+                        host.modelTypeRef(typeOf<MyReceiver>()),
                         "configureCustomInstance",
                         emptyList(),
                         false,
                         FunctionSemanticsInternal.DefaultAccessAndConfigure(
-                            ConfigureAccessorInternal.DefaultCustom(Configured::class.toDataTypeRef(), "test"),
+                            ConfigureAccessorInternal.DefaultCustom(host.containerTypeRef(Configured::class), "test"),
                             FunctionSemanticsInternal.DefaultAccessAndConfigure.DefaultReturnType.DefaultUnit,
                             FunctionSemanticsInternal.DefaultConfigureBlockRequirement.DefaultRequired
                         )
@@ -106,8 +108,8 @@ class AccessorTest {
                 )
             } else emptyList()
 
-        override fun constructors(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<DataConstructor> = emptyList()
-        override fun topLevelFunction(function: KFunction<*>, preIndex: DataSchemaBuilder.PreIndex): DataTopLevelFunction? = null
+        override fun constructors(host: SchemaBuildingHost, kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<DataConstructor> = emptyList()
+        override fun topLevelFunction(host: SchemaBuildingHost, function: KFunction<*>, preIndex: DataSchemaBuilder.PreIndex): DataTopLevelFunction? = null
     }
 
     val configureLambdas = kotlinFunctionAsConfigureLambda + treatInterfaceAsConfigureLambda(MyFunctionalInterface::class)

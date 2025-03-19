@@ -49,7 +49,7 @@ model {
 model {
     toolChains {
         ${toolChain.id} {
-            installDir "does-not-exist"
+            installDir = "does-not-exist"
         }
     }
 }
@@ -70,7 +70,7 @@ model {
 model {
     toolChains {
         ${toolChain.id} {
-            windowsSdkDir "does-not-exist"
+            windowsSdkDir = "does-not-exist"
         }
     }
 }

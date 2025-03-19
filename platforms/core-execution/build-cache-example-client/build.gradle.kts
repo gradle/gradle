@@ -36,17 +36,15 @@ dependencies {
     implementation(projects.stdlibJavaExtensions)
     implementation(projects.persistentCache)
     implementation(projects.snapshots)
+    implementation(projects.time)
 
     implementation(libs.commonsIo)
     implementation(libs.guava)
     implementation(libs.guice)
-    implementation(libs.jsr305)
+    implementation(libs.jspecify)
     implementation(libs.slf4jApi)
 }
 
 application {
     mainClass = "org.gradle.caching.example.ExampleBuildCacheClient"
-}
-tasks.isolatedProjectsIntegTest {
-    enabled = false
 }

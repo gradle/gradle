@@ -118,7 +118,7 @@ class ContainersSchemaComponentTest {
                     }
                 """.trimIndent(),
                 SimpleInterpretationSequenceStepWithConversion("test", emptySet()) { schema },
-                ConversionStepContext(receiver, AnalysisStepContext(emptyList(), emptyList()))
+                ConversionStepContext(receiver, { javaClass.classLoader }, { javaClass.classLoader }, AnalysisStepContext(emptyList(), emptyList()))
             )
 
         receiver.containerOne.single().run {

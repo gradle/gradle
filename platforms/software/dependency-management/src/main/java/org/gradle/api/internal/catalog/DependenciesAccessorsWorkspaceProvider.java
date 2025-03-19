@@ -21,9 +21,12 @@ import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
 import org.gradle.internal.execution.workspace.impl.CacheBasedImmutableWorkspaceProvider;
 import org.gradle.internal.file.FileAccessTimeJournal;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.Closeable;
 
+@ServiceScope(Scope.BuildSession.class)
 public class DependenciesAccessorsWorkspaceProvider implements ImmutableWorkspaceProvider, Closeable {
     private final CacheBasedImmutableWorkspaceProvider delegate;
 

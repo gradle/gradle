@@ -20,9 +20,8 @@ import org.gradle.internal.concurrent.ExecutorPolicy;
 import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.concurrent.ManagedExecutorImpl;
 import org.gradle.internal.enterprise.DevelocityPluginUnsafeConfigurationService;
-import org.gradle.internal.enterprise.GradleEnterprisePluginBackgroundJobExecutors;
+import org.jspecify.annotations.NonNull;
 
-import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -31,7 +30,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class DefaultGradleEnterprisePluginBackgroundJobExecutors implements GradleEnterprisePluginBackgroundJobExecutors {
+public class DefaultGradleEnterprisePluginBackgroundJobExecutors implements GradleEnterprisePluginBackgroundJobExecutorsInternal {
     private final ManagedExecutor executorService = createExecutor();
     private final DevelocityPluginUnsafeConfigurationService unsafeConfigurationService;
 
@@ -69,13 +68,8 @@ public class DefaultGradleEnterprisePluginBackgroundJobExecutors implements Grad
         return Thread.currentThread() instanceof BackgroundThread;
     }
 
-    /**
-     * Shuts the executors down.
-     * All executors immediately stops accepting new jobs. The method blocks until already submitted jobs complete.
-     *
-     * @throws RuntimeException any exception or error thrown by a job is rethrown from this method, potentially wrapped as a RuntimeException
-     */
-    public void stop() {
+    @Override
+    public void shutdown() {
         if (executorService.isShutdown()) {
             return;
         }
@@ -89,7 +83,7 @@ public class DefaultGradleEnterprisePluginBackgroundJobExecutors implements Grad
         private final AtomicLong counter = new AtomicLong();
 
         @Override
-        public Thread newThread(@Nonnull Runnable r) {
+        public Thread newThread(@NonNull Runnable r) {
             Thread thread = new BackgroundThread(group, r, NAME + "-" + counter.getAndIncrement());
             thread.setDaemon(true);
             return thread;

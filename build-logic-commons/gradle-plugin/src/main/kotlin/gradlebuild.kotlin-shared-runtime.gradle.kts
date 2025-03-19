@@ -1,4 +1,3 @@
-import gradlebuild.commons.configureJavaToolChain
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -17,7 +16,6 @@ plugins {
 description = "A plugin that sets up a Kotlin DSL code that is shared between build-logic and runtime"
 
 java {
-    configureJavaToolChain()
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
 }

@@ -1,0 +1,267 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[dependency-caching]]
+= Dependency Caching
+
+Gradle contains a highly sophisticated dependency caching mechanism, which seeks to minimise the number of remote requests made in dependency resolution, while striving to guarantee that the results of dependency resolution are correct and reproducible.
+
+1. **Local Cache**: Gradle caches dependencies locally to avoid repeated downloads.
+The cache is located in the `.gradle` directory under the user's home folder (e.g., `~/.gradle/caches/modules-2`).
+When a dependency is requested, Gradle first checks this local cache before attempting to fetch it from remote repositories.
+
+2. **Changing Dependencies**: By default, Gradle treats dependencies marked as "changing" (e.g., SNAPSHOT or dynamic dependencies) differently and refreshes them more frequently.
+The caching times for these dependencies can be altered programmatically.
+
+3. **Offline Mode**: Gradle can run in *offline mode*, using only the cached dependencies without trying to download anything from remote repositories.
+You can enable offline mode with the `--offline` flag, ensuring that your build only uses cached artifacts.
+
+4. **Refreshing Dependencies**: To force Gradle to update its dependencies, use the `--refresh-dependencies` flag.
+This option instructs Gradle to bypass the cache and check for updated artifacts in remote repositories.
+Gradle downloads them, but only if it detects a change, using hashes to avoid unnecessary downloads.
+
+[[sec:dependency-cache]]
+== 1. The dependency cache
+
+The Gradle dependency cache consists of two storage types located under `$<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>/caches`:
+
+1. A file-based store of downloaded artifacts, including binaries like jars as well as raw downloaded meta-data like POM files and Ivy files.
+Artifacts are stored under a checksum, so name clashes will not cause issues.
+2. A binary store of resolved module metadata, including the results of resolving dynamic versions, module descriptors, and artifacts.
+
+[[sec:cache-metadata]]
+=== Separate metadata cache
+
+Gradle keeps a record of various aspects of dependency resolution in binary format in the metadata cache.
+
+The information stored in the metadata cache includes:
+
+* The result of resolving a dynamic version (e.g. `1.+`) to a concrete version (e.g. `1.2`).
+* The resolved module metadata for a particular module, including module artifacts and module dependencies.
+* The resolved artifact metadata for a particular artifact, including a pointer to the downloaded artifact file.
+* The _absence_ of a particular module or artifact in a particular repository, eliminating repeated attempts to access a resource that does not exist.
+
+Every entry in the metadata cache includes a record of the repository that provided the information as well as a timestamp that can be used for cache expiry.
+
+[[sec:cache-repository-independence]]
+=== Repository caches are independent
+
+As described above, for each repository there is a separate metadata cache.
+A repository is identified by its URL, type and layout.
+
+If a module or artifact has not been previously resolved from _this repository_, Gradle will attempt to resolve the module against the repository.
+This will always involve a remote lookup on the repository, however in many cases <<#sec:cache-artifact-reuse,no download will be required>>.
+
+Dependency resolution will fail if required artifacts aren’t available in the repository from which they were originally resolved.
+Once resolved from a specific repository, artifacts become "sticky," meaning Gradle will avoid resolving them from other repositories to prevent unexpected or potentially unsafe changes in artifact sources.
+This ensures consistency across environments, but it may also lead to failures if repositories differ between machines.
+
+Repository independence allows builds to be isolated from each other.
+This is a key feature to create builds that are reliable and reproducible in any environment.
+
+[[sec:cache-artifact-reuse]]
+=== Artifact reuse
+
+Before downloading an artifact, Gradle attempts to retrieve the artifact's checksum by downloading an associated `.sha512`, `.sha256`, `.sha1`, or `.md5` file (attempting each in order).
+
+If the checksum is available, Gradle skips the download if an artifact with the same ID and checksum already exists.
+However, if the checksum cannot be retrieved from the remote server, Gradle proceeds to download the artifact but will ignore it if it matches an existing one.
+
+Gradle also tries to reuse artifacts from the local Maven repository.
+If an artifact previously downloaded by Maven is a match, Gradle will use it, provided it can be verified against the checksum from the remote server.
+
+[[sec:cache-checksum-storage]]
+=== Checksum based storage
+
+It is possible for different repositories to provide a different binary artifact in response to the same artifact identifier.
+
+This is often the case with Maven SNAPSHOT artifacts, but can also be true for any artifact which is republished without changing its identifier.
+By caching artifacts based on their checksum, Gradle is able to maintain multiple versions of the same artifact.
+This means that when resolving against one repository Gradle will never overwrite the cached artifact file from a different repository.
+This is done without requiring a separate artifact file store per repository.
+
+[[sec:cache-locking]]
+=== Cache locking
+
+The Gradle dependency cache uses file-based locking to ensure that it can safely be used by multiple Gradle processes concurrently.
+The lock is held whenever the binary metadata store is being read or written, but is released for slow operations such as downloading remote artifacts.
+
+This concurrent access is only supported if the different Gradle processes can communicate together. This is usually _not the case_ for containerized builds.
+
+[[sec:cache-cleanup]]
+=== Cache cleanup
+
+Gradle tracks which artifacts in the dependency cache are accessed.
+Based on this information, the cache is periodically scanned (no more than once every 24 hours) to identify artifacts that haven't been used in over 30 days.
+These obsolete artifacts are then deleted to prevent the cache from growing indefinitely.
+
+You can learn more about cache cleanup in <<directory_layout.adoc#dir:gradle_user_home:cache_cleanup,Gradle-managed Directories>>.
+
+[[sec:changing-dependencies]]
+== 2. Changing dependencies
+
+Gradle treats dependencies marked as "changing" (such as SNAPSHOT dependencies) differently from regular dependencies, refreshing them more frequently to ensure that you are always using the latest version.
+
+To declare a dependency as changing, you can set the `changing = true` attribute in your dependency declaration.
+This is useful for dependencies expected to change frequently without a new version number:
+
+[source,groovy]
+----
+dependencies {
+    implementation("com.example:some-library:1.0-SNAPSHOT") // Automatically gets treated as changing
+    implementation("com.example:my-library:1.0") {  // Must be explicitly set as changing
+        changing = true
+    }
+}
+----
+
+[[sec:controlling-dynamic-version-caching]]
+=== Caching changing dependencies
+
+By default, Gradle caches these dependencies (including dynamic versions and changing modules) for 24 hours, meaning it does not contact remote repositories for new versions during this time.
+
+To have Gradle check for newer versions more frequently or with every build, you can adjust the caching threshold or time-to-live (TTL) settings accordingly.
+
+NOTE: Using a short TTL threshold for dynamic or changing versions may result in longer build times due to increased remote repository accesses.
+
+You can fine-tune certain aspects of caching programmatically using the link:{javadocPath}/org/gradle/api/artifacts/ResolutionStrategy.html[ResolutionStrategy] for a configuration.
+The programmatic approach is useful if you want to change the settings permanently.
+
+To change how long Gradle will cache the resolved version for a dynamic version, use:
+
+====
+include::sample[dir="snippets/dependencyManagement/troubleshooting-cache-dynamic/kotlin",files="build.gradle.kts[tags=dynamic-version-cache-control]"]
+include::sample[dir="snippets/dependencyManagement/troubleshooting-cache-dynamic/groovy",files="build.gradle[tags=dynamic-version-cache-control]"]
+====
+
+To change how long Gradle will cache the metadata and artifacts for a changing module, use:
+
+====
+include::sample[dir="snippets/dependencyManagement/troubleshooting-cache-changing/kotlin",files="build.gradle.kts[tags=changing-module-cache-control]"]
+include::sample[dir="snippets/dependencyManagement/troubleshooting-cache-changing/groovy",files="build.gradle[tags=changing-module-cache-control]"]
+====
+
+[[sec:controlling-dependency-caching-command-line]]
+== 3. Using offline mode
+
+The `--offline` command-line switch instructs Gradle to use dependency modules from the cache, regardless of whether they are due to be checked again.
+When running with `offline`, Gradle will not attempt to access the network for dependency resolution.
+If the required modules are not in the dependency cache, the build will fail.
+
+[[sec:refreshing-dependencies]]
+== 4. Force-refreshing dependencies
+
+You can control the behavior of dependency caching for a distinct build invocation from the command line.
+Command line options help make a selective, ad-hoc choice for a single build execution.
+
+At times, the Gradle Dependency Cache can become out of sync with the actual state of the configured repositories.
+Perhaps a repository was initially misconfigured, or maybe a "non-changing" module was published incorrectly.
+To refresh all dependencies in the dependency cache, use the `--refresh-dependencies` option on the command line.
+
+The `--refresh-dependencies` option tells Gradle to ignore all cached entries for resolved modules and artifacts.
+A fresh resolve will be performed against all configured repositories, with dynamic versions recalculated, modules refreshed, and artifacts downloaded.
+However, where possible Gradle will check if the previously downloaded artifacts are valid before downloading again.
+This is done by comparing published checksum values in the repository with the checksum values for existing downloaded artifacts.
+
+Refreshing dependencies will cause Gradle to invalidate its listing caches.
+However:
+
+- it will perform HTTP HEAD requests on metadata files but _will not re-download them_ if they are identical
+- it will perform HTTP HEAD requests on artifact files but _will not re-download them_ if they are identical
+
+In other words, refreshing dependencies _only_ has an impact if you actually use dynamic dependencies _or_ that you have changing dependencies that you were not aware of (in which case it is your responsibility to declare them correctly to Gradle as changing dependencies).
+
+It's a common misconception to think that using `--refresh-dependencies` will force the download of dependencies.
+This is **not** the case: Gradle will only perform what is strictly required to refresh the dynamic dependencies.
+This _may_ involve downloading new listings, metadata files, or even artifacts, but the impact is minimal if nothing changed.
+
+[[sec:ephemeral-ci-cache]]
+== Dealing with ephemeral builds
+
+It's a common practice to run builds in ephemeral containers.
+A container is typically spawned to only execute a single build before it is destroyed.
+This can become a practical problem when a build depends on a lot of dependencies which each container has to re-download.
+To help with this scenario, Gradle provides a couple of options:
+
+- <<sec:cache-copy,copying the dependency cache>> into each container
+- <<sec:shared-readonly-cache,sharing a read-only dependency cache>> between multiple containers
+
+[[sec:cache-copy]]
+=== Copying and reusing the cache
+
+The dependency cache, both the file and metadata parts, are fully encoded using relative paths.
+This means that it is perfectly possible to copy a cache around and see Gradle benefit from it.
+
+The path that can be copied is `$GRADLE_USER_HOME/caches/modules-<version>`.
+The only constraint is placing it using the same structure at the destination, where the value of `GRADLE_USER_HOME` can be different.
+
+Do not copy the `*.lock` or `gc.properties` files if they exist.
+
+Note that creating the cache and consuming it should be done using compatible Gradle version, as shown in the table below.
+Otherwise, the build might still require some interactions with remote repositories to complete missing information, which might be available in a different version.
+If multiple incompatible Gradle versions are in play, all should be used when seeding the cache.
+
+[%header%autowidth,compact]
+|===
+| Module cache version  | File cache version    | Metadata cache version    | Gradle version(s)
+
+| `modules-2`           | `files-2.1`           | `metadata-2.95`           | Gradle 6.1 to Gradle 6.3
+
+| `modules-2`           | `files-2.1`           | `metadata-2.96`           | Gradle 6.4 to Gradle 6.7
+
+| `modules-2`           | `files-2.1`           | `metadata-2.97`           | Gradle 6.8 to Gradle 7.4
+| `modules-2`           | `files-2.1`           | `metadata-2.99`           | Gradle 7.5 to Gradle 7.6.1
+| `modules-2`           | `files-2.1`           | `metadata-2.101`          | Gradle 7.6.2
+| `modules-2`           | `files-2.1`           | `metadata-2.100`          | Gradle 8.0
+| `modules-2`           | `files-2.1`           | `metadata-2.105`          | Gradle 8.1
+| `modules-2`           | `files-2.1`           | `metadata-2.106`          | Gradle 8.2 to Gradle 8.10.2
+| `modules-2`           | `files-2.1`           | `metadata-2.107`          | Gradle 8.11 and above
+|===
+
+[[sec:shared-readonly-cache]]
+=== Sharing the dependency cache with other Gradle instances
+
+Instead of <<sec:cache-copy,copying the dependency cache into each container>>, it's possible to mount a shared, read-only directory that will act as a dependency cache for all containers.
+This cache, unlike the classical dependency cache, is accessed without locking, making it possible for multiple builds to read from the cache concurrently. It's important that the read-only cache
+is not written to when other builds may be reading from it.
+
+When using the shared read-only cache, Gradle looks for dependencies (artifacts or metadata) in both the writable cache in the local Gradle User Home directory and the shared read-only cache.
+If a dependency is present in the read-only cache, it will not be downloaded.
+If a dependency is missing from the read-only cache, it will be downloaded and added to the writable cache.
+In practice, this means that the writable cache will only contain dependencies that are unavailable in the read-only cache.
+
+The read-only cache should be sourced from a Gradle dependency cache that already contains some of the required dependencies.
+The cache can be incomplete; however, an empty shared cache will only add overhead.
+
+NOTE: The shared read-only dependency cache is an incubating feature.
+
+The first step in using a shared dependency cache is to create one by copying of an existing _local_ cache.
+For this you need to follow the <<sec:cache-copy,instructions above>>.
+
+Then set the `GRADLE_RO_DEP_CACHE` environment variable to point to the directory containing the cache:
+
+----
+$GRADLE_RO_DEP_CACHE
+   |-- modules-2 : the read-only dependency cache, should be mounted with read-only privileges
+
+$GRADLE_HOME
+   |-- caches
+         |-- modules-2 : the container specific dependency cache, should be writable
+         |-- ...
+   |-- ...
+----
+
+In a CI environment, it's a good idea to have one build which "seeds" a Gradle dependency cache, which is then _copied_ to a different directory or distributed, for example, as a Docker volume.
+This directory can then be used as the read-only cache for other builds.
+You shouldn't use an existing Gradle installation cache as the read-only cache, because this directory may contain locks and may be modified by the seeding build.

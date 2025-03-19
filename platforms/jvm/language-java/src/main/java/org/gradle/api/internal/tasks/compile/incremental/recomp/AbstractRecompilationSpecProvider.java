@@ -140,7 +140,7 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
      * <p>
      * We will use name "independent classes" for classes that are in the sources that are passed to a compiler but are not a dependency to a changed class.
      * <p>
-     * Check also: <a href="https://github.com/gradle/gradle/issues/21644" />
+     * Check also: <a href="https://github.com/gradle/gradle/issues/21644">#21644</a>
      */
     private static void collectAllSourcePathsAndIndependentClasses(SourceFileChangeProcessor sourceFileChangeProcessor, RecompilationSpec spec, SourceFileClassNameConverter sourceFileClassNameConverter) {
         Set<String> classesToCompile = new LinkedHashSet<>(spec.getClassesToCompile());

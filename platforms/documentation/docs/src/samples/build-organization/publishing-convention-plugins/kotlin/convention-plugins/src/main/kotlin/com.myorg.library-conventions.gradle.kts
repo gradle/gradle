@@ -21,7 +21,7 @@ publishing {
     repositories {
         maven {
             name = "myOrgPrivateRepo"
-            url = uri("build/my-repo")
+            url = uri(layout.buildDirectory.dir("my-repo"))
         }
     }
 }

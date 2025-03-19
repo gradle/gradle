@@ -18,10 +18,7 @@ package org.gradle.internal.deprecation
 
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.configuration.WarningMode
-import org.gradle.api.problems.internal.DefaultProblems
-import org.gradle.api.problems.internal.ExceptionProblemRegistry
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
-import org.gradle.api.problems.internal.ProblemSummarizer
 import org.gradle.internal.Describables
 import org.gradle.internal.featurelifecycle.DeprecatedUsageProgressDetails
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler
@@ -35,11 +32,13 @@ import org.gradle.internal.operations.DefaultBuildOperationRef
 import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.operations.OperationProgressEvent
 import org.gradle.internal.time.Clock
+import org.gradle.internal.time.FixedClock
 import org.gradle.problems.Location
 import org.gradle.problems.ProblemDiagnostics
 import org.gradle.problems.buildtree.ProblemDiagnosticsFactory
 import org.gradle.problems.buildtree.ProblemStream
 import org.gradle.util.SetSystemProperties
+import org.gradle.util.TestUtil
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Specification
@@ -56,29 +55,16 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
     final diagnosticsFactory = Stub(ProblemDiagnosticsFactory)
 
     final handler = new LoggingDeprecatedFeatureHandler()
-    final Clock clock = Mock(Clock)
+    final Clock clock = FixedClock.create()
     final BuildOperationListener buildOperationListener = Mock()
     final CurrentBuildOperationRef currentBuildOperationRef = new CurrentBuildOperationRef()
     final BuildOperationProgressEventEmitter progressBroadcaster = new DefaultBuildOperationProgressEventEmitter(
-        clock::getCurrentTime, currentBuildOperationRef, buildOperationListener)
+        clock, currentBuildOperationRef, buildOperationListener)
 
     def setup() {
         _ * diagnosticsFactory.newStream() >> problemStream
         _ * diagnosticsFactory.newUnlimitedStream() >> problemStream
-        handler.init(WarningMode.All, progressBroadcaster, createDefaultProblemsWithStub(), problemStream)
-    }
-
-    def DefaultProblems createDefaultProblemsWithStub() {
-        def currentBuildOperationRef = Mock(CurrentBuildOperationRef) {
-            getId() >> new OperationIdentifier(42)
-        }
-        new DefaultProblems(
-            Mock(ProblemSummarizer),
-            null,
-            currentBuildOperationRef,
-            new ExceptionProblemRegistry(),
-            null
-        )
+        handler.init(WarningMode.All, progressBroadcaster, TestUtil.problemsService(), problemStream)
     }
 
     def 'logs each deprecation warning only once'() {
@@ -93,7 +79,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         handler.featureUsed(deprecatedFeatureUsage('feature2'))
 
         then:
-        def events = outputEventListener.events
+        def events = outputEventListener.events.findAll { it.logLevel == LogLevel.WARN }
         events.size() == 2
 
         and:
@@ -119,7 +105,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
 
     def 'includes problem location in message'() {
         given:
-        useLocation("<long>", 123)
+        useLocation("<long>", "<path to source>", 123)
 
         when:
         handler.featureUsed(deprecatedFeatureUsage('feature'))
@@ -170,10 +156,10 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
 
     def 'logs deprecation warning once for each unique location'() {
         given:
-        useLocation("<one>", 123)
-        useLocation("<one>", 1)
-        useLocation("<one>", 123)
-        useLocation("<one>", 1)
+        useLocation("<one>", "<path to source>", 123)
+        useLocation("<one>", "<path to source>", 1)
+        useLocation("<one>", "<path to source>", 123)
+        useLocation("<one>", "<path to source>", 1)
 
         when:
         handler.featureUsed(deprecatedFeatureUsage('feature1'))
@@ -195,9 +181,9 @@ feature1 removal""")
     def 'does not log deprecation warning without stack trace if the same warning has already been seen with a stack trace'() {
         given:
         useStackTrace(fakeStackTrace)
-        useLocation("<plugin>", 123, fakeStackTrace)
+        useLocation("<plugin>", "<path to source>", 123, fakeStackTrace)
         useStackTrace()
-        useLocation("<plugin>", 123)
+        useLocation("<plugin>", "<path to source>", 123)
 
         when:
         handler.featureUsed(deprecatedFeatureUsage('feature1'))
@@ -222,7 +208,7 @@ feature1 removal""")
         useStackTrace()
 
         when:
-        handler.init(type, progressBroadcaster, createDefaultProblemsWithStub(), problemStream)
+        handler.init(type, progressBroadcaster, TestUtil.problemsService(), problemStream)
         handler.featureUsed(deprecatedFeatureUsage('feature1'))
 
         then:
@@ -521,10 +507,10 @@ feature1 removal""")
         }
     }
 
-    private void useLocation(String displayName, int lineNumber, List<StackTraceElement> stackTrace = []) {
+    private void useLocation(String displayName, String filePath, int lineNumber, List<StackTraceElement> stackTrace = []) {
         1 * problemStream.forCurrentCaller(_) >> Stub(ProblemDiagnostics) {
             _ * getStack() >> stackTrace
-            _ * getLocation() >> new Location(Describables.of(displayName), Describables.of("<short>"), lineNumber)
+            _ * getLocation() >> new Location(Describables.of(displayName), Describables.of("<short>"), filePath, lineNumber)
         }
     }
 

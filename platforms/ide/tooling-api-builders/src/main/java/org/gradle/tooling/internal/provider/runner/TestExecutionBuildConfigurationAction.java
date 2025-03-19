@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectState;
@@ -40,6 +39,7 @@ import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest;
 import org.gradle.tooling.internal.protocol.test.InternalTaskSpec;
 import org.gradle.tooling.internal.protocol.test.InternalTestSpec;
 import org.gradle.tooling.internal.provider.action.TestExecutionRequestAction;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -48,7 +48,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 
-@NonNullApi
+@NullMarked
 class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
     private final TestExecutionRequestAction testExecutionRequest;
 

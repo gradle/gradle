@@ -58,7 +58,7 @@ class TestReportTaskIntegrationTest extends AbstractIntegrationSpec {
             $junitSetup
             def test = tasks.named('test', Test)
             test.configure {
-                ignoreFailures true
+                ignoreFailures = true
                 useJUnit {
                     excludeCategories 'org.gradle.testing.SuperClassTests'
                     excludeCategories 'org.gradle.testing.SubClassTests'
@@ -72,8 +72,8 @@ class TestReportTaskIntegrationTest extends AbstractIntegrationSpec {
                         sources.java.srcDirs(testing.suites.test.sources.allJava.srcDirs)
                         targets.all {
                             testTask.configure {
-                                ignoreFailures true
-                                systemProperty 'category', 'super'
+                                ignoreFailures = true
+                                systemProperty('category', 'super')
                                 testFramework {
                                     includeCategories 'org.gradle.testing.SuperClassTests'
                                 }
@@ -85,8 +85,8 @@ class TestReportTaskIntegrationTest extends AbstractIntegrationSpec {
                         sources.java.srcDirs(testing.suites.test.sources.allJava.srcDirs)
                         targets.all {
                             testTask.configure {
-                                ignoreFailures true
-                                systemProperty 'category', 'sub'
+                                ignoreFailures = true
+                                systemProperty('category', 'sub')
                                 testFramework {
                                     includeCategories 'org.gradle.testing.SubClassTests'
                                 }
@@ -225,7 +225,7 @@ class TestReportTaskIntegrationTest extends AbstractIntegrationSpec {
             }
             tasks.register('testReport', TestReport) {
                 reportOn test, otherTests
-                destinationDir reporting.file("tr")
+                destinationDir = reporting.file("tr")
             }
         """
 
@@ -374,7 +374,7 @@ class TestReportTaskIntegrationTest extends AbstractIntegrationSpec {
             }
             tasks.register('testReport', TestReport) {
                 reportOn test, otherTests
-                destinationDir reporting.file("myTestReports")
+                destinationDir = reporting.file("myTestReports")
             }
         """
 

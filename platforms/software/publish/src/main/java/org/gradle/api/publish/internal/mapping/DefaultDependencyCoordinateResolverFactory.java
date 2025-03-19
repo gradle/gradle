@@ -41,8 +41,8 @@ import org.gradle.api.publish.internal.validation.VariantWarningCollector;
 import org.gradle.api.publish.internal.versionmapping.VariantVersionMappingStrategyInternal;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
 import org.gradle.util.Path;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 
 /**
@@ -192,7 +192,7 @@ public class DefaultDependencyCoordinateResolverFactory implements DependencyCoo
 
         @Override
         public ResolvedCoordinates resolveComponentCoordinates(ProjectDependency dependency) {
-            Path identityPath = ((ProjectDependencyInternal) dependency).getIdentityPath();
+            Path identityPath = ((ProjectDependencyInternal) dependency).getTargetProjectIdentity().getBuildTreePath();
             return ResolvedCoordinates.create(projectDependencyResolver.resolveComponent(ModuleVersionIdentifier.class, identityPath));
         }
 

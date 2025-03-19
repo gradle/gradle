@@ -26,41 +26,45 @@ class ArtifactDeclarationIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << """
             rootProject.name = 'test'
         """
-        buildFile << """
-            def usage = Attribute.of('usage', String)
-            allprojects {
-                dependencies {
-                    attributesSchema {
-                        attribute(usage)
-                    }
-                }
-                configurations { compile { attributes.attribute(usage, 'for-compile') } }
-            }
+    }
+
+    String getHeader() {
         """
-        resolve.expectDefaultConfiguration("compile")
-        resolve.prepare()
+            def usage = Attribute.of('usage', String)
+            dependencies {
+                attributesSchema {
+                    attribute(usage)
+                }
+            }
+            configurations { compile { attributes.attribute(usage, 'for-compile') } }
+        """
     }
 
     def "artifact file may have no extension"() {
-        createDirs("a", "b")
         settingsFile << "include 'a', 'b'"
-        buildFile << """
-            project(':a') {
-                artifacts {
-                    compile file("foo")
-                    compile file("foo.txt")
-                }
-                assert configurations.compile.artifacts.files.collect { it.name } == ["foo", "foo.txt"]
-                assert configurations.compile.artifacts.collect { it.file.name } == ["foo", "foo.txt"]
-                assert configurations.compile.artifacts.collect { "\$it.name:\$it.extension:\$it.type" } == ["foo::", "foo:txt:txt"]
-                assert configurations.compile.artifacts.collect { it.classifier } == [null, null]
+
+        file("a/build.gradle") << """
+            $header
+
+            artifacts {
+                compile file("foo")
+                compile file("foo.txt")
             }
-            project(':b') {
-                dependencies {
-                    compile project(':a')
-                }
+            assert configurations.compile.artifacts.files.collect { it.name } == ["foo", "foo.txt"]
+            assert configurations.compile.artifacts.collect { it.file.name } == ["foo", "foo.txt"]
+            assert configurations.compile.artifacts.collect { "\$it.name:\$it.extension:\$it.type" } == ["foo::", "foo:txt:txt"]
+            assert configurations.compile.artifacts.collect { it.classifier } == [null, null]
+        """
+
+        file("b/build.gradle") << """
+            $header
+
+            dependencies {
+                compile project(':a')
             }
         """
+
+        resolve.prepare()
 
         expect:
         succeeds "b:checkDeps"
@@ -75,36 +79,41 @@ class ArtifactDeclarationIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can define artifact using file and configure other properties using a map or closure or action"() {
-        createDirs("a", "b")
         settingsFile << "include 'a', 'b'"
-        buildFile << """
-            project(':a') {
-                artifacts {
-                    compile file: file("a"), name: "thing-a", type: "report", extension: "txt", classifier: "report"
-                    compile file("b"), {
-                        name = "thing-b"
-                        type = "report"
-                        extension = "txt"
-                        classifier = "report"
-                    }
-                    add('compile', file("c"), {
-                        name = "thing-c"
-                        type = "report"
-                        extension = ""
-                        classifier = "report"
-                    })
+
+        file("a/build.gradle") << """
+            $header
+
+            artifacts {
+                compile file: file("a"), name: "thing-a", type: "report", extension: "txt", classifier: "report"
+                compile file("b"), {
+                    name = "thing-b"
+                    type = "report"
+                    extension = "txt"
+                    classifier = "report"
                 }
-                assert configurations.compile.artifacts.files.collect { it.name } == ["a", "b", "c"]
-                assert configurations.compile.artifacts.collect { it.file.name } == ["a", "b", "c"]
-                assert configurations.compile.artifacts.collect { "\$it.name:\$it.extension:\$it.type" } == ["thing-a:txt:report", "thing-b:txt:report", "thing-c::report"]
-                assert configurations.compile.artifacts.collect { it.classifier } == ["report", "report", "report"]
+                add('compile', file("c"), {
+                    name = "thing-c"
+                    type = "report"
+                    extension = ""
+                    classifier = "report"
+                })
             }
-            project(':b') {
-                dependencies {
-                    compile project(':a')
-                }
+            assert configurations.compile.artifacts.files.collect { it.name } == ["a", "b", "c"]
+            assert configurations.compile.artifacts.collect { it.file.name } == ["a", "b", "c"]
+            assert configurations.compile.artifacts.collect { "\$it.name:\$it.extension:\$it.type" } == ["thing-a:txt:report", "thing-b:txt:report", "thing-c::report"]
+            assert configurations.compile.artifacts.collect { it.classifier } == ["report", "report", "report"]
+        """
+
+        file("b/build.gradle") << """
+            $header
+
+            dependencies {
+                compile project(':a')
             }
         """
+
+        resolve.prepare()
 
         expect:
         succeeds "b:checkDeps"
@@ -121,29 +130,34 @@ class ArtifactDeclarationIntegrationTest extends AbstractIntegrationSpec {
 
     def "can define outgoing artifacts for configuration"() {
         given:
-        createDirs("a", "b")
         settingsFile << "include 'a', 'b'"
-        buildFile << """
-            project(':a') {
-                configurations {
-                    compile {
-                        outgoing {
-                            artifact file('lib1.jar')
-                            artifact(file('lib2.zip')) {
-                                name = 'not-a-lib'
-                                type = 'not-a-lib'
-                            }
+
+        file("a/build.gradle") << """
+            $header
+
+            configurations {
+                compile {
+                    outgoing {
+                        artifact file('lib1.jar')
+                        artifact(file('lib2.zip')) {
+                            name = 'not-a-lib'
+                            type = 'not-a-lib'
                         }
                     }
                 }
-                assert configurations.compile.artifacts.size() == 2
             }
-            project(':b') {
-                dependencies {
-                    compile project(':a')
-                }
+            assert configurations.compile.artifacts.size() == 2
+        """
+
+        file("b/build.gradle") << """
+            $header
+
+            dependencies {
+                compile project(':a')
             }
-"""
+        """
+
+        resolve.prepare()
 
         expect:
         succeeds(":b:checkDeps")
@@ -160,31 +174,35 @@ class ArtifactDeclarationIntegrationTest extends AbstractIntegrationSpec {
     def "can define outgoing variants and artifacts for configuration"() {
         given:
         buildFile << """
-configurations {
-    compile {
-        attributes.attribute(usage, 'for compile')
-        outgoing {
-            artifact file('lib1.jar')
-            variants {
-                classes {
-                    attributes.attribute(Attribute.of('format', String), 'classes-dir')
-                    artifact file('classes')
-                }
-                jar {
-                    attributes.attribute(Attribute.of('format', String), 'classes-jar')
-                    artifact file('lib.jar')
-                }
-                sources {
-                    attributes.attribute(Attribute.of('format', String), 'source-jar')
-                    artifact file('source.zip')
+            $header
+
+            configurations {
+                compile {
+                    attributes.attribute(usage, 'for compile')
+                    outgoing {
+                        artifact file('lib1.jar')
+                        variants {
+                            classes {
+                                attributes.attribute(Attribute.of('format', String), 'classes-dir')
+                                artifact file('classes')
+                            }
+                            jar {
+                                attributes.attribute(Attribute.of('format', String), 'classes-jar')
+                                artifact file('lib.jar')
+                            }
+                            sources {
+                                attributes.attribute(Attribute.of('format', String), 'source-jar')
+                                artifact file('source.zip')
+                            }
+                        }
+                    }
                 }
             }
-        }
-    }
-}
-def classes = configurations.compile.outgoing.variants['classes']
-classes.attributes.keySet().collect { it.name } == ['usage', 'format']
-"""
+            def classes = configurations.compile.outgoing.variants['classes']
+            classes.attributes.keySet().collect { it.name } == ['usage', 'format']
+        """
+
+        resolve.prepare()
 
         expect:
         succeeds()
@@ -192,23 +210,27 @@ classes.attributes.keySet().collect { it.name } == ['usage', 'format']
 
     def "can declare build dependency of artifact using String notation"() {
         given:
-        createDirs("a", "b")
         settingsFile << "include 'a', 'b'"
-        buildFile << """
-            project(':a') {
-                artifacts {
-                   compile file:file('lib1.jar'), builtBy: 'jar'
-                }
-                task jar {}
-            }
 
-            project(':b') {
-                dependencies {
-                    compile project(':a')
-                }
-                task jar {} // ignored
+        file("a/build.gradle") << """
+            $header
+
+            artifacts {
+               compile file:file('lib1.jar'), builtBy: 'jar'
             }
+            task jar {}
         """
+
+        file("b/build.gradle") << """
+            $header
+
+            dependencies {
+                compile project(':a')
+            }
+            task jar {} // ignored
+        """
+
+        resolve.prepare()
 
         when:
         succeeds ':b:checkDeps'
@@ -226,29 +248,33 @@ classes.attributes.keySet().collect { it.name } == ['usage', 'format']
 
     def "can declare build dependency of outgoing artifact using String notation"() {
         given:
-        createDirs("a", "b")
         settingsFile << "include 'a', 'b'"
-        buildFile << """
-            project(':a') {
-                configurations {
-                    compile {
-                        outgoing {
-                            artifact(file('lib1.jar')) {
-                                builtBy 'jar'
-                            }
+
+        file("a/build.gradle") << """
+            $header
+
+            configurations {
+                compile {
+                    outgoing {
+                        artifact(file('lib1.jar')) {
+                            builtBy 'jar'
                         }
                     }
                 }
-                task jar {}
             }
+            task jar {}
+        """
 
-            project(':b') {
-                dependencies {
-                    compile project(':a')
-                }
-                task jar {} // ignored
+        file("b/build.gradle") << """
+            $header
+
+            dependencies {
+                compile project(':a')
             }
-"""
+            task jar {} // ignored
+        """
+
+        resolve.prepare()
 
         when:
         succeeds ':b:checkDeps'
@@ -266,33 +292,37 @@ classes.attributes.keySet().collect { it.name } == ['usage', 'format']
 
     def "can declare build dependency of outgoing variant artifact using String notation"() {
         given:
-        createDirs("a", "b")
         settingsFile << "include 'a', 'b'"
-        buildFile << """
-            project(':a') {
-                configurations {
-                    compile {
-                        outgoing {
-                            variants {
-                                classes {
-                                    artifact(file('classes')) {
-                                        builtBy 'classes'
-                                    }
+
+        file("a/build.gradle") << """
+            $header
+
+            configurations {
+                compile {
+                    outgoing {
+                        variants {
+                            classes {
+                                artifact(file('classes')) {
+                                    builtBy 'classes'
                                 }
                             }
                         }
                     }
                 }
-                task classes {}
             }
+            task classes {}
+        """
 
-            project(':b') {
-                dependencies {
-                    compile project(':a')
-                }
-                task classes {} // ignored
+        file("b/build.gradle") << """
+            $header
+
+            dependencies {
+                compile project(':a')
             }
-"""
+            task classes {} // ignored
+        """
+
+        resolve.prepare()
 
         when:
         succeeds ':b:checkDeps'
@@ -309,21 +339,26 @@ classes.attributes.keySet().collect { it.name } == ['usage', 'format']
     }
 
     def "can define artifact using File provider"() {
-        createDirs("a", "b")
         settingsFile << "include 'a', 'b'"
-        buildFile << """
-            project(':a') {
-                artifacts {
-                    def jar = file("a.jar")
-                    compile providers.provider { jar }
-                }
-            }
-            project(':b') {
-                dependencies {
-                    compile project(':a')
-                }
+
+        file("a/build.gradle") << """
+            $header
+
+            artifacts {
+                def jar = file("a.jar")
+                compile providers.provider { jar }
             }
         """
+
+        file("b/build.gradle") << """
+            $header
+
+            dependencies {
+                compile project(':a')
+            }
+        """
+
+        resolve.prepare()
 
         when:
         succeeds ':b:checkDeps'
@@ -339,25 +374,30 @@ classes.attributes.keySet().collect { it.name } == ['usage', 'format']
     }
 
     def "can define artifact using RegularFile task output"() {
-        createDirs("a", "b")
         settingsFile << "include 'a', 'b'"
-        buildFile << """
-            project(':a') {
-                task classes {
-                    ext.outputFile = project.objects.fileProperty()
-                    outputs.file(outputFile)
-                    outputFile.set(layout.buildDirectory.file("a.jar"))
-                }
-                artifacts {
-                    compile classes.outputFile
-                }
+
+        file("a/build.gradle") << """
+            $header
+
+            task classes {
+                ext.outputFile = project.objects.fileProperty()
+                outputs.file(outputFile)
+                outputFile.set(layout.buildDirectory.file("a.jar"))
             }
-            project(':b') {
-                dependencies {
-                    compile project(':a')
-                }
+            artifacts {
+                compile classes.outputFile
             }
         """
+
+        file("b/build.gradle") << """
+            $header
+
+            dependencies {
+                compile project(':a')
+            }
+        """
+
+        resolve.prepare()
 
         when:
         succeeds ':b:checkDeps'
@@ -373,25 +413,30 @@ classes.attributes.keySet().collect { it.name } == ['usage', 'format']
     }
 
     def "can define artifact using Directory task output"() {
-        createDirs("a", "b")
         settingsFile << "include 'a', 'b'"
-        buildFile << """
-            project(':a') {
-                task classes {
-                    ext.outputDir = objects.directoryProperty()
-                    outputs.dir(outputDir)
-                    outputDir.set(layout.buildDirectory.dir("classes"))
-                }
-                artifacts {
-                    compile classes.outputDir
-                }
+
+        file("a/build.gradle") << """
+            $header
+
+            task classes {
+                ext.outputDir = objects.directoryProperty()
+                outputs.dir(outputDir)
+                outputDir.set(layout.buildDirectory.dir("classes"))
             }
-            project(':b') {
-                dependencies {
-                    compile project(':a')
-                }
+            artifacts {
+                compile classes.outputDir
             }
         """
+
+        file("b/build.gradle") << """
+            $header
+
+            dependencies {
+                compile project(':a')
+            }
+        """
+
+        resolve.prepare()
 
         when:
         succeeds ':b:checkDeps'
@@ -408,20 +453,25 @@ classes.attributes.keySet().collect { it.name } == ['usage', 'format']
     }
 
     def "can define artifact using RegularFile type"() {
-        createDirs("a", "b")
         settingsFile << "include 'a', 'b'"
-        buildFile << """
-            project(':a') {
-                artifacts {
-                    compile layout.projectDirectory.file('someFile.txt')
-                }
-            }
-            project(':b') {
-                dependencies {
-                    compile project(':a')
-                }
+
+        file("a/build.gradle") << """
+            $header
+
+            artifacts {
+                compile layout.projectDirectory.file('someFile.txt')
             }
         """
+
+        file("b/build.gradle") << """
+            $header
+
+            dependencies {
+                compile project(':a')
+            }
+        """
+
+        resolve.prepare()
 
         expect:
         succeeds ':b:checkDeps'
@@ -435,20 +485,25 @@ classes.attributes.keySet().collect { it.name } == ['usage', 'format']
     }
 
     def "can define artifact using Directory type"() {
-        createDirs("a", "b")
         settingsFile << "include 'a', 'b'"
-        buildFile << """
-            project(':a') {
-                artifacts {
-                    compile layout.projectDirectory.dir('someDir')
-                }
-            }
-            project(':b') {
-                dependencies {
-                    compile project(':a')
-                }
+
+        file("a/build.gradle") << """
+            $header
+
+            artifacts {
+                compile layout.projectDirectory.dir('someDir')
             }
         """
+
+        file("b/build.gradle") << """
+            $header
+
+            dependencies {
+                compile project(':a')
+            }
+        """
+
+        resolve.prepare()
 
         expect:
         succeeds ':b:checkDeps'
@@ -464,36 +519,41 @@ classes.attributes.keySet().collect { it.name } == ['usage', 'format']
     // This isn't strictly supported and will be deprecated later
     def "can use a custom PublishArtifact implementation"() {
         given:
-        createDirs("a", "b")
         settingsFile << "include 'a', 'b'"
-        buildFile << """
-            project(':a') {
-                artifacts {
-                    def artifact = new PublishArtifact() {
-                        String name = "ignore-me"
-                        String extension = "jar"
-                        String type = "jar"
-                        String classifier
-                        File file
-                        Date date
-                        TaskDependency buildDependencies = new org.gradle.api.internal.tasks.DefaultTaskDependency()
-                    }
-                    artifact.file = file("lib1.jar")
-                    task jar
-                    compile(artifact) {
-                        name = "thing"
-                        builtBy jar
-                    }
+
+        file("a/build.gradle") << """
+            $header
+
+            artifacts {
+                def artifact = new PublishArtifact() {
+                    String name = "ignore-me"
+                    String extension = "jar"
+                    String type = "jar"
+                    String classifier
+                    File file
+                    Date date
+                    TaskDependency buildDependencies = new org.gradle.api.internal.tasks.DefaultTaskDependency()
                 }
-                assert configurations.compile.artifacts.collect { it.file.name }  == ["lib1.jar"]
-                assert configurations.compile.artifacts.collect { it.name }  == ["thing"]
-            }
-            project(':b') {
-                dependencies {
-                    compile project(':a')
+                artifact.file = file("lib1.jar")
+                task jar
+                compile(artifact) {
+                    name = "thing"
+                    builtBy jar
                 }
             }
-"""
+            assert configurations.compile.artifacts.collect { it.file.name }  == ["lib1.jar"]
+            assert configurations.compile.artifacts.collect { it.name }  == ["thing"]
+        """
+
+        file("b/build.gradle") << """
+            $header
+
+            dependencies {
+                compile project(':a')
+            }
+        """
+
+        resolve.prepare()
 
         expect:
         succeeds("b:checkDeps")

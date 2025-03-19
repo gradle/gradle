@@ -34,7 +34,7 @@ import static org.gradle.internal.Cast.uncheckedCast;
  *
  * This is intended to be used with objects that have been decorated by the class generator.
  * <p>
- * Accessing each “aspect” of a DSL object may fail (with an {@link IllegalStateException}) if the DSL
+ * Accessing each "aspect" of a DSL object may fail (with an {@link IllegalStateException}) if the DSL
  * object does not have that functionality. For example, calling {@link #getConventionMapping()} will fail
  * if the backing object does not implement {@link IConventionAware}.
  */
@@ -63,11 +63,10 @@ public class DslObject implements DynamicObjectAware, ExtensionAware, IConventio
     @Override
     @Deprecated
     public org.gradle.api.plugins.Convention getConvention() {
-// TODO nag once KGP doesn't register conventions anymore
-//        DeprecationLogger.deprecateType(org.gradle.api.internal.HasConvention.class)
-//            .willBeRemovedInGradle9()
-//            .withUpgradeGuideSection(8, "deprecated_access_to_conventions")
-//            .nagUser();
+        DeprecationLogger.deprecateType(org.gradle.api.plugins.Convention.class)
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecated_access_to_conventions")
+            .nagUser();
         if (convention == null) {
             this.convention = DeprecationLogger.whileDisabled(() ->
                 toType(object, org.gradle.api.internal.HasConvention.class).getConvention()

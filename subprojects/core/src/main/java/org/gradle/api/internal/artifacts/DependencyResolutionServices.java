@@ -24,10 +24,13 @@ import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.internal.attributes.AttributeDescriberRegistry;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * Provides access to services required for dependency resolution.
  */
+@ServiceScope(Scope.Project.class)
 public interface DependencyResolutionServices {
     RepositoryHandler getResolveRepositoryHandler();
 

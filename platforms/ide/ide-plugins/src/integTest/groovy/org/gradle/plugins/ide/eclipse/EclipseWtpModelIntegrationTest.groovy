@@ -16,8 +16,8 @@
 
 package org.gradle.plugins.ide.eclipse
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.junit.Rule
 import org.junit.Test
 import spock.lang.Issue
@@ -52,7 +52,7 @@ configurations {
 }
 
 repositories {
-  maven { url "${mavenRepo.uri}" }
+  maven { url = "${mavenRepo.uri}" }
 }
 
 dependencies {
@@ -121,7 +121,7 @@ apply plugin: 'war'
 apply plugin: 'eclipse-wtp'
 
 repositories {
-  maven { url "${mavenRepo.uri}" }
+  maven { url = "${mavenRepo.uri}" }
 }
 
 dependencies {

@@ -31,7 +31,7 @@ class EclipseWtpEarProjectIntegrationTest extends AbstractEclipseIntegrationSpec
         mavenRepo.module('org.example', 'lib1-impl', '1.0').dependsOn(lib1Api).publish()
         MavenFileModule lib2Api = mavenRepo.module('org.example', 'lib2-api', '2.0').publish()
         mavenRepo.module('org.example', 'lib2-impl', '2.0').dependsOn(lib2Api).publish()
-        localMaven = "maven { url '${mavenRepo.uri}' }"
+        localMaven = "maven { url = '${mavenRepo.uri}' }"
     }
 
     @ToBeFixedForConfigurationCache

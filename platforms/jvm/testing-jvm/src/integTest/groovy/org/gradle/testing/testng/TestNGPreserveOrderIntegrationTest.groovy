@@ -29,7 +29,7 @@ public class TestNGPreserveOrderIntegrationTest extends MultiVersionIntegrationS
             ${mavenCentralRepository()}
             dependencies { testImplementation 'org.testng:testng:$version' }
             test {
-                useTestNG { preserveOrder true }
+                useTestNG { preserveOrder = true }
                 onOutput { test, event -> print "\$event.message" }
             }
         """

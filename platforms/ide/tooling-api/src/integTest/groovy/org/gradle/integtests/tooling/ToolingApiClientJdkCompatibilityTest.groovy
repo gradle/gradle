@@ -39,7 +39,7 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
 
             repositories {
                 ${mavenCentralRepository()}
-                maven { url '${buildContext.localRepository.toURI().toURL()}' }
+                maven { url = '${buildContext.localRepository.toURI()}' }
             }
 
             def requestedGradleVersion = project.findProperty("gradleVersion")
@@ -267,14 +267,38 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
 
         where:
         gradleDaemonJdkVersion  | gradleVersion
-        JavaVersion.VERSION_1_7 | MINIMUM_SUPPORTED_GRADLE_VERSION.version
-        JavaVersion.VERSION_1_7 | "4.6"    // last version with reported regression
-        JavaVersion.VERSION_1_7 | "4.10.3" // last Gradle version that can run on Java 1.7
-
         JavaVersion.VERSION_1_8 | "4.6"    // last version with reported regression
         JavaVersion.VERSION_1_8 | "4.7"    // first version that had no reported regression
         JavaVersion.VERSION_1_8 | "4.10.3"
         JavaVersion.VERSION_1_8 | "5.6.4"
         JavaVersion.VERSION_1_8 | "6.9.2"
+    }
+
+    @Flaky
+    def "tapi client cannot run build action with Gradle and Java combination"(JavaVersion gradleDaemonJdkVersion, String gradleVersion) {
+        setup:
+        def gradleDaemonJdk = AvailableJavaHomes.getJdk(gradleDaemonJdkVersion)
+        Assume.assumeTrue(gradleDaemonJdk != null)
+        sortOutNotSupportedNotWorkingCombinations(gradleVersion)
+
+        when:
+        executer.withStackTraceChecksDisabled()
+        executer.ignoreCleanupAssertions()
+        fails(
+            "buildAction",
+            "-PclientJdk=" + clientJdkVersion.majorVersion,
+            "-PtargetJdk=" + gradleDaemonJdk.javaHome.absolutePath,
+            "-Porg.gradle.java.installations.paths=${AvailableJavaHomes.getAvailableJvms().collect { it.javaHome.absolutePath }.join(",")}",
+            "-PgradleVersion=" + gradleVersion
+        )
+
+        then:
+        failure.assertHasErrorOutput("Unsupported major.minor version 52.0")
+
+        where:
+        gradleDaemonJdkVersion  | gradleVersion
+        JavaVersion.VERSION_1_7 | MINIMUM_SUPPORTED_GRADLE_VERSION.version
+        JavaVersion.VERSION_1_7 | "4.6"    // last version with reported regression
+        JavaVersion.VERSION_1_7 | "4.10.3" // last Gradle version that can run on Java 1.7
     }
 }

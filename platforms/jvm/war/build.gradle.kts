@@ -16,7 +16,6 @@
 
 plugins {
     id("gradlebuild.distribution.api-java")
-    id("gradlebuild.instrumented-java-project")
 }
 
 description = "Adds support for assembling JVM web application WAR files"
@@ -29,7 +28,7 @@ dependencies {
 
     api(libs.groovy)
     api(libs.inject)
-    api(libs.jsr305)
+    api(libs.jspecify)
 
     implementation(projects.stdlibJavaExtensions)
     implementation(projects.dependencyManagement)

@@ -15,7 +15,8 @@
  */
 package org.gradle.internal.service;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 

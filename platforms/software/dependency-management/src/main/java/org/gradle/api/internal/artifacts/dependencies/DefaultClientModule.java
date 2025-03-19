@@ -19,8 +19,8 @@ package org.gradle.api.internal.artifacts.dependencies;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.LinkedHashSet;
 import java.util.Set;
 

@@ -160,7 +160,7 @@ class MavenPublishS3IntegrationTest extends AbstractMavenPublishIntegTest {
             publishing {
                 repositories {
                     maven {
-                        url "${repoUrl}"
+                        url = "${repoUrl}"
                         ${authentication}
                     }
                 }
