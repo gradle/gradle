@@ -921,6 +921,7 @@ service: closed with value 12
         """)
 
         when:
+        executer.expectDeprecationWarning("Calling toString() on a Provider This behavior has been deprecated. This will fail with an error in Gradle 9.0.")
         fails("hello")
 
         then:
