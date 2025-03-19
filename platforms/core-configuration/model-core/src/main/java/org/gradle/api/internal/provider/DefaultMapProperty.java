@@ -380,7 +380,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
         @Override
         public ValueProducer getProducer() {
-            return DefaultMapProperty.this.getExplicitValue(defaultValue).getProducer();
+            return DefaultMapProperty.this.getProducer();
         }
 
         @Override

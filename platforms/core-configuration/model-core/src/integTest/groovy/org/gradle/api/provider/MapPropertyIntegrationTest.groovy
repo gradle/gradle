@@ -789,7 +789,7 @@ task thing {
         failureCauseContains("Circular evaluation detected")
     }
 
-    def "entry provider carries task dependencies"() {
+    def "entry provider(isFinalized=#isFinalized) carries task dependencies"() {
         buildFile """
             def barTask = tasks.register("bar")
             def barString = barTask.map { "bar" }
@@ -800,7 +800,10 @@ task thing {
             def map = objects.mapProperty(String, String)
             map.put("42", barString)
             map.put("1", bazString)
-            map.finalizeValue()
+
+            if ($isFinalized) {
+                map.finalizeValue()
+            }
 
             abstract class FooTask extends DefaultTask {
                 @Input
@@ -820,9 +823,14 @@ task thing {
         when:
         run "foo"
 
-        then: "all MapProperty's dependencies are evaluated"
+        then:
         outputContains("Entry is bar")
+        result.assertTasksExecuted(expectedTasks)
+
+        where:
+        isFinalized | expectedTasks
+        true        | [":foo"]
         // Ideally we want to evaluate dependencies in a fine-grained way
-        result.assertTasksExecuted(":bar", ":baz", ":foo")
+        false       | [":bar", ":baz", ":foo"]
     }
 }
