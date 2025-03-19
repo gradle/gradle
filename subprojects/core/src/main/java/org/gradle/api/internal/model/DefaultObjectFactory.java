@@ -50,7 +50,6 @@ import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
-import org.gradle.internal.model.BuildTreeObjectFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.internal.asm.AsmClassGeneratorUtils;
 
@@ -58,7 +57,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class DefaultObjectFactory implements ObjectFactory, BuildTreeObjectFactory {
+public class DefaultObjectFactory implements ObjectFactory {
     private final Instantiator instantiator;
     private final NamedObjectInstantiator namedObjectInstantiator;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;

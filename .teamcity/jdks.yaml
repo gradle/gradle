@@ -54,13 +54,13 @@ jdks:
     os: "linux"
     arch: "aarch64"
     vendor: "temurin"
-    version: "jdk-24+33-ea-beta"
+    version: "jdk-24+36-ea-beta"
   - params:
       - "linux.java24.openjdk.64bit"
     os: "linux"
     arch: "amd64"
     vendor: "temurin"
-    version: "jdk-24+33-ea-beta"
+    version: "jdk-24+36-ea-beta"
   - params:
       - "linux.java8.openjdk.aarch64"
       - "linux.java8.oracle.aarch64"
@@ -133,7 +133,7 @@ jdks:
     os: "windows"
     arch: "amd64"
     vendor: "temurin"
-    version: "jdk-24+33-ea-beta"
+    version: "jdk-24+36-ea-beta"
   - params:
       - "macos.java8.openjdk.64bit"
     os: "macos"
@@ -203,10 +203,10 @@ jdks:
     os: "macos"
     arch: "amd64"
     vendor: "temurin"
-    version: "jdk-24+33-ea-beta"
+    version: "jdk-24+36-ea-beta"
   - params:
       - "macos.java24.openjdk.aarch64"
     os: "macos"
     arch: "aarch64"
     vendor: "temurin"
-    version: "jdk-24+33-ea-beta"
+    version: "jdk-24+36-ea-beta"
