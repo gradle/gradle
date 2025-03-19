@@ -278,7 +278,7 @@ class GrammarToTree(
     fun propertyAccessStatement(tree: CachingLightTree, node: LighterASTNode): ElementResult<Expr> =
         when (val tokenType = node.tokenType) {
             ANNOTATED_EXPRESSION -> tree.unsupported(node, AnnotationUsage)
-            BINARY_EXPRESSION -> binaryStatement(tree, node) as ElementResult<Expr>
+            BINARY_EXPRESSION -> binaryStatement(tree, node).flatMap { if (it is Expr) Element(it) else tree.parsingError(node, "Unexpected assignment target") }
             REFERENCE_EXPRESSION -> propertyAccess(tree, node, null, referenceExpression(node).value, tree.sourceData(node))
             in QUALIFIED_ACCESS -> qualifiedExpression(tree, node)
             ARRAY_ACCESS_EXPRESSION -> tree.unsupported(node, Indexing)
