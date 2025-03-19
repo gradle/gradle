@@ -51,20 +51,20 @@ abstract public class SoftwareFeaturesDynamicObject extends AbstractDynamicObjec
     private boolean isSoftwareTypeConfigureMethod(String name, @Nullable Object[] arguments) {
         return arguments != null && arguments.length == 1 &&
             arguments[0] instanceof Closure &&
-            getSoftwareTypeRegistry().getSoftwareTypeImplementations().containsKey(name);
+            getSoftwareTypeRegistry().getSoftwareFeatureImplementations().containsKey(name);
     }
 
     @Override
     public DynamicInvokeResult tryInvokeMethod(String name, @Nullable Object... arguments) {
         if (isSoftwareTypeConfigureMethod(name, arguments)) {
-            Object softwareFeatureConfigurationModel = getSoftwareFeatureApplicator().applyFeatureTo(target, getSoftwareTypeRegistry().getSoftwareTypeImplementations().get(name));
+            Object softwareFeatureConfigurationModel = getSoftwareFeatureApplicator().applyFeatureTo(target, getSoftwareTypeRegistry().getSoftwareFeatureImplementations().get(name));
             return DynamicInvokeResult.found(ConfigureUtil.configure((Closure) arguments[0], softwareFeatureConfigurationModel));
         }
         return DynamicInvokeResult.notFound();
     }
 
     @Inject
-    abstract protected SoftwareTypeRegistry getSoftwareTypeRegistry();
+    abstract protected SoftwareFeatureRegistry getSoftwareTypeRegistry();
 
     @Inject
     abstract protected SoftwareFeatureApplicator getSoftwareFeatureApplicator();

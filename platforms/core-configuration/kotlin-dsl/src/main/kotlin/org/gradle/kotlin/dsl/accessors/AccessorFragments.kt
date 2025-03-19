@@ -74,8 +74,8 @@ fun fragmentsFor(accessor: Accessor): Fragments = when (accessor) {
 }
 
 private fun fragmentsForSoftwareType(accessor: Accessor.ForSoftwareType): Fragments = accessor.run {
-    val className = "${accessor.spec.softwareTypeName.original.uppercaseFirstChar()}ContainerElementFactoriesKt"
-    val functionName = spec.softwareTypeName.original
+    val className = "${accessor.spec.softwareFeatureName.original.uppercaseFirstChar()}ContainerElementFactoriesKt"
+    val functionName = spec.softwareFeatureName.original
     val (kotlinProjectType, jvmProjectType) = accessibleTypesFor(TypeAccessibility.Accessible(SchemaType.of<Project>()))
     val (kotlinModelType, _) = accessibleTypesFor(accessor.spec.modelType)
 
@@ -920,7 +920,7 @@ fun fragmentsForModelDefault(
     val accessorSpec = accessor.spec
     val className = internalNameForAccessorClassOf(accessorSpec)
     val (accessibleReceiverType, name, modelType) = accessorSpec
-    val softwareTypeName = name.kotlinIdentifier
+    val softwareFeatureName = name.kotlinIdentifier
     val receiverType = accessibleReceiverType.type.kmType
     val (kotlinPublicType, jvmPublicType) = accessibleTypesFor(modelType)
 
@@ -930,7 +930,7 @@ fun fragmentsForModelDefault(
             bytecode = {
                 publicStaticMethod(signature) {
                     ALOAD(0)
-                    LDC(softwareTypeName)
+                    LDC(softwareFeatureName)
                     LDC(jvmPublicType)
                     ALOAD(1)
                     INVOKEINTERFACE(GradleTypeName.modeDefaults, "add", "(Ljava/lang/String;Ljava/lang/Class;Lorg/gradle/api/Action;)V")
@@ -941,7 +941,7 @@ fun fragmentsForModelDefault(
                 kmPackage.functions += newFunctionOf(
                     receiverType = receiverType,
                     returnType = KotlinType.unit,
-                    name = softwareTypeName,
+                    name = softwareFeatureName,
                     valueParameters = listOf(
                         newValueParameterOf("configureAction", actionTypeOf(kotlinPublicType))
                     ),

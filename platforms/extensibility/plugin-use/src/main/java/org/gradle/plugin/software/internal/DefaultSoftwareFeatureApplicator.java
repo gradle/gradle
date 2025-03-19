@@ -66,7 +66,7 @@ public class DefaultSoftwareFeatureApplicator implements SoftwareFeatureApplicat
     }
 
     @Override
-    public <T> T applyFeatureTo(ExtensionAware target, SoftwareTypeImplementation<T> softwareFeature) {
+    public <T> T applyFeatureTo(ExtensionAware target, SoftwareFeatureImplementation<T> softwareFeature) {
         AppliedFeature appliedFeature = new AppliedFeature(target, softwareFeature);
         if (!applied.contains(appliedFeature)) {
             pluginManager.apply(softwareFeature.getPluginClass());
@@ -75,10 +75,10 @@ public class DefaultSoftwareFeatureApplicator implements SoftwareFeatureApplicat
             applied.add(appliedFeature);
             modelDefaultsApplicator.applyDefaultsTo(target, classLoaderScope, plugin, softwareFeature);
         }
-        return Cast.uncheckedCast(target.getExtensions().getByName(softwareFeature.getSoftwareType()));
+        return Cast.uncheckedCast(target.getExtensions().getByName(softwareFeature.getFeatureName()));
     }
 
-    private <T> void applyAndMaybeRegisterExtension(ExtensionAware target, SoftwareTypeImplementation<T> softwareFeature, Plugin<?> plugin) {
+    private <T> void applyAndMaybeRegisterExtension(ExtensionAware target, SoftwareFeatureImplementation<T> softwareFeature, Plugin<?> plugin) {
         DefaultTypeValidationContext typeValidationContext = DefaultTypeValidationContext.withRootType(softwareFeature.getPluginClass(), false, problems);
         ExtensionAddingVisitor<T> extensionAddingVisitor = new ExtensionAddingVisitor<>(target, typeValidationContext);
         inspectionScheme.getPropertyWalker().visitProperties(
@@ -159,9 +159,9 @@ public class DefaultSoftwareFeatureApplicator implements SoftwareFeatureApplicat
 
     private static class AppliedFeature {
         private final Object target;
-        private final SoftwareTypeImplementation<?> softwareFeature;
+        private final SoftwareFeatureImplementation<?> softwareFeature;
 
-        public AppliedFeature(Object target, SoftwareTypeImplementation<?> softwareFeature) {
+        public AppliedFeature(Object target, SoftwareFeatureImplementation<?> softwareFeature) {
             this.target = target;
             this.softwareFeature = softwareFeature;
         }

@@ -82,7 +82,7 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                 tasks = listOf(),
                 configurations = listOf(),
                 modelDefaults = listOf(),
-                softwareTypeEntries = emptyList(),
+                softwareFeatureEntries = emptyList(),
                 containerElementFactories = listOf()
             )
 
@@ -142,7 +142,7 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                     ConfigurationEntry("compile", listOf("api", "implementation"))
                 ),
                 modelDefaults = listOf(),
-                softwareTypeEntries = emptyList(),
+                softwareFeatureEntries = emptyList(),
                 containerElementFactories = listOf()
             )
 
@@ -205,7 +205,7 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                     ),
                     configurations = listOf(),
                     modelDefaults = listOf(),
-                    softwareTypeEntries = emptyList(),
+                    softwareFeatureEntries = emptyList(),
                     containerElementFactories = listOf()
                 )
 
@@ -285,7 +285,7 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                 ),
                 configurations = listOf(ConfigurationEntry("api")),
                 modelDefaults = listOf(),
-                softwareTypeEntries = emptyList(),
+                softwareFeatureEntries = emptyList(),
                 containerElementFactories = listOf()
             )
 

@@ -30,10 +30,10 @@ import java.util.Optional;
  * Allows registration of software types implemented by plugins.
  */
 @ServiceScope(Scope.Build.class) // TODO: Might be too specific a scope, but needed something there
-public interface SoftwareTypeRegistry {
+public interface SoftwareFeatureRegistry {
     /**
      * Registers a plugin as providing a software type.  Cannot be called again once the list of software types has been
-     * queried via {@link #getSoftwareTypeImplementations()}.
+     * queried via {@link #getSoftwareFeatureImplementations()}.
      */
     void register(Class<? extends Plugin<Project>> pluginClass, Class<? extends Plugin<Settings>> registeringPluginClass);
 
@@ -41,12 +41,12 @@ public interface SoftwareTypeRegistry {
      * Returns a map of available software types, along with their model types and associated plugins, keyed by software type name.  Note that once
      * method is called, calling {@link #register(Class, Class)} will result in an error.
      */
-    Map<String, SoftwareTypeImplementation<?>> getSoftwareTypeImplementations();
+    Map<String, SoftwareFeatureImplementation<?>> getSoftwareFeatureImplementations();
 
     /**
      * Returns whether a plugin is registered as providing a software type or not.
      */
-    Optional<SoftwareTypeImplementation<?>> implementationFor(Class<? extends Plugin<Project>> pluginClass);
+    Optional<SoftwareFeatureImplementation<?>> implementationFor(Class<? extends Plugin<Project>> pluginClass);
 
     /**
      * Returns the schema for the registered software types.
