@@ -379,6 +379,11 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
 
         @Override
+        public ValueProducer getProducer() {
+            return DefaultMapProperty.this.getProducer();
+        }
+
+        @Override
         protected Value<? extends V> calculateOwnValue(ValueConsumer consumer) {
             Value<? extends Map<K, V>> result = DefaultMapProperty.this.calculateOwnValue(consumer);
             if (result.isMissing()) {
