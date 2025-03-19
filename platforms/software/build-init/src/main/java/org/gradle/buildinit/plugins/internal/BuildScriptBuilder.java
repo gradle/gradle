@@ -2109,9 +2109,6 @@ public class BuildScriptBuilder {
             String propertyName = expression.propertyName;
             ExpressionValue propertyValue = expression.propertyValue;
             if (expression.assignOperator) {
-                if (propertyValue.isBooleanType()) {
-                    return booleanPropertyNameFor(propertyName) + " = " + propertyValue.with(this);
-                }
                 return propertyName + " = " + propertyValue.with(this);
             } else {
                 return propertyName + ".set(" + propertyValue.with(this) + ")";
@@ -2381,7 +2378,7 @@ public class BuildScriptBuilder {
                 case WARN:
                     return new WarningHandler(dsl, documentationRegistry);
                 case ALLOW:
-                    return new AllowingHandler();
+                    return new AllowingHandler(dsl);
                 case UPGRADE:
                     return new UpgradingHandler();
                 default:
@@ -2445,7 +2442,7 @@ public class BuildScriptBuilder {
             }
 
             private String buildAllowInsecureProtocolComment(BuildInitDsl dsl) {
-                final PropertyAssignment assignment = new PropertyAssignment(null, "allowInsecureProtocol", new BuildScriptBuilder.LiteralValue(true), true);
+                final PropertyAssignment assignment = new PropertyAssignment(null, allowInsecureProtocolPropertyNameFor(dsl), new BuildScriptBuilder.LiteralValue(true), true);
 
                 final StringWriter result = new StringWriter();
                 try (PrintWriter writer = new PrintWriter(result)) {
@@ -2468,13 +2465,29 @@ public class BuildScriptBuilder {
         }
 
         class AllowingHandler extends AbstractMavenRepositoryURLHandler {
+            private final BuildInitDsl dsl;
+
+            AllowingHandler(BuildInitDsl dsl) {
+                this.dsl = dsl;
+            }
+
             @Override
             protected void handleInsecureURL(URI repoLocation, BuildScriptBuilder.ScriptBlockImpl statements) {
                 // use the insecure URL as-is
                 statements.propertyAssignment(null, "url", new BuildScriptBuilder.MethodInvocationExpression(null, "uri", singletonList(new BuildScriptBuilder.StringValue(repoLocation.toString()))), true);
                 // Opt into using an insecure protocol with this repository
-                statements.propertyAssignment(null, "allowInsecureProtocol", new BuildScriptBuilder.LiteralValue(true), true);
+                statements.propertyAssignment(null, allowInsecureProtocolPropertyNameFor(dsl), new BuildScriptBuilder.LiteralValue(true), true);
             }
+        }
+    }
+
+    private static String allowInsecureProtocolPropertyNameFor(BuildInitDsl dsl) {
+        switch (dsl) {
+            case KOTLIN:
+                return "isAllowInsecureProtocol";
+            case GROOVY:
+            default:
+                return "allowInsecureProtocol";
         }
     }
 }
