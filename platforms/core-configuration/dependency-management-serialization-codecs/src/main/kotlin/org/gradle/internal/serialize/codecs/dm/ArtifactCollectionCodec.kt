@@ -17,7 +17,6 @@
 package org.gradle.internal.serialize.codecs.dm
 
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
-import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.internal.artifacts.configurations.ArtifactCollectionInternal
 import org.gradle.api.internal.artifacts.configurations.DefaultArtifactCollection
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSetToFileCollectionFactory
@@ -25,23 +24,26 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Artif
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
 import org.gradle.api.internal.artifacts.transform.TransformedArtifactSet
+import org.gradle.api.internal.attributes.AttributeDesugaring
+import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileCollectionStructureVisitor
+import org.gradle.internal.DisplayName
+import org.gradle.internal.component.external.model.ImmutableCapabilities
 import org.gradle.internal.extensions.stdlib.uncheckedCast
+import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.readList
 import org.gradle.internal.serialize.graph.writeCollection
-import org.gradle.internal.DisplayName
-import org.gradle.internal.component.external.model.ImmutableCapabilities
-import org.gradle.internal.model.CalculatedValueContainerFactory
 import java.io.File
 
 
 class ArtifactCollectionCodec(
     private val calculatedValueContainerFactory: CalculatedValueContainerFactory,
-    private val artifactSetConverter: ArtifactSetToFileCollectionFactory
+    private val artifactSetConverter: ArtifactSetToFileCollectionFactory,
+    private val attributeDesugaring: AttributeDesugaring,
 ) : Codec<ArtifactCollectionInternal> {
 
     override suspend fun WriteContext.encode(value: ArtifactCollectionInternal) {
@@ -67,7 +69,7 @@ class ArtifactCollectionCodec(
                 }
             }
         )
-        return DefaultArtifactCollection(files, lenient, artifactSetConverter.resolutionHost(displayName), calculatedValueContainerFactory)
+        return DefaultArtifactCollection(files, lenient, artifactSetConverter.resolutionHost(displayName), calculatedValueContainerFactory, attributeDesugaring)
     }
 }
 
@@ -75,7 +77,7 @@ class ArtifactCollectionCodec(
 private
 data class FixedFileArtifactSpec(
     val id: ComponentArtifactIdentifier,
-    val variantAttributes: AttributeContainer,
+    val variantAttributes: ImmutableAttributes,
     val capabilities: ImmutableCapabilities,
     val variantDisplayName: DisplayName,
     val file: File
@@ -108,7 +110,7 @@ class CollectingArtifactVisitor : ArtifactVisitor {
         elements.add(failure)
     }
 
-    override fun visitArtifact(variantName: DisplayName, variantAttributes: AttributeContainer, capabilities: ImmutableCapabilities, artifact: ResolvableArtifact) {
+    override fun visitArtifact(variantName: DisplayName, variantAttributes: ImmutableAttributes, capabilities: ImmutableCapabilities, artifact: ResolvableArtifact) {
         if (artifacts.add(artifact)) {
             elements.add(FixedFileArtifactSpec(artifact.id, variantAttributes, capabilities, variantName, artifact.file))
         }

@@ -37,7 +37,11 @@ public class DefaultVariantArtifactResolver implements VariantArtifactResolver {
     private final ArtifactResolver artifactResolver;
     private final ResolvedVariantCache resolvedVariantCache;
 
-    public DefaultVariantArtifactResolver(ArtifactResolver artifactResolver, ImmutableArtifactTypeRegistry artifactTypeRegistry, ResolvedVariantCache resolvedVariantCache) {
+    public DefaultVariantArtifactResolver(
+        ArtifactResolver artifactResolver,
+        ImmutableArtifactTypeRegistry artifactTypeRegistry,
+        ResolvedVariantCache resolvedVariantCache
+    ) {
         this.artifactTypeRegistry = artifactTypeRegistry;
         this.artifactResolver = artifactResolver;
         this.resolvedVariantCache = resolvedVariantCache;
@@ -100,8 +104,8 @@ public class DefaultVariantArtifactResolver implements VariantArtifactResolver {
         ImmutableArtifactTypeRegistry artifactTypeRegistry,
         ImmutableList<? extends ComponentArtifactMetadata> artifacts
     ) {
-        ImmutableAttributes attributes = artifactTypeRegistry.mapAttributesFor(artifactVariant.getAttributes(), artifacts);
 
+        ImmutableAttributes attributes = artifactTypeRegistry.mapAttributesFor(artifactVariant.getAttributes(), artifacts);
         ImmutableCapabilities capabilities = withImplicitCapability(artifactVariant.getCapabilities(), component);
 
         // TODO: This value gets cached in a build-tree-scoped cache. It captures a project-scoped `artifactResolver`, which
