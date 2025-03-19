@@ -73,7 +73,7 @@ Gradle can use this information to optimize task scheduling.
 [[use_cacheability_annotations]]
 == Favor Cacheability Annotations Over Cache Control Methods
 
-The link:{javadocPath}/org/gradle/api/tasks/TaskOutputs.html#cacheIf(org.gradle.api.specs.Spec)[`cacheIf`] and link:{javadocPath}/org/gradle/api/tasks/TaskOutputs.html#doNotCacheIf(java.lang.String,org.gradle.api.specs.Spec)[`doNotCacheIf`] methods should only be used in situations when the cacheability of a task can vary between different task instances, or can not be determined until the task is configured by Gradle.
+The link:{javadocPath}/org/gradle/api/tasks/TaskOutputs.html#cacheIf(org.gradle.api.specs.Spec)[`cacheIf`] and link:{javadocPath}/org/gradle/api/tasks/TaskOutputs.html#doNotCacheIf(java.lang.String,org.gradle.api.specs.Spec)[`doNotCacheIf`] methods should only be used in situations where the cacheability of a task varies between different task instances or cannot be determined until the task is configured by Gradle.
 
 Once you have decided to make a task <<build_cache.adoc#build_cache,cacheable>>, you should instead favor annotating the task class itself with the link:{javadocPath}/org/gradle/api/tasks/CacheableTask.html[`@CacheableTask`] annotation for any task that is meant to _always_ be cacheable.
 
