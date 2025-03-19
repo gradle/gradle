@@ -149,6 +149,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             attributes.put("doctype", "book");
             attributes.put("imagesdir", "img");
             attributes.put("nofooter", true);
+            attributes.put("javadocPath", "../javadoc");
             attributes.put("sectanchors", true);
             attributes.put("sectlinks", true);
             attributes.put("linkattrs", true);
