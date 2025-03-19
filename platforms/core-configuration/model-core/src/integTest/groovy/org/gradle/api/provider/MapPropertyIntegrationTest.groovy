@@ -800,6 +800,7 @@ task thing {
             def map = objects.mapProperty(String, String)
             map.put("42", barString)
             map.put("1", bazString)
+            map.finalizeValue()
 
             abstract class FooTask extends DefaultTask {
                 @Input
@@ -812,7 +813,7 @@ task thing {
             }
 
             tasks.register("foo", FooTask) {
-                getEntry().set(map.getting("42"))
+                entry.set(map.getting("42"))
             }
         """
 
@@ -821,6 +822,7 @@ task thing {
 
         then: "all MapProperty's dependencies are evaluated"
         outputContains("Entry is bar")
+        // Ideally we want to evaluate dependencies in a fine-grained way
         result.assertTasksExecuted(":bar", ":baz", ":foo")
     }
 }
