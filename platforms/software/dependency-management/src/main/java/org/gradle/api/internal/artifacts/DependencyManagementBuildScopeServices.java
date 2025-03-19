@@ -100,7 +100,6 @@ import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.management.DefaultDependencyResolutionManagement;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
-import org.gradle.internal.model.BuildTreeObjectFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.reflect.Instantiator;
@@ -401,7 +400,7 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
 
     @Provides
     DependenciesAccessors createDependenciesAccessorGenerator(
-        BuildTreeObjectFactory objectFactory,
+        ObjectFactory objectFactory,
         ClassPathRegistry registry,
         DependenciesAccessorsWorkspaceProvider workspace,
         DefaultProjectDependencyFactory factory,

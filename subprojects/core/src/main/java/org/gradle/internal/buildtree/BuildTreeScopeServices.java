@@ -70,7 +70,6 @@ import org.gradle.internal.instrumentation.reporting.DefaultMethodInterceptionRe
 import org.gradle.internal.instrumentation.reporting.ErrorReportingMethodInterceptionReportCollector;
 import org.gradle.internal.instrumentation.reporting.MethodInterceptionReportCollector;
 import org.gradle.internal.instrumentation.reporting.PropertyUpgradeReportConfig;
-import org.gradle.internal.model.BuildTreeObjectFactory;
 import org.gradle.internal.problems.DefaultProblemDiagnosticsFactory;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.PrivateService;
@@ -122,7 +121,7 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    BuildTreeObjectFactory createObjectFactory(
+    ObjectFactory createObjectFactory(
         InstantiatorFactory instantiatorFactory, DirectoryFileTreeFactory directoryFileTreeFactory, Factory<PatternSet> patternSetFactory,
         PropertyFactory propertyFactory, FilePropertyFactory filePropertyFactory, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory,
         DomainObjectCollectionFactory domainObjectCollectionFactory, NamedObjectInstantiator instantiator
@@ -138,8 +137,6 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
             fileCollectionFactory,
             domainObjectCollectionFactory);
     }
-
-
 
     @Provides
     protected InternalOptions createInternalOptions(StartParameter startParameter) {
