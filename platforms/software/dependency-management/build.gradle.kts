@@ -68,7 +68,6 @@ dependencies {
     api(projects.serviceLookup)
     api(projects.serviceProvider)
     api(projects.snapshots)
-    api(projects.snapshotsWorker)
     api(projects.stdlibJavaExtensions)
     api(projects.versionedCache)
 

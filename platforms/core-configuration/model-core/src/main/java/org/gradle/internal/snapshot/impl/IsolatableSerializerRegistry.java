@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.process.internal.worker.request;
+package org.gradle.internal.snapshot.impl;
 
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
@@ -23,6 +23,7 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.problems.internal.IsolatableToBytesSerializer;
 import org.gradle.internal.Cast;
+import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.isolation.Isolatable;
@@ -34,26 +35,6 @@ import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.gradle.internal.snapshot.impl.AbstractIsolatedMap;
-import org.gradle.internal.snapshot.impl.ArrayOfPrimitiveValueSnapshot;
-import org.gradle.internal.snapshot.impl.AttributeDefinitionSnapshot;
-import org.gradle.internal.snapshot.impl.BooleanValueSnapshot;
-import org.gradle.internal.snapshot.impl.FileValueSnapshot;
-import org.gradle.internal.snapshot.impl.IntegerValueSnapshot;
-import org.gradle.internal.snapshot.impl.IsolatedArray;
-import org.gradle.internal.snapshot.impl.IsolatedEnumValueSnapshot;
-import org.gradle.internal.snapshot.impl.IsolatedImmutableManagedValue;
-import org.gradle.internal.snapshot.impl.IsolatedJavaSerializedValueSnapshot;
-import org.gradle.internal.snapshot.impl.IsolatedList;
-import org.gradle.internal.snapshot.impl.IsolatedManagedValue;
-import org.gradle.internal.snapshot.impl.IsolatedMap;
-import org.gradle.internal.snapshot.impl.IsolatedProperties;
-import org.gradle.internal.snapshot.impl.IsolatedSet;
-import org.gradle.internal.snapshot.impl.LongValueSnapshot;
-import org.gradle.internal.snapshot.impl.MapEntrySnapshot;
-import org.gradle.internal.snapshot.impl.NullValueSnapshot;
-import org.gradle.internal.snapshot.impl.ShortValueSnapshot;
-import org.gradle.internal.snapshot.impl.StringValueSnapshot;
 import org.gradle.internal.state.Managed;
 import org.gradle.internal.state.ManagedFactory;
 import org.gradle.internal.state.ManagedFactoryRegistry;
@@ -63,8 +44,6 @@ import java.io.ByteArrayOutputStream;
 import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.List;
-
-import static org.gradle.internal.classloader.ClassLoaderUtils.classFromContextLoader;
 
 @NonNullApi
 @ServiceScope({Scope.UserHome.class, Scope.Global.class})  //Global scope is needed for the usage in process isolated worker actions
@@ -267,7 +246,7 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry impl
     }
 
     private static Class<?> fromClassName(String className) {
-        return classFromContextLoader(className);
+        return ClassLoaderUtils.classFromContextLoader(className);
     }
 
     private static class StringValueSnapshotSerializer extends IsolatableSerializer<StringValueSnapshot> {

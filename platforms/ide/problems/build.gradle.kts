@@ -68,7 +68,7 @@ dependencies {
     implementation(projects.modelCore)
     implementation(projects.serialization)
     implementation(projects.serviceLookup)
-    implementation(projects.snapshotsWorker)
+    implementation(projects.snapshots)
 
     implementation(libs.guava)
     implementation(libs.fastutil)
