@@ -537,6 +537,9 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractCompileAvoidanceInteg
                 repositories {
                     mavenCentral()
                 }
+                tasks.validatePlugins {
+                    enableStricterValidation = true
+                }
             """
         )
         val className = kotlinClassSourceFile(baseDir, classBody)
