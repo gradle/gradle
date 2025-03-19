@@ -223,6 +223,10 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
             dependencies {
                 implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
             }
+
+            tasks.validatePlugins {
+                enableStricterValidation = true
+            }
         """
         file("src/main/kotlin/Kotlin.kt") << "class Kotlin { }"
         when:
