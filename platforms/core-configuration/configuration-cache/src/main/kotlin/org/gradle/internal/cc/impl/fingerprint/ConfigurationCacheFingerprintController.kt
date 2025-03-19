@@ -23,8 +23,8 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.properties.GradleProperties
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
-import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory
-import org.gradle.api.internal.provider.ValueSourceProviderFactory
+import org.gradle.api.internal.provider.sources.DefaultValueSourceProviderFactory
+import org.gradle.api.internal.provider.sources.ValueSourceProviderFactory
 import org.gradle.initialization.buildsrc.BuildSrcDetector
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildModelParameters

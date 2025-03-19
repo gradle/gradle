@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.provider;
+package org.gradle.api.internal.provider.factory;
 
 import org.gradle.api.Action;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.api.file.FileContents;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.internal.provider.DefaultProvider;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.provider.sources.EnvironmentVariableValueSource;
 import org.gradle.api.internal.provider.sources.EnvironmentVariablesPrefixedByValueSource;
 import org.gradle.api.internal.provider.sources.FileBytesValueSource;
@@ -29,6 +31,7 @@ import org.gradle.api.internal.provider.sources.GradlePropertiesPrefixedByValueS
 import org.gradle.api.internal.provider.sources.GradlePropertyValueSource;
 import org.gradle.api.internal.provider.sources.SystemPropertiesPrefixedByValueSource;
 import org.gradle.api.internal.provider.sources.SystemPropertyValueSource;
+import org.gradle.api.internal.provider.sources.ValueSourceProviderFactory;
 import org.gradle.api.internal.provider.sources.process.DefaultExecOutput;
 import org.gradle.api.internal.provider.sources.process.ProcessOutputProviderFactory;
 import org.gradle.api.internal.provider.sources.process.ProcessOutputValueSource;

@@ -17,6 +17,7 @@ package org.gradle.api.file;
 
 import org.gradle.api.Buildable;
 import org.gradle.api.tasks.util.PatternFilterable;
+import org.gradle.internal.instantiation.generator.annotations.ManagedType;
 
 import java.io.File;
 import java.util.Set;
@@ -26,6 +27,7 @@ import java.util.Set;
  *
  * <p>You can obtain a {@code ConfigurableFileTree} instance by calling {@link org.gradle.api.Project#fileTree(java.util.Map)}.</p>
  */
+@ManagedType
 public interface ConfigurableFileTree extends FileTree, DirectoryTree, PatternFilterable, Buildable {
     /**
      * Specifies base directory for this file tree using the given path. The path is evaluated as per {@link

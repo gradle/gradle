@@ -18,13 +18,11 @@ package org.gradle.api.model;
 
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
-import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.NamedDomainObjectList;
 import org.gradle.api.NamedDomainObjectSet;
-import org.gradle.api.artifacts.dsl.DependencyCollector;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.DirectoryProperty;
@@ -35,6 +33,8 @@ import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.reflect.ObjectInstantiationException;
+import org.gradle.internal.instantiation.generator.annotations.ManagedObjectCreator;
+import org.gradle.internal.instantiation.generator.annotations.ManagedObjectProvider;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -50,6 +50,7 @@ import java.util.Set;
  *
  * @since 4.0
  */
+@ManagedObjectProvider
 @ServiceScope({Scope.Global.class, Scope.Project.class})
 public interface ObjectFactory {
     /**
@@ -210,6 +211,7 @@ public interface ObjectFactory {
      * @return The property. Never returns null.
      * @since 4.3
      */
+    @ManagedObjectCreator
     <T> Property<T> property(Class<T> valueType);
 
     /**
@@ -222,6 +224,7 @@ public interface ObjectFactory {
      * @return The property. Never returns null.
      * @since 4.3
      */
+    @ManagedObjectCreator
     <T> ListProperty<T> listProperty(Class<T> elementType);
 
     /**
@@ -234,6 +237,7 @@ public interface ObjectFactory {
      * @return The property. Never returns null.
      * @since 4.5
      */
+    @ManagedObjectCreator
     <T> SetProperty<T> setProperty(Class<T> elementType);
 
     /**
@@ -248,6 +252,7 @@ public interface ObjectFactory {
      * @return the property. Never returns null.
      * @since 5.1
      */
+    @ManagedObjectCreator
     <K, V> MapProperty<K, V> mapProperty(Class<K> keyType, Class<V> valueType);
 
     /**
@@ -263,14 +268,4 @@ public interface ObjectFactory {
      * @since 5.0
      */
     RegularFileProperty fileProperty();
-
-    /**
-     * Creates a new {@link DependencyCollector} used for declaring dependencies.
-     *
-     * <strong>Avoid this method if possible and use managed object instantiation instead.</strong>
-     *
-     * @since 8.6
-     */
-    @Incubating
-    DependencyCollector dependencyCollector();
 }

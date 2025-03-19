@@ -33,7 +33,6 @@ import org.gradle.api.internal.file.collections.FileCollectionObservationListene
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree
 import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectState
-import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.internal.provider.sources.EnvironmentVariableValueSource
 import org.gradle.api.internal.provider.sources.EnvironmentVariablesPrefixedByValueSource
 import org.gradle.api.internal.provider.sources.FileContentValueSource
@@ -41,6 +40,7 @@ import org.gradle.api.internal.provider.sources.GradlePropertiesPrefixedByValueS
 import org.gradle.api.internal.provider.sources.GradlePropertyValueSource
 import org.gradle.api.internal.provider.sources.SystemPropertiesPrefixedByValueSource
 import org.gradle.api.internal.provider.sources.SystemPropertyValueSource
+import org.gradle.api.internal.provider.sources.ValueSourceProviderFactory
 import org.gradle.api.internal.provider.sources.process.ProcessOutputValueSource
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.api.tasks.util.PatternSet

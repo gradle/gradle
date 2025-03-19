@@ -31,8 +31,8 @@ import org.gradle.api.internal.catalog.problems.VersionCatalogProblemTestFor
 import org.gradle.api.internal.classpath.DefaultModuleRegistry
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.properties.GradleProperties
-import org.gradle.api.internal.provider.DefaultProviderFactory
-import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory
+import org.gradle.api.internal.provider.factory.DefaultProviderFactory
+import org.gradle.api.internal.provider.sources.DefaultValueSourceProviderFactory
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.api.provider.ProviderFactory

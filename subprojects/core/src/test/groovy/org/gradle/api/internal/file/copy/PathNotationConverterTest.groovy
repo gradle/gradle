@@ -16,13 +16,13 @@
 
 package org.gradle.api.internal.file.copy
 
-import org.gradle.api.internal.provider.DefaultProviderFactory
+import org.gradle.api.internal.artifacts.DefaultExcludeRule
+import org.gradle.api.internal.provider.factory.DefaultProviderFactory
 import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.internal.typeconversion.UnsupportedNotationException
+import spock.lang.Specification
 
 import java.util.concurrent.Callable
-import org.gradle.api.internal.artifacts.DefaultExcludeRule
-import spock.lang.Specification
 
 class PathNotationConverterTest extends Specification {
     NotationParser<Object, String> pathNotationParser = PathNotationConverter.parser();

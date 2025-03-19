@@ -18,7 +18,7 @@ package org.gradle.api.internal.provider.sources.process
 
 import org.gradle.api.Action
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.provider.ValueSourceBasedSpec
+import org.gradle.api.internal.provider.sources.ValueSourceBasedSpec
 import org.gradle.api.reflect.ObjectInstantiationException
 import org.gradle.process.ExecResult
 import org.gradle.process.ExecSpec

@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.provider.sources
 
-import org.gradle.api.internal.provider.ValueSourceBasedSpec
-
 class EnvironmentVariableValueSourceTest extends ValueSourceBasedSpec {
 
     def "environment variable has no value when variable name has no value"() {

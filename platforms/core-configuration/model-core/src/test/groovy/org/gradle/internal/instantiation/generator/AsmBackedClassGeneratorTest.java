@@ -37,7 +37,7 @@ import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.HasConvention;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.plugins.DslObject;
-import org.gradle.api.internal.provider.DefaultProviderFactory;
+import org.gradle.api.internal.provider.factory.DefaultProviderFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;

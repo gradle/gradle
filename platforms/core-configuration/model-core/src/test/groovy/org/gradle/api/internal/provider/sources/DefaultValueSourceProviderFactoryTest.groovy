@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.provider
+package org.gradle.api.internal.provider.sources
 
 import org.gradle.api.Describable
 import org.gradle.api.GradleException
+import org.gradle.api.internal.provider.MissingValueException
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.ValueSource
@@ -30,7 +31,7 @@ import org.gradle.util.internal.TextUtil
 
 import javax.inject.Inject
 
-import static org.gradle.api.internal.provider.ValueSourceProviderFactory.ValueListener.ObtainedValue
+import static org.gradle.api.internal.provider.sources.ValueSourceProviderFactory.ValueListener.ObtainedValue
 
 class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
 

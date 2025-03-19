@@ -29,6 +29,7 @@ import org.gradle.api.internal.collections.DomainObjectCollectionFactory
 import org.gradle.api.internal.file.DefaultFilePropertyFactory
 import org.gradle.api.internal.file.DefaultProjectLayout
 import org.gradle.api.internal.file.FileCollectionFactory
+import org.gradle.api.internal.file.FilePropertyFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.model.DefaultObjectFactory
@@ -62,6 +63,7 @@ import org.gradle.internal.hash.Hashing
 import org.gradle.internal.instantiation.InjectAnnotationHandler
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.instantiation.generator.DefaultInstantiatorFactory
+import org.gradle.internal.instantiation.generator.ManagedObjectRegistry
 import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.model.InMemoryCacheFactory
 import org.gradle.internal.model.StateTransitionControllerFactory
@@ -157,9 +159,8 @@ class TestUtil {
     }
 
     static ObjectFactory objectFactory(TestFile baseDir) {
-        def fileResolver = TestFiles.resolver(baseDir)
-        def fileCollectionFactory = TestFiles.fileCollectionFactory(baseDir)
-        return createServices(fileResolver, fileCollectionFactory).get(ObjectFactory)
+        ServiceRegistry services = services(baseDir)
+        return services.get(ObjectFactory)
     }
 
     static CalculatedValueContainerFactory calculatedValueContainerFactory() {
@@ -179,6 +180,7 @@ class TestUtil {
         def services = new DefaultServiceRegistry()
         services.register {
             registrations.execute(it)
+            it.add(InstantiatorFactory, instantiatorFactory())
             it.add(ProviderFactory, new TestProviderFactory())
             it.add(TestCrossBuildInMemoryCacheFactory)
             it.add(NamedObjectInstantiator)
@@ -192,19 +194,22 @@ class TestUtil {
             it.add(DefaultPropertyFactory)
             it.addProvider(new ServiceRegistrationProvider() {
                 @Provides
-                InstantiatorFactory createInstantiatorFactory() {
-                    TestUtil.instantiatorFactory()
+                ManagedObjectRegistry createManagedObjectRegistry() {
+                    new ManagedObjectRegistry(null)
                 }
 
                 @Provides
-                ObjectFactory createObjectFactory(InstantiatorFactory instantiatorFactory, NamedObjectInstantiator namedObjectInstantiator, DomainObjectCollectionFactory domainObjectCollectionFactory, TaskDependencyFactory taskDependencyFactory, PropertyFactory propertyFactory) {
-                    def filePropertyFactory = new DefaultFilePropertyFactory(PropertyHost.NO_OP, fileResolver, fileCollectionFactory)
+                FilePropertyFactory createFilePropertyFactory() {
+                    new DefaultFilePropertyFactory(PropertyHost.NO_OP, fileResolver, fileCollectionFactory)
+                }
+
+                @Provides
+                ObjectFactory createObjectFactory(InstantiatorFactory instantiatorFactory, NamedObjectInstantiator namedObjectInstantiator, DomainObjectCollectionFactory domainObjectCollectionFactory, TaskDependencyFactory taskDependencyFactory, PropertyFactory propertyFactory, FilePropertyFactory filePropertyFactory) {
                     return new DefaultObjectFactory(instantiatorFactory.decorate(services), namedObjectInstantiator, TestFiles.directoryFileTreeFactory(), TestFiles.patternSetFactory, propertyFactory, filePropertyFactory, taskDependencyFactory, fileCollectionFactory, domainObjectCollectionFactory)
                 }
 
                 @Provides
-                ProjectLayout createProjectLayout() {
-                    def filePropertyFactory = new DefaultFilePropertyFactory(PropertyHost.NO_OP, fileResolver, fileCollectionFactory)
+                ProjectLayout createProjectLayout(FilePropertyFactory filePropertyFactory) {
                     return new DefaultProjectLayout(
                         fileResolver.resolve("."),
                         fileResolver.resolve("."),
@@ -262,6 +267,12 @@ class TestUtil {
             services = createTestServices()
         }
         return services
+    }
+
+    static ServiceRegistry services(TestFile baseDir) {
+        def fileResolver = TestFiles.resolver(baseDir)
+        def fileCollectionFactory = TestFiles.fileCollectionFactory(baseDir)
+        createServices(fileResolver, fileCollectionFactory)
     }
 
     static ServiceRegistry createTestServices(Action<ServiceRegistration> registrations = {}) {

@@ -16,8 +16,8 @@
 
 package org.gradle.util
 
-import org.gradle.api.internal.provider.DefaultProviderFactory
 import org.gradle.api.internal.provider.Providers
+import org.gradle.api.internal.provider.factory.DefaultProviderFactory
 import org.gradle.api.provider.Provider
 
 public class TestProviderFactory extends DefaultProviderFactory {

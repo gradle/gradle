@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.provider
+package org.gradle.api.internal.provider.factory
 
 import org.gradle.api.Task
+import org.gradle.api.internal.provider.ProviderAssertions
+import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.provider.Provider
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification

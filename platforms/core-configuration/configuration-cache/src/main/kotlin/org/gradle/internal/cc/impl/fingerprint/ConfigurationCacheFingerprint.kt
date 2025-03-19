@@ -17,7 +17,7 @@
 package org.gradle.internal.cc.impl.fingerprint
 
 import org.gradle.api.internal.file.FileCollectionInternal
-import org.gradle.api.internal.provider.ValueSourceProviderFactory
+import org.gradle.api.internal.provider.sources.ValueSourceProviderFactory
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.internal.file.FileType
 import org.gradle.internal.hash.HashCode

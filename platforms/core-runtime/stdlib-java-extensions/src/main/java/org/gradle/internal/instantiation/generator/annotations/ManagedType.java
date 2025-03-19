@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.provider.sources
+package org.gradle.internal.instantiation.generator.annotations;
 
-class SystemPropertyValueSourceTest extends ValueSourceBasedSpec {
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 
-    def "system property has no value when property name has no value"() {
-        given:
-        def provider = createProviderOf(SystemPropertyValueSource) {
-            // give property name no value
-        }
-
-        expect:
-        !provider.isPresent()
-    }
+/**
+ * Marks types that can be instantiated by Gradle.
+ */
+@Retention(RetentionPolicy.RUNTIME)
+public @interface ManagedType {
 }

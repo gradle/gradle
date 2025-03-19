@@ -19,7 +19,7 @@ package org.gradle.ide.visualstudio.internal
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.provider.DefaultProviderFactory
+import org.gradle.api.internal.provider.factory.DefaultProviderFactory
 import org.gradle.language.nativeplatform.HeaderExportingSourceSet
 import org.gradle.nativeplatform.NativeComponentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
