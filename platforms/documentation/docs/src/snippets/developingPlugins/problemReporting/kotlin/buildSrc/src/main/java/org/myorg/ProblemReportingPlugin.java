@@ -17,6 +17,11 @@ public class ProblemReportingPlugin implements Plugin<Project> {
 
     private final ProblemReporter problemReporter;
 
+    interface SomeData {
+        void setName(String name);
+        String getName();
+    }
+
     @Inject
     public ProblemReportingPlugin(Problems problems) { // <1>
         this.problemReporter = problems.getReporter(); // <2>
@@ -28,6 +33,9 @@ public class ProblemReportingPlugin implements Plugin<Project> {
             .details("The plugin 'x' is deprecated since version 2.5")
             .solution("Please use plugin 'y'")
             .severity(Severity.WARNING)
+            .additionalData(SomeData.class, additionalData -> {)
+                additionalData.setName("Some name");
+            })
         );
     }
 }
