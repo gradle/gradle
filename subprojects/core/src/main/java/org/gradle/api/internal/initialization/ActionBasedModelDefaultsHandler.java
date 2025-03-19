@@ -35,8 +35,8 @@ import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.plugin.software.internal.ModelDefault;
 import org.gradle.plugin.software.internal.ModelDefaultsHandler;
-import org.gradle.plugin.software.internal.SoftwareTypeImplementation;
-import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
+import org.gradle.plugin.software.internal.SoftwareFeatureRegistry;
+import org.gradle.plugin.software.internal.SoftwareFeatureImplementation;
 import org.jspecify.annotations.Nullable;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
@@ -45,27 +45,27 @@ public class ActionBasedModelDefaultsHandler implements ModelDefaultsHandler {
 
     private final SharedModelDefaultsInternal sharedModelDefaults;
     private final ProjectLayout projectLayout;
-    private final SoftwareTypeRegistry softwareTypeRegistry;
+    private final SoftwareFeatureRegistry softwareFeatureRegistry;
     private final InspectionScheme inspectionScheme;
     private final InternalProblems problems;
 
     public ActionBasedModelDefaultsHandler(
         SharedModelDefaults sharedModelDefaults,
         ProjectLayout projectLayout,
-        SoftwareTypeRegistry softwareTypeRegistry,
+        SoftwareFeatureRegistry softwareFeatureRegistry,
         InspectionScheme inspectionScheme,
         InternalProblems problems
     ) {
         this.sharedModelDefaults = (SharedModelDefaultsInternal) sharedModelDefaults;
         this.projectLayout = projectLayout;
-        this.softwareTypeRegistry = softwareTypeRegistry;
+        this.softwareFeatureRegistry = softwareFeatureRegistry;
         this.inspectionScheme = inspectionScheme;
         this.problems = problems;
     }
 
     @Override
-    public <T> void apply(T target, ClassLoaderScope classLoaderScope, String softwareTypeName, Plugin<?> plugin) {
-        SoftwareTypeImplementation<?> softwareTypeImplementation = softwareTypeRegistry.getSoftwareTypeImplementations().get(softwareTypeName);
+    public <T> void apply(T target, ClassLoaderScope classLoaderScope, String softwareFeatureName, Plugin<?> plugin) {
+        SoftwareFeatureImplementation<?> softwareFeatureImplementation = softwareFeatureRegistry.getSoftwareFeatureImplementations().get(softwareFeatureName);
 
         DefaultTypeValidationContext typeValidationContext = DefaultTypeValidationContext.withRootType(plugin.getClass(), false, problems);
         inspectionScheme.getPropertyWalker().visitProperties(
@@ -76,9 +76,9 @@ public class ActionBasedModelDefaultsHandler implements ModelDefaultsHandler {
                 public void visitSoftwareTypeProperty(String propertyName, PropertyValue value, Class<?> declaredPropertyType, SoftwareType softwareType) {
                     try {
                         sharedModelDefaults.setProjectLayout(projectLayout);
-                        softwareTypeImplementation.visitModelDefaults(
+                        softwareFeatureImplementation.visitModelDefaults(
                             Cast.uncheckedCast(ActionBasedDefault.class),
-                            executeActionVisitor(softwareTypeImplementation, value.call())
+                            executeActionVisitor(softwareFeatureImplementation, value.call())
                         );
                     } finally {
                         sharedModelDefaults.clearProjectLayout();
@@ -103,9 +103,9 @@ public class ActionBasedModelDefaultsHandler implements ModelDefaultsHandler {
         }
     }
 
-    private static <T> ModelDefault.Visitor<Action<? super T>> executeActionVisitor(SoftwareTypeImplementation<T> softwareTypeImplementation, @Nullable Object modelObject) {
+    private static <T> ModelDefault.Visitor<Action<? super T>> executeActionVisitor(SoftwareFeatureImplementation<T> softwareFeatureImplementation, @Nullable Object modelObject) {
         if (modelObject == null) {
-            throw new IllegalStateException("The model object for " + softwareTypeImplementation.getSoftwareType() + " declared in " + softwareTypeImplementation.getPluginClass().getName() + " is null.");
+            throw new IllegalStateException("The model object for " + softwareFeatureImplementation.getFeatureName() + " declared in " + softwareFeatureImplementation.getPluginClass().getName() + " is null.");
         }
         return action -> action.execute(Cast.uncheckedNonnullCast(modelObject));
     }

@@ -18,15 +18,15 @@ package org.gradle.internal.declarativedsl.software
 
 import org.gradle.api.internal.plugins.software.SoftwareType
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.plugin.software.internal.SoftwareTypeImplementation
+import org.gradle.plugin.software.internal.SoftwareFeatureImplementation
 import kotlin.reflect.KProperty
 import kotlin.reflect.full.instanceParameter
 import kotlin.reflect.full.memberFunctions
 import kotlin.reflect.full.memberProperties
 
-fun getSoftwareTypeModelInstance(softwareType: SoftwareTypeImplementation<*>, receiverObject: ProjectInternal): Any {
+fun getSoftwareFeatureModelInstance(softwareType: SoftwareFeatureImplementation<*>, receiverObject: ProjectInternal): Any {
     fun Iterable<Annotation>.hasSoftwareTypeAnnotation() =
-        any { annotation -> annotation is SoftwareType && annotation.name == softwareType.softwareType }
+        any { annotation -> annotation is SoftwareType && annotation.name == softwareType.featureName }
 
     val pluginInstance = receiverObject.plugins.getPlugin(softwareType.pluginClass)
 

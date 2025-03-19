@@ -24,8 +24,8 @@ import org.gradle.internal.declarativedsl.common.gradleDslGeneralSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationAndConversionSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationSchema
 import org.gradle.plugin.software.internal.ModelDefault
-import org.gradle.plugin.software.internal.SoftwareTypeImplementation
-import org.gradle.plugin.software.internal.SoftwareTypeRegistry
+import org.gradle.plugin.software.internal.SoftwareFeatureImplementation
+import org.gradle.plugin.software.internal.SoftwareFeatureRegistry
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -35,27 +35,27 @@ import org.mockito.kotlin.mock
 class SoftwareTypesTest {
     @Test
     fun `software types are added to the schema along with their supertypes`() {
-        val registryMock = mock<SoftwareTypeRegistry> { mock ->
-            on(mock.softwareTypeImplementations).thenReturn(
-                setOf(object : SoftwareTypeImplementation<Subtype> {
-                    override fun getSoftwareType(): String = "subtype"
+        val registryMock = mock<SoftwareFeatureRegistry> { mock ->
+            on(mock.softwareFeatureImplementations).thenReturn(
+                setOf(object : SoftwareFeatureImplementation<Subtype> {
+                    override fun getFeatureName(): String = "subtype"
                     override fun getModelPublicType(): Class<out Subtype> = Subtype::class.java
                     override fun getPluginClass(): Class<out Plugin<Project>> = SubtypePlugin::class.java
                     override fun getRegisteringPluginClass(): Class<out Plugin<Settings>> = SubtypeEcosystemPlugin::class.java
                     override fun addModelDefault(rule: ModelDefault<*>) = Unit
                     override fun <V : ModelDefault.Visitor<*>> visitModelDefaults(type: Class<out ModelDefault<V>>, visitor: V) = Unit
-                }).associateBy { it.softwareType }
+                }).associateBy { it.featureName }
             )
         }
 
         val schemaForSettings = buildEvaluationSchema(TopLevel::class, analyzeEverything) {
             gradleDslGeneralSchema()
-            softwareTypesDefaultsComponent(TopLevel::class, registryMock)
+            softwareFeaturesDefaultsComponent(TopLevel::class, registryMock)
         }
 
         val schemaForProject = buildEvaluationAndConversionSchema(TopLevel::class, analyzeEverything) {
             gradleDslGeneralSchema()
-            softwareTypesComponent(TopLevel::class, registryMock, withDefaultsApplication = false)
+            softwareFeaturesComponent(TopLevel::class, registryMock, withDefaultsApplication = false)
         }
 
         listOf(schemaForSettings, schemaForProject).forEach { schema ->

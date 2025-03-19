@@ -27,13 +27,13 @@ import org.gradle.internal.properties.annotations.PropertyMetadata
 import org.gradle.internal.properties.annotations.TypeMetadata
 import org.gradle.internal.properties.annotations.TypeMetadataStore
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadata
-import org.gradle.plugin.software.internal.SoftwareTypeRegistry
+import org.gradle.plugin.software.internal.SoftwareFeatureRegistry
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class SoftwareTypeRegistrationPluginTargetTest extends Specification {
     def delegate = Mock(PluginTarget)
-    def softwareTypeRegistry = Mock(SoftwareTypeRegistry)
+    def softwareTypeRegistry = Mock(SoftwareFeatureRegistry)
     def inspectionScheme = Mock(InspectionScheme)
     def problems = TestUtil.problemsService()
     def pluginTarget = new SoftwareTypeRegistrationPluginTarget(delegate, softwareTypeRegistry, inspectionScheme, problems)

@@ -27,10 +27,10 @@ import org.gradle.internal.properties.annotations.TypeMetadata
 import org.gradle.internal.properties.annotations.TypeMetadataStore
 import spock.lang.Specification
 
-class DefaultSoftwareTypeRegistryTest extends Specification {
+class DefaultSoftwareFeatureRegistryTest extends Specification {
     def metadataStore = Mock(TypeMetadataStore)
     def inspectionScheme = Mock(InspectionScheme)
-    def registry = new DefaultSoftwareTypeRegistry(inspectionScheme)
+    def registry = new DefaultSoftwareFeatureRegistry(inspectionScheme)
 
     def "can register and retrieve a software type (public type = #modelPublicType.simpleName)"() {
         def pluginTypeMetadata = Mock(TypeMetadata)
@@ -42,7 +42,7 @@ class DefaultSoftwareTypeRegistryTest extends Specification {
         registry.register(SoftwareTypeImpl, RegisteringPlugin)
 
         and:
-        def implementations = registry.softwareTypeImplementations.values()
+        def implementations = registry.softwareFeatureImplementations.values()
 
         then:
         1 * inspectionScheme.getMetadataStore() >> metadataStore
@@ -59,7 +59,7 @@ class DefaultSoftwareTypeRegistryTest extends Specification {
         and:
         implementations.size() == 1
         implementations[0].modelPublicType == TestModel
-        implementations[0].softwareType == "test"
+        implementations[0].featureName == "test"
 
         where:
         modelPublicType << [TestModel, Void]
@@ -70,7 +70,7 @@ class DefaultSoftwareTypeRegistryTest extends Specification {
 
         when:
         registry.register(NotASoftwareTypeImpl, RegisteringPlugin)
-        def implementations = registry.softwareTypeImplementations
+        def implementations = registry.softwareFeatureImplementations
 
         then:
         1 * inspectionScheme.getMetadataStore() >> metadataStore
@@ -90,7 +90,7 @@ class DefaultSoftwareTypeRegistryTest extends Specification {
         when:
         registry.register(SoftwareTypeImpl, RegisteringPlugin)
         registry.register(SoftwareTypeImpl, RegisteringPlugin)
-        def implementations = registry.softwareTypeImplementations
+        def implementations = registry.softwareFeatureImplementations
 
         then:
         1 * inspectionScheme.getMetadataStore() >> metadataStore
@@ -119,7 +119,7 @@ class DefaultSoftwareTypeRegistryTest extends Specification {
         when:
         registry.register(SoftwareTypeImpl, RegisteringPlugin)
         registry.register(DuplicateSoftwareTypeImpl, RegisteringPlugin)
-        registry.getSoftwareTypeImplementations()
+        registry.getSoftwareFeatureImplementations()
 
         then:
         2 * inspectionScheme.getMetadataStore() >> metadataStore

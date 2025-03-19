@@ -72,25 +72,25 @@ interface ApplyModelDefaultsHandler : ResolutionResultHandler {
 
 
 internal
-fun findUsedSoftwareTypeNames(resolutionResult: ResolutionResult): Set<String> {
-    fun ConfigureAccessor.softwareTypeNameOrNull(): String? =
+fun findUsedSoftwareFeatureNames(resolutionResult: ResolutionResult): Set<String> {
+    fun ConfigureAccessor.softwareFeatureNameOrNull(): String? =
         if (this is ConfigureAccessor.Custom)
             customAccessorIdentifier.removePrefix("$SOFTWARE_TYPE_ACCESSOR_PREFIX:").takeIf { it != customAccessorIdentifier }
         else null
 
     return resolutionResult.nestedObjectAccess
         .mapNotNullTo(mutableSetOf()) {
-            (it.dataObject as? ObjectOrigin.AccessAndConfigureReceiver)?.accessor?.softwareTypeNameOrNull()
+            (it.dataObject as? ObjectOrigin.AccessAndConfigureReceiver)?.accessor?.softwareFeatureNameOrNull()
         }
 }
 
 
 interface ModelDefaultsRepository {
-    fun findDefaults(softwareTypeName: String): ModelDefaultsResolutionResults?
+    fun findDefaults(featureName: String): ModelDefaultsResolutionResults?
 }
 
-fun defaultsForAllUsedSoftwareTypes(modelDefaultsRepository: ModelDefaultsRepository, resolutionResult: ResolutionResult) =
-    findUsedSoftwareTypeNames(resolutionResult).mapNotNull(modelDefaultsRepository::findDefaults)
+fun defaultsForAllUsedSoftwareFeatures(modelDefaultsRepository: ModelDefaultsRepository, resolutionResult: ResolutionResult) =
+    findUsedSoftwareFeatureNames(resolutionResult).mapNotNull(modelDefaultsRepository::findDefaults)
 
 
 

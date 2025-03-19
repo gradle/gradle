@@ -33,7 +33,7 @@ import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistrationProvider
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices
 import org.gradle.plugin.software.internal.ModelDefaultsHandler
-import org.gradle.plugin.software.internal.SoftwareTypeRegistry
+import org.gradle.plugin.software.internal.SoftwareFeatureRegistry
 import java.io.File
 
 
@@ -53,30 +53,30 @@ object BuildServices : ServiceRegistrationProvider {
 
     @Provides
     fun createDeclarativeKotlinScriptEvaluator(
-        softwareTypeRegistry: SoftwareTypeRegistry,
+        softwareFeatureRegistry: SoftwareFeatureRegistry,
         schemaBuilder: InterpretationSchemaBuilder
     ): DeclarativeKotlinScriptEvaluator {
-        return defaultDeclarativeScriptEvaluator(schemaBuilder, softwareTypeRegistry)
+        return defaultDeclarativeScriptEvaluator(schemaBuilder, softwareFeatureRegistry)
     }
 
     @Provides
     fun createInterpretationSchemaBuilder(
-        softwareTypeRegistry: SoftwareTypeRegistry,
+        softwareFeatureRegistry: SoftwareFeatureRegistry,
         buildLayoutFactory: BuildLayoutFactory,
         settingsUnderInitialization: SettingsUnderInitialization,
         gradleInternal: GradleInternal
     ): InterpretationSchemaBuilder =
         MemoizedInterpretationSchemaBuilder(
-            StoringInterpretationSchemaBuilder(GradleProcessInterpretationSchemaBuilder(settingsUnderInitialization::instance, softwareTypeRegistry), buildLayoutFactory.settingsDir(gradleInternal))
+            StoringInterpretationSchemaBuilder(GradleProcessInterpretationSchemaBuilder(settingsUnderInitialization::instance, softwareFeatureRegistry), buildLayoutFactory.settingsDir(gradleInternal))
         )
 
     @Provides
     fun createDeclarativeModelDefaultsHandler(
-        softwareTypeRegistry: SoftwareTypeRegistry,
+        softwareFeatureRegistry: SoftwareFeatureRegistry,
         interpretationSchemaBuilder: InterpretationSchemaBuilder,
         objectFactory: ObjectFactory
     ): ModelDefaultsHandler {
-        return objectFactory.newInstance(DeclarativeModelDefaultsHandler::class.java, softwareTypeRegistry, interpretationSchemaBuilder)
+        return objectFactory.newInstance(DeclarativeModelDefaultsHandler::class.java, softwareFeatureRegistry, interpretationSchemaBuilder)
     }
 
     private

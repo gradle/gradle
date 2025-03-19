@@ -33,7 +33,7 @@ import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.properties.annotations.TypeMetadata;
 import org.gradle.internal.reflect.DefaultTypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
-import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
+import org.gradle.plugin.software.internal.SoftwareFeatureRegistry;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -45,18 +45,18 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 
 /**
  * A {@link PluginTarget} that inspects the plugin for {@link RegistersSoftwareTypes} annotations and registers the
- * specified software type plugins with the {@link SoftwareTypeRegistry} prior to applying the plugin via the delegate.
+ * specified software type plugins with the {@link SoftwareFeatureRegistry} prior to applying the plugin via the delegate.
  */
 @NullMarked
 public class SoftwareTypeRegistrationPluginTarget implements PluginTarget {
     private final PluginTarget delegate;
-    private final SoftwareTypeRegistry softwareTypeRegistry;
+    private final SoftwareFeatureRegistry softwareFeatureRegistry;
     private final InspectionScheme inspectionScheme;
     private final InternalProblems problems;
 
-    public SoftwareTypeRegistrationPluginTarget(PluginTarget delegate, SoftwareTypeRegistry softwareTypeRegistry, InspectionScheme inspectionScheme, InternalProblems problems) {
+    public SoftwareTypeRegistrationPluginTarget(PluginTarget delegate, SoftwareFeatureRegistry softwareFeatureRegistry, InspectionScheme inspectionScheme, InternalProblems problems) {
         this.delegate = delegate;
-        this.softwareTypeRegistry = softwareTypeRegistry;
+        this.softwareFeatureRegistry = softwareFeatureRegistry;
         this.inspectionScheme = inspectionScheme;
         this.problems = problems;
     }
@@ -96,7 +96,7 @@ public class SoftwareTypeRegistrationPluginTarget implements PluginTarget {
             Class<? extends Plugin<Settings>> registeringPlugin = Cast.uncheckedCast(typeMetadata.getType());
             for (Class<? extends Plugin<Project>> softwareTypeImplClass : registration.value()) {
                 validateSoftwareTypePluginExposesExactlyOneSoftwareType(softwareTypeImplClass, typeMetadata.getType());
-                softwareTypeRegistry.register(softwareTypeImplClass, registeringPlugin);
+                softwareFeatureRegistry.register(softwareTypeImplClass, registeringPlugin);
             }
         });
     }

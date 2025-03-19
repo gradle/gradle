@@ -28,26 +28,26 @@ import java.util.Objects;
  * Represents a resolved software type implementation.  Used by declarative DSL to understand which model types should be exposed for
  * which software types.
  */
-public class DefaultSoftwareTypeImplementation<T> implements SoftwareTypeImplementation<T> {
-    private final String softwareType;
+public class DefaultSoftwareFeatureImplementation<T> implements SoftwareFeatureImplementation<T> {
+    private final String featureName;
     private final Class<? extends T> modelPublicType;
     private final Class<? extends Plugin<Project>> pluginClass;
     private final Class<? extends Plugin<Settings>> registeringPluginClass;
     private final List<ModelDefault<?>> defaults = new ArrayList<>();
 
-    public DefaultSoftwareTypeImplementation(String softwareType,
-                                             Class<? extends T> modelPublicType,
-                                             Class<? extends Plugin<Project>> pluginClass,
-                                             Class<? extends Plugin<Settings>> registeringPluginClass) {
-        this.softwareType = softwareType;
+    public DefaultSoftwareFeatureImplementation(String featureName,
+                                                Class<? extends T> modelPublicType,
+                                                Class<? extends Plugin<Project>> pluginClass,
+                                                Class<? extends Plugin<Settings>> registeringPluginClass) {
+        this.featureName = featureName;
         this.modelPublicType = modelPublicType;
         this.pluginClass = pluginClass;
         this.registeringPluginClass = registeringPluginClass;
     }
 
     @Override
-    public String getSoftwareType() {
-        return softwareType;
+    public String getFeatureName() {
+        return featureName;
     }
 
     @Override
@@ -86,12 +86,12 @@ public class DefaultSoftwareTypeImplementation<T> implements SoftwareTypeImpleme
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        DefaultSoftwareTypeImplementation<?> that = (DefaultSoftwareTypeImplementation<?>) o;
-        return Objects.equals(softwareType, that.softwareType) && Objects.equals(modelPublicType, that.modelPublicType) && Objects.equals(pluginClass, that.pluginClass);
+        DefaultSoftwareFeatureImplementation<?> that = (DefaultSoftwareFeatureImplementation<?>) o;
+        return Objects.equals(featureName, that.featureName) && Objects.equals(modelPublicType, that.modelPublicType) && Objects.equals(pluginClass, that.pluginClass);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(softwareType, modelPublicType, pluginClass);
+        return Objects.hash(featureName, modelPublicType, pluginClass);
     }
 }
