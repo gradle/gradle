@@ -29,6 +29,10 @@ gradlePlugin {
 }
 // end::use-and-configure-plugin[]
 
+tasks.validatePlugins {
+    enableStricterValidation = true
+}
+
 publishing {
     // tag::local-maven[]
     repositories {

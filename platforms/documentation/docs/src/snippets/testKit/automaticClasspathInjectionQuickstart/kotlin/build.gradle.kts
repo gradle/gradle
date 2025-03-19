@@ -12,6 +12,10 @@ dependencies {
 }
 // end::automatic-classpath[]
 
+tasks.validatePlugins {
+    enableStricterValidation = true
+}
+
 tasks.named<Test>("test") {
     useJUnitPlatform()
 }

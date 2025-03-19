@@ -6,6 +6,7 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.testing.GroupTestEventReporter;
 import org.gradle.api.tasks.testing.TestEventReporter;
 import org.gradle.api.tasks.testing.TestEventReporterFactory;
+import org.gradle.work.DisableCachingByDefault;
 import org.junit.platform.launcher.Launcher;
 import org.junit.platform.launcher.LauncherDiscoveryRequest;
 import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
@@ -23,6 +24,7 @@ import static org.junit.platform.engine.discovery.DiscoverySelectors.selectClass
 /**
  * A custom task that demonstrates the {@code TestEventReporter} API.
  */
+@DisableCachingByDefault(because = "unsupported")
 public abstract class CustomTest extends DefaultTask {
 
     @Inject

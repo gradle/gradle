@@ -14,3 +14,7 @@ gradlePlugin {
     }
 }
 // end::gradle-plugin-block[]
+
+tasks.validatePlugins {
+    enableStricterValidation = true
+}

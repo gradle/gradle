@@ -54,6 +54,10 @@ gradlePlugin {
     }
 }
 
+tasks.validatePlugins {
+    enableStricterValidation = true
+}
+
 publishing {
     repositories {
         maven { url = layout.buildDirectory.dir('local-repo') }
