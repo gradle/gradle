@@ -235,7 +235,7 @@ class PluginManagementDslSpec extends AbstractIntegrationSpec {
         }
     }
 
-    def "Can access properties in pluginManagement block"() {
+    def "can access properties in pluginManagement block"() {
         given:
         settingsFile << """
             pluginManagement {
@@ -251,7 +251,7 @@ class PluginManagementDslSpec extends AbstractIntegrationSpec {
 
     }
 
-    def "Can access SettingsScript API in pluginManagement block"() {
+    def "can access SettingsScript API in pluginManagement block"() {
         given:
         settingsFile << """
             pluginManagement {

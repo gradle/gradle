@@ -175,7 +175,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
     }
 
     @Flaky(because = "https://github.com/gradle/gradle-private/issues/4609")
-    def "Can serialize groovy compilation error"() {
+    def "can serialize groovy compilation error"() {
         buildFile """
             tasks.register("foo) {
         """
@@ -197,7 +197,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         failureMessage(problems[0].failure) == "Could not compile build file '$buildFile.absolutePath'."
     }
 
-    def "Can use problems service in model builder and get failure objects"() {
+    def "can use problems service in model builder and get failure objects"() {
         given:
         Assume.assumeTrue(javaHome != null)
         buildFile getBuildScriptSampleContent(false, false, targetVersion)
@@ -296,7 +296,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
     @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     @TargetGradleVersion("=8.5")
-    def "No problem for exceptions in 8.5"() {
+    def "no problem for exceptions in 8.5"() {
         // serialization of exceptions is not working in 8.5 (Gson().toJson() fails)
         withReportProblemTask """
             throw new RuntimeException("boom")

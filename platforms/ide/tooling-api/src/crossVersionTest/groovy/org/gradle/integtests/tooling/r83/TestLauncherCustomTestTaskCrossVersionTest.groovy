@@ -35,7 +35,7 @@ class TestLauncherCustomTestTaskCrossVersionTest extends TestLauncherSpec {
 
     @Issue('https://github.com/gradle/gradle/issues/25370')
     @TargetGradleVersion(">=7.6 <8.3")
-    def "Cannot run tests with custom task implementation in older Gradle versions"() {
+    def "cannot run tests with custom task implementation in older Gradle versions"() {
         when:
         launchTests { TestLauncher launcher ->
             launcher.withTestsFor { TestSpecs specs ->
@@ -49,7 +49,7 @@ class TestLauncherCustomTestTaskCrossVersionTest extends TestLauncherSpec {
     }
 
     @Issue('https://github.com/gradle/gradle/issues/25370')
-    def "Can run tests with custom task implementation"() {
+    def "can run tests with custom task implementation"() {
         when:
         launchTests { TestLauncher launcher ->
             launcher.withTestsFor { TestSpecs specs ->

@@ -38,7 +38,7 @@ class ProblemsServiceModelBuilderCrossVersionTest extends ToolingApiSpecificatio
         listener = new org.gradle.integtests.tooling.r87.ProblemProgressEventCrossVersionTest.ProblemProgressListener()
     }
 
-    def "Can use problems service in model builder and get failure objects"() {
+    def "can use problems service in model builder and get failure objects"() {
         given:
         Assume.assumeTrue(javaHome != null)
         buildFile getBuildScriptSampleContent(false, false, targetVersion)
@@ -63,7 +63,7 @@ class ProblemsServiceModelBuilderCrossVersionTest extends ToolingApiSpecificatio
         ]
     }
 
-    def "Can add additional metadata"() {
+    def "can add additional metadata"() {
         given:
         buildFile getBuildScriptSampleContent(false, true, targetVersion)
 
