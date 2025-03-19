@@ -41,7 +41,7 @@ include::sample[dir="snippets/bestPractices/avoidDependsOn/groovy",files="build.
 
 ==== Don't Do This
 
-If we want to translate the greeting in the `message.txt` file using another task, we could do this:
+If you want to translate the greeting in the `message.txt` file using another task, you could do this:
 
 ====
 include::sample[dir="snippets/bestPractices/avoidDependsOn/kotlin",files="build.gradle.kts[tags=avoid-this]"]
@@ -53,7 +53,7 @@ include::sample[dir="snippets/bestPractices/avoidDependsOn/groovy",files="build.
 
 ==== Do This Instead
 
-Instead, we should explicitly wire task inputs and outputs like this:
+Instead, you should explicitly wire task inputs and outputs like this:
 
 ====
 include::sample[dir="snippets/bestPractices/avoidDependsOn/kotlin",files="build.gradle.kts[tags=do-this]"]
@@ -93,7 +93,7 @@ It is also slightly more efficient than running a test at configuration time to 
 
 ==== Don't Do This
 
-If we want to reuse the output of a task, we shouldn't do this:
+If you want to reuse the output of a task, you shouldn't do this:
 
 ====
 include::sample[dir="snippets/bestPractices/useCacheabilityAnnotations/kotlin",files="build.gradle.kts[tags=avoid-this]"]
@@ -106,7 +106,7 @@ include::sample[dir="snippets/bestPractices/useCacheabilityAnnotations/groovy",f
 
 ==== Do This Instead
 
-As this task meets the criteria for cacheability (we can imagine a more complex calculation in the `@TaskAction` that would benefit from automatic work avoidance via caching), we should mark the _task type itself_ as cacheable like this:
+As this task meets the criteria for cacheability (we can imagine a more complex calculation in the `@TaskAction` that would benefit from automatic work avoidance via caching), you should mark the _task type itself_ as cacheable like this:
 
 ====
 include::sample[dir="snippets/bestPractices/useCacheabilityAnnotations/kotlin",files="build.gradle.kts[tags=do-this]"]
