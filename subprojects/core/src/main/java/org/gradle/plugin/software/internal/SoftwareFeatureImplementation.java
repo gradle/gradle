@@ -23,8 +23,8 @@ import org.gradle.api.initialization.Settings;
 /**
  * Represents a resolved software type implementation including the public model type and the plugin that exposes it.
  */
-public interface SoftwareTypeImplementation<T> {
-    String getSoftwareType();
+public interface SoftwareFeatureImplementation<T> {
+    String getFeatureName();
 
     Class<? extends T> getModelPublicType();
 

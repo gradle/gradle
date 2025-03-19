@@ -55,13 +55,13 @@ import org.gradle.plugin.management.internal.autoapply.CompositeAutoAppliedPlugi
 import org.gradle.plugin.management.internal.autoapply.InjectedAutoAppliedPluginRegistry;
 import org.gradle.plugin.software.internal.DefaultModelDefaultsApplicator;
 import org.gradle.plugin.software.internal.DefaultSoftwareFeatureApplicator;
-import org.gradle.plugin.software.internal.DefaultSoftwareTypeRegistry;
+import org.gradle.plugin.software.internal.DefaultSoftwareFeatureRegistry;
 import org.gradle.plugin.software.internal.ModelDefaultsApplicator;
 import org.gradle.plugin.software.internal.ModelDefaultsHandler;
 import org.gradle.plugin.software.internal.PluginScheme;
 import org.gradle.plugin.software.internal.SoftwareFeatureApplicator;
+import org.gradle.plugin.software.internal.SoftwareFeatureRegistry;
 import org.gradle.plugin.software.internal.SoftwareTypeAnnotationHandler;
-import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
 import org.gradle.plugin.use.internal.DefaultPluginRequestApplicator;
 import org.gradle.plugin.use.internal.InjectedPluginClasspath;
 import org.gradle.plugin.use.internal.PluginDependencyResolutionServices;
@@ -140,8 +140,8 @@ public class PluginUseServices extends AbstractGradleModuleServices {
         }
 
         @Provides
-        SoftwareTypeRegistry createSoftwareTypeRegistry(PluginScheme pluginScheme) {
-            return new DefaultSoftwareTypeRegistry(pluginScheme.getInspectionScheme());
+        SoftwareFeatureRegistry createSoftwareTypeRegistry(PluginScheme pluginScheme) {
+            return new DefaultSoftwareFeatureRegistry(pluginScheme.getInspectionScheme());
         }
 
         @Provides

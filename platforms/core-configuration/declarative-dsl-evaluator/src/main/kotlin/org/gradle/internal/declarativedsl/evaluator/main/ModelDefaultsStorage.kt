@@ -31,6 +31,6 @@ class ModelDefaultsStorage : ModelDefaultsDefinitionRegistrar, ModelDefaultsRepo
         modelDefaultsMap.putAll(modelDefaultsBySoftwareType)
     }
 
-    override fun findDefaults(softwareTypeName: String): ModelDefaultsResolutionResults? =
-        modelDefaultsMap[softwareTypeName]
+    override fun findDefaults(featureName: String): ModelDefaultsResolutionResults? =
+        modelDefaultsMap[featureName]
 }

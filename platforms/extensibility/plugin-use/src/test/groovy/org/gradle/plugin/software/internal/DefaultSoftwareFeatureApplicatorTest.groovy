@@ -46,7 +46,7 @@ class DefaultSoftwareFeatureApplicatorTest extends Specification {
     def propertyValue = Mock(PropertyValue)
     def softwareType = Mock(SoftwareType)
     def extensions = Mock(ExtensionContainerInternal)
-    SoftwareTypeImplementation<Foo> softwareTypeImplementation = Mock(SoftwareTypeImplementation)
+    SoftwareFeatureImplementation<Foo> softwareTypeImplementation = Mock(SoftwareFeatureImplementation)
     def foo = new Foo()
 
     def "adds software types as extensions when software type plugin is applied"() {
@@ -65,7 +65,7 @@ class DefaultSoftwareFeatureApplicatorTest extends Specification {
         1 * propertyValue.call() >> foo
         1 * extensions.add(Foo.class, "foo", foo)
         1 * modelDefaultsApplicator.applyDefaultsTo(target, classLoaderScope, plugin, softwareTypeImplementation)
-        _ * softwareTypeImplementation.softwareType >> "foo"
+        _ * softwareTypeImplementation.featureName >> "foo"
         1 * extensions.getByName("foo") >> foo
 
         and:
@@ -88,7 +88,7 @@ class DefaultSoftwareFeatureApplicatorTest extends Specification {
         1 * propertyValue.call() >> foo
         1 * extensions.add(Foo.class, "foo", foo)
         1 * modelDefaultsApplicator.applyDefaultsTo(target, classLoaderScope, plugin, softwareTypeImplementation)
-        _ * softwareTypeImplementation.softwareType >> "foo"
+        _ * softwareTypeImplementation.featureName >> "foo"
         1 * extensions.getByName("foo") >> foo
 
         and:
@@ -99,7 +99,7 @@ class DefaultSoftwareFeatureApplicatorTest extends Specification {
 
         then:
         _ * target.getExtensions() >> extensions
-        _ * softwareTypeImplementation.softwareType >> "foo"
+        _ * softwareTypeImplementation.featureName >> "foo"
         1 * extensions.getByName("foo") >> foo
         0 * _
 
@@ -129,7 +129,7 @@ class DefaultSoftwareFeatureApplicatorTest extends Specification {
         _ * softwareType.name() >> "foo"
         0 * extensions.add(_, _, _)
         1 * modelDefaultsApplicator.applyDefaultsTo(target, classLoaderScope , plugin, softwareTypeImplementation)
-        _ * softwareTypeImplementation.softwareType >> "foo"
+        _ * softwareTypeImplementation.featureName >> "foo"
         1 * extensions.getByName("foo") >> foo
 
         and:

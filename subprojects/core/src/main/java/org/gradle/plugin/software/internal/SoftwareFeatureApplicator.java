@@ -37,5 +37,5 @@ public interface SoftwareFeatureApplicator {
      * @param <T> the type of the public model object for the feature
      * @since 8.12
      */
-    <T> T applyFeatureTo(ExtensionAware target, SoftwareTypeImplementation<T> softwareFeature);
+    <T> T applyFeatureTo(ExtensionAware target, SoftwareFeatureImplementation<T> softwareFeature);
 }

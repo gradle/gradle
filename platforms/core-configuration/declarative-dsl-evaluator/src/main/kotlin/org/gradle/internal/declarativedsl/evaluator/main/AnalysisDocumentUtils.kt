@@ -24,7 +24,7 @@ import org.gradle.internal.declarativedsl.dom.operations.overlay.DocumentOverlay
 import org.gradle.internal.declarativedsl.dom.resolution.DocumentWithResolution
 import org.gradle.internal.declarativedsl.dom.resolution.resolutionContainer
 import org.gradle.internal.declarativedsl.evaluator.defaults.ModelDefaultsDocumentTransformation
-import org.gradle.internal.declarativedsl.evaluator.defaults.findUsedSoftwareTypeNames
+import org.gradle.internal.declarativedsl.evaluator.defaults.findUsedSoftwareFeatureNames
 import org.gradle.internal.declarativedsl.evaluator.runner.AnalysisStepResult
 import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult
 import org.gradle.internal.declarativedsl.evaluator.runner.stepResultOrPartialResult
@@ -49,7 +49,7 @@ object AnalysisDocumentUtils {
     }
 
     fun AnalysisStepResult.usedSoftwareTypeNames(): Set<String> =
-        findUsedSoftwareTypeNames(resolutionResult)
+        findUsedSoftwareFeatureNames(resolutionResult)
 
     fun AnalysisSequenceResult.extractModelDefaultsDocument(forSoftwareTypes: Set<String>): DocumentWithResolution? {
         val modelDefaultsStep = stepResults.entries.singleOrNull { (step, _) -> step.features.any { it is DefineModelDefaults } }

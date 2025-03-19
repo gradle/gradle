@@ -49,7 +49,7 @@ import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.plugin.software.internal.PluginScheme;
-import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
+import org.gradle.plugin.software.internal.SoftwareFeatureRegistry;
 
 import java.util.List;
 
@@ -104,12 +104,12 @@ public class SettingsScopeServices implements ServiceRegistrationProvider {
         CollectionCallbackActionDecorator decorator,
         DomainObjectCollectionFactory domainObjectCollectionFactory,
         PluginScheme pluginScheme,
-        SoftwareTypeRegistry softwareTypeRegistry,
+        SoftwareFeatureRegistry softwareFeatureRegistry,
         InternalProblems problems
     ) {
         PluginTarget target = new SoftwareTypeRegistrationPluginTarget(
             new ImperativeOnlyPluginTarget<>(PluginTargetType.SETTINGS, settings, problems),
-            softwareTypeRegistry,
+            softwareFeatureRegistry,
             pluginScheme.getInspectionScheme(),
             problems
         );
