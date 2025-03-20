@@ -13,8 +13,6 @@ errorprone {
         "ReferenceEquality", // 2 occurrences
         "StaticAssignmentInConstructor", // 1 occurrences
         "StringCharset", // 2 occurrences
-        "UnusedMethod", // 11 occurrences
-        "UnusedVariable", // 6 occurrences
     )
 }
 

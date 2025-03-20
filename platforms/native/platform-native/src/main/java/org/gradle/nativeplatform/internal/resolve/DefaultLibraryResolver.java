@@ -21,7 +21,6 @@ import org.gradle.language.base.internal.resolve.LibraryResolveException;
 import org.gradle.nativeplatform.BuildType;
 import org.gradle.nativeplatform.Flavor;
 import org.gradle.nativeplatform.NativeBinarySpec;
-import org.gradle.nativeplatform.NativeDependencySet;
 import org.gradle.nativeplatform.NativeLibraryBinary;
 import org.gradle.nativeplatform.NativeLibraryRequirement;
 import org.gradle.nativeplatform.SharedLibraryBinary;
@@ -82,11 +81,6 @@ class DefaultLibraryResolver {
         public LibraryResolution withBuildType(BuildType buildType) {
             this.buildType = buildType;
             return this;
-        }
-
-        public NativeDependencySet resolve(DomainObjectSet<NativeLibraryBinary> allBinaries) {
-            NativeLibraryBinary resolve = resolveLibrary(allBinaries);
-            return new DefaultNativeDependencySet(resolve);
         }
 
         public NativeLibraryBinary resolveLibrary(DomainObjectSet<NativeLibraryBinary> allBinaries) {
