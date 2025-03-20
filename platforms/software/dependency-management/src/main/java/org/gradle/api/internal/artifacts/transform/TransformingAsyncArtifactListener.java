@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BrokenArtifacts;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
@@ -60,7 +59,7 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
     public void visitArtifacts(ResolvedArtifactSet.Artifacts artifacts) {
         artifacts.visit(new ArtifactVisitor() {
             @Override
-            public void visitArtifact(DisplayName variantName, AttributeContainer variantAttributes, ImmutableCapabilities variantCapabilities, ResolvableArtifact artifact) {
+            public void visitArtifact(DisplayName variantName, ImmutableAttributes variantAttributes, ImmutableCapabilities variantCapabilities, ResolvableArtifact artifact) {
                 TransformedArtifact transformedArtifact = new TransformedArtifact(variantName, target, capabilities, artifact, transformSteps);
                 result.add(transformedArtifact);
             }

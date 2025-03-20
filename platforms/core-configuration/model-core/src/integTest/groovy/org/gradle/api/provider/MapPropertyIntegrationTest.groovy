@@ -788,4 +788,49 @@ task thing {
         then:
         failureCauseContains("Circular evaluation detected")
     }
+
+    def "entry provider(isFinalized=#isFinalized) carries task dependencies"() {
+        buildFile """
+            def barTask = tasks.register("bar")
+            def barString = barTask.map { "bar" }
+
+            def bazTask = tasks.register("baz")
+            def bazString = bazTask.map { "baz" }
+
+            def map = objects.mapProperty(String, String)
+            map.put("42", barString)
+            map.put("1", bazString)
+
+            if ($isFinalized) {
+                map.finalizeValue()
+            }
+
+            abstract class FooTask extends DefaultTask {
+                @Input
+                abstract Property<String> getEntry()
+
+                @TaskAction
+                void run() {
+                    println("Entry is \${entry.get()}")
+                }
+            }
+
+            tasks.register("foo", FooTask) {
+                entry.set(map.getting("42"))
+            }
+        """
+
+        when:
+        run "foo"
+
+        then:
+        outputContains("Entry is bar")
+        result.assertTasksExecuted(expectedTasks)
+
+        where:
+        isFinalized | expectedTasks
+        true        | [":foo"]
+        // Ideally we want to evaluate dependencies in a fine-grained way
+        false       | [":bar", ":baz", ":foo"]
+    }
 }

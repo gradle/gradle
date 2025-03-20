@@ -55,7 +55,8 @@ public interface MapProperty<K, V> extends Provider<Map<K, V>>, HasConfigurableV
      * Returns a provider that resolves to the value of the mapping of the given key. It will have no value
      * if the property has no value, or if it does not contain a mapping for the key.
      *
-     * <p>The returned provider will track the value of this property and query its value when it is queried.</p>
+     * <p>The returned provider tracks changes to this property and resolves its value dynamically when queried.
+     * It also inherits the task dependencies of all entries in the map, if any.
      *
      * <p>This method is equivalent to
      *

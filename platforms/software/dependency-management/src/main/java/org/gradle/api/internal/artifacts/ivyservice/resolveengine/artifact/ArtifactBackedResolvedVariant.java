@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DownloadArtifactBuildOperationType;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionInternal;
@@ -113,11 +112,11 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
 
     private static class SingleArtifactSet implements ResolvedArtifactSet, ResolvedArtifactSet.Artifacts {
         private final DisplayName variantName;
-        private final AttributeContainer variantAttributes;
+        private final ImmutableAttributes variantAttributes;
         private final ImmutableCapabilities capabilities;
         private final ResolvableArtifact artifact;
 
-        SingleArtifactSet(DisplayName variantName, AttributeContainer variantAttributes, ImmutableCapabilities capabilities, ResolvableArtifact artifact) {
+        SingleArtifactSet(DisplayName variantName, ImmutableAttributes variantAttributes, ImmutableCapabilities capabilities, ResolvableArtifact artifact) {
             this.variantName = variantName;
             this.variantAttributes = variantAttributes;
             this.capabilities = capabilities;
