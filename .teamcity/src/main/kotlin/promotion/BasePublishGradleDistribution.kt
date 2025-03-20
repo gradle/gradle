@@ -21,7 +21,6 @@ import common.promotionBuildParameters
 import jetbrains.buildServer.configs.kotlin.BuildSteps
 import jetbrains.buildServer.configs.kotlin.FailureAction
 import jetbrains.buildServer.configs.kotlin.RelativeId
-import vcsroots.gradlePromotionMaster
 
 abstract class BasePublishGradleDistribution(
     // The branch to be promoted
@@ -31,9 +30,8 @@ abstract class BasePublishGradleDistribution(
     val gitUserName: String = "bot-teamcity",
     val gitUserEmail: String = "bot-teamcity@gradle.com",
     val extraParameters: String = "",
-    vcsRootId: String = gradlePromotionMaster,
     cleanCheckout: Boolean = true,
-) : BasePromotionBuildType(vcsRootId, cleanCheckout) {
+) : BasePromotionBuildType(cleanCheckout) {
     init {
         artifactRules =
             """
@@ -81,5 +79,9 @@ fun BuildSteps.buildStep(
         tasks = "$prepTask $stepTask"
         gradleParams =
             promotionBuildParameters(RelativeId("Check_Stage_${triggerName}_Trigger"), extraParameters, gitUserName, gitUserEmail)
+
+        conditions {
+            doesNotEqual("skip.promote", "true")
+        }
     }
 }
