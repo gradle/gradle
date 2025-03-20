@@ -20,18 +20,13 @@ dependencies {
     // TODO: Ideally, we would not depend on model-core in a worker.
     // All we really want is the instantiation infrastructure, but this
     // brings in core-api, which should be avoided in workers.
-    api(projects.modelCore)
     api(projects.messaging)
-    api(projects.problemsApi)
     api(projects.serialization)
-    api(projects.snapshotsWorker)
-    api(projects.stdlibJavaExtensions)
     api(projects.workerMain)
 
-    api(libs.jspecify)
+    implementation(libs.jspecify)
 
-    implementation(projects.classloaders)
-    implementation(projects.coreApi)
+    implementation(projects.modelCore)
     implementation(projects.persistentCache)
     implementation(projects.stdlibJavaExtensions)
     implementation(projects.serviceLookup)
@@ -39,4 +34,6 @@ dependencies {
     implementation(projects.serviceRegistryBuilder)
 
     implementation(libs.guava)
+
+    runtimeOnly(projects.coreApi)
 }
