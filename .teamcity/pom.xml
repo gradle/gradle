@@ -84,7 +84,7 @@
                     <format>kotlin</format>
                     <dstDir>target/generated-configs</dstDir>
                     <contextParameters>
-                        <Branch>${dslContextParameter.branch}</Branch>
+                        <branch>${dslContextParameter.branch}</branch>
                     </contextParameters>
                 </configuration>
             </plugin>

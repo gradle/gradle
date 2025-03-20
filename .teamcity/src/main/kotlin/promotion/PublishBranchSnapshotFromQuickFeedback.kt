@@ -18,7 +18,6 @@ package promotion
 
 import jetbrains.buildServer.configs.kotlin.ParameterDisplay
 import jetbrains.buildServer.configs.kotlin.RelativeId
-import vcsroots.gradlePromotionBranches
 
 object PublishBranchSnapshotFromQuickFeedback : PublishGradleDistributionFullBuild(
     promotedBranch = "%branch.qualifier%",
@@ -26,7 +25,6 @@ object PublishBranchSnapshotFromQuickFeedback : PublishGradleDistributionFullBui
     prepTask = "prepSnapshot",
     promoteTask = "promoteSnapshot",
     extraParameters = "-PpromotedBranch=%branch.qualifier%",
-    vcsRootId = gradlePromotionBranches,
 ) {
     init {
         id("Promotion_PublishBranchSnapshotFromQuickFeedback")
