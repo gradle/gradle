@@ -325,14 +325,6 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
             details == "error: warnings found and -Werror specified"
         }
 
-        // Based on the Java version, the types in the lint message will differ...
-        String expectedType
-        if (JavaVersion.current().isJava9Compatible()) {
-            expectedType = "String"
-        } else {
-            expectedType = "java.lang.String"
-        }
-
         // The two expected warnings are still reported as warnings
         verifyAll(receivedProblem(1)) {
             assertLocations(it, true)
@@ -343,21 +335,28 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
             verifyAll(getSingleOriginLocation(FileLocation)) {
                 it.path == fooFileLocation.absolutePath
             }
-            details == """\
-$fooFileLocation:11: warning: [cast] redundant cast to $expectedType
-        String s = (String)"Hello World";
-                   ^"""
+
         }
         verifyAll(receivedProblem(2)) {
             assertLocations(it, true)
             severity == Severity.WARNING
             fqid == 'compilation:java:compiler-warn-redundant-cast'
-            contextualLabel == 'redundant cast to java.lang.String'
-            solutions.empty
-            details == """\
-${fooFileLocation}:7: warning: [cast] redundant cast to $expectedType
+            if (JavaVersion.current().java9Compatible) {
+                // Above Java 9, we can use the RichDiagnosticFormatter
+                contextualLabel == 'redundant cast to String'
+                details == """\
+${fooFileLocation}:9: warning: [cast] redundant cast to String
         String s = (String)"Hello World";
                    ^"""
+            } else {
+                // Below Java 9, we have to use the BasicDiagnosticFormatter
+                contextualLabel == 'redundant cast to java.lang.String'
+                details == """\
+${fooFileLocation}:9: warning: [cast] redundant cast to java.lang.String
+        String s = (String)"Hello World";
+                   ^"""
+            }
+            solutions.empty
         }
 
         result.error.contains("1 error\n")
@@ -465,7 +464,6 @@ ${fooFileLocation}:7: warning: [cast] redundant cast to $expectedType
     }
 
     @Issue("https://github.com/gradle/gradle/pull/29141")
-    @Requires(IntegTestPreconditions.Java11HomeAvailable)
     def "compiler warnings does not cause failure in problem mapping under JDK#jdk.javaVersionMajor"(Jvm jdk) {
         given:
         setupAnnotationProcessors(jdk.javaVersion)
@@ -547,7 +545,6 @@ ${fooFileLocation}:7: warning: [cast] redundant cast to $expectedType
         boolean expectLineLocation = true,
         boolean expectOffsetLocation = !expectLineLocation
     ) {
-
         assert problem.contextualLabel != null, "Expected contextual label to be non-null, but was null"
 
         def locations = problem.originLocations + problem.contextualLocations
