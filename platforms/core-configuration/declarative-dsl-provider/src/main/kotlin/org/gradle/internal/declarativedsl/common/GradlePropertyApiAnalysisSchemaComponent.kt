@@ -106,7 +106,13 @@ class GradlePropertyApiPropertyExtractor(
                 val isHidden = getter.annotations.any { it is HiddenInDeclarativeDsl }
                 val isDirectAccessOnly = getter.annotations.any { it is AccessFromCurrentReceiverOnly }
                 CollectedPropertyInformation(
-                    propertyName, getter.returnType, type, DefaultDataProperty.DefaultPropertyMode.DefaultWriteOnly, false, isHidden, isDirectAccessOnly,
+                    propertyName,
+                    getter.returnType,
+                    type,
+                    DefaultDataProperty.DefaultPropertyMode.DefaultWriteOnly,
+                    hasDefaultValue = true,
+                    isHidden,
+                    isDirectAccessOnly,
                     claimedFunctions = listOf(getter)
                 )
             }

@@ -94,7 +94,7 @@ secondaryAccess { three, true, true}"""
 
     def 'can use list augmentation with += from a DCL file'() {
         given:
-        simpleDeclarativePlugin()
+        simpleDeclarativePlugin(language)
 
         file("settings.gradle.dcl") << """
 
@@ -119,6 +119,11 @@ secondaryAccess { three, true, true}"""
         then:
         outputContains("arguments = [one, two, three]")
         outputContains("flags = [foo, bar, baz]")
+
+        where:
+        language | _
+        "java"   | _
+        "kotlin" | _
     }
 
     def simpleDeclarativePlugin(String language = "kotlin") {
