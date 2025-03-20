@@ -49,6 +49,10 @@ configure<DependencyAnalysisSubExtension> {
             exclude(":internal-instrumentation-processor")
         }
 
+        onDuplicateClassWarnings {
+            severity("fail")
+        }
+
         ignoreSourceSet("archTest", "crossVersionTest", "docsTest", "integTest", "jmh", "peformanceTest", "smokeTest", "testInterceptors", "testFixtures", "smokeIdeTest")
     }
 }
