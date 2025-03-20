@@ -20,8 +20,6 @@ errorprone {
         "InlineFormatString", // 5 occurrences
         "InvalidParam", // 1 occurrences
         "MathAbsoluteNegative",
-        "MissingCasesInEnumSwitch", // 7 occurrences
-        "MixedMutabilityReturnType", // 5 occurrences
         "ModifiedButNotUsed", // 1 occurrences
         "MutablePublicArray", // 1 occurrences
         "NonApiType", // 3 occurrences
