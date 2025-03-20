@@ -789,7 +789,7 @@ task thing {
         failureCauseContains("Circular evaluation detected")
     }
 
-    def "entry provider(isFinalized=#isFinalized) carries task dependencies"() {
+    def "#provider(isFinalized=#isFinalized) carries task dependencies"() {
         buildFile """
             def barTask = tasks.register("bar")
             def barString = barTask.map { "bar" }
@@ -816,7 +816,7 @@ task thing {
             }
 
             tasks.register("foo", FooTask) {
-                entry.set(map.getting("42"))
+                entry.set(map.$call)
             }
         """
 
@@ -824,13 +824,14 @@ task thing {
         run "foo"
 
         then:
-        outputContains("Entry is bar")
+        outputContains(expectedOutput)
         result.assertTasksExecuted(expectedTasks)
 
         where:
-        isFinalized | expectedTasks
-        true        | [":foo"]
-        // Ideally we want to evaluate dependencies in a fine-grained way
-        false       | [":bar", ":baz", ":foo"]
+        provider          | call                                      | isFinalized | expectedTasks            | expectedOutput
+        "entry provider"  | """getting("42")"""                       | true        | [":foo"]                 | "Entry is bar"
+        "entry provider"  | """getting("42")"""                       | false       | [":bar", ":baz", ":foo"] | "Entry is bar"
+        "keySet provider" | """keySet().map { it.sort().join(",")}""" | true        | [":foo"]                 | "Entry is 1,42"
+        "keySet provider" | """keySet().map { it.sort().join(",")}""" | false       | [":bar", ":baz", ":foo"] | "Entry is 1,42"
     }
 }
