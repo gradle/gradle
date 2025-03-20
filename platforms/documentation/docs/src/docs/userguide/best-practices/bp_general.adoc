@@ -17,18 +17,19 @@
 
 == Do Not Use Internal APIs
 
-Do not use APIs that are inside an `internal` Java package or contain `Internal` or `Impl`
-in the name of the type.
+Do not use APIs from a package where any segment of the package is `internal`, or types that have
+`Internal` or `Impl` as a suffix in the name.
 
 === Explanation
 
 Using internal APIs is inherently risky and can cause significant problems during upgrades.
 Gradle and many plugins (such as Android Gradle Plugin and Kotlin Gradle Plugin) treat internal
-APIs, such as those within internal packages, as subject to breaking changes, even during minor
-releases.
+APIs, such as those within `internal` packages, as subject to unannounced breaking changes during any
+new Gradle release, even during minor releases.
 
 If you require a specific functionality that is missing, it’s best to submit a feature request.
-As a temporary workaround consider copying the necessary code into your own codebase.
+As a temporary workaround consider copying the necessary code into your own codebase and extending a Gradle
+public type with your own custom implementation using the copied code.
 
 === Example
 
