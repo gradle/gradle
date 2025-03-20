@@ -13,30 +13,11 @@
 // limitations under the License.
 
 [[upgrading_version_8]]
-= Upgrading your build from Gradle 8.x to Gradle 9.0
-
-[[unix_file_permissions_removed]]
-==== Unix mode based file permissions removed ====
-
-A new API for defining file permissions has been added in Gradle 8.3, see:
-
-- link:{javadocPath}/org/gradle/api/file/FilePermissions.html[FilePermissions].
-- link:{javadocPath}/org/gradle/api/file/ConfigurableFilePermissions.html[ConfigurableFilePermissions].
-
-The new API has now been promoted to stable and the old methods have been deprecated in Gradle 8.8.
-In Gradle 9.0 these old methods have been completely removed:
-
-- `org.gradle.api.file.CopyProcessingSpec.getFileMode()`
-- `org.gradle.api.file.CopyProcessingSpec.setFileMode(Integer)`
-- `org.gradle.api.file.CopyProcessingSpec.getDirMode()`
-- `org.gradle.api.file.CopyProcessingSpec.setDirMode(Integer)`
-- `org.gradle.api.file.FileTreeElement.getMode()`
-- `org.gradle.api.file.FileCopyDetails.setMode(int)`
 
 
-= Upgrading your build from Gradle 8.x to the latest
+= Upgrading your build from Gradle 8.x to 9.0
 
-This chapter provides the information you need to migrate your Gradle 8.x builds to the latest Gradle release.
+This chapter provides the information you need to migrate your Gradle 8.x builds to Gradle 9.0.
 For migrating from Gradle 4.x, 5.x, 6.x, or 7.x, see the <<upgrading_version_7.adoc#upgrading_version_7, older migration guide>> first.
 
 We recommend the following steps for all users:
@@ -222,6 +203,23 @@ In previous versions of Gradle, special handling would apply when the `ear`, `wa
 
 ==== The Ear and War plugins may add additional artifacts to the archives configuration
 In previous versions of Gradle, special handling would apply when the `ear`, `war` and `java` plugins were applied to a project in any combination. For example, if the `ear` plugin was applied, the war and jar artifacts would not be included in the `archives` configuration.  Similarly, if the `war` plugin were applied, the jar artifact would not be included in the `archives` configuration.  This special handling has been removed in Gradle 9.0.  This means that the artifacts for all plugins applied will be included in the `archives` configuration.  For example, if the `ear`, `war`, and `jar` plugins are applied to a project, the ear, war and jar artifacts will all be included in the `archives` configuration.
+
+==== Unix mode based file permissions removed ====
+
+A new API for defining file permissions has been added in Gradle 8.3, see:
+
+- link:{javadocPath}/org/gradle/api/file/FilePermissions.html[FilePermissions].
+- link:{javadocPath}/org/gradle/api/file/ConfigurableFilePermissions.html[ConfigurableFilePermissions].
+
+The new API has now been promoted to stable and the old methods have been deprecated in Gradle 8.8.
+In Gradle 9.0 these old methods have been completely removed:
+
+- `org.gradle.api.file.CopyProcessingSpec.getFileMode()`
+- `org.gradle.api.file.CopyProcessingSpec.setFileMode(Integer)`
+- `org.gradle.api.file.CopyProcessingSpec.getDirMode()`
+- `org.gradle.api.file.CopyProcessingSpec.setDirMode(Integer)`
+- `org.gradle.api.file.FileTreeElement.getMode()`
+- `org.gradle.api.file.FileCopyDetails.setMode(int)`
 
 ==== `kotlinDslPluginOptions.jvmTarget` has been removed
 
