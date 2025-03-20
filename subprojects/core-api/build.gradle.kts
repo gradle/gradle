@@ -6,7 +6,6 @@ description = "Public and internal 'core' Gradle APIs that are required by other
 
 errorprone {
     disabledChecks.addAll(
-        "InlineMeSuggester", // 1 occurrences
         "NonApiType", // 1 occurrences
         "ReferenceEquality", // 2 occurrences
         "StringCharset", // 1 occurrences

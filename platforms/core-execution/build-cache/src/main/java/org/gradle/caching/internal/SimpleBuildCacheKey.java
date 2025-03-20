@@ -45,7 +45,6 @@ public class SimpleBuildCacheKey implements BuildCacheKeyInternal {
     // TODO Provide default implementation
     @Override
     @Deprecated
-    @SuppressWarnings("InlineMeSuggester")
     public String getDisplayName() {
         return getHashCode();
     }

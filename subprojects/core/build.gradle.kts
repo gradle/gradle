@@ -41,8 +41,6 @@ errorprone {
         "IdentityHashMapUsage", // 1 occurrences
         "InconsistentCapitalization", // 2 occurrences
         "InlineFormatString", // 2 occurrences
-        "InlineMeSuggester", // 1 occurrences
-        "MixedMutabilityReturnType", // 1 occurrences
         "ModifyCollectionInEnhancedForLoop", // 1 occurrences
         "MutablePublicArray", // 2 occurrences
         "NonApiType", // 1 occurrences
