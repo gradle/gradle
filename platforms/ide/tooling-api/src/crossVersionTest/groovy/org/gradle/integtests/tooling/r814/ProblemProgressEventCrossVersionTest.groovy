@@ -20,6 +20,10 @@ package org.gradle.integtests.tooling.r814
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.tooling.events.ProgressEvent
+import org.gradle.tooling.events.ProgressListener
+import org.gradle.tooling.events.problems.Problem
+import org.gradle.tooling.events.problems.SingleProblemEvent
 import org.gradle.workers.fixtures.WorkerExecutorFixture
 
 @ToolingApiVersion(">=8.14")
@@ -158,7 +162,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         """
 
         when:
-        def listener = new org.gradle.integtests.tooling.r813.ProblemProgressEventCrossVersionTest.ProblemProgressListener()
+        def listener = new ProblemProgressListener()
         withConnection { connection ->
             connection.newBuild()
                 .forTasks("reportProblem")
@@ -186,7 +190,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         buildFile """
             import org.gradle.api.problems.Severity
             import org.gradle.api.problems.AdditionalData
-            import org.gradle.api.problems.deprecation.ReportSource
+            import org.gradle.api.problems.deprecation.source.ReportSource
 
             abstract class DeprecatingTask extends DefaultTask {
                 @Inject
@@ -196,10 +200,10 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
                 void run() {
                     getProblems()
                         .getDeprecationReporter()
-                        .deprecate(ReportSource.gradle(), "test deprecation", feature -> feature
+                        .deprecate(${reportSource}, "test deprecation", feature -> feature
                             .removedInVersion("x.y.z")
-                            .replacedBy("new way")
-                            .because("well thought out reasoning")
+                            .replacedBy("replacement")
+                            .details("reasoning")
                         )
                 }
             }
@@ -208,7 +212,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         """
 
         when:
-        def listener = new org.gradle.integtests.tooling.r813.ProblemProgressEventCrossVersionTest.ProblemProgressListener()
+        def listener = new ProblemProgressListener()
         withConnection { connection ->
             connection
                 .newBuild()
@@ -223,7 +227,27 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
         def deprecation = problems[0]
         deprecation.contextualLabel.contextualLabel == "test deprecation"
-        def additionalData = deprecation.additionalData.getAsMap()
-        additionalData.size() == 1
+        deprecation.details.details == "reasoning"
+        def additionalData = deprecation.additionalData.asMap
+        additionalData.size() == 3
+        additionalData['removedIn'] == "x.y.z"
+        additionalData['replacedBy'] == "replacement"
+        additionalData['source'] == expectedSourceFields
+
+        where:
+        reportSource                         | expectedSourceFields
+        "ReportSource.gradle()"              | ["name": "gradle"]
+        "ReportSource.plugin(\"plugin.id\")" | ["name": "plugin", "id": "plugin.id"]
+    }
+
+    class ProblemProgressListener implements ProgressListener {
+        List<Problem> problems = []
+
+        @Override
+        void statusChanged(ProgressEvent event) {
+            if (event instanceof SingleProblemEvent) {
+                this.problems.add(event.problem)
+            }
+        }
     }
 }
