@@ -63,7 +63,7 @@ class DeprecationReporterIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.api.Plugin;
             import org.gradle.api.Project;
             import org.gradle.api.problems.Problems;
-            import org.gradle.api.problems.deprecation.ReportSource;
+            import org.gradle.api.problems.deprecation.source.*;
 
             import javax.inject.Inject;
 
@@ -113,7 +113,7 @@ class DeprecationReporterIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.api.Plugin;
             import org.gradle.api.Project;
             import org.gradle.api.problems.Problems;
-            import org.gradle.api.problems.deprecation.ReportSource;
+            import org.gradle.api.problems.deprecation.source.*;
 
             import javax.inject.Inject;
 
@@ -163,7 +163,6 @@ class DeprecationReporterIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.api.Plugin;
             import org.gradle.api.Project;
             import org.gradle.api.problems.Problems;
-            import org.gradle.api.problems.deprecation.ReportSource;
 
             import javax.inject.Inject;
 
@@ -204,8 +203,8 @@ class DeprecationReporterIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         reportSource << [
-            "ReportSource.gradle()",
-            "ReportSource.plugin(\"${TEST_PLUGIN_REPORT_SOURCE_ID}\")"
+            "org.gradle.api.problems.deprecation.source.ReportSource.gradle()",
+            "org.gradle.api.problems.deprecation.source.ReportSource.plugin(\"${TEST_PLUGIN_REPORT_SOURCE_ID}\")"
         ]
     }
 
