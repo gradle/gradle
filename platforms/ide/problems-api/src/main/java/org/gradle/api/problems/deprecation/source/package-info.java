@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.internal.deprecation;
+/**
+ * Public deprecation API based on the Problems API.
+ */
+@NonNullApi
+package org.gradle.api.problems.deprecation.source;
 
-import org.gradle.api.problems.deprecation.source.ReportSource;
-import org.gradle.api.problems.internal.AdditionalDataSpec;
-
-public interface DeprecationDataSpec extends AdditionalDataSpec {
-    void reportSource(ReportSource source);
-    void replacedBy(String replacement);
-    void removedIn(String version);
-}
+import org.gradle.api.NonNullApi;

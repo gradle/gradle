@@ -14,13 +14,40 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.internal.deprecation;
+package org.gradle.api.problems.deprecation.source;
 
-import org.gradle.api.problems.deprecation.source.ReportSource;
-import org.gradle.api.problems.internal.AdditionalDataSpec;
+import org.gradle.api.Incubating;
 
-public interface DeprecationDataSpec extends AdditionalDataSpec {
-    void reportSource(ReportSource source);
-    void replacedBy(String replacement);
-    void removedIn(String version);
+/**
+ * TODO documentation.
+ *
+ * @since 8.14
+ */
+@Incubating
+public class PluginReportSource extends ReportSource {
+
+    private final String id;
+
+    /**
+     * TODO documentation.
+     *
+     * @since 8.14
+     */
+    public PluginReportSource(String id) {
+        this.id = id;
+    }
+
+    /**
+     * TODO documentation.
+     *
+     * @since 8.14
+     */
+    public String getId() {
+        return id;
+    }
+
+    @Override
+    public String getName() {
+        return "plugin";
+    }
 }

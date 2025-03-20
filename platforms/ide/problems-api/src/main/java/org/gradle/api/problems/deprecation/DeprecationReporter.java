@@ -18,6 +18,7 @@ package org.gradle.api.problems.deprecation;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.problems.deprecation.source.ReportSource;
 
 /**
  * Specialized reporter for deprecation problems.

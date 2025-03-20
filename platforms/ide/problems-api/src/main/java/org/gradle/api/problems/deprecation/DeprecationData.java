@@ -19,6 +19,7 @@ package org.gradle.api.problems.deprecation;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.problems.AdditionalData;
+import org.gradle.api.problems.deprecation.source.ReportSource;
 
 import javax.annotation.Nullable;
 
@@ -31,7 +32,6 @@ import javax.annotation.Nullable;
  */
 @Incubating
 public interface DeprecationData extends AdditionalData {
-
     /**
      * Returns from where the deprecation is reported from.
      *

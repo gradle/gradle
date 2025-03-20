@@ -18,7 +18,7 @@ package org.gradle.api.problems.internal.deprecation;
 
 import org.gradle.api.problems.AdditionalData;
 import org.gradle.api.problems.deprecation.DeprecationData;
-import org.gradle.api.problems.deprecation.ReportSource;
+import org.gradle.api.problems.deprecation.source.ReportSource;
 import org.gradle.api.problems.internal.AdditionalDataBuilder;
 
 import javax.annotation.Nullable;

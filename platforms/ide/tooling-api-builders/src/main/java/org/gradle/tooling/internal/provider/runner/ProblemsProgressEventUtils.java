@@ -27,6 +27,7 @@ import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemLocation;
 import org.gradle.api.problems.Severity;
+import org.gradle.api.problems.deprecation.source.PluginReportSource;
 import org.gradle.api.problems.internal.DefaultProblemProgressDetails;
 import org.gradle.api.problems.internal.DefaultProblemsSummaryProgressDetails;
 import org.gradle.api.problems.internal.DeprecationData;
@@ -222,6 +223,25 @@ public class ProblemsProgressEventUtils {
             // For now, we only expose deprecation data to the tooling API with generic additional data
             DeprecationData data = (DeprecationData) additionalData;
             return new DefaultInternalAdditionalData(ImmutableMap.of("type", data.getType().name()));
+        } if (additionalData instanceof org.gradle.api.problems.deprecation.DeprecationData) {
+            org.gradle.api.problems.deprecation.DeprecationData data = (org.gradle.api.problems.deprecation.DeprecationData) additionalData;
+            // Assemble the source data
+            ImmutableMap.Builder<String, String> sourceBuilder = ImmutableMap.builder();
+            sourceBuilder.put("name", data.getSource().getName());
+            // Put source-specific data into the source map
+            if (data.getSource() instanceof PluginReportSource) {
+                sourceBuilder.put("id", ((PluginReportSource) data.getSource()).getId());
+            }
+            // Assemble the final additional data
+            ImmutableMap.Builder<String, Object> builder = ImmutableMap.builder();
+            if (data.getRemovedIn() != null) {
+                builder.put("removedIn", data.getRemovedIn());
+            }
+            if (data.getReplacedBy() != null) {
+                builder.put("replacedBy", data.getReplacedBy());
+            }
+            builder.put("source", sourceBuilder.build());
+            return new DefaultInternalAdditionalData(builder.build());
         } else if (additionalData instanceof TypeValidationData) {
             TypeValidationData data = (TypeValidationData) additionalData;
             ImmutableMap.Builder<String, Object> builder = ImmutableMap.builder();

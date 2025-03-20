@@ -22,7 +22,7 @@ import org.gradle.api.problems.deprecation.DeprecateMethodSpec;
 import org.gradle.api.problems.deprecation.DeprecatePluginSpec;
 import org.gradle.api.problems.deprecation.DeprecateSpec;
 import org.gradle.api.problems.deprecation.DeprecationReporter;
-import org.gradle.api.problems.deprecation.ReportSource;
+import org.gradle.api.problems.deprecation.source.ReportSource;
 import org.gradle.api.problems.internal.DefaultProblemReporter;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblem;
