@@ -29,6 +29,8 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.gradle.reporting.HtmlWriterTools.addClipboardCopyButton;
+
 class ClassPageRenderer extends PageRenderer<ClassTestResults> {
     private final CodePanelRenderer codePanelRenderer = new CodePanelRenderer();
     private final TestResultsProvider resultsProvider;
@@ -148,8 +150,9 @@ class ClassPageRenderer extends PageRenderer<ClassTestResults> {
                         .startElement("pre")
                         .characters("");
                     resultsProvider.writeAllOutput(classId, TestOutputEvent.Destination.StdOut, htmlWriter);
-                        htmlWriter.endElement()
-                    .endElement();
+                        htmlWriter.endElement();
+                    addClipboardCopyButton(htmlWriter);
+                    htmlWriter.endElement();
                 }
             });
         }
@@ -161,8 +164,9 @@ class ClassPageRenderer extends PageRenderer<ClassTestResults> {
                     .startElement("pre")
                         .characters("");
                     resultsProvider.writeAllOutput(classId, TestOutputEvent.Destination.StdErr, element);
-                    element.endElement()
-                    .endElement();
+                    element.endElement();
+                    addClipboardCopyButton(element);
+                    element.endElement();
                 }
             });
         }

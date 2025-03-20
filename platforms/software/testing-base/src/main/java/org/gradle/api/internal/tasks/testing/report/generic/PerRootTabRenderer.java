@@ -38,6 +38,8 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+import static org.gradle.reporting.HtmlWriterTools.addClipboardCopyButton;
+
 public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, SimpleHtmlWriter> {
     protected final int rootIndex;
     private TestTreeModel currentModel;
@@ -152,15 +154,14 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
                     info.getResult().getResultType() == TestResult.ResultType.FAILURE ? "Failure details" : "Skip details"
                 ).endElement();
 
-                htmlWriter.startElement("span").attribute("class", "code")
+                htmlWriter.startElement("span").attribute("class", "code code3")
                     .startElement("pre")
                     .characters("");
                 for (SerializableFailure failure : info.getResult().getFailures()) {
                     htmlWriter.characters(failure.getStackTrace() + "\n");
                 }
-                htmlWriter.endElement()
-                    .endElement();
-
+                htmlWriter.endElement();
+                addClipboardCopyButton(htmlWriter);
                 htmlWriter.endElement();
             }
         }
@@ -251,14 +252,15 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
 
         @Override
         protected void render(TestTreeModel.PerRootInfo info, SimpleHtmlWriter htmlWriter) throws IOException {
-            htmlWriter.startElement("span").attribute("class", "code")
+            htmlWriter.startElement("span").attribute("class", "code code4")
                 .startElement("pre")
                 .characters("");
             try (Reader reader = outputReader.getOutput(info.getOutputId(), destination)) {
                 CharStreams.copy(reader, htmlWriter);
             }
-            htmlWriter.endElement()
-                .endElement();
+            htmlWriter.endElement();
+            addClipboardCopyButton(htmlWriter);
+            htmlWriter.endElement();
         }
     }
 

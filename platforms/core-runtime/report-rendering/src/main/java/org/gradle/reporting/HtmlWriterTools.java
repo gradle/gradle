@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.reporting;
 
 import org.gradle.internal.html.SimpleHtmlWriter;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.IOException;
 
-import static org.gradle.reporting.HtmlWriterTools.addClipboardCopyButton;
+@NullMarked
+public class HtmlWriterTools {
+    private HtmlWriterTools() {}
 
-public class CodePanelRenderer extends ReportRenderer<String, SimpleHtmlWriter> {
-    @Override
-    public void render(String text, SimpleHtmlWriter htmlWriter) throws IOException {
-        // Wrap in a <span>, to work around CSS problem in IE
-        htmlWriter.startElement("span").attribute("class", "code")
-            .startElement("pre").characters(text).endElement();
-        addClipboardCopyButton(htmlWriter);
-        htmlWriter.endElement();
+    public static void addClipboardCopyButton(SimpleHtmlWriter writer) throws IOException {
+        writer.startElement("button")
+            .attribute("class", "clipboard-copy-btn")
+            .attribute("aria-label", "Copy to clipboard")
+            .characters("Copy")
+            .endElement();
     }
 }
