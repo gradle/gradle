@@ -16,7 +16,6 @@
 
 package org.gradle.test.fixtures.server.http;
 
-import com.google.common.base.Charsets;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -30,6 +29,7 @@ import org.gradle.test.fixtures.ResettableExpectations;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -175,7 +175,7 @@ class ChainingHttpHandler implements HttpHandler, ResettableExpectations {
         if (outcome.method.equals("HEAD")) {
             httpExchange.sendResponseHeaders(responseCode, -1);
         } else {
-            byte[] message = String.format("Failed request %s", outcome.getDisplayName()).getBytes(Charsets.UTF_8);
+            byte[] message = String.format("Failed request %s", outcome.getDisplayName()).getBytes(StandardCharsets.UTF_8);
             httpExchange.sendResponseHeaders(responseCode, message.length);
             httpExchange.getResponseBody().write(message);
         }

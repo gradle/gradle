@@ -621,6 +621,12 @@
             <pgp value="EE0CA873074092F806F59B65D364ABAA39A47320"/>
          </artifact>
       </component>
+      <component group="com.google.guava" name="failureaccess" version="1.0.3">
+         <artifact name="failureaccess-1.0.3.jar">
+            <pgp value="BDB5FA4FE719D787FB3D3197F6D4A1D411E9D1AE"/>
+            <sha256 value="cbfc3906b19b8f55dd7cfd6dfe0aa4532e834250d7f080bd8d211a3e246b59cb" origin="Verified" reason="Added manually to fix CI"/>
+         </artifact>
+      </component>
       <component group="com.google.guava" name="guava-jdk5" version="14.0.1">
          <artifact name="guava-jdk5-14.0.1.jar">
             <pgp value="AC6A8BC1BA5426F13D93060E806E7D417A281864"/>
@@ -634,6 +640,11 @@
       <component group="com.google.j2objc" name="j2objc-annotations" version="2.8">
          <artifact name="j2objc-annotations-2.8.jar">
             <pgp value="EB1B3DE71713C9EC2E87CC26EE92349AD86DE446"/>
+         </artifact>
+      </component>
+      <component group="com.google.j2objc" name="j2objc-annotations" version="3.0.0">
+         <artifact name="j2objc-annotations-3.0.0.jar">
+            <pgp value="BDB5FA4FE719D787FB3D3197F6D4A1D411E9D1AE"/>
          </artifact>
       </component>
       <component group="com.google.protobuf" name="protobuf-java" version="3.19.6">
@@ -1435,7 +1446,7 @@
       </component>
       <component group="org.javassist" name="javassist" version="3.30.2-GA">
          <artifact name="javassist-3.30.2-GA.jar">
-            <sha256 value="eba37290994b5e4868f3af98ff113f6244a6b099385d9ad46881307d3cb01aaf" reason="A key couldn't be downloaded"/>
+            <sha256 value="eba37290994b5e4868f3af98ff113f6244a6b099385d9ad46881307d3cb01aaf" origin="Verified" reason="A key couldn't be downloaded"/>
          </artifact>
       </component>
       <component group="org.jcommander" name="jcommander" version="1.85">
