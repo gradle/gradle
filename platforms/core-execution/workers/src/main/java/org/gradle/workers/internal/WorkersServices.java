@@ -35,6 +35,7 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
+import org.gradle.internal.snapshot.impl.IsolatableSerializerRegistry;
 import org.gradle.internal.state.ManagedFactoryRegistry;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.internal.work.ConditionalExecutionQueueFactory;
@@ -48,7 +49,6 @@ import org.gradle.process.internal.health.memory.OsMemoryInfo;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 import org.gradle.process.internal.worker.child.DefaultWorkerDirectoryProvider;
 import org.gradle.process.internal.worker.child.WorkerDirectoryProvider;
-import org.gradle.process.internal.worker.request.IsolatableSerializerRegistry;
 import org.gradle.workers.WorkerExecutor;
 
 @SuppressWarnings("UnusedMethod")

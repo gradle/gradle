@@ -52,7 +52,6 @@ dependencies {
     implementation(projects.serviceLookup)
     implementation(projects.serviceProvider)
     implementation(projects.snapshots)
-    implementation(projects.snapshotsWorker)
     implementation(projects.wrapperShared)
 
     implementation("org.gradle:java-api-extractor")

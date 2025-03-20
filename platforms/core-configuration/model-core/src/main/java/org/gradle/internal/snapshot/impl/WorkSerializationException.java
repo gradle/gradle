@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.process.internal.worker.request;
+package org.gradle.internal.snapshot.impl;
 
 import org.gradle.internal.exceptions.Contextual;
 

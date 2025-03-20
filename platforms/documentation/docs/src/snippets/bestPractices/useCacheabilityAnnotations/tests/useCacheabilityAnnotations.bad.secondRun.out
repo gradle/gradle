@@ -1,0 +1,7 @@
+> Task :addBad1 FROM-CACHE
+
+> Task :addBad2
+Result: 10
+
+BUILD SUCCESSFUL in 0s
+2 actionable tasks: 1 executed, 1 from cache

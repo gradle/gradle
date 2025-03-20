@@ -656,7 +656,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     }
 
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-    private static Boolean isFullyResoled(Optional<ResolverResults> currentState) {
+    private static Boolean isFullyResolved(Optional<ResolverResults> currentState) {
         return currentState.map(ResolverResults::isFullyResolved).orElse(false);
     }
 
@@ -690,6 +690,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 taskDependencyFactory,
                 calculatedValueContainerFactory,
                 attributesFactory,
+                attributeDesugaring,
                 instantiator
             );
         }
@@ -722,7 +723,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         maybeEmitResolutionDeprecation();
 
         Optional<ResolverResults> currentState = currentResolveState.get();
-        if (isFullyResoled(currentState)) {
+        if (isFullyResolved(currentState)) {
             return currentState.get();
         }
 
@@ -738,7 +739,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     private ResolverResults resolveExclusivelyIfRequired() {
         return currentResolveState.update(currentState -> {
-            if (isFullyResoled(currentState)) {
+            if (isFullyResolved(currentState)) {
                 return currentState;
             }
 
@@ -906,7 +907,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
                 CalculatedValue<ResolverResults> futureCompleteResults = calculatedValueContainerFactory.create(Describables.of("Full results for", getName()), context -> {
                     Optional<ResolverResults> currentState = currentResolveState.get();
-                    if (!isFullyResoled(currentState)) {
+                    if (!isFullyResolved(currentState)) {
                         // Do not validate that the current thread holds the project lock.
                         // TODO: Should instead assert that the results are available and fail if not.
                         return resolveExclusivelyIfRequired();
@@ -1389,7 +1390,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             return;
         }
 
-        if (isFullyResoled(currentResolveState.get())) {
+        if (isFullyResolved(currentResolveState.get())) {
             throw new InvalidUserDataException(String.format("Cannot change %s of parent of %s after it has been resolved", type, getDisplayName()));
         }
     }
@@ -1401,7 +1402,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             return;
         }
 
-        if (isFullyResoled(currentResolveState.get())) {
+        if (isFullyResolved(currentResolveState.get())) {
             // The public result for the configuration has been calculated.
             // It is an error to change anything that would change the dependencies or artifacts
             throw new InvalidUserDataException(String.format("Cannot change %s of dependency %s after it has been resolved.", type, getDisplayName()));

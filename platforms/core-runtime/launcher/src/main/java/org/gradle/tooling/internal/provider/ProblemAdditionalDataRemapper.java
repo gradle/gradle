@@ -25,7 +25,7 @@ import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classloader.ClassLoaderVisitor;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.isolation.Isolatable;
-import org.gradle.process.internal.worker.request.IsolatableSerializerRegistry;
+import org.gradle.internal.snapshot.impl.IsolatableSerializerRegistry;
 import org.gradle.tooling.internal.protocol.problem.InternalAdditionalData;
 import org.gradle.tooling.internal.protocol.problem.InternalProblemDetailsVersion2;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
