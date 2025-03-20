@@ -26,7 +26,10 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-class RejectedModuleMessageBuilder {
+/**
+ * A utility class that packages the logic necessary to build a message describing why a {@link ComponentState} was rejected.
+ */
+/* package */ class ComponentRejectedMessageBuilder {
     String buildFailureMessage(ModuleResolveState module) {
         boolean hasRejectAll = false;
         for (SelectorState candidate : module.getSelectors()) {
@@ -85,5 +88,4 @@ class RejectedModuleMessageBuilder {
             }
         }
     }
-
 }
