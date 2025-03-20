@@ -156,6 +156,11 @@ public abstract class BasicScript extends org.gradle.groovy.scripts.Script imple
         }
 
         @Override
+        public DynamicInvokeResult trySetPropertyWithoutInstrumentation(String name, Object value) {
+            return dynamicTarget.trySetPropertyWithoutInstrumentation(name, value);
+        }
+
+        @Override
         public MissingPropertyException getMissingProperty(String name) {
             return dynamicTarget.getMissingProperty(name);
         }

@@ -315,7 +315,7 @@ class CallInterceptingMetaClassTest extends Specification {
 
         then:
         property != null
-        (property instanceof CallInterceptingMetaClass.InterceptedMetaProperty) == shouldIntercept
+        (property instanceof CallInterceptingMetaClass.DefaultInterceptedMetaProperty) == shouldIntercept
 
         where:
         propertyName | shouldIntercept
@@ -338,7 +338,7 @@ class CallInterceptingMetaClassTest extends Specification {
 
         then:
         properties.size() == 4
-        properties.every { it instanceof CallInterceptingMetaClass.InterceptedMetaProperty }
+        properties.every { it instanceof CallInterceptingMetaClass.DefaultInterceptedMetaProperty }
     }
 
     private Object withEntryPoint(InstrumentedGroovyCallsTracker.CallKind kind, String name, Closure<?> call) {
