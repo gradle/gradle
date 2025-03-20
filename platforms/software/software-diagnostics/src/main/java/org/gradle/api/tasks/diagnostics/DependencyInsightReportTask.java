@@ -576,6 +576,7 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
             Set<Attribute<?>> requestedAttributes = new TreeSet<>(sortedByAttributeName);
         }
 
+        @SuppressWarnings("InlineMeInliner") //Strings.repeat is from guava not Java 11+
         private StyledTable createAttributeTable(
             AttributeContainer attributes, AttributeContainer requested, AttributeBuckets buckets, boolean selected
         ) {
