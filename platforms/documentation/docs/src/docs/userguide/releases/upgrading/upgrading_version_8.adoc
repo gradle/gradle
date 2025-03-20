@@ -82,7 +82,9 @@ These methods will be removed in Gradle 9.0.
 
 It is now required to enable stricter validation of plugin types.
 
-This needs to be done in your local build logic (`buildSrc` or included plugins builds). This is also required if you are simply building Gradle plugins.
+The `ValidatePlugins` task is registered by the `java-gradle-plugin`, `groovy-gradle-plugin` and `kotlin-dsl` plugins.
+Stricter validation needs to be enabled in your local build logic (`buildSrc` or included plugins builds).
+This is also required if you are simply building Gradle plugins.
 
 [source,kotlin]
 ----
