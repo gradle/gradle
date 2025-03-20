@@ -17,11 +17,12 @@
 package org.gradle.declarative.dsl.schema
 
 import org.gradle.tooling.ToolingModelContract
+import java.io.Serializable
 
 /**
  * An entry describing an available assignment augmentation like `+=`.
  */
-interface AssignmentAugmentation {
+interface AssignmentAugmentation : Serializable {
     val kind: AssignmentAugmentationKind
 
     /**
@@ -32,6 +33,6 @@ interface AssignmentAugmentation {
 }
 
 @ToolingModelContract(subTypes = [AssignmentAugmentationKind.Plus::class])
-interface AssignmentAugmentationKind {
+interface AssignmentAugmentationKind : Serializable {
     interface Plus : AssignmentAugmentationKind
 }

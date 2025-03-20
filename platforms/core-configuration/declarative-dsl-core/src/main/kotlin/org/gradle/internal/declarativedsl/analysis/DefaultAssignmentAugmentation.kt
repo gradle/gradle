@@ -27,11 +27,11 @@ import org.gradle.declarative.dsl.schema.DataTopLevelFunction
 class DefaultAssignmentAugmentation(
     override val kind: AssignmentAugmentationKind,
     override val function: DataTopLevelFunction
-) : java.io.Serializable, AssignmentAugmentation
+) : AssignmentAugmentation
 
 object AssignmentAugmentationKindInternal {
     @Serializable
-    object DefaultPlus : AssignmentAugmentationKind.Plus, java.io.Serializable {
+    object DefaultPlus : AssignmentAugmentationKind.Plus {
         @Suppress("unused")
         private fun readResolve(): Any = DefaultPlus
     }
