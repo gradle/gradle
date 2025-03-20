@@ -4,12 +4,6 @@ plugins {
 
 description = "Base plugin for the maven and ivy publish plugins. Defines the publishing extension."
 
-errorprone {
-    disabledChecks.addAll(
-        "InlineMeSuggester", // 7 occurrences
-    )
-}
-
 dependencies {
     api(projects.baseServices)
     api(projects.core)
