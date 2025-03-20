@@ -41,6 +41,7 @@ import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 import static java.lang.String.format;
 import static org.gradle.api.reflect.TypeOf.typeOf;
@@ -292,13 +293,22 @@ public class DefaultConvention implements org.gradle.api.plugins.Convention, Ext
 
         @Override
         public DynamicInvokeResult trySetProperty(String name, @Nullable Object value) {
+            return trySetProperty(name, beanDynamicObject -> beanDynamicObject.trySetProperty(name, value));
+        }
+
+        @Override
+        public DynamicInvokeResult trySetPropertyWithoutInstrumentation(String name, @Nullable Object value) {
+            return trySetProperty(name, beanDynamicObject -> beanDynamicObject.trySetPropertyWithoutInstrumentation(name, value));
+        }
+
+        private DynamicInvokeResult trySetProperty(String name, Function<BeanDynamicObject, DynamicInvokeResult> methodCall) {
             checkExtensionIsNotReassigned(name);
             if (plugins == null) {
                 return DynamicInvokeResult.notFound();
             }
             for (Object object : plugins.values()) {
                 BeanDynamicObject dynamicObject = asDynamicObject(object).withNotImplementsMissing();
-                DynamicInvokeResult result = dynamicObject.trySetProperty(name, value);
+                DynamicInvokeResult result = methodCall.apply(dynamicObject);
                 if (result.isFound()) {
                     return result;
                 }
