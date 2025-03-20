@@ -37,7 +37,6 @@ import org.gradle.internal.instrumentation.api.groovybytecode.Invocation;
 import org.gradle.internal.instrumentation.api.groovybytecode.InvocationImpl;
 import org.gradle.internal.instrumentation.api.groovybytecode.PropertyAwareCallInterceptor;
 import org.gradle.internal.instrumentation.api.groovybytecode.SignatureAwareCallInterceptor;
-import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.InstrumentedMetaClass;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
@@ -47,7 +46,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.gradle.internal.classpath.InstrumentedGroovyCallsTracker.CallKind.GET_PROPERTY;
 import static org.gradle.internal.classpath.InstrumentedGroovyCallsTracker.CallKind.INVOKE_METHOD;
 import static org.gradle.internal.classpath.InstrumentedGroovyCallsTracker.CallKind.SET_PROPERTY;
@@ -428,21 +426,17 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
             if (setterInterceptor != null) {
                 invokeWithInterceptor(callsTracker, setterInterceptor, name, SET_PROPERTY, object, new Object[]{newValue}, consumerClass, () -> {
                     if (original != null) {
-                        setOriginalProperty(object, newValue);
+                        original.setProperty(object, newValue);
                         return null;
                     } else {
                         throw new MissingPropertyException(name);
                     }
                 });
             } else if (original != null) {
-                setOriginalProperty(object, newValue);
+                original.setProperty(object, newValue);
             } else {
                 throw new MissingPropertyException(name, ownerClass);
             }
-        }
-
-        private void setOriginalProperty(Object object, Object newValue) {
-            new BeanDynamicObject(object).setPropertyWithCoercion(checkNotNull(original), newValue);
         }
     }
 

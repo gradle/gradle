@@ -203,10 +203,6 @@ public class BeanDynamicObject extends AbstractDynamicObject {
         return delegate.setProperty(name, value);
     }
 
-    public void setPropertyWithCoercion(MetaProperty property, @Nullable Object value) {
-        delegate.setPropertyWithCoercion(property, value);
-    }
-
     @Override
     public Map<String, ?> getProperties() {
         return delegate.getProperties();
@@ -399,9 +395,36 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             MetaClass metaClass = getMetaClass();
             MetaProperty property = lookupProperty(metaClass, name);
             if (property != null) {
-                DynamicInvokeResult result = setPropertyWithCoercion(property, value);
-                if (result.isFound()) {
-                    return result;
+                if (property instanceof MultipleSetterProperty) {
+                    // Invoke the setter method, to pick up type coercion
+                    String setterName = MetaProperty.getSetterName(property.getName());
+                    DynamicInvokeResult setterResult = invokeMethod(setterName, value);
+                    if (setterResult.isFound()) {
+                        return DynamicInvokeResult.found();
+                    }
+                } else {
+                    if (property instanceof MetaBeanProperty) {
+                        MetaBeanProperty metaBeanProperty = (MetaBeanProperty) property;
+                        if (metaBeanProperty.getSetter() == null) {
+                            if (metaBeanProperty.getField() == null) {
+                                trySetGetterOnlyProperty(name, value, metaBeanProperty);
+                            } else {
+                                value = propertySetTransformer.transformValue(metaBeanProperty.getField().getType(), value);
+                                metaBeanProperty.getField().setProperty(bean, value);
+                            }
+                        } else {
+                            // Coerce the value to the type accepted by the property setter and invoke the setter directly
+                            Class setterType = metaBeanProperty.getSetter().getParameterTypes()[0].getTheClass();
+                            value = propertySetTransformer.transformValue(setterType, value);
+                            value = DefaultTypeTransformation.castToType(value, setterType);
+                            metaBeanProperty.getSetter().invoke(bean, new Object[]{value});
+                        }
+                    } else {
+                        // Coerce the value to the property type, if known
+                        value = propertySetTransformer.transformValue(property.getType(), value);
+                        property.setProperty(bean, value);
+                    }
+                    return DynamicInvokeResult.found();
                 }
             }
 
@@ -429,37 +452,6 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             }
 
             return setOpaqueProperty(metaClass, name, value);
-        }
-
-        private DynamicInvokeResult setPropertyWithCoercion(MetaProperty property, @Nullable Object value) {
-            if (property instanceof MultipleSetterProperty) {
-                // Invoke the setter method, to pick up type coercion
-                String setterName = MetaProperty.getSetterName(property.getName());
-                return invokeMethod(setterName, value);
-            } else {
-                if (property instanceof MetaBeanProperty) {
-                    MetaBeanProperty metaBeanProperty = (MetaBeanProperty) property;
-                    if (metaBeanProperty.getSetter() == null) {
-                        if (metaBeanProperty.getField() == null) {
-                            trySetGetterOnlyProperty(property.getName(), value, metaBeanProperty);
-                        } else {
-                            value = propertySetTransformer.transformValue(metaBeanProperty.getField().getType(), value);
-                            metaBeanProperty.getField().setProperty(bean, value);
-                        }
-                    } else {
-                        // Coerce the value to the type accepted by the property setter and invoke the setter directly
-                        Class setterType = metaBeanProperty.getSetter().getParameterTypes()[0].getTheClass();
-                        value = propertySetTransformer.transformValue(setterType, value);
-                        value = DefaultTypeTransformation.castToType(value, setterType);
-                        metaBeanProperty.getSetter().invoke(bean, new Object[]{value});
-                    }
-                } else {
-                    // Coerce the value to the property type, if known
-                    value = propertySetTransformer.transformValue(property.getType(), value);
-                    property.setProperty(bean, value);
-                }
-                return DynamicInvokeResult.found();
-            }
         }
 
         private void trySetGetterOnlyProperty(String name, @Nullable Object value, MetaBeanProperty metaBeanProperty) {
