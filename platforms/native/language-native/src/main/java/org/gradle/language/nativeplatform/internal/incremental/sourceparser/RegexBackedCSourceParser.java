@@ -602,19 +602,6 @@ public class RegexBackedCSourceParser implements CSourceParser {
         }
 
         /**
-         * Reads any character except the given. Does not consume anything if there is no more input or the given chars is at the current location.
-         *
-         * @return the character or null if none present.
-         */
-        @Nullable
-        String readAnyExcept(char ch) {
-            if (pos < value.length() && value.charAt(pos) != ch) {
-                return value.substring(pos, ++pos);
-            }
-            return null;
-        }
-
-        /**
          * Skip any whitespace at the current location.
          *
          * @return true if skipped, false if not.
