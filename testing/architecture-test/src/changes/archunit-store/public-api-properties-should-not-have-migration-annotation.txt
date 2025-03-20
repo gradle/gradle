@@ -2,4 +2,5 @@ Method <org.gradle.api.java.archives.Manifest.getAttributes()> is annotated with
 Method <org.gradle.api.java.archives.Manifest.getSections()> is annotated with @ToBeReplacedByLazyProperty in (Manifest.java:0)
 Method <org.gradle.api.tasks.JavaExec.getJvmArgs()> is annotated with @ToBeReplacedByLazyProperty in (JavaExec.java:0)
 Method <org.gradle.jvm.application.tasks.CreateStartScripts.getRelativeClasspath()> is annotated with @ToBeReplacedByLazyProperty in (CreateStartScripts.java:0)
+Method <org.gradle.plugin.devel.PluginDeclaration.getName()> is annotated with @NotToBeReplacedByLazyProperty in (PluginDeclaration.java:0)
 Method <org.gradle.testing.jacoco.plugins.JacocoTaskExtension.getAgentClasspath()> is annotated with @NotToBeReplacedByLazyProperty in (JacocoTaskExtension.java:0)
