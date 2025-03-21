@@ -2,11 +2,6 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
-errorprone {
-    disabledChecks.addAll(
-//        "ModifiedButNotUsed", // 1 occurrences
-    )
-}
 dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.serviceLookup)
