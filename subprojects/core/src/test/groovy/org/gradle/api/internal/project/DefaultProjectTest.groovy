@@ -68,6 +68,7 @@ import org.gradle.api.internal.tasks.TaskDependencyUsageTracker
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.provider.ProviderFactory
+import org.gradle.api.tasks.util.internal.PatternSetFactory
 import org.gradle.configuration.ConfigurationTargetIdentifier
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.configuration.internal.DynamicCallContextTracker
@@ -256,7 +257,7 @@ class DefaultProjectTest extends Specification {
         ModelSchemaStore modelSchemaStore = Stub(ModelSchemaStore)
         serviceRegistryMock.get((Type) ModelSchemaStore) >> modelSchemaStore
         serviceRegistryMock.get(ModelSchemaStore) >> modelSchemaStore
-        serviceRegistryMock.get((Type) ProjectLayout) >> new DefaultProjectLayout(rootDir, rootDir, fileResolver, Stub(TaskDependencyFactory), Stub(Factory), Stub(PropertyHost), Stub(FileCollectionFactory), TestFiles.filePropertyFactory(), TestFiles.fileFactory())
+        serviceRegistryMock.get((Type) ProjectLayout) >> new DefaultProjectLayout(rootDir, rootDir, fileResolver, Stub(TaskDependencyFactory), Stub(PatternSetFactory), Stub(PropertyHost), Stub(FileCollectionFactory), TestFiles.filePropertyFactory(), TestFiles.fileFactory())
 
         build.getProjectEvaluationBroadcaster() >> Stub(ProjectEvaluationListener)
         build.getParent() >> null

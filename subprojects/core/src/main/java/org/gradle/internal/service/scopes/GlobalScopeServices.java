@@ -41,8 +41,8 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.properties.annotations.AbstractOutputPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.OutputPropertyRoleAnnotationHandler;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.CachingPatternSpecFactory;
+import org.gradle.api.tasks.util.internal.PatternSetFactory;
 import org.gradle.api.tasks.util.internal.PatternSpecFactory;
 import org.gradle.cache.CacheCleanupStrategyFactory;
 import org.gradle.cache.internal.CleaningInMemoryCacheDecoratorFactory;
@@ -279,7 +279,7 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
 
     @Provides
     ObjectFactory createObjectFactory(
-        InstantiatorFactory instantiatorFactory, ServiceRegistry services, DirectoryFileTreeFactory directoryFileTreeFactory, Factory<PatternSet> patternSetFactory,
+        InstantiatorFactory instantiatorFactory, ServiceRegistry services, DirectoryFileTreeFactory directoryFileTreeFactory, PatternSetFactory patternSetFactory,
         PropertyFactory propertyFactory, FilePropertyFactory filePropertyFactory, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory,
         DomainObjectCollectionFactory domainObjectCollectionFactory, NamedObjectInstantiator instantiator
     ) {

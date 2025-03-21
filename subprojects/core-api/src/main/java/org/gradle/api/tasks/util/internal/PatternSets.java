@@ -16,11 +16,8 @@
 
 package org.gradle.api.tasks.util.internal;
 
-import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.internal.Factory;
-
 public class PatternSets {
-    private static final Factory<PatternSet> PATTERN_SET_FACTORY = new DefaultPatternSetFactory(PatternSpecFactory.INSTANCE);
+    private static final PatternSetFactory PATTERN_SET_FACTORY = new DefaultPatternSetFactory(PatternSpecFactory.INSTANCE);
 
     /**
      * Should use as an injected service instead.
@@ -28,7 +25,7 @@ public class PatternSets {
      * @deprecated Should use as an injected service instead.
      */
     @Deprecated
-    public static Factory<PatternSet> getNonCachingPatternSetFactory() {
+    public static PatternSetFactory getNonCachingPatternSetFactory() {
         return PATTERN_SET_FACTORY;
     }
 }

@@ -17,24 +17,12 @@
 package org.gradle.api.tasks.util.internal;
 
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
-public class DefaultPatternSetFactory implements PatternSetFactory {
+@ServiceScope(Scope.Global.class)
+public interface PatternSetFactory {
 
-    private final PatternSpecFactory patternSpecFactory;
+    PatternSet createPatternSet();
 
-    public DefaultPatternSetFactory(PatternSpecFactory patternSpecFactory) {
-        this.patternSpecFactory = patternSpecFactory;
-    }
-
-    @Override
-    public PatternSet createPatternSet() {
-        return new InternalPatternSet(patternSpecFactory);
-    }
-
-    // This is only required to avoid adding a new public constructor to the public `PatternSet` type.
-    private static class InternalPatternSet extends PatternSet {
-        public InternalPatternSet(PatternSpecFactory patternSpecFactory) {
-            super(patternSpecFactory);
-        }
-    }
 }

@@ -22,8 +22,8 @@ import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
 import org.gradle.api.tasks.util.PatternFilterable
 import org.gradle.api.tasks.util.PatternSet
+import org.gradle.api.tasks.util.internal.PatternSetFactory
 import org.gradle.internal.Actions
-import org.gradle.internal.Factory
 import org.gradle.util.TestUtil
 import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
@@ -34,7 +34,7 @@ import java.util.function.Consumer
 class CompositeFileTreeTest extends Specification {
     private final FileTreeInternal source1 = Mock()
     private final FileTreeInternal source2 = Mock()
-    private final Factory<PatternSet> patternSetFactory = Mock()
+    private final PatternSetFactory patternSetFactory = Mock()
     private final CompositeFileTree tree = new CompositeFileTree(TestFiles.taskDependencyFactory(), patternSetFactory) {
         @Override
         String getDisplayName() {
