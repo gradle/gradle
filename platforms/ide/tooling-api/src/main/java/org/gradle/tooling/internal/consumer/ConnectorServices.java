@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.internal.consumer;
 
-import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.operations.BuildOperationIdFactory;
@@ -28,6 +27,7 @@ import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.time.Time;
 import org.gradle.tooling.CancellationTokenSource;
+import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.internal.consumer.loader.CachingToolingImplementationLoader;
 import org.gradle.tooling.internal.consumer.loader.DefaultToolingImplementationLoader;
 import org.gradle.tooling.internal.consumer.loader.SynchronizedToolingImplementationLoader;
@@ -40,8 +40,8 @@ public class ConnectorServices {
         singletonRegistry = ConnectorServiceRegistry.create();
     }
 
-    public static DefaultGradleConnector createConnector() {
-        return singletonRegistry.getFactory(DefaultGradleConnector.class).create();
+    public static GradleConnector createConnector() {
+        return singletonRegistry.get(GradleConnectorFactory.class).createConnector();
     }
 
     public static CancellationTokenSource createCancellationTokenSource() {
@@ -71,10 +71,10 @@ public class ConnectorServices {
         }
 
         @Provides
-        protected Factory<DefaultGradleConnector> createConnectorFactory(final ConnectionFactory connectionFactory, final DistributionFactory distributionFactory) {
-            return new Factory<DefaultGradleConnector>() {
+        protected GradleConnectorFactory createConnectorFactory(final ConnectionFactory connectionFactory, final DistributionFactory distributionFactory) {
+            return new GradleConnectorFactory() {
                 @Override
-                public DefaultGradleConnector create() {
+                public GradleConnector createConnector() {
                     return new DefaultGradleConnector(connectionFactory, distributionFactory);
                 }
             };

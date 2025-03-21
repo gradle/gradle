@@ -31,6 +31,7 @@ import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.internal.consumer.ConnectorServices
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector
+import org.gradle.tooling.internal.consumer.GradleConnectorFactory
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.util.GradleVersion
 import org.junit.rules.TestRule
@@ -276,7 +277,7 @@ class ToolingApi implements TestRule {
 
     private createConnector() {
         if (isolatedToolingClient != null) {
-            return isolatedToolingClient.getFactory(DefaultGradleConnector).create()
+            return isolatedToolingClient.get(GradleConnectorFactory).createConnector()
         }
         return GradleConnector.newConnector() as DefaultGradleConnector
     }
