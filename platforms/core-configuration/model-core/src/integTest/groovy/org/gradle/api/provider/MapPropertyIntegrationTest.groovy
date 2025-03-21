@@ -828,11 +828,11 @@ task thing {
         result.assertTasksExecuted(expectedTasks)
 
         where:
-        provider          | call                                      | isFinalized | expectedTasks            | expectedOutput
-        "entry provider"  | """getting("42")"""                       | true        | [":foo"]                 | "Entry is bar"
+        provider          | call                                  | isFinalized | expectedTasks            | expectedOutput
+        "entry provider"  | 'getting("42")'                       | true        | [":foo"]                 | "Entry is bar"
         // Ideally we want to evaluate dependencies in a fine-grained way
-        "entry provider"  | """getting("42")"""                       | false       | [":bar", ":baz", ":foo"] | "Entry is bar"
-        "keySet provider" | """keySet().map { it.sort().join(",")}""" | true        | [":foo"]                 | "Entry is 1,42"
-        "keySet provider" | """keySet().map { it.sort().join(",")}""" | false       | [":bar", ":baz", ":foo"] | "Entry is 1,42"
+        "entry provider"  | 'getting("42")'                       | false       | [":bar", ":baz", ":foo"] | "Entry is bar"
+        "keySet provider" | 'keySet().map { it.sort().join(",")}' | true        | [":foo"]                 | "Entry is 1,42"
+        "keySet provider" | 'keySet().map { it.sort().join(",")}' | false       | [":bar", ":baz", ":foo"] | "Entry is 1,42"
     }
 }
