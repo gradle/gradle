@@ -20,7 +20,7 @@
     COMA=','
     DOT='.'
     EQ='='
-    PLUSEQ='='
+    PLUSEQ='+='
     LP='('
     RP=')'
     LB='{'
