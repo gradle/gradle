@@ -20,6 +20,8 @@ import org.gradle.api.artifacts.result.ComponentSelectionCause;
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 
+import java.util.List;
+
 public interface ComponentSelectionReasonInternal extends ComponentSelectionReason {
     ComponentSelectionReasonInternal setCause(ComponentSelectionDescriptor description);
     ComponentSelectionReasonInternal addCause(ComponentSelectionDescriptor description);
@@ -32,4 +34,14 @@ public interface ComponentSelectionReasonInternal extends ComponentSelectionReas
      * @return true if the standard description wasn't used
      */
     boolean hasCustomDescriptions();
+
+    /**
+     * Gets the list of {@link ComponentSelectionDescriptor}s that
+     * describe the reasons for the selection of a component.
+     *
+     * @return the list of descriptors, in the order they were provided
+     * to this reasons instance
+     */
+    @Override
+    List<ComponentSelectionDescriptorInternal> getDescriptions();
 }

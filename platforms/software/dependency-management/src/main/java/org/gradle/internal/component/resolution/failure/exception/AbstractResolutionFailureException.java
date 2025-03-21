@@ -51,7 +51,7 @@ import static org.gradle.internal.deprecation.Documentation.userManual;
  */
 @Contextual
 public abstract class AbstractResolutionFailureException extends StyledException implements ResolutionProvider, ReportableAsProblem {
-    private static final Logger LOGGER = Logging.getLogger(AbstractResolutionFailureException.class);
+    protected static final Logger LOGGER = Logging.getLogger(AbstractResolutionFailureException.class);
 
     private final ImmutableList<String> resolutions;
     protected final ResolutionFailure failure;

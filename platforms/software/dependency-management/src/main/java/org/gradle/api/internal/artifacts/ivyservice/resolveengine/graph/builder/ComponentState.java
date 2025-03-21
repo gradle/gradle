@@ -374,9 +374,8 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         if (capabilityReject != null) {
             return formatCapabilityRejectMessage(module.getId(), capabilityReject);
         } else {
-            return new RejectedModuleMessageBuilder().buildFailureMessage(module);
+            return new ComponentRejectedMessageBuilder().buildFailureMessage(module);
         }
-
     }
 
     private String formatCapabilityRejectMessage(ModuleIdentifier id, Pair<Capability, Collection<NodeState>> capabilityConflict) {

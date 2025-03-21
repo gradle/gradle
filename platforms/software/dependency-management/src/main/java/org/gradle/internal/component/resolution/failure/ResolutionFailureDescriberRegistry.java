@@ -19,6 +19,8 @@ package org.gradle.internal.component.resolution.failure;
 import org.gradle.internal.component.resolution.failure.describer.AmbiguousArtifactTransformsFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.AmbiguousArtifactsFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.AmbiguousVariantsFailureDescriber;
+import org.gradle.internal.component.resolution.failure.describer.ModuleRejectedFailureDescriber;
+import org.gradle.internal.component.resolution.failure.describer.ModuleRejectedIncompatibleConstraintsFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.NoCompatibleArtifactFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.NoCompatibleVariantsFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.ConfigurationNotCompatibleFailureDescriber;
@@ -30,6 +32,7 @@ import org.gradle.internal.component.resolution.failure.describer.ResolutionFail
 import org.gradle.internal.component.resolution.failure.describer.UnknownArtifactSelectionFailureDescriber;
 import org.gradle.internal.component.resolution.failure.type.AmbiguousArtifactTransformsFailure;
 import org.gradle.internal.component.resolution.failure.type.AmbiguousArtifactsFailure;
+import org.gradle.internal.component.resolution.failure.type.ModuleRejectedFailure;
 import org.gradle.internal.component.resolution.failure.type.NoCompatibleArtifactFailure;
 import org.gradle.internal.component.resolution.failure.type.NoCompatibleVariantsFailure;
 import org.gradle.internal.component.resolution.failure.type.IncompatibleMultipleNodesValidationFailure;
@@ -80,6 +83,10 @@ public final class ResolutionFailureDescriberRegistry {
      */
     public static ResolutionFailureDescriberRegistry standardRegistry(InstanceGenerator instanceGenerator) {
         ResolutionFailureDescriberRegistry registry = new ResolutionFailureDescriberRegistry(instanceGenerator);
+
+        // Component Selection failure
+        registry.registerDescriber(ModuleRejectedFailure.class, ModuleRejectedIncompatibleConstraintsFailureDescriber.class);
+        registry.registerDescriber(ModuleRejectedFailure.class, ModuleRejectedFailureDescriber.class);
 
         // Variant Selection failure
         registry.registerDescriber(AmbiguousVariantsFailure.class, MissingAttributeAmbiguousVariantsFailureDescriber.class); // Added ahead of AmbiguousVariantsFailureDescriber so the more specific ambiguity case is checked first
