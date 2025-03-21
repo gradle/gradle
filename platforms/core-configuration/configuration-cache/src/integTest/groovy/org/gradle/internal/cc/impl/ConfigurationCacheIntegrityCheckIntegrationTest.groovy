@@ -18,6 +18,8 @@ package org.gradle.internal.cc.impl
 
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.util.internal.ToBeImplemented
 
 class ConfigurationCacheIntegrityCheckIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
     static final String INTEGRITY_CHECKS = StartParameterBuildOptions.ConfigurationCacheIntegrityCheckOption.PROPERTY_NAME
@@ -74,6 +76,7 @@ class ConfigurationCacheIntegrityCheckIntegrationTest extends AbstractConfigurat
         failureCauseContains("Tag guard mismatch for JavaObjectSerializationCodec:")
     }
 
+    @ToBeImplemented("https://github.com/gradle/gradle/issues/32807")
     def "integrity checks detect invalid serialization protocol implementation in fingerprint"() {
         def configurationCache = new ConfigurationCacheFixture(this)
 
@@ -117,6 +120,11 @@ class ConfigurationCacheIntegrityCheckIntegrationTest extends AbstractConfigurat
             "Gradle runtime: The value cannot be decoded properly with 'JavaObjectSerializationCodec'. " +
             "It may have been written incorrectly or its data is corrupted.")
         failureCauseContains("Tag guard mismatch for JavaObjectSerializationCodec:")
+
+        if (GradleContextualExecuter.isDaemon()) {
+            // TODO(https://github.com/gradle/gradle/issues/32807): this is an induced failure that shouldn't happen
+            failureDescriptionContains("Could not receive a message from the daemon")
+        }
     }
 
     def brokenSerializable() {
