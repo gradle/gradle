@@ -4,7 +4,6 @@ plugins {
 
 errorprone {
     disabledChecks.addAll(
-        "MixedMutabilityReturnType", // 1 occurrences
         "ModifiedButNotUsed", // 1 occurrences
     )
 }

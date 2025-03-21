@@ -136,6 +136,7 @@ public class CppModelBuilder implements ToolingModelBuilder {
         return ImmutableList.copyOf(compilerArgs);
     }
 
+    @SuppressWarnings("MixedMutabilityReturnType")
     private List<DefaultMacroDirective> macroDefines(CppCompile compileTask) {
         if (compileTask.getMacros().isEmpty()) {
             return Collections.emptyList();
