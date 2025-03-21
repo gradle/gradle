@@ -56,11 +56,9 @@ See the table below for the Java version supported by a specific Gradle release:
 | 21| 8.4 | 8.5
 | 22| 8.7 | 8.8
 | 23| 8.10 | 8.10
-| 24| 8.14 | 8.14*
+| 24| 8.14 | 8.14
 | 25| N/A | N/A
 |===
-
-\* Java 24 is supported, but warnings may be seen in certain edge cases when using no-daemon mode or daemon toolchain provisioning.
 
 NOTE: We only list versions in the table above once we have tested that they work without any warnings.
 However, thanks to the toolchain support, Gradle will often work with the latest Java version before then.

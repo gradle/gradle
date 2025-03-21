@@ -70,10 +70,9 @@ public class JpmsConfiguration {
             "--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED" // Required by JdkTools and JdkJavaCompiler
         ));
 
-        GRADLE_SHARED_JPMS_ARGS_24 = Collections.unmodifiableList(Arrays.asList(
-            "--enable-native-access=ALL-UNNAMED", // required by NativeServices to access native libraries
-            "--sun-misc-unsafe-memory-access=allow" // Until Guava updates, allow Unsafe memory access. This is not strictly JPMS-related but renaming this class is hard due to use in our buildscripts.
-        ));
+        GRADLE_SHARED_JPMS_ARGS_24 = Collections.singletonList(
+            "--enable-native-access=ALL-UNNAMED" // required by NativeServices to access native libraries
+        );
 
         GRADLE_WORKER_JPMS_ARGS_24 = GRADLE_SHARED_JPMS_ARGS_24;
 
