@@ -105,8 +105,6 @@ With this release, Gradle supports [Java 24](https://openjdk.org/projects/jdk/24
 
 Note that certain features that rely on third-party tools may not work with Java 24 yet.
 
-Warnings about `sun.misc.Unsafe` may appear in some edge cases when using Java 24. These warnings are safe to ignore and will be resolved in future Gradle releases.
-
 See [the compatibility documentation](userguide/compatibility.html#java) for more details.
 
 <a name="Problems-api-additional-data"></a>
