@@ -18,7 +18,6 @@ errorprone {
         "IdentityHashMapUsage", // 2 occurrences
         "InlineFormatString", // 5 occurrences
         "InvalidParam", // 1 occurrences
-        "MathAbsoluteNegative",
         "MutablePublicArray", // 1 occurrences
         "NonApiType", // 3 occurrences
         "NonCanonicalType", // 3 occurrences
