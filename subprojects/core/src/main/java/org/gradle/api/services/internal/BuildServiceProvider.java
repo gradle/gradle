@@ -48,7 +48,7 @@ public abstract class BuildServiceProvider<T extends BuildService<P>, P extends 
         if (service instanceof BuildServiceProvider) {
             return uncheckedCast(service);
         }
-        throw new UnsupportedOperationException("Unexpected provider for a build service: " + service);
+        throw new UnsupportedOperationException("Unexpected provider for a build service: " + service.toDebugString());
     }
 
     public interface Listener {
