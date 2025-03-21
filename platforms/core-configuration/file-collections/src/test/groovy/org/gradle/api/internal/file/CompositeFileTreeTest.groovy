@@ -62,7 +62,7 @@ class CompositeFileTreeTest extends Specification {
         sourceCollections == [filtered1, filtered2]
 
         and:
-        1 * patternSetFactory.create() >> patterns
+        1 * patternSetFactory.createPatternSet() >> patterns
         1 * source1.matching(patterns) >> filtered1
         1 * source2.matching(patterns) >> filtered2
     }
@@ -86,7 +86,7 @@ class CompositeFileTreeTest extends Specification {
         sourceCollections == [filtered1, filtered2]
 
         and:
-        1 * patternSetFactory.create() >> patterns
+        1 * patternSetFactory.createPatternSet() >> patterns
         1 * action.execute(patterns)
         1 * source1.matching(patterns) >> filtered1
         1 * source2.matching(patterns) >> filtered2
