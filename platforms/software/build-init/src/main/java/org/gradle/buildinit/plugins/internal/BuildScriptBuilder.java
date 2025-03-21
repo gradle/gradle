@@ -888,37 +888,6 @@ public class BuildScriptBuilder {
         }
     }
 
-    private static class ConventionSelector implements ConfigSelector {
-
-        final String conventionName;
-
-        private ConventionSelector(String conventionName) {
-            this.conventionName = conventionName;
-        }
-
-        @Override
-        public String codeBlockSelectorFor(Syntax syntax) {
-            return syntax.conventionSelector(this);
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-            ConventionSelector that = (ConventionSelector) o;
-            return Objects.equal(conventionName, that.conventionName);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hashCode(conventionName);
-        }
-    }
-
     /**
      * Represents a statement in a script. Each statement has an optional comment that explains its purpose.
      */
@@ -1617,7 +1586,6 @@ public class BuildScriptBuilder {
         final TestingBlock testing;
         final ConfigurationStatements<TaskTypeSelector> taskTypes = new ConfigurationStatements<>();
         final ConfigurationStatements<TaskSelector> tasks = new ConfigurationStatements<>();
-        final ConfigurationStatements<ConventionSelector> conventions = new ConfigurationStatements<>();
         final BuildScriptBuilder builder;
 
         private TopLevelBlock(BuildScriptBuilder builder) {
@@ -1638,7 +1606,6 @@ public class BuildScriptBuilder {
                 printer.printStatement(testing);
             }
             super.writeBodyTo(printer);
-            printer.printStatement(conventions);
             printer.printStatement(taskTypes);
             for (SuiteSpec suite : testing.suites) {
                 if (!suite.isDefaultTestSuite()) {
@@ -2005,9 +1972,6 @@ public class BuildScriptBuilder {
 
         String propertyAssignment(PropertyAssignment expression);
 
-        @Nullable
-        String conventionSelector(ConventionSelector selector);
-
         String taskSelector(TaskSelector selector);
 
         String taskByTypeSelector(String taskType);
@@ -2130,11 +2094,6 @@ public class BuildScriptBuilder {
         //
         private String booleanPropertyNameFor(String propertyName) {
             return "is" + StringUtils.capitalize(propertyName);
-        }
-
-        @Override
-        public String conventionSelector(ConventionSelector selector) {
-            return selector.conventionName;
         }
 
         @Override
@@ -2297,11 +2256,6 @@ public class BuildScriptBuilder {
             String propertyName = expression.propertyName;
             ExpressionValue propertyValue = expression.propertyValue;
             return propertyName + " = " + propertyValue.with(this);
-        }
-
-        @Override
-        public String conventionSelector(ConventionSelector selector) {
-            return null;
         }
 
         @Override

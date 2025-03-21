@@ -14,7 +14,6 @@ errorprone {
         "HidingField", // 2 occurrences
         "ImmutableEnumChecker", // 2 occurrences
         "ReferenceEquality", // 1 occurrences
-        "UnusedMethod", // 1 occurrences
     )
 }
 
