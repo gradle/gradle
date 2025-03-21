@@ -80,7 +80,6 @@ import org.gradle.groovy.scripts.EmptyScript
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.ClassLoaderScopeRegistryListener
 import org.gradle.internal.Actions
-import org.gradle.internal.Factory
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.management.DependencyResolutionManagementInternal
@@ -138,7 +137,7 @@ class DefaultProjectTest extends Specification {
     ServiceRegistry serviceRegistryMock
     ServiceRegistryFactory projectServiceRegistryFactoryMock
     TaskContainerInternal taskContainerMock = Stub(TaskContainerInternal)
-    Factory<AntBuilder> antBuilderFactoryMock = Stub(Factory)
+    AntBuilderFactory antBuilderFactoryMock = Stub(AntBuilderFactory)
     AntBuilder testAntBuilder
 
     RoleBasedConfigurationContainerInternal configurationContainerMock = Stub(RoleBasedConfigurationContainerInternal)
@@ -185,7 +184,7 @@ class DefaultProjectTest extends Specification {
 
         testAntBuilder = new DefaultAntBuilder(null, antLoggingAdapter)
 
-        antBuilderFactoryMock.create() >> testAntBuilder
+        antBuilderFactoryMock.createAntBuilder() >> testAntBuilder
         script.getDisplayName() >> '[build file]'
         script.getClassName() >> 'scriptClass'
         script.getResource() >> new StringTextResource("", "")
@@ -215,7 +214,7 @@ class DefaultProjectTest extends Specification {
         serviceRegistryMock.get((Type) InputNormalizationHandlerInternal) >> inputNormalizationHandler
         serviceRegistryMock.get(ProjectEvaluator) >> projectEvaluator
         serviceRegistryMock.get(DynamicLookupRoutine) >> new DefaultDynamicLookupRoutine()
-        serviceRegistryMock.getFactory(AntBuilder) >> antBuilderFactoryMock
+        serviceRegistryMock.get(AntBuilderFactory) >> antBuilderFactoryMock
         serviceRegistryMock.get((Type) ScriptHandlerInternal) >> scriptHandlerMock
         serviceRegistryMock.get((Type) LoggingManagerInternal) >> loggingManagerMock
         serviceRegistryMock.get(FileResolver) >> fileResolver

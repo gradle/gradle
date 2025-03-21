@@ -190,7 +190,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     private final ProjectStateInternal state;
 
-    private Factory<AntBuilder> antBuilderFactory;
+    private AntBuilderFactory antBuilderFactory;
 
     private AntBuilder ant;
 
@@ -799,7 +799,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Override
     public AntBuilder createAntBuilder() {
         onMutableStateAccess();
-        return getAntBuilderFactory().create();
+        return getAntBuilderFactory().createAntBuilder();
     }
 
     /**
@@ -1093,9 +1093,9 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         return getFileOperations().delete(action);
     }
 
-    public Factory<AntBuilder> getAntBuilderFactory() {
+    public AntBuilderFactory getAntBuilderFactory() {
         if (antBuilderFactory == null) {
-            antBuilderFactory = services.getFactory(AntBuilder.class);
+            antBuilderFactory = services.get(AntBuilderFactory.class);
         }
         return antBuilderFactory;
     }
