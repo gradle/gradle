@@ -31,7 +31,7 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest implements R
     @Issue('https://github.com/gradle/gradle/issues/23014')
     def "android gradle recipes: custom BuildConfig field in Kotlin (agp=#agpVersion, provider=#providerType)"() {
         given:
-        AGP_VERSIONS.assumeCurrentJavaVersionIsSupportedBy(agpVersion)
+        AGP_VERSIONS.assumeAgpSupportsCurrentJavaVersionAndProviderApiChanges(agpVersion)
 
         and:
         file('settings.gradle.kts') << '''

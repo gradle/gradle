@@ -30,7 +30,7 @@ class AndroidSantaTrackerCachingSmokeTest extends AbstractAndroidSantaTrackerSmo
     def "can cache Santa Tracker Android application (agp=#agpVersion)"() {
 
         given:
-        AGP_VERSIONS.assumeCurrentJavaVersionIsSupportedBy(agpVersion)
+        AGP_VERSIONS.assumeAgpSupportsCurrentJavaVersionAndProviderApiChanges(agpVersion)
 
         and:
         def originalDir = temporaryFolder.createDir("original")
