@@ -164,9 +164,7 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
         private static DefaultTypeValidationContext createValidationContextAndValidateCacheableAnnotations(Class<?> topLevelBean, Class<? extends Annotation> cacheableAnnotationClass, boolean enableStricterValidation, InternalProblems problems) {
             boolean cacheable = topLevelBean.isAnnotationPresent(cacheableAnnotationClass);
             DefaultTypeValidationContext validationContext = createValidationContext(topLevelBean, cacheable || enableStricterValidation, problems);
-            if (enableStricterValidation) {
-                validateCacheabilityAnnotationPresent(topLevelBean, cacheable, cacheableAnnotationClass, validationContext);
-            }
+            validateCacheabilityAnnotationPresent(topLevelBean, cacheable, cacheableAnnotationClass, validationContext);
             return validationContext;
         }
 

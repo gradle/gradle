@@ -770,6 +770,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
             import org.gradle.work.*;
             import kotlin.*;
 
+            @DisableCachingByDefault(because = "not under test")
             abstract class MyTask : DefaultTask() {
                 @get:Nested
                 var my$typeName: $typeName = $producer
