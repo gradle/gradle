@@ -40,6 +40,8 @@ import org.gradle.internal.RunDefaultTasksExecutionRequest;
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration;
 import org.gradle.internal.deprecation.StartParameterDeprecations;
 import org.gradle.internal.logging.DefaultLoggingConfiguration;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
@@ -60,6 +62,7 @@ import static java.util.Collections.emptyList;
  *
  * <p>You can obtain an instance of a {@code StartParameter} by either creating a new one, or duplicating an existing one using {@link #newInstance} or {@link #newBuild}.</p>
  */
+@ServiceScope(Scope.Global.class)
 public class StartParameter implements LoggingConfiguration, ParallelismConfiguration, Serializable {
     public static final String GRADLE_USER_HOME_PROPERTY_KEY = BuildLayoutParameters.GRADLE_USER_HOME_PROPERTY_KEY;
 
@@ -286,6 +289,8 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
 
     /**
      * Returns the names of the tasks to execute in this build. When empty, the default tasks for the project will be executed. If {@link TaskExecutionRequest}s are set for this build then names from these task parameters are returned.
+     * <p>
+     * <strong>Note that this will also return entries for each task ARGUMENT as well.</strong>>
      *
      * @return the names of the tasks to execute in this build. Never returns null.
      */

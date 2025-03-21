@@ -16,25 +16,18 @@
 
 package org.gradle.internal.component.resolution.failure.exception;
 
-import org.gradle.internal.component.resolution.failure.type.AbstractComponentSelectionFailure;
+import org.gradle.internal.component.resolution.failure.type.ModuleRejectedFailure;
 
-import java.util.Collections;
 import java.util.List;
 
 /**
- * An exception that indicates that component selection failed.
+ * A {@link ComponentSelectionException} that indicates that component selection failed due to multiple
+ * conflicting constraints targeting the same module.
  */
-public class ComponentSelectionException extends AbstractResolutionFailureException {
-    public ComponentSelectionException(String message, AbstractComponentSelectionFailure failure) {
-        this(message, failure, Collections.emptyList());
-    }
-
-    public ComponentSelectionException(String message, AbstractComponentSelectionFailure failure, List<String> resolutions) {
+public final class ConflictingConstraintsException extends ComponentSelectionException {
+    public ConflictingConstraintsException(String message, ModuleRejectedFailure failure, List<String> resolutions) {
         super(message, failure, resolutions);
-    }
 
-    @Override
-    public AbstractComponentSelectionFailure getFailure() {
-        return (AbstractComponentSelectionFailure) failure;
+        LOGGER.info("Conflicting constraints detected: {}", failure.getLegacyErrorMsg());
     }
 }

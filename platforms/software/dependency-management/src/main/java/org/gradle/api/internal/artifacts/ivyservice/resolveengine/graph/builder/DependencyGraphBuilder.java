@@ -17,6 +17,8 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.component.ComponentSelector;
@@ -410,7 +412,8 @@ public class DependencyGraphBuilder {
             if (selected != null) {
                 ResolutionFailureHandler resolutionFailureHandler = resolveState.getVariantSelector().getFailureHandler();
                 if (selected.isRejected()) {
-                    GradleException error = resolutionFailureHandler.moduleRejected(module);
+                    List<String> conflictResolutions = buildConflictResolutions(selected, failureResolutions).getRight();
+                    GradleException error = resolutionFailureHandler.moduleRejected(module, conflictResolutions);
                     attachFailureToEdges(error, module.getIncomingEdges());
                     // We need to attach failures on unattached dependencies too, in case a node wasn't selected
                     // at all, but we still want to see an error message for it.
@@ -523,6 +526,17 @@ public class DependencyGraphBuilder {
         // This component was selected due to version conflict resolution.
         // Fail all incoming edges.
 
+        Pair<Conflict, List<String>> resolutions = buildConflictResolutions(selected, failureResolutions);
+        VersionConflictException failure = new VersionConflictException(resolutions.getLeft(), resolutions.getRight());
+
+        for (NodeState node : selected.getNodes()) {
+            for (EdgeState incomingEdge : node.getIncomingEdges()) {
+                incomingEdge.failWith(failure);
+            }
+        }
+    }
+
+    private static Pair<Conflict, List<String>> buildConflictResolutions(ComponentState selected, ResolutionParameters.FailureResolutions failureResolutions) {
         ImmutableList<Conflict.Participant> participants = selected.getModule().getAllVersions().stream()
             .map(component -> new Conflict.Participant(component.getId().getVersion(), component.getComponentId()))
             .collect(ImmutableList.toImmutableList());
@@ -533,14 +547,7 @@ public class DependencyGraphBuilder {
             selected.getSelectionReason()
         );
 
-        List<String> resolutions = failureResolutions.forVersionConflict(conflict);
-        VersionConflictException failure = new VersionConflictException(conflict, resolutions);
-
-        for (NodeState node : selected.getNodes()) {
-            for (EdgeState incomingEdge : node.getIncomingEdges()) {
-                incomingEdge.failWith(failure);
-            }
-        }
+        return new ImmutablePair<>(conflict, failureResolutions.forVersionConflict(conflict));
     }
 
     /**

@@ -34,6 +34,6 @@ public abstract class ModuleRejectedFailureDescriber extends AbstractResolutionF
 
     @Override
     public AbstractResolutionFailureException describeFailure(ModuleRejectedFailure failure) {
-        return new ComponentSelectionException(failure.getAssessedSelection().getLegacyErrorMsg(), failure);
+        return new ComponentSelectionException(failure.getLegacyErrorMsg(), failure);
     }
 }

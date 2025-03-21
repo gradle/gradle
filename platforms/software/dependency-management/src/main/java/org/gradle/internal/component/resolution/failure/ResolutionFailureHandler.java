@@ -67,6 +67,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -117,11 +118,12 @@ public class ResolutionFailureHandler {
     }
 
     // region Component Selection failures
-    // TODO: Route more of these failures through this handler in order to standardize their description logic, supply consistent failure reporting
-    //  via the Problems API, and allow for the possible custom descriptions in specific scenarios
-    public AbstractResolutionFailureException moduleRejected(ModuleResolveState moduleResolveState) {
+    // TODO: Route more of these failures through this handler in order to standardize their description logic
+
+    public AbstractResolutionFailureException moduleRejected(ModuleResolveState moduleResolveState, List<String> conflictResolutions) {
         AssessedSelection assessedSelection = SelectionReasonAssessor.assessSelection(moduleResolveState);
-        ModuleRejectedFailure failure = new ModuleRejectedFailure(ResolutionFailureProblemId.NO_VERSION_SATISFIES, assessedSelection);
+        String legacyErrorMsg = Objects.requireNonNull(moduleResolveState.getSelected()).getRejectedErrorMessage();
+        ModuleRejectedFailure failure = new ModuleRejectedFailure(ResolutionFailureProblemId.NO_VERSION_SATISFIES, assessedSelection, conflictResolutions, legacyErrorMsg);
         return describeFailure(failure);
     }
     // endregion Component Selection failures
