@@ -84,6 +84,7 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.jvm.JavaModuleDetector;
+import org.gradle.internal.logging.LoggingManagerFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationRunner;
@@ -124,7 +125,7 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
     public static CloseableServiceRegistry create(
         ServiceRegistry buildServices,
         ProjectInternal project,
-        Factory<LoggingManagerInternal> loggingManagerInternalFactory
+        LoggingManagerFactory loggingManagerInternalFactory
     ) {
         return ServiceRegistryBuilder.builder()
             .scopeStrictly(Scope.Project.class)
@@ -136,10 +137,10 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
     }
 
     private final ProjectInternal project;
-    private final Factory<LoggingManagerInternal> loggingManagerInternalFactory;
+    private final LoggingManagerFactory loggingManagerInternalFactory;
 
 
-    public ProjectScopeServices(ProjectInternal project, Factory<LoggingManagerInternal> loggingManagerInternalFactory) {
+    public ProjectScopeServices(ProjectInternal project, LoggingManagerFactory loggingManagerInternalFactory) {
         this.project = project;
         this.loggingManagerInternalFactory = loggingManagerInternalFactory;
     }
@@ -176,7 +177,7 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
 
     @Provides
     protected LoggingManagerInternal createLoggingManager() {
-        return loggingManagerInternalFactory.create();
+        return loggingManagerInternalFactory.createLoggingManager();
     }
 
     @Provides
