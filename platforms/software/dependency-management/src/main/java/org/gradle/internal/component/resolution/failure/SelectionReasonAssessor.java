@@ -30,7 +30,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Compone
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -61,7 +60,7 @@ public final class SelectionReasonAssessor {
             });
         });
 
-        return new AssessedSelection(moduleResolveState.getId(), assessedReasons, Objects.requireNonNull(moduleResolveState.getSelected()).getRejectedErrorMessage());
+        return new AssessedSelection(moduleResolveState.getId(), assessedReasons);
     }
 
     private static List<AssessedSelection.AssessedSelectionReason> assessReason(SelectorState selectorState, List<String> pathSegments) {
@@ -111,12 +110,10 @@ public final class SelectionReasonAssessor {
     public static final class AssessedSelection {
         private final ModuleIdentifier moduleId;
         private final ImmutableList<AssessedSelectionReason> reasons;
-        private final String legacyErrorMsg;
 
-        public AssessedSelection(ModuleIdentifier moduleId, List<AssessedSelectionReason> reasons, String legacyErrorMsg) {
+        public AssessedSelection(ModuleIdentifier moduleId, List<AssessedSelectionReason> reasons) {
             this.moduleId = moduleId;
             this.reasons = ImmutableList.copyOf(reasons);
-            this.legacyErrorMsg = legacyErrorMsg;
         }
 
         public ModuleIdentifier getModuleId() {
@@ -125,10 +122,6 @@ public final class SelectionReasonAssessor {
 
         public List<AssessedSelectionReason> getReasons() {
             return reasons;
-        }
-
-        public String getLegacyErrorMsg() {
-            return legacyErrorMsg;
         }
 
         /**

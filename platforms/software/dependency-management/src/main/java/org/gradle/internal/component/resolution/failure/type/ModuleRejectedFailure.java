@@ -19,16 +19,31 @@ package org.gradle.internal.component.resolution.failure.type;
 import org.gradle.api.internal.catalog.problems.ResolutionFailureProblemId;
 import org.gradle.internal.component.resolution.failure.SelectionReasonAssessor.AssessedSelection;
 
+import java.util.List;
+
 /**
  * A failure that indicates that a requested module was rejected during graph construction.
  */
 public final class ModuleRejectedFailure extends AbstractComponentSelectionFailure {
-    public ModuleRejectedFailure(ResolutionFailureProblemId problemId, AssessedSelection assessedSelection) {
+    private final List<String> resolutions;
+    private final String legacyErrorMsg;
+
+    public ModuleRejectedFailure(ResolutionFailureProblemId problemId, AssessedSelection assessedSelection, List<String> resolutions, String legacyErrorMsg) {
         super(problemId, assessedSelection);
+        this.resolutions = resolutions;
+        this.legacyErrorMsg = legacyErrorMsg;
     }
 
     @Override
     public String describeRequestTarget() {
         return getModuleIdentifier().toString();
+    }
+
+    public List<String> getResolutions() {
+        return resolutions;
+    }
+
+    public String getLegacyErrorMsg() {
+        return legacyErrorMsg;
     }
 }

@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve.strict
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
+import org.gradle.util.GradleVersion
 
 import static org.gradle.integtests.resolve.strict.StrictVersionsInPlatformCentricDevelopmentIntegrationTest.expectStrictVersion
 import static org.gradle.integtests.resolve.strict.StrictVersionsInPlatformCentricDevelopmentIntegrationTest.PlatformType.ENFORCED_PLATFORM
@@ -315,7 +316,10 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
             (failure.assertHasCause("Could not resolve org:foo:3.2.") &&
             failure.assertHasCause("""Component is the target of multiple version constraints with conflicting requirements:
 3.2
-3.1.1 - via 'org:platform:1.1' ($platformVariant)"""))
+3.1.1 - via 'org:platform:1.1' ($platformVariant)""") &&
+                failure.assertHasResolution("Run with :dependencyInsight --configuration conf --dependency org:foo to get more insight on how to solve the conflict.") &&
+                failure.assertHasResolution("Debugging using the dependencyInsight report is described in more detail at: https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sec:identifying-reason-dependency-selection.")
+        )
 
         where:
         platformType << PlatformType.values()
@@ -375,6 +379,9 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
             failure.assertHasCause """Component is the target of multiple version constraints with conflicting requirements:
 3.2
 3.1.1 - via 'org:platform:1.1' (enforcedApiElements)"""
+            failure.assertHasResolution "Run with :dependencyInsight --configuration conf --dependency org:foo to get more insight on how to solve the conflict."
+            failure.assertHasResolution "Debugging using the dependencyInsight report is described in more detail at: https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sec:identifying-reason-dependency-selection."
+
         } else {
             resolve.expectGraph {
                 root(':', ':test:') {
@@ -477,6 +484,8 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
         failure.assertHasCause """Component is the target of multiple version constraints with conflicting requirements:
 3.2 - via 'test:recklessLibrary:unspecified' (conf)
 3.1.1 - via 'org:platform:1.1' ($platformVariant)"""
+        failure.assertHasResolution("Run with :dependencyInsight --configuration conf --dependency org:foo to get more insight on how to solve the conflict.") &&
+        failure.assertHasResolution("Debugging using the dependencyInsight report is described in more detail at: https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sec:identifying-reason-dependency-selection.")
 
         where:
         platformType << PlatformType.values()

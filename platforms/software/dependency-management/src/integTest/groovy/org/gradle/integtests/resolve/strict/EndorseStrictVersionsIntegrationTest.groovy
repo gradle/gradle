@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve.strict
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
+import org.gradle.util.GradleVersion
 
 @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
 class EndorseStrictVersionsIntegrationTest extends AbstractModuleDependencyResolveTest {
@@ -196,6 +197,8 @@ class EndorseStrictVersionsIntegrationTest extends AbstractModuleDependencyResol
         failure.assertHasCause """Component is the target of multiple version constraints with conflicting requirements:
 1.0 - via 'org:platform-a:1.0' (runtime)
 2.0 - via 'org:platform-b:1.0' (runtime)"""
+        failure.assertHasResolution "Run with :dependencyInsight --configuration conf --dependency org:foo to get more insight on how to solve the conflict."
+        failure.assertHasResolution "Debugging using the dependencyInsight report is described in more detail at: https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sec:identifying-reason-dependency-selection."
     }
 
     def "a module from which strict versions are endorsed can itself be influenced by strict versions endorsed form elsewhere"() {

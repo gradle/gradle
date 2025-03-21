@@ -16,12 +16,14 @@
 
 package org.gradle.internal.component.resolution.failure.describer;
 
+import org.gradle.StartParameter;
 import org.gradle.api.artifacts.result.ComponentSelectionCause;
 import org.gradle.internal.component.resolution.failure.SelectionReasonAssessor.AssessedSelection.AssessedSelectionReason;
-import org.gradle.internal.component.resolution.failure.exception.AbstractResolutionFailureException;
-import org.gradle.internal.component.resolution.failure.exception.ComponentSelectionException;
+import org.gradle.internal.component.resolution.failure.exception.ConflictingConstraintsException;
 import org.gradle.internal.component.resolution.failure.type.ModuleRejectedFailure;
 
+import javax.inject.Inject;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -29,11 +31,23 @@ import java.util.stream.Collectors;
 /**
  * A {@link ResolutionFailureDescriber} that describes a {@link ModuleRejectedFailure} where
  * there were multiple constraints involved in a selection failure that each require different versions.
+ * <p>
+ * This describer will <strong>NOT</strong> be used during the dependencyInsight task, to leave that task
+ * as a means of providing more detailed information about the conflicting constraints.
  */
 public abstract class ModuleRejectedIncompatibleConstraintsFailureDescriber extends AbstractResolutionFailureDescriber<ModuleRejectedFailure> {
+    private static final String DEPENDENCY_INSIGHT_TASK_NAME = "dependencyInsight";
+    private static final String DEBUGGING_WITH_DEPENDENCY_INSIGHT_PREFIX = "Debugging using the " + DEPENDENCY_INSIGHT_TASK_NAME + " report is described in more detail at: ";
+    private static final String DEBUGGING_WITH_DEPENDENCY_INSIGHT_ID = "viewing_debugging_dependencies";
+    private static final String DEBUGGING_WITH_DEPENDENCY_INSIGHT_SECTION = "sec:identifying-reason-dependency-selection";
+
+    @Inject
+    public abstract StartParameter getStartParameter();
+
     @Override
     public boolean canDescribeFailure(ModuleRejectedFailure failure) {
-        return findConflictingConstraints(failure).size() > 1;
+        boolean dependencyInsightRunning = getStartParameter().getTaskRequests().stream().anyMatch(request -> request.getArgs().get(0).contains(DEPENDENCY_INSIGHT_TASK_NAME));
+        return !dependencyInsightRunning && findConflictingConstraints(failure).size() > 1;
     }
 
     private List<AssessedSelectionReason> findConflictingConstraints(ModuleRejectedFailure failure) {
@@ -46,8 +60,15 @@ public abstract class ModuleRejectedIncompatibleConstraintsFailureDescriber exte
     }
 
     @Override
-    public AbstractResolutionFailureException describeFailure(ModuleRejectedFailure failure) {
-        return new ComponentSelectionException(summarizeFailure(failure), failure);
+    public ConflictingConstraintsException describeFailure(ModuleRejectedFailure failure) {
+        return new ConflictingConstraintsException(summarizeFailure(failure), failure, buildResolutions(failure));
+    }
+
+    private List<String> buildResolutions(ModuleRejectedFailure failure) {
+        List<String> resolutions = new ArrayList<>(failure.getResolutions().size() + 1);
+        resolutions.addAll(failure.getResolutions());
+        resolutions.add(DEBUGGING_WITH_DEPENDENCY_INSIGHT_PREFIX + getDocumentationRegistry().getDocumentationFor(DEBUGGING_WITH_DEPENDENCY_INSIGHT_ID, DEBUGGING_WITH_DEPENDENCY_INSIGHT_SECTION) + ".");
+        return resolutions;
     }
 
     private String summarizeFailure(ModuleRejectedFailure failure) {
