@@ -20,7 +20,6 @@ import org.gradle.api.artifacts.ConfigurationVariant
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencyConstraint
 import org.gradle.api.artifacts.ExternalModuleDependency
-import org.gradle.api.artifacts.FileCollectionDependency
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.PublishArtifact
@@ -283,28 +282,6 @@ class LocalComponentGraphResolveStateFactoryTest extends AbstractProjectBuilderS
         config2.prepareForArtifactResolution().artifactVariants.find { it.name == "conf2-variant2" }.artifacts.size() == 2
     }
 
-    def "files attached to configuration and its children"() {
-        def files1 = Stub(FileCollectionDependency)
-        def files2 = Stub(FileCollectionDependency)
-        def files3 = Stub(FileCollectionDependency)
-
-        given:
-        def conf1 = dependencyScope("conf1")
-        def conf2 = dependencyScope("conf2")
-        def conf3 = dependencyScope("conf3", [conf1, conf2])
-        resolvable("child1", [conf3])
-        resolvable("child2", [conf1])
-
-        and:
-        conf1.getDependencies().add(files1)
-        conf2.getDependencies().add(files2)
-        conf3.getDependencies().add(files3)
-
-        expect:
-        state.getConfigurationLegacy("child1").files*.source == [files1, files2, files3]
-        state.getConfigurationLegacy("child2").files*.source == [files1]
-    }
-
     def "dependency is attached to configuration and its children"() {
         def dependency1 = Mock(ExternalModuleDependency)
         def dependency2 = Mock(ExternalModuleDependency)
@@ -350,12 +327,6 @@ class LocalComponentGraphResolveStateFactoryTest extends AbstractProjectBuilderS
 
     ConfigurationInternal consumable(String name, List<ConfigurationInternal> extendsFrom = []) {
         project.configurations.consumable(name) { conf ->
-            extendsFrom.each { conf.extendsFrom(it) }
-        }.get() as ConfigurationInternal
-    }
-
-    ConfigurationInternal resolvable(String name, List<ConfigurationInternal> extendsFrom = []) {
-        project.configurations.resolvable(name) { conf ->
             extendsFrom.each { conf.extendsFrom(it) }
         }.get() as ConfigurationInternal
     }
