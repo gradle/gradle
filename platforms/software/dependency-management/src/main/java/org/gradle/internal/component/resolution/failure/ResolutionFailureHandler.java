@@ -120,7 +120,7 @@ public class ResolutionFailureHandler {
     // TODO: Route more of these failures through this handler in order to standardize their description logic, supply consistent failure reporting
     //  via the Problems API, and allow for the possible custom descriptions in specific scenarios
     public AbstractResolutionFailureException moduleRejected(ModuleResolveState moduleResolveState) {
-        AssessedSelection assessedSelection = SelectionReasonAssessor.assessSelectionReason(moduleResolveState);
+        AssessedSelection assessedSelection = SelectionReasonAssessor.assessSelection(moduleResolveState);
         ModuleRejectedFailure failure = new ModuleRejectedFailure(ResolutionFailureProblemId.NO_VERSION_SATISFIES, assessedSelection);
         return describeFailure(failure);
     }

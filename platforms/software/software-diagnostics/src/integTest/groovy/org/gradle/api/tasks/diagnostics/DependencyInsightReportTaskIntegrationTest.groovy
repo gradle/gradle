@@ -457,9 +457,9 @@ org:foo:1.0 FAILED
       - By constraint: Dependency version enforced by Dependency Locking
    Failures:
       - Could not resolve org:foo:{strictly 1.0}.
-          - There were conflicting requirements:
-            Dependency version enforced by Dependency Locking: 1.0
-            constraint: 1.1
+          - Component is the target of multiple version constraints with conflicting requirements:
+            1.0 - via Dependency Locking
+            1.1
 
 org:foo:{strictly 1.0} -> 1.0 FAILED
 \\--- lockedConf

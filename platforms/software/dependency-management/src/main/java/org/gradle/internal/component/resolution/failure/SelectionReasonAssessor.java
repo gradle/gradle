@@ -17,21 +17,21 @@
 package org.gradle.internal.component.resolution.failure;
 
 import com.google.common.collect.ImmutableList;
+import org.apache.commons.lang.WordUtils;
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionCause;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ModuleResolveState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.SelectorState;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 
-import javax.annotation.Nonnull;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
-import java.util.Spliterator;
-import java.util.Spliterators;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 /**
  * A static utility class used by {@link ResolutionFailureHandler} to assess and classify
@@ -42,48 +42,66 @@ import java.util.stream.StreamSupport;
  * the information necessary to describe the failure.
  */
 public final class SelectionReasonAssessor {
-    public static AssessedSelection assessSelectionReason(ModuleResolveState moduleResolveState) {
-        List<AssessedSelection.AssessedSelectionReason> paths = streamSelectors(moduleResolveState)
-            .flatMap(selectorState -> assessSelectorState(selectorState).stream())
-            .collect(Collectors.toList());
+    private SelectionReasonAssessor() { /* not instantiable */ }
 
-        return new AssessedSelection(moduleResolveState.getId(), paths, Objects.requireNonNull(moduleResolveState.getSelected()).getRejectedErrorMessage());
+    /**
+     * Assess the reasons for selecting (or failing to select) a module, based on the given {@link ModuleResolveState}.
+     *
+     * @param moduleResolveState the module resolve state to assess
+     * @return an {@link AssessedSelection} instance that summarizes the reasons for selecting (or failing to select) the module
+     */
+    @SuppressWarnings("CodeBlock2Expr")
+    public static AssessedSelection assessSelection(ModuleResolveState moduleResolveState) {
+        Map<SelectorState, List<List<String>>> pathsBySelectors = moduleResolveState.getSegmentedPathsBySelectors();
+
+        List<AssessedSelection.AssessedSelectionReason> assessedReasons = new ArrayList<>(pathsBySelectors.size());
+        pathsBySelectors.forEach((selector, paths) -> {
+            paths.forEach(path -> {
+                assessedReasons.addAll(assessReason(selector, path));
+            });
+        });
+
+        return new AssessedSelection(moduleResolveState.getId(), assessedReasons, Objects.requireNonNull(moduleResolveState.getSelected()).getRejectedErrorMessage());
     }
 
-    @Nonnull
-    private static Stream<SelectorState> streamSelectors(ModuleResolveState moduleResolveState) {
-        return StreamSupport.stream(
-            Spliterators.spliteratorUnknownSize(moduleResolveState.getSelectors().iterator(), Spliterator.ORDERED),
-            false
-        );
-    }
-
-    private static List<AssessedSelection.AssessedSelectionReason> assessSelectorState(SelectorState selectorState) {
-        String version = describeSelectedVersion(selectorState);
-        boolean isStrictRequirement = isStrict(selectorState);
+    private static List<AssessedSelection.AssessedSelectionReason> assessReason(SelectorState selectorState, List<String> pathSegments) {
+        boolean isStrictRequirement = isStrictRequirement(selectorState);
+        String requiredVersion = describeRequiredVersion(selectorState);
 
         return selectorState.getSelectionReason().getDescriptions().stream()
             .map(selectionDescriptor -> new AssessedSelection.AssessedSelectionReason(
-                version,
+                selectorState.getRequested(),
+                selectorState.getSelector(),
+                pathSegments,
+                requiredVersion,
                 isStrictRequirement,
                 selectionDescriptor.getCause(),
-                selectionDescriptor.getDescription()
+                describeSelectionReason(selectionDescriptor),
+                selectorState.isFromLock()
             )).collect(Collectors.toList());
     }
 
-    private static String describeSelectedVersion(SelectorState selectorState) {
-        if (selectorState.getVersionConstraint() == null) {
+    private static boolean isStrictRequirement(SelectorState selectorState) {
+        ResolvedVersionConstraint constraint = selectorState.getVersionConstraint();
+        return constraint != null && constraint.isStrict();
+    }
+
+    private static String describeRequiredVersion(SelectorState selectorState) {
+        ResolvedVersionConstraint versionConstraint = selectorState.getVersionConstraint();
+        if (versionConstraint == null) {
             return "unspecified";
         } else {
-            return selectorState.getVersionConstraint().getSelectors().stream()
-                .map(VersionSelector::getSelector)
-                .collect(Collectors.joining());
+            VersionSelector requiredSelector = versionConstraint.getRequiredSelector();
+            return requiredSelector != null ? requiredSelector.getSelector() : "unspecified";
         }
     }
 
-    private static boolean isStrict(SelectorState selectorState) {
-        ResolvedVersionConstraint constraint = selectorState.getVersionConstraint();
-        return constraint != null && constraint.isStrict();
+    private static String describeSelectionReason(ComponentSelectionDescriptorInternal selectionDescriptor) {
+        if (selectionDescriptor.hasCustomDescription()) {
+            return selectionDescriptor.getDescription();
+        } else {
+            return WordUtils.capitalize(selectionDescriptor.getDescription());
+        }
     }
 
     /**
@@ -118,24 +136,44 @@ public final class SelectionReasonAssessor {
          * including the version, the cause, and a description.
          */
         public static final class AssessedSelectionReason {
-            private final String version;
-            private final boolean exactVersionNeeded;
+            private final ComponentSelector requested;
+            private final ComponentSelector selected;
+            private final List<String> segmentedSelectionPath;
+            private final String requiredVersion;
+            private final boolean isStrict;
             private final ComponentSelectionCause cause;
             private final String description;
+            private final boolean isFromLock;
 
-            public AssessedSelectionReason(String version, boolean exactVersionNeeded, ComponentSelectionCause cause, String description) {
-                this.version = version;
-                this.exactVersionNeeded = exactVersionNeeded;
+            public AssessedSelectionReason(ComponentSelector requested, ComponentSelector selected, List<String> segmentedSelectionPath, String requiredVersion, boolean isStrict, ComponentSelectionCause cause, String description, boolean isFromLock) {
+                this.requested = requested;
+                this.selected = selected;
+                this.segmentedSelectionPath = ImmutableList.copyOf(segmentedSelectionPath);
+                this.requiredVersion = requiredVersion;
+                this.isStrict = isStrict;
                 this.cause = cause;
                 this.description = description;
+                this.isFromLock = isFromLock;
             }
 
-            public String getVersion() {
-                return version;
+            public ComponentSelector getRequested() {
+                return requested;
             }
 
-            public boolean isExactVersionNeeded() {
-                return exactVersionNeeded;
+            public ComponentSelector getSelected() {
+                return selected;
+            }
+
+            public List<String> getSegmentedSelectionPath() {
+                return segmentedSelectionPath;
+            }
+
+            public String getRequiredVersion() {
+                return requiredVersion;
+            }
+
+            public boolean isStrict() {
+                return isStrict;
             }
 
             public ComponentSelectionCause getCause() {
@@ -144,6 +182,10 @@ public final class SelectionReasonAssessor {
 
             public String getDescription() {
                 return description;
+            }
+
+            public boolean isFromLock() {
+                return isFromLock;
             }
         }
     }

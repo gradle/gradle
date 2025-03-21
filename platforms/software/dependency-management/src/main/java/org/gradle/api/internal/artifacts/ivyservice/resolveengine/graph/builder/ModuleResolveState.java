@@ -527,4 +527,16 @@ public class ModuleResolveState implements CandidateModule {
 
         return null;
     }
+
+    /* package */ Set<EdgeState> getAllEdges() {
+        Set<EdgeState> allEdges = new LinkedHashSet<>();
+        allEdges.addAll(getIncomingEdges());
+        allEdges.addAll(getUnattachedEdges());
+        return allEdges;
+    }
+
+    public Map<SelectorState, List<List<String>>> getSegmentedPathsBySelectors() {
+        return getAllEdges().stream()
+            .collect(Collectors.toMap(EdgeState::getSelector, edge -> MessageBuilderHelper.segmentedPathsTo(edge, true)));
+    }
 }
