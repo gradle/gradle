@@ -193,9 +193,9 @@ class EndorseStrictVersionsIntegrationTest extends AbstractModuleDependencyResol
 
         then:
         failure.assertHasCause "Could not resolve org:foo."
-        failure.assertHasCause """There were conflicting requirements:
-constraint: 1.0
-constraint: 2.0"""
+        failure.assertHasCause """Component is the target of multiple version constraints with conflicting requirements:
+1.0 - via 'org:platform-a:1.0' (runtime)
+2.0 - via 'org:platform-b:1.0' (runtime)"""
     }
 
     def "a module from which strict versions are endorsed can itself be influenced by strict versions endorsed form elsewhere"() {

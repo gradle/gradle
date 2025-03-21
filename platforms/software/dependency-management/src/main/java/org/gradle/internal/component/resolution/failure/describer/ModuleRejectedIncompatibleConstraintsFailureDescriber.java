@@ -17,13 +17,11 @@
 package org.gradle.internal.component.resolution.failure.describer;
 
 import org.gradle.api.artifacts.result.ComponentSelectionCause;
-import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.internal.component.resolution.failure.SelectionReasonAssessor.AssessedSelection.AssessedSelectionReason;
 import org.gradle.internal.component.resolution.failure.exception.AbstractResolutionFailureException;
 import org.gradle.internal.component.resolution.failure.exception.ComponentSelectionException;
 import org.gradle.internal.component.resolution.failure.type.ModuleRejectedFailure;
 
-import javax.inject.Inject;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -33,36 +31,42 @@ import java.util.stream.Collectors;
  * there were multiple constraints involved in a selection failure that each require different versions.
  */
 public abstract class ModuleRejectedIncompatibleConstraintsFailureDescriber extends AbstractResolutionFailureDescriber<ModuleRejectedFailure> {
-    @Inject
-    @Override
-    protected abstract DocumentationRegistry getDocumentationRegistry();
-
     @Override
     public boolean canDescribeFailure(ModuleRejectedFailure failure) {
-        return findConflictingStrictRequirements(failure).size() > 1;
+        return findConflictingConstraints(failure).size() > 1;
     }
 
-    private List<AssessedSelectionReason> findConflictingStrictRequirements(ModuleRejectedFailure failure) {
-        Map<String, List<AssessedSelectionReason>> byVersion = failure.getAssessedSelection().getReasons().stream()
-            .filter(p -> p.getCause() == ComponentSelectionCause.CONSTRAINT)
-            .collect(Collectors.groupingBy(AssessedSelectionReason::getVersion));
-        return byVersion.values().stream()
-            .map(v -> v.iterator().next())
+    private List<AssessedSelectionReason> findConflictingConstraints(ModuleRejectedFailure failure) {
+        Map<String, List<AssessedSelectionReason>> versionsByReasons = failure.getAssessedSelection().getReasons().stream()
+            .filter(reason -> reason.getCause() == ComponentSelectionCause.CONSTRAINT)
+            .collect(Collectors.groupingBy(AssessedSelectionReason::getRequiredVersion));
+        return versionsByReasons.values().stream()
+            .map(reasons -> reasons.iterator().next())
             .collect(Collectors.toList());
     }
 
     @Override
     public AbstractResolutionFailureException describeFailure(ModuleRejectedFailure failure) {
-        return new ComponentSelectionException(summarizeSelectionRequirements(failure), failure);
+        return new ComponentSelectionException(summarizeFailure(failure), failure);
     }
 
-    private String summarizeSelectionRequirements(ModuleRejectedFailure failure) {
-        StringBuilder sb = new StringBuilder("There were conflicting requirements:\n");
-        findConflictingStrictRequirements(failure).forEach(selectionPath -> sb.append(summarizeSelectionReason(selectionPath)).append("\n"));
+    private String summarizeFailure(ModuleRejectedFailure failure) {
+        StringBuilder sb = new StringBuilder("Component is the target of multiple version constraints with conflicting requirements:\n");
+        findConflictingConstraints(failure).forEach(reason -> sb.append(summarizeReason(reason)).append("\n"));
         return sb.toString();
     }
 
-    private String summarizeSelectionReason(AssessedSelectionReason selectionPath) {
-        return selectionPath.getDescription() + ": " + selectionPath.getVersion();
+    private String summarizeReason(AssessedSelectionReason reason) {
+        StringBuilder sb = new StringBuilder(reason.getRequiredVersion());
+
+        if (reason.getSegmentedSelectionPath().size() > 2) {
+            String lastSegment = reason.getSegmentedSelectionPath().get(reason.getSegmentedSelectionPath().size() - 2);
+            sb.append(" - via ")
+                .append(lastSegment);
+        } else if (reason.isFromLock()) {
+            sb.append(" - via Dependency Locking");
+        }
+
+        return sb.toString();
     }
 }

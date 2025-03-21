@@ -313,9 +313,9 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
         def platformVariant = platformType == MODULE ? 'runtime' : 'apiElements'
         (platformType == ENFORCED_PLATFORM && !failed) ||
             (failure.assertHasCause("Could not resolve org:foo:3.2.") &&
-            failure.assertHasCause("""There were conflicting requirements:
-constraint: 3.2
-constraint: 3.1.1"""))
+            failure.assertHasCause("""Component is the target of multiple version constraints with conflicting requirements:
+3.2
+3.1.1 - via 'org:platform:1.1' ($platformVariant)"""))
 
         where:
         platformType << PlatformType.values()
@@ -372,9 +372,9 @@ constraint: 3.1.1"""))
         then:
         if (platformType == ENFORCED_PLATFORM) {
             failure.assertHasCause "Could not resolve org:foo:{strictly 3.2}."
-            failure.assertHasCause """There were conflicting requirements:
-constraint: 3.2
-constraint: 3.1.1"""
+            failure.assertHasCause """Component is the target of multiple version constraints with conflicting requirements:
+3.2
+3.1.1 - via 'org:platform:1.1' (enforcedApiElements)"""
         } else {
             resolve.expectGraph {
                 root(':', ':test:') {
@@ -462,10 +462,21 @@ constraint: 3.1.1"""
         fails ':checkDeps'
 
         then:
+        def platformVariant
+        switch (platformType) {
+            case ENFORCED_PLATFORM:
+                platformVariant = 'enforcedApiElements'
+                break
+            case MODULE:
+                platformVariant = 'runtime'
+                break
+            default:
+                platformVariant = 'apiElements'
+        }
         failure.assertHasCause "Could not resolve org:foo:{strictly 3.2}."
-        failure.assertHasCause """There were conflicting requirements:
-constraint: 3.2
-constraint: 3.1.1"""
+        failure.assertHasCause """Component is the target of multiple version constraints with conflicting requirements:
+3.2 - via 'test:recklessLibrary:unspecified' (conf)
+3.1.1 - via 'org:platform:1.1' ($platformVariant)"""
 
         where:
         platformType << PlatformType.values()
