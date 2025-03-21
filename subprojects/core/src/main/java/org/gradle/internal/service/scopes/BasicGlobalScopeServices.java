@@ -27,7 +27,7 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.api.tasks.util.internal.PatternSets;
+import org.gradle.api.tasks.util.internal.DefaultPatternSetFactory;
 import org.gradle.api.tasks.util.internal.PatternSpecFactory;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.internal.DefaultFileLockManager;
@@ -145,8 +145,8 @@ public class BasicGlobalScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    Factory<PatternSet> createPatternSetFactory(final PatternSpecFactory patternSpecFactory) {
-        return PatternSets.getPatternSetFactory(patternSpecFactory);
+    Factory<PatternSet> createPatternSetFactory(PatternSpecFactory patternSpecFactory) {
+        return new DefaultPatternSetFactory(patternSpecFactory);
     }
 
     @Provides
