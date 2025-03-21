@@ -20,7 +20,6 @@ errorprone {
         "InlineFormatString", // 5 occurrences
         "InvalidParam", // 1 occurrences
         "MathAbsoluteNegative",
-        "ModifiedButNotUsed", // 1 occurrences
         "MutablePublicArray", // 1 occurrences
         "NonApiType", // 3 occurrences
         "NonCanonicalType", // 3 occurrences
