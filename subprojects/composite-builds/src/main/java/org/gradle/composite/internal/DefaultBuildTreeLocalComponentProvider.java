@@ -16,18 +16,14 @@
 
 package org.gradle.composite.internal;
 
-import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.BuildTreeLocalComponentProvider;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentCache;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentProvider;
 import org.gradle.api.internal.project.HoldsProjectState;
-import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.internal.Describables;
-import org.gradle.internal.build.CompositeBuildParticipantBuildState;
-import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.model.InMemoryCacheFactory;
 import org.gradle.internal.model.InMemoryLoadingCache;
@@ -52,12 +48,6 @@ public class DefaultBuildTreeLocalComponentProvider implements BuildTreeLocalCom
      */
     private final InMemoryLoadingCache<ProjectComponentIdentifier, LocalComponentGraphResolveState> originalComponents;
 
-    /**
-     * Contains copies of metadata instances in {@link #originalComponents}, except
-     * with the component identifier replaced with the foreign counterpart.
-     */
-    private final InMemoryLoadingCache<ProjectComponentIdentifier, LocalComponentGraphResolveState> foreignIdentifiedComponents;
-
     @Inject
     public DefaultBuildTreeLocalComponentProvider(
         ProjectStateRegistry projectStateRegistry,
@@ -69,17 +59,11 @@ public class DefaultBuildTreeLocalComponentProvider implements BuildTreeLocalCom
         this.localComponentCache = localComponentCache;
         this.localComponentProvider = localComponentProvider;
         this.originalComponents = cacheFactory.createCalculatedValueCache(Describables.of("local metadata"), this::createLocalComponent);
-        this.foreignIdentifiedComponents = cacheFactory.createCalculatedValueCache(Describables.of("foreign metadata"), this::copyComponentWithForeignId);
     }
 
     @Override
     public LocalComponentGraphResolveState getComponent(ProjectComponentIdentifier projectIdentifier, Path currentBuildPath) {
-        boolean isLocalProject = projectIdentifier.getBuild().getBuildPath().equals(currentBuildPath.getPath());
-        if (isLocalProject) {
-            return originalComponents.get(projectIdentifier);
-        } else {
-            return foreignIdentifiedComponents.get(projectIdentifier);
-        }
+        return originalComponents.get(projectIdentifier);
     }
 
     private LocalComponentGraphResolveState createLocalComponent(ProjectComponentIdentifier projectIdentifier) {
@@ -89,28 +73,8 @@ public class DefaultBuildTreeLocalComponentProvider implements BuildTreeLocalCom
         );
     }
 
-    /**
-     * Return a copy of the component identified by {@code projectIdentifier}, except with its identifier replaced with the foreign counterpart.
-     *
-     * <p>Eventually, in Gradle 9.0, when {@link BuildIdentifier#isCurrentBuild()} is removed, all this logic can disappear.</p>
-     */
-    private LocalComponentGraphResolveState copyComponentWithForeignId(ProjectComponentIdentifier projectIdentifier) {
-        ProjectState projectState = projectStateRegistry.stateFor(projectIdentifier);
-        CompositeBuildParticipantBuildState buildState = (CompositeBuildParticipantBuildState) projectState.getOwner();
-        if (buildState instanceof IncludedBuildState) {
-            // Make sure the build is configured now (not do this for the root build, as we are already configuring it right now)
-            buildState.ensureProjectsConfigured();
-        }
-
-        // Get the local component, then transform it to have a foreign identifier
-        LocalComponentGraphResolveState originalComponent = originalComponents.get(projectIdentifier);
-        ProjectComponentIdentifier foreignIdentifier = buildState.idToReferenceProjectFromAnotherBuild(projectIdentifier);
-        return originalComponent.copyWithComponentId(foreignIdentifier);
-    }
-
     @Override
     public void discardAll() {
         originalComponents.invalidate();
-        foreignIdentifiedComponents.invalidate();
     }
 }

@@ -19,12 +19,8 @@ package org.gradle.composite.internal;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.BuildDefinition;
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
-import org.gradle.api.internal.artifacts.ForeignBuildIdentifier;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
-import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.Pair;
@@ -32,7 +28,6 @@ import org.gradle.internal.build.AbstractBuildState;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.CompositeBuildParticipantBuildState;
 import org.gradle.internal.buildtree.BuildTreeState;
-import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,19 +67,4 @@ public abstract class AbstractCompositeParticipantBuildState extends AbstractBui
         availableModules.add(Pair.of(moduleId, projectIdentifier));
     }
 
-    @Override
-    public ProjectComponentIdentifier idToReferenceProjectFromAnotherBuild(ProjectComponentIdentifier identifier) {
-        DefaultProjectComponentIdentifier original = (DefaultProjectComponentIdentifier) identifier;
-        Path foreignBuildPath = Path.path(getBuildIdentifier().getBuildPath());
-
-        ProjectIdentity localIdentity = original.getProjectIdentity();
-        ProjectIdentity foreignIdentity = new ProjectIdentity(
-            new ForeignBuildIdentifier(foreignBuildPath),
-            localIdentity.getBuildTreePath(),
-            localIdentity.getProjectPath(),
-            localIdentity.getProjectName()
-        );
-
-        return new DefaultProjectComponentIdentifier(foreignIdentity);
-    }
 }

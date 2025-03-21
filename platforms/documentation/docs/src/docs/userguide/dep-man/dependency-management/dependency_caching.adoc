@@ -227,6 +227,7 @@ If multiple incompatible Gradle versions are in play, all should be used when se
 | `modules-2`           | `files-2.1`           | `metadata-2.105`          | Gradle 8.1
 | `modules-2`           | `files-2.1`           | `metadata-2.106`          | Gradle 8.2 to Gradle 8.10.2
 | `modules-2`           | `files-2.1`           | `metadata-2.107`          | Gradle 8.11 and above
+| `modules-2`           | `files-2.1`           | `metadata-2.108`          | Gradle 9.0 and above
 |===
 
 [[sec:shared-readonly-cache]]
