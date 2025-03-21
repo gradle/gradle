@@ -17,7 +17,6 @@
 package org.gradle.internal.component.local.model;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider;
 import org.gradle.api.internal.artifacts.configurations.VariantIdentityUniquenessVerifier;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultLocalVariantGraphResolveStateBuilder;
@@ -31,7 +30,6 @@ import org.gradle.internal.model.InMemoryCacheFactory;
 import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 import java.util.Set;
@@ -157,6 +155,7 @@ public class LocalComponentGraphResolveStateFactory {
      * states as its data source.
      */
     private static class RealizedListVariantFactory implements LocalVariantGraphResolveStateFactory {
+
         private final List<? extends LocalVariantGraphResolveState> variants;
 
         public RealizedListVariantFactory(List<? extends LocalVariantGraphResolveState> variants) {
@@ -173,13 +172,6 @@ public class LocalComponentGraphResolveStateFactory {
         @Override
         public void invalidate() {}
 
-        @Override
-        public LocalVariantGraphResolveState getVariantByConfigurationName(String name) {
-            return variants.stream()
-                .filter(variant -> name.equals(variant.getMetadata().getConfigurationName()))
-                .findFirst()
-                .orElse(null);
-        }
     }
 
     /**
@@ -214,7 +206,15 @@ public class LocalComponentGraphResolveStateFactory {
             model.applyToMutableState(p -> {
                 VariantIdentityUniquenessVerifier.buildReport(configurationsProvider).assertNoConflicts();
                 configurationsProvider.visitConsumable(configuration -> {
-                    visitor.accept(createVariantState(configuration));
+                    LocalVariantGraphResolveState variantState = stateBuilder.createConsumableVariantState(
+                        configuration,
+                        componentId,
+                        cache,
+                        model,
+                        calculatedValueContainerFactory
+                    );
+
+                    visitor.accept(variantState);
                 });
             });
         }
@@ -224,27 +224,5 @@ public class LocalComponentGraphResolveStateFactory {
             cache.invalidate();
         }
 
-        @Nullable
-        @Override
-        public LocalVariantGraphResolveState getVariantByConfigurationName(String name) {
-            return model.fromMutableState(p -> {
-                ConfigurationInternal configuration = configurationsProvider.findByName(name);
-                if (configuration == null) {
-                    return null;
-                }
-
-                return createVariantState(configuration);
-            });
-        }
-
-        private LocalVariantGraphResolveState createVariantState(ConfigurationInternal configuration) {
-            return stateBuilder.createConsumableVariantState(
-                configuration,
-                componentId,
-                cache,
-                model,
-                calculatedValueContainerFactory
-            );
-        }
     }
 }
