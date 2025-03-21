@@ -74,6 +74,38 @@ import java.util.function.BiFunction;
  * <b>Note:</b> This interface is not intended for implementation by build script or plugin authors.
  * </p>
  *
+ * <h3>Configuration cache notes</h3>
+ * <p>
+ * The configuration cache serializes some providers in a special way when they are used as part of the stored configuration, for example, as task inputs.
+ * In general, the provider can be:
+ * <ul>
+ *     <li>
+ *         Evaluated at store time.
+ *         In this case only the computed value is stored. No code that was used to compute the value runs at execution time.
+ *         {@link ProviderFactory#provider(Callable)} is an example of such a provider.
+ *      </li>
+ *     <li>
+ *         Stored as a deferred computation.
+ *         The value is then computed lazily at execution time.
+ *         {@link ProviderFactory#environmentVariable(String)} is an example of such a provider.
+ *     </li>
+ * </ul>
+ * <p>
+ * Derived providers typically inherit the behavior of their base provider.
+ * For example, calling {@link #map(Transformer)} on the {@code Provider} returned by {@link ProviderFactory#provider(Callable)} creates a {@code Provider} that is also evaluated at store time.
+ * The transformer runs when storing the provider and then is discarded.
+ * On the other hand, calling {@link #map(Transformer)} on the {@code Provider} returned by {@link ProviderFactory#environmentVariable(String)} returns a provider that is stored as computation.
+ * When obtaining its value at execution time, the transformer runs. This implies that the configuration cache must be able to serialize and deserialize the state captured by the transformer.
+ * </p>
+ * <p>
+ * When a provider is derived from multiple providers, for example, with {@link #zip(Provider, BiFunction)}, the deferred computation's state typically includes all these providers.
+ * Each of these providers is serialized separately, using the process described above.
+ * For example, serializing a provider returned by {@code providerFactory.environmentVariable("FOO").zip(provider(() -> "BAR", (l, r) -> l + r)} will cause the Callable returning {@code "BAR"} to be
+ * computed.
+ * </p>
+ * <p>
+ * Check the javadocs for the specific provider to find out its serialization behavior.
+ *
  * @param <T> Type of value represented by provider
  * @since 4.0
  */
@@ -121,6 +153,11 @@ public interface Provider<T> {
      * to tasks that use the new provider for input values.
      * </p>
      *
+     * <h4>Configuration cache</h4>
+     * <p>
+     * The resulting provider is evaluated at store time if this provider can be evaluated at store time.
+     * Otherwise, it is stored as a deferred computation containing this provider and {@code transformer}.
+     *
      * @param transformer The transformer to apply to values. May return {@code null}, in which case the provider will have no value.
      * @since 4.3
      */
@@ -134,6 +171,11 @@ public interface Provider<T> {
      * and applies the spec to the result. Whenever the original provider has no value, the new provider
      * will also have no value and the spec will not be called.
      * </p>
+     *
+     * <h4>Configuration cache</h4>
+     * <p>
+     * The resulting provider is evaluated at store time if this provider can be evaluated at store time.
+     * Otherwise, it is stored as a deferred computation containing this provider and the {@code spec}.
      *
      * @param spec The spec to test the value.
      * @since 8.5
@@ -192,6 +234,11 @@ public interface Provider<T> {
      * provider will also have no value and the transformation will not be called.
      * </p>
      *
+     * <h4>Configuration cache</h4>
+     * <p>
+     * When storing, configuration cache evaluates this provider and the {@code transformer}.
+     * The new provider returned by the transformer is then considered for serialization.
+     *
      * @param transformer The transformer to apply to values. May return {@code null}, in which case the
      * provider will have no value.
      * @since 5.0
@@ -209,6 +256,11 @@ public interface Provider<T> {
      * Returns a {@link Provider} whose value is the value of this provider, if present, otherwise the
      * given default value.
      *
+     * <h4>Configuration cache</h4>
+     * <p>
+     * The resulting provider is evaluated at store time if this provider can be evaluated at store time.
+     * Otherwise, it is stored as a deferred computation that includes the supplied value.
+     *
      * @param value The default value to use when this provider has no value.
      * @since 5.6
      */
@@ -217,6 +269,15 @@ public interface Provider<T> {
     /**
      * Returns a {@link Provider} whose value is the value of this provider, if present, otherwise uses the
      * value from the given provider, if present.
+     *
+     * <h4>Configuration cache</h4>
+     * <p>
+     * The resulting provider is evaluated at store time if this provider can be evaluated at store time and
+     * <ul>
+     *     <li>present</li>
+     *     <li>missing, but the fallback {@code provider} can be evaluated at store time.</li>
+     * </ul>
+     * Otherwise, this provider is stored as a deferred computation containing this provider and the fallback {@code provider}.
      *
      * @param provider The provider whose value should be used when this provider has no value.
      * @since 5.6
@@ -247,6 +308,11 @@ public interface Provider<T> {
      * If the supplied providers represents a task or the output of a task, the resulting provider
      * will carry the dependency information.
      * </p>
+     *
+     * <h4>Configuration cache</h4>
+     * <p>
+     * The resulting provider is evaluated at store time if both this provider and the {@code right} provider can be evaluated at store time.
+     * Otherwise, it is stored as a deferred computation, containing this provider, the {@code right} provider and the {@code combiner}.
      *
      * @param right the second provider to combine with
      * @param combiner the combiner of values. May return {@code null}, in which case the provider
