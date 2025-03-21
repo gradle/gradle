@@ -539,14 +539,14 @@ Check the method documentation for more details.
 [[config_cache:integrity_check]]
 === Using integrity checks to debug store and load issues
 
-In order to improve performance and reduce entry size, the configuration cache performs a minimal amount of integrity checks as it writes or reads the data.
-However, it makes it harder to troubleshoot issues caused by concurrency problems or misbehaving serialization logic.
-The incorrectly stored object may not be discovered immediately, but it can affect reading data of some other, unrelated task.
-For example, reading a value of the property may end up with a type mismatch or break some other invariant, resulting in a potentially misleading or misattributed error message.
+To reduce entry size and improve performance, Gradle performs minimal integrity checks when writing and reading data.
+However, this approach can make troubleshooting issues more difficult, especially when dealing with concurrency problems or serialization errors.
+An incorrectly stored object may not be detected immediately but could lead to misleading or misattributed errors when reading cached data later.
 
-In order to make debugging easier, it is possible to enable stricter checks that may help to discover discrepancies earlier,
-at a cost of slowing down cache operations and significantly increasing the size of the entry.
-To do that, add the following line to your `gradle.properties`:
+To make debugging easier, Gradle provides an option to enable stricter integrity checks.
+This setting helps identify inconsistencies earlier but may slow down cache operations and significantly increase the cache entry size.
+To enable stricter integrity checks, add the following line to your `gradle.properties` file:
+
 [source,properties]
 .gradle.properties
 ----
@@ -554,6 +554,7 @@ org.gradle.configuration-cache.integrity-check=true
 ----
 
 For example, let's look at a type that implements a custom serialization protocol incorrectly:
+
 [source,java]
 ----
 include::{snippetsPath}/configurationCache/integrityChecks/common/buildSrc/src/main/java/User.java[tags=broken-type]
@@ -561,13 +562,15 @@ include::{snippetsPath}/configurationCache/integrityChecks/common/buildSrc/src/m
 <1> `writeObject` serializes both fields.
 <2> `readObject` reads only the first field, leaving the remaining data in the stream.
 
-Such a type will cause problems when used as part of a task state, because the configuration cache will try to interpret the remaining unread part of the object as some new value.
+Such a type will cause problems when used as part of a task state, because the configuration cache will try to interpret the remaining unread part of the object as some new value:
+
 [source,java]
 ----
 include::{snippetsPath}/configurationCache/integrityChecks/common/buildSrc/src/main/java/GreetTask.java[tags=task-with-broken-type]
 ----
 
-When running without the integrity check, you may get a cryptic failure message, perhaps accompanied by some induced configuration cache problems:
+When running without the integrity check, you may encounter cryptic failure messages, possibly accompanied by induced configuration cache problems:
+
 ----
 ❯ gradle --configuration-cache greet
 ...
@@ -575,23 +578,29 @@ When running without the integrity check, you may get a cryptic failure message,
 Index 4 out of bounds for length 3
 ----
 
-It might be really hard to connect the invalid index to a serialization issue. Rerunning the build with the integrity check enabled gives a much more precise diagnostic:
+These errors might not immediately point to the root cause, making debugging more challenging.
+It might be really hard to connect an invalid index error to a serialization issue, for example.
+
+Rerunning the build with the integrity check enabled provides a much more precise diagnostic, helping you pinpoint the source of the issue faster:
+
 ----
 ❯ gradle --configuration-cache -Dorg.gradle.configuration-cache.integrity-check=true greet
 ...
 include::{snippetsPath}/configurationCache/integrityChecks/tests/fail.out[]
 ----
-You can immediately see the name of the offending task and even the field that contains the broken data.
-Keep in mind that this attribution is best-effort: it should be accurate in most cases, but rarely can be confused by some byte patterns.
+
+You can immediately see the name of the offending task and the field that contains the broken data.
+
+Keep in mind that this attribution is best-effort: it should be accurate in most cases, but in rare instances, it may be confused by certain byte patterns.
 
 [WARNING]
 ====
-The integrity check relies on extra data stored in the cache, and thus cannot be used to debug an existing corrupted entry written without the check enabled.
+The integrity check relies on additional metadata stored within the cache. Therefore, it cannot be used to diagnose entries already corrupted prior to enabling the integrity check.
 ====
 
-Note, that the current set of integrity checks primarily aims at detecting issues with serialization protocols more than data corruption.
-It may not be as effective against issues caused by hardware failures like bit rotting or bad sectors.
-Because of that and of the extra costs the integrity check brings, we don't recommend to have it always enabled, but consider it a troubleshooting tool.
+The current integrity checks primarily focus on identifying serialization protocol issues rather than general data corruption.
+Consequently, they are less effective against hardware-related problems, such as bit rot or damaged storage sectors.
+Due to these limitations and the performance overhead introduced by integrity checks, we recommend enabling them selectively as a troubleshooting measure rather than leaving them permanently enabled.
 
 [[config_cache:adoption]]
 == Adoption steps
