@@ -13,6 +13,7 @@ dependencies {
 
     api(libs.jspecify)
 
+    runtimeOnly(libs.kotlinStdlib)
     implementation(projects.concurrent)
 
     implementation(libs.inject)

@@ -41,4 +41,11 @@ repositories {
         }
     }
     mavenCentral()
+    maven {
+        name = "Kotlin development repository"
+        url = uri("https://packages.jetbrains.team/maven/p/kt/dev")
+        content {
+            includeGroup("org.jetbrains.kotlin")
+        }
+    }
 }

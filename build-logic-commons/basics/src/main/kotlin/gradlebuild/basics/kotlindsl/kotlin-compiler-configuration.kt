@@ -42,6 +42,7 @@ fun KotlinCompile.configureKotlinCompilerForGradleBuild() {
         freeCompilerArgs.addAll(
             "-Xjsr305=strict",
             "-Xjspecify-annotations=strict",
+            "-Xskip-metadata-version-check",
             "-java-parameters",
             "-Xsam-conversions=class",
         )

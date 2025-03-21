@@ -61,7 +61,9 @@ abstract class KotlinDslCompilerPlugins : Plugin<Project> {
                             jvmTarget.set(this@kotlinDslPluginOptions.jvmTarget.map { JvmTarget.fromTarget(it) })
                         }
                     }
+                    @Suppress("DEPRECATION")
                     apiVersion.set(KotlinVersion.KOTLIN_1_8)
+                    @Suppress("DEPRECATION")
                     languageVersion.set(KotlinVersion.KOTLIN_1_8)
                     freeCompilerArgs.addAll(KotlinDslPluginSupport.kotlinCompilerArgs)
                 }

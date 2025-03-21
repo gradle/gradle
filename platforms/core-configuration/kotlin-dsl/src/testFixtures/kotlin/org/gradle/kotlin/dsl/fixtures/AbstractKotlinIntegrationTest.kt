@@ -60,6 +60,12 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
                 settings.pluginManagement {
                     repositories {
                         $testRepositories
+                        maven {
+                            url = "https://packages.jetbrains.team/maven/p/kt/dev/"
+                            metadataSources {
+                                artifact()
+                            }
+                        }
                         gradlePluginPortal()
                     }
                 }
