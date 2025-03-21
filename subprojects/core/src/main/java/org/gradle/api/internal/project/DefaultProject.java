@@ -65,6 +65,7 @@ import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.plugins.ExtensionContainerInternal;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.taskfactory.TaskInstantiator;
+import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.logging.Logger;
@@ -86,6 +87,7 @@ import org.gradle.configuration.project.ProjectEvaluator;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
+import org.gradle.internal.Describables;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.deprecation.DeprecationLogger;
@@ -98,8 +100,11 @@ import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
+import org.gradle.internal.model.CalculatedValueContainer;
+import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.model.RuleBasedPluginListener;
+import org.gradle.internal.model.ValueCalculator;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.TextUriResourceLoader;
 import org.gradle.internal.service.ServiceRegistry;
@@ -146,6 +151,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.Callable;
+import java.util.function.Supplier;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.Collections.singletonMap;
@@ -181,8 +187,10 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     private final String name;
 
     private Object group;
+    private final CalculatedValueContainer<String, ValueCalculator<String>> calculatedGroup;
 
     private Object version;
+    private final CalculatedValueContainer<String, ValueCalculator<String>> calculatedVersion;
 
     private Property<Object> status;
 
@@ -271,6 +279,12 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         ruleBasedPluginListenerBroadcast.add((RuleBasedPluginListener) project -> populateModelRegistry(services.get(ModelRegistry.class)));
 
         dynamicLookupRoutine = services.get(DynamicLookupRoutine.class);
+
+        CalculatedValueContainerFactory calculatedValueContainerFactory = services.get(CalculatedValueContainerFactory.class);
+        calculatedVersion = calculatedValueContainerFactory.create(
+            Describables.of("version of ", this), new ProjectCoordinateValueCalculator(this::stabilizeVersionOrDefault));
+        calculatedGroup = calculatedValueContainerFactory.create(
+            Describables.of("group of ", this), new ProjectCoordinateValueCalculator(this::stabilizeGroupOrDefault));
     }
 
     @SuppressWarnings("unused")
@@ -479,17 +493,31 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Override
     public Object getGroup() {
         onMutableStateAccess();
-        if (group != null) {
-            return group;
+        // TODO: without additional guards this has an effect of eagerly configuring the project in vintage,
+        //  which might change project evaluation order, depending on when the value is read
+        calculatedGroup.finalizeIfNotAlready();
+        return calculatedGroup.get();
+    }
+
+    private String stabilizeGroupOrDefault() {
+        Object groupAsObject = group;
+
+        if (groupAsObject != null) {
+            return groupAsObject.toString();
         } else if (this == rootProject) {
             return "";
         }
-        group = rootProject.getName() + (getParent() == rootProject ? "" : "." + getParent().getPath().substring(1).replace(':', '.'));
-        return group;
+        return rootProject.getName() + (getParent() == rootProject ? "" : "." + getParent().getPath().substring(1).replace(':', '.'));
     }
 
     @Override
     public void setGroup(Object group) {
+        // checking isFinalized should be safe from races, because the calculated value has the project lock
+        if (calculatedGroup.isFinalized() || gradle.isOverStableProjectsCoordinatesBarrier()) {
+            // TODO: or should just keep it as a violation?
+            throw new IllegalStateException("Cannot set group after project coordinates have been finalized");
+        }
+
         onMutableStateAccess();
         this.group = group;
     }
@@ -497,11 +525,23 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Override
     public Object getVersion() {
         onMutableStateAccess();
-        return version == null ? DEFAULT_VERSION : version;
+        // TODO: there is an option of introducing a separate accessor that will be called from DefaultProjectDependency, if we don't want `project.version` generally cross-project accessible
+        calculatedVersion.finalizeIfNotAlready();
+        return calculatedVersion.get();
+    }
+
+    private String stabilizeVersionOrDefault() {
+        Object versionAsObject = version;
+        return versionAsObject == null ? DEFAULT_VERSION : versionAsObject.toString();
     }
 
     @Override
     public void setVersion(Object version) {
+        // checking isFinalized should be safe from races, because the calculated value has the project lock
+        if (calculatedVersion.isFinalized() || gradle.isOverStableProjectsCoordinatesBarrier()) {
+            // TODO: or should just keep it as a violation?
+            throw new IllegalStateException("Cannot set version after project coordinates have been finalized");
+        }
         onMutableStateAccess();
         this.version = version;
     }
@@ -1655,6 +1695,31 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         @Override
         public ConfigurationContainer getConfigurations() {
             return resolutionServices.getConfigurationContainer();
+        }
+    }
+
+    private class ProjectCoordinateValueCalculator implements ValueCalculator<String> {
+
+        private final Supplier<String> supplier;
+
+        private ProjectCoordinateValueCalculator(Supplier<String> supplier) {
+            this.supplier = supplier;
+        }
+
+        @Override
+        public String calculateValue(NodeExecutionContext context) {
+            owner.ensureConfigured();
+            return supplier.get();
+        }
+
+        @Override
+        public boolean usesMutableProjectState() {
+            return true;
+        }
+
+        @Override
+        public ProjectInternal getOwningProject() {
+            return DefaultProject.this;
         }
     }
 }
