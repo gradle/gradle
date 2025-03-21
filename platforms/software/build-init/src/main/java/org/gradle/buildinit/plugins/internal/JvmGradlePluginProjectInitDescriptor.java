@@ -55,6 +55,8 @@ public abstract class JvmGradlePluginProjectInitDescriptor extends LanguageLibra
 
         buildScriptBuilder.plugin("Apply the Java Gradle plugin development plugin to add support for developing Gradle plugins", "java-gradle-plugin");
 
+        buildScriptBuilder.taskPropertyAssignment("Enable stricter plugins validation", "validatePlugins", "ValidatePlugins", "enableStricterValidation", true);
+
         buildScriptBuilder.block(null, "gradlePlugin", b -> b.containerElement("Define the plugin", "plugins", "greeting", null, g -> {
             g.propertyAssignment(null, "id", pluginId, true);
             g.propertyAssignment(null, "implementationClass", withPackage(settings, pluginClassName), true);

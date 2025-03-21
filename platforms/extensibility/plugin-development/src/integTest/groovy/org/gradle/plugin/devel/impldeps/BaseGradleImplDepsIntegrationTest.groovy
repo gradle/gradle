@@ -86,6 +86,10 @@ abstract class BaseGradleImplDepsIntegrationTest extends AbstractIntegrationSpec
                     }
                 }
             }
+
+            tasks.validatePlugins {
+                enableStricterValidation = true
+            }
         """
         buildFile.toString()
     }

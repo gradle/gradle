@@ -106,6 +106,15 @@ public abstract class ValidatePlugins extends DefaultTask {
             .submit(ValidateAction.class, params -> {
                 params.getClasses().setFrom(getClasses());
                 params.getOutputFile().set(getOutputFile());
+                if (!getEnableStricterValidation().get()) {
+                    DeprecationLogger.deprecateBehaviour("Using task ValidatePlugins without enabling stricter validation.")
+                        .withProblemIdDisplayName("Using task ValidatePlugins without enabling stricter validation.")
+                        .withProblemId("validate-plugins-without-stricter-validation")
+                        .withAdvice("Set tasks.validatePlugins { enableStricterValidation = true }.")
+                        .startingWithGradle9("stricter validation will be enabled by default")
+                        .withUpgradeGuideSection(8, "validate_plugins_without_stricter_validation")
+                        .nagUser();
+                }
                 params.getEnableStricterValidation().set(getEnableStricterValidation());
             });
         getWorkerExecutor().await();

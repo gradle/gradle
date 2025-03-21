@@ -26,6 +26,10 @@ gradlePlugin {
 }
 // end::plugin[]
 
+tasks.validatePlugins {
+    enableStricterValidation = true
+}
+
 // Add a source set and a task for a functional test suite
 def functionalTest = sourceSets.create('functionalTest')
 gradlePlugin.testSourceSets(functionalTest)

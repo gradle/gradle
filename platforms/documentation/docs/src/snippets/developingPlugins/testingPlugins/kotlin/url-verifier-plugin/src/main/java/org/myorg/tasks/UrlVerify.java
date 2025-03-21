@@ -6,11 +6,13 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.work.DisableCachingByDefault;
 import org.myorg.http.DefaultHttpCaller;
 import org.myorg.http.HttpCallException;
 import org.myorg.http.HttpCaller;
 import org.myorg.http.HttpResponse;
 
+@DisableCachingByDefault(because = "external state")
 abstract public class UrlVerify extends DefaultTask {
     private HttpCaller httpCaller = new DefaultHttpCaller();
 

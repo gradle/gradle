@@ -10,3 +10,7 @@ gradlePlugin {
         }
     }
 }
+
+tasks.validatePlugins {
+    enableStricterValidation = true
+}

@@ -29,6 +29,9 @@ trait ValidatePluginsTrait implements CommonPluginValidationTrait {
         enableProblemsApiCheck()
         buildFile """
             apply plugin: "java-gradle-plugin"
+            tasks.validatePlugins {
+                enableStricterValidation = true
+            }
         """
     }
 

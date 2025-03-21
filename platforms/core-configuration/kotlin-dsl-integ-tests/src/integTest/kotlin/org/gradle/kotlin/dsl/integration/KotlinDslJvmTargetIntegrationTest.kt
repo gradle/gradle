@@ -139,6 +139,9 @@ class KotlinDslJvmTargetIntegrationTest : AbstractKotlinIntegrationTest() {
                 maven(url = "${mavenRepo.uri}")
                 gradlePluginPortal()
             }
+            tasks.validatePlugins {
+                enableStricterValidation = true
+            }
             publishing {
                 repositories {
                     maven(url = "${mavenRepo.uri}")
@@ -212,6 +215,9 @@ class KotlinDslJvmTargetIntegrationTest : AbstractKotlinIntegrationTest() {
             repositories {
                 maven(url = "${mavenRepo.uri}")
                 gradlePluginPortal()
+            }
+            tasks.validatePlugins {
+                enableStricterValidation = true
             }
             publishing {
                 repositories {

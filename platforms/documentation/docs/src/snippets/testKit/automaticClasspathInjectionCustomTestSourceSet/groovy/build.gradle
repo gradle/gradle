@@ -28,6 +28,10 @@ dependencies {
 }
 // end::custom-test-source-set[]
 
+tasks.validatePlugins {
+    enableStricterValidation = true
+}
+
 repositories {
     mavenCentral()
 }

@@ -48,6 +48,10 @@ gradlePlugin {
 }
 // end::plugin_example[]
 
+tasks.validatePlugins {
+    enableStricterValidation = true
+}
+
 // tag::local_repository[]
 publishing {
     repositories {

@@ -134,14 +134,15 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
         ann << [InputArtifact, InputArtifactDependencies]
     }
 
-    def "can enable stricter validation"() {
+    def "can disable stricter validation"() {
         enableProblemsApiCheck()
         buildFile << """
             dependencies {
                 implementation localGroovy()
             }
-            def strictProp = providers.gradleProperty("strict")
-            validatePlugins.enableStricterValidation = strictProp.present
+            if (providers.gradleProperty("disabled").present) {
+                validatePlugins.enableStricterValidation = false
+            }
         """
 
         groovyTaskSource << """
@@ -166,12 +167,6 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
         """
 
         expect:
-        assertValidationSucceeds()
-
-        when:
-        file("gradle.properties").text = "strict=true"
-
-        then:
         assertValidationFailsWith([
             error(missingNormalizationStrategyConfig { type('MyTask').property('dirProp').annotatedWith('InputDirectory') }, 'validation_problems', 'missing_normalization_annotation'),
             error(missingNormalizationStrategyConfig { type('MyTask').property('fileProp').annotatedWith('InputFile') }, 'validation_problems', 'missing_normalization_annotation'),
@@ -207,6 +202,31 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
             additionalData.asMap == [
                 'typeName' : 'MyTask',
                 'propertyName' : 'filesProp',
+            ]
+        }
+
+        when:
+        file("gradle.properties").text = "disabled=true"
+
+        and:
+        executer.expectDocumentedDeprecationWarning(
+            "Using task ValidatePlugins without enabling stricter validation. " +
+                "This behavior has been deprecated. Starting with Gradle 9.0, stricter validation will be enabled by default. " +
+                "Set tasks.validatePlugins { enableStricterValidation = true }. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#validate_plugins_without_stricter_validation"
+        )
+
+        then:
+        assertValidationSucceeds()
+
+        and:
+        verifyAll(receivedProblem(0)) {
+            fqid == 'deprecation:validate-plugins-without-stricter-validation'
+            contextualLabel == 'Using task ValidatePlugins without enabling stricter validation. This behavior has been deprecated.'
+            details == 'Starting with Gradle 9.0, stricter validation will be enabled by default.'
+            solutions == [ 'Set tasks.validatePlugins { enableStricterValidation = true }.' ]
+            additionalData.asMap == [
+                'type': 'USER_CODE_DIRECT'
             ]
         }
     }
@@ -613,7 +633,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
 
             public interface NestedBean {
 
-                @$annotation
+                @$annotation $pathSensitivity
                 Property<ResolvedArtifactResult> getNestedInput();
             }
         """
@@ -629,22 +649,22 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
 
                 private final NestedBean nested = getProject().getObjects().newInstance(NestedBean.class);
 
-                @$annotation
+                @$annotation $pathSensitivity
                 public ResolvedArtifactResult getDirect() { return null; }
 
-                @$annotation
+                @$annotation $pathSensitivity
                 public Provider<ResolvedArtifactResult> getProviderInput() { return getPropertyInput(); }
 
-                @$annotation
+                @$annotation $pathSensitivity
                 public abstract Property<ResolvedArtifactResult> getPropertyInput();
 
-                @$annotation
+                @$annotation $pathSensitivity
                 public abstract SetProperty<ResolvedArtifactResult> getSetPropertyInput();
 
-                @$annotation
+                @$annotation $pathSensitivity
                 public abstract ListProperty<ResolvedArtifactResult> getListPropertyInput();
 
-                @$annotation
+                @$annotation $pathSensitivity
                 public abstract MapProperty<String, ResolvedArtifactResult> getMapPropertyInput();
 
                 @Nested
@@ -759,10 +779,10 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
         }
 
         where:
-        annotation   | _
-        "Input"      | _
-        "InputFile"  | _
-        "InputFiles" | _
+        annotation   | pathSensitivity
+        "Input"      | ""
+        "InputFile"  | "@PathSensitive(PathSensitivity.RELATIVE)"
+        "InputFiles" | "@PathSensitive(PathSensitivity.RELATIVE)"
     }
 }
 
