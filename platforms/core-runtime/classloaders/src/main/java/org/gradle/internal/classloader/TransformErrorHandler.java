@@ -17,6 +17,7 @@
 package org.gradle.internal.classloader;
 
 import com.google.common.base.Throwables;
+import org.gradle.internal.UncheckedException;
 
 import javax.annotation.Nullable;
 
@@ -118,8 +119,7 @@ public class TransformErrorHandler {
             addSuppressedIfAvailable(th, pendingException);
         }
         Throwables.throwIfInstanceOf(th, ClassNotFoundException.class);
-        Throwables.throwIfUnchecked(th);
-        throw new RuntimeException("Unexpected exception type", th);
+        throw UncheckedException.throwAsUncheckedException(th);
     }
 
     @Nullable
