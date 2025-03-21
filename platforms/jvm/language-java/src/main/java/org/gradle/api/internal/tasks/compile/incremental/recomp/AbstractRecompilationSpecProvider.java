@@ -185,7 +185,7 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
                 newClasses.add(className);
             }
         }
-        return newClasses;
+        return Collections.unmodifiableSet(newClasses);
     }
 
     private static void processTypesToReprocess(Set<String> typesToReprocess, RecompilationSpec spec, SourceFileClassNameConverter sourceFileClassNameConverter) {

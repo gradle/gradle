@@ -28,7 +28,6 @@ import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.CommandLineJavaCompileSpec;
-import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
 import org.gradle.api.internal.tasks.compile.CompileJavaBuildOperationReportingCompiler;
 import org.gradle.api.internal.tasks.compile.CompilerForkUtils;
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpec;
@@ -36,6 +35,8 @@ import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpecFactory;
 import org.gradle.api.internal.tasks.compile.HasCompileOptions;
 import org.gradle.api.internal.tasks.compile.JavaCompileExecutableUtils;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
+import org.gradle.api.internal.tasks.compile.MinimalJavaCompileOptionsConverter;
+import org.gradle.api.internal.tasks.compile.SourceRootInferrer;
 import org.gradle.api.internal.tasks.compile.incremental.IncrementalCompilerFactory;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.JavaRecompilationSpecProvider;
 import org.gradle.api.jvm.ModularitySpec;
@@ -56,6 +57,7 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.internal.Cast;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
@@ -65,9 +67,8 @@ import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.jvm.toolchain.JavaCompiler;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 import org.gradle.jvm.toolchain.JavaToolchainService;
-import org.gradle.jvm.toolchain.internal.DefaultToolchainJavaCompiler;
+import org.gradle.jvm.toolchain.internal.JavaCompilerFactory;
 import org.gradle.jvm.toolchain.internal.JavaExecutableUtils;
-import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.work.Incremental;
 import org.gradle.work.InputChanges;
@@ -144,14 +145,25 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
     @TaskAction
     protected void compile(InputChanges inputs) {
         DefaultJavaCompileSpec spec = createSpec();
+        CleaningJavaCompiler<JavaCompileSpec> compiler = createCompiler(spec);
+
+        Compiler<JavaCompileSpec> finalCompiler = compiler;
         if (!compileOptions.isIncremental()) {
-            performFullCompilation(spec);
+            spec.setSourceFiles(getStableSources());
         } else {
-            performIncrementalCompilation(inputs, spec);
+            finalCompiler = makeIncremental(inputs, spec, compiler);
         }
+
+        performCompilation(spec, finalCompiler);
     }
 
-    private void performIncrementalCompilation(InputChanges inputs, DefaultJavaCompileSpec spec) {
+    private CleaningJavaCompiler<JavaCompileSpec> createCompiler(DefaultJavaCompileSpec spec) {
+        Class<JavaCompileSpec> specType = Cast.uncheckedNonnullCast(((JavaCompileSpec) spec).getClass());
+        Compiler<JavaCompileSpec> compiler = getJavaCompilerFactory().create(specType);
+        return new CleaningJavaCompiler<>(compiler, getOutputs(), getDeleter());
+    }
+
+    private Compiler<JavaCompileSpec> makeIncremental(InputChanges inputs, DefaultJavaCompileSpec spec, CleaningJavaCompiler<JavaCompileSpec> cleaningCompiler) {
         boolean isUsingCliCompiler = isUsingCliCompiler(spec);
         if (isUsingCliCompiler) {
             spec.getCompileOptions().setSupportsIncrementalCompilationAfterFailure(false);
@@ -160,15 +172,9 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
         spec.getCompileOptions().setSupportsConstantAnalysis(!isUsingCliCompiler);
         spec.getCompileOptions().setPreviousCompilationDataFile(getPreviousCompilationData());
 
-        Compiler<JavaCompileSpec> compiler = createCompiler();
-        compiler = makeIncremental(inputs, (CleaningJavaCompiler<JavaCompileSpec>) compiler, getStableSources());
-        performCompilation(spec, compiler);
-    }
-
-    private Compiler<JavaCompileSpec> makeIncremental(InputChanges inputs, CleaningJavaCompiler<JavaCompileSpec> compiler, FileCollection stableSources) {
-        FileTree sources = stableSources.getAsFileTree();
+        FileTree sources = getStableSources().getAsFileTree();
         return getIncrementalCompilerFactory().makeIncremental(
-            compiler,
+            cleaningCompiler,
             sources,
             createRecompilationSpec(inputs, sources)
         );
@@ -186,25 +192,6 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
 
     private boolean isUsingCliCompiler(DefaultJavaCompileSpec spec) {
         return CommandLineJavaCompileSpec.class.isAssignableFrom(spec.getClass());
-    }
-
-    private void performFullCompilation(DefaultJavaCompileSpec spec) {
-        Compiler<JavaCompileSpec> compiler;
-        spec.setSourceFiles(getStableSources());
-        compiler = createCompiler();
-        performCompilation(spec, compiler);
-    }
-
-    CleaningJavaCompiler<JavaCompileSpec> createCompiler() {
-        Compiler<JavaCompileSpec> javaCompiler = createToolchainCompiler();
-        return new CleaningJavaCompiler<>(javaCompiler, getOutputs(), getDeleter());
-    }
-
-    private <T extends CompileSpec> Compiler<T> createToolchainCompiler() {
-        return spec -> {
-            DefaultToolchainJavaCompiler compiler = (DefaultToolchainJavaCompiler) getJavaCompiler().get();
-            return compiler.execute(spec);
-        };
     }
 
     /**
@@ -228,12 +215,14 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
     @VisibleForTesting
     DefaultJavaCompileSpec createSpec() {
         validateForkOptionsMatchToolchain();
-        List<File> sourcesRoots = CompilationSourceDirs.inferSourceRoots((FileTreeInternal) getStableSources().getAsFileTree());
+        List<File> sourcesRoots = SourceRootInferrer.inferSourceRoots((FileTreeInternal) getStableSources().getAsFileTree());
         JavaModuleDetector javaModuleDetector = getJavaModuleDetector();
         boolean isModule = JavaModuleDetector.isModuleSource(modularity.getInferModulePath().get(), sourcesRoots);
         boolean isSourcepathUserDefined = compileOptions.getSourcepath() != null && !compileOptions.getSourcepath().isEmpty();
 
-        DefaultJavaCompileSpec spec = new DefaultJavaCompileSpecFactory(compileOptions, getToolchain()).create();
+        JavaInstallationMetadata toolchain = getToolchain();
+        getLogger().info("Compiling with toolchain '{}'.", toolchain.getInstallationPath());
+        DefaultJavaCompileSpec spec = new DefaultJavaCompileSpecFactory(compileOptions, toolchain).create();
 
         spec.setDestinationDir(getDestinationDirectory().getAsFile().get());
         spec.setWorkingDir(getProjectLayout().getProjectDirectory().getAsFile());
@@ -312,7 +301,7 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
             spec.setSourceCompatibility(sourceCompatibility);
             spec.setTargetCompatibility(targetCompatibility);
         }
-        spec.setCompileOptions(compileOptions);
+        spec.setCompileOptions(MinimalJavaCompileOptionsConverter.toMinimalJavaCompileOptions(compileOptions));
     }
 
     private JavaInstallationMetadata getToolchain() {
@@ -406,4 +395,7 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
     protected ProjectLayout getProjectLayout() {
         throw new UnsupportedOperationException();
     }
+
+    @Inject
+    protected abstract JavaCompilerFactory getJavaCompilerFactory();
 }

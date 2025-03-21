@@ -38,8 +38,8 @@ import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.tasks.DefaultSourceSetOutput;
 import org.gradle.api.internal.tasks.JvmConstants;
-import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
 import org.gradle.api.internal.tasks.compile.JavaCompileExecutableUtils;
+import org.gradle.api.internal.tasks.compile.SourceRootInferrer;
 import org.gradle.api.internal.tasks.testing.TestExecutableUtils;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.DefaultJavaPluginConvention;
@@ -197,7 +197,7 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
                 }
 
                 // If we are compiling a module, we require JARs of all dependencies as they may potentially include an Automatic-Module-Name
-                List<File> sourcesRoots = CompilationSourceDirs.inferSourceRoots((FileTreeInternal) sourceSet.getJava().getAsFileTree());
+                List<File> sourcesRoots = SourceRootInferrer.inferSourceRoots((FileTreeInternal) sourceSet.getJava().getAsFileTree());
                 if (JavaModuleDetector.isModuleSource(inferModulePath, sourcesRoots)) {
                     return LibraryElements.JAR;
                 } else {
