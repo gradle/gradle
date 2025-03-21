@@ -4,7 +4,7 @@ plugins {
 
 errorprone {
     disabledChecks.addAll(
-        "ModifiedButNotUsed", // 1 occurrences
+//        "ModifiedButNotUsed", // 1 occurrences
     )
 }
 dependencies {
