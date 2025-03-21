@@ -657,7 +657,7 @@ class DefaultConfigurationCacheIO internal constructor(
             attributesFactory = service(),
             valueSourceProviderFactory = service(),
             calculatedValueContainerFactory = service(),
-            patternSetFactory = factory(),
+            patternSetFactory = service(),
             fileOperations = service(),
             fileFactory = service(),
             includedTaskGraph = service(),
@@ -675,8 +675,4 @@ class DefaultConfigurationCacheIO internal constructor(
     private
     inline fun <reified T : Any> service() =
         host.service<T>()
-
-    private
-    inline fun <reified T> factory() =
-        host.factory(T::class.java)
 }

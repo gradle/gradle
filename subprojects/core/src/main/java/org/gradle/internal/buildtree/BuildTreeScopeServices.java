@@ -38,7 +38,7 @@ import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.internal.InternalProblems;
-import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.api.tasks.util.internal.PatternSetFactory;
 import org.gradle.configuration.project.BuiltInCommand;
 import org.gradle.execution.DefaultTaskSelector;
 import org.gradle.execution.ProjectConfigurer;
@@ -52,7 +52,6 @@ import org.gradle.initialization.exception.DefaultExceptionAnalyser;
 import org.gradle.initialization.exception.ExceptionCollector;
 import org.gradle.initialization.exception.MultipleBuildFailuresExceptionAnalyser;
 import org.gradle.initialization.exception.StackTraceSanitizingExceptionAnalyser;
-import org.gradle.internal.Factory;
 import org.gradle.internal.build.BuildLifecycleControllerFactory;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.DefaultBuildLifecycleControllerFactory;
@@ -122,7 +121,7 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
 
     @Provides
     ObjectFactory createObjectFactory(
-        InstantiatorFactory instantiatorFactory, DirectoryFileTreeFactory directoryFileTreeFactory, Factory<PatternSet> patternSetFactory,
+        InstantiatorFactory instantiatorFactory, DirectoryFileTreeFactory directoryFileTreeFactory, PatternSetFactory patternSetFactory,
         PropertyFactory propertyFactory, FilePropertyFactory filePropertyFactory, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory,
         DomainObjectCollectionFactory domainObjectCollectionFactory, NamedObjectInstantiator instantiator
     ) {

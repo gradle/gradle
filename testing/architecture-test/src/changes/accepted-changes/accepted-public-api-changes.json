@@ -1,6 +1,22 @@
 {
     "acceptedApiChanges": [
         {
+            "type": "org.gradle.api.tasks.SourceTask",
+            "member": "Method org.gradle.api.tasks.SourceTask.getPatternSetFactory()",
+            "acceptation": "protected injected internal service",
+            "changes": [
+                "Method return type has changed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.Test",
+            "member": "Method org.gradle.api.tasks.testing.Test.getPatternSetFactory()",
+            "acceptation": "protected injected internal service",
+            "changes": [
+                "Method return type has changed"
+            ]
+        },
+        {
             "type": "org.gradle.plugin.devel.GradlePluginDevelopmentExtension",
             "member": "Method org.gradle.plugin.devel.GradlePluginDevelopmentExtension.getPlugins()",
             "acceptation": "auto-generated as managed properties",

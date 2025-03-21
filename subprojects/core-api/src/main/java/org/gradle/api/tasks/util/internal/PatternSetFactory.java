@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,13 @@
 
 package org.gradle.api.tasks.util.internal;
 
-public class PatternSets {
-    private static final PatternSetFactory PATTERN_SET_FACTORY = new DefaultPatternSetFactory(PatternSpecFactory.INSTANCE);
+import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
-    /**
-     * Should use as an injected service instead.
-     *
-     * @deprecated Should use as an injected service instead.
-     */
-    @Deprecated
-    public static PatternSetFactory getNonCachingPatternSetFactory() {
-        return PATTERN_SET_FACTORY;
-    }
+@ServiceScope(Scope.Global.class)
+public interface PatternSetFactory {
+
+    PatternSet createPatternSet();
+
 }

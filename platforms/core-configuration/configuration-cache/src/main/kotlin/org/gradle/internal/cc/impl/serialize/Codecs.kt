@@ -38,11 +38,10 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.provider.PropertyFactory
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.problems.internal.InternalProblems
-import org.gradle.api.tasks.util.PatternSet
+import org.gradle.api.tasks.util.internal.PatternSetFactory
 import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.execution.plan.OrdinalGroupFactory
 import org.gradle.execution.plan.TaskNodeFactory
-import org.gradle.internal.Factory
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
@@ -167,7 +166,7 @@ class Codecs(
     attributeDesugaring: AttributeDesugaring,
     valueSourceProviderFactory: ValueSourceProviderFactory,
     calculatedValueContainerFactory: CalculatedValueContainerFactory,
-    patternSetFactory: Factory<PatternSet>,
+    patternSetFactory: PatternSetFactory,
     fileOperations: FileOperations,
     fileFactory: FileFactory,
     includedTaskGraph: BuildTreeWorkGraphController,
@@ -378,7 +377,7 @@ class Codecs(
         artifactSetConverter: ArtifactSetToFileCollectionFactory,
         fileOperations: FileOperations,
         fileFactory: FileFactory,
-        patternSetFactory: Factory<PatternSet>,
+        patternSetFactory: PatternSetFactory,
         fileLookup: FileLookup
     ) {
         bind(PathToFileResolverCodec(fileLookup))
