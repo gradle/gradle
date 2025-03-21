@@ -910,7 +910,7 @@ public class BuildScriptBuilder {
 
     private static abstract class AbstractStatement implements Statement {
 
-        final String comment;
+        private final String comment;
 
         AbstractStatement(@Nullable String comment) {
             this.comment = comment;
@@ -971,7 +971,7 @@ public class BuildScriptBuilder {
 
     private static class ContainerElement extends AbstractStatement implements ExpressionValue {
 
-        private final String comment;
+        private final String containerComment;
         private final String container;
         private final String elementName;
         @Nullable
@@ -980,9 +980,9 @@ public class BuildScriptBuilder {
         private final String elementType;
         private final ScriptBlockImpl body = new ScriptBlockImpl();
 
-        public ContainerElement(String comment, String container, String elementName, @Nullable String elementType, @Nullable String varName) {
+        public ContainerElement(String containerComment, String container, String elementName, @Nullable String elementType, @Nullable String varName) {
             super(null);
-            this.comment = comment;
+            this.containerComment = containerComment;
             this.container = container;
             this.elementName = elementName;
             this.elementType = elementType;
@@ -991,7 +991,7 @@ public class BuildScriptBuilder {
 
         @Override
         public void writeCodeTo(PrettyPrinter printer) {
-            Statement statement = printer.syntax.createContainerElement(comment, container, elementName, elementType, varName, body.statements);
+            Statement statement = printer.syntax.createContainerElement(containerComment, container, elementName, elementType, varName, body.statements);
             printer.printStatement(statement);
         }
 

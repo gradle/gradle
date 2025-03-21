@@ -11,7 +11,6 @@ errorprone {
     disabledChecks.addAll(
         "DefaultCharset", // 6 occurrences
         "GetClassOnEnum", // 1 occurrences
-        "HidingField", // 2 occurrences
         "ImmutableEnumChecker", // 2 occurrences
         "ReferenceEquality", // 1 occurrences
     )
