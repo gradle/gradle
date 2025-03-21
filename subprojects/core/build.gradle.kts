@@ -49,7 +49,6 @@ errorprone {
         "ProtectedMembersInFinalClass", // 1 occurrences
         "ReferenceEquality", // 2 occurrences
         "ReturnValueIgnored", // 1 occurrences
-        "SameNameButDifferent", // 11 occurrences
         "StreamResourceLeak", // 6 occurrences
         "TypeParameterShadowing", // 1 occurrences
         "TypeParameterUnusedInFormals", // 2 occurrences

@@ -25,7 +25,6 @@ errorprone {
         "NonApiType", // 3 occurrences
         "NonCanonicalType", // 3 occurrences
         "ReferenceEquality", // 10 occurrences
-        "SameNameButDifferent", // 4 occurrences
         "StringCharset", // 1 occurrences
         "TypeParameterShadowing", // 4 occurrences
         "TypeParameterUnusedInFormals", // 2 occurrences
