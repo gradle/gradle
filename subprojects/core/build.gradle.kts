@@ -35,16 +35,11 @@ val testInterceptorsImplementation: Configuration by configurations.getting {
 errorprone {
     disabledChecks.addAll(
         "DefaultCharset", // 4 occurrences
-        "EmptyBlockTag", // 4 occurrences
         "Finally", // 1 occurrences
         "IdentityHashMapUsage", // 1 occurrences
-        "InlineFormatString", // 2 occurrences
         "ModifyCollectionInEnhancedForLoop", // 1 occurrences
-        "MutablePublicArray", // 2 occurrences
         "NonApiType", // 1 occurrences
         "NonCanonicalType", // 16 occurrences
-        "OptionalMapUnusedValue", // 1 occurrences
-        "ProtectedMembersInFinalClass", // 1 occurrences
         "ReferenceEquality", // 2 occurrences
         "ReturnValueIgnored", // 1 occurrences
         "StreamResourceLeak", // 6 occurrences
