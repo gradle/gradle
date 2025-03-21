@@ -58,7 +58,7 @@ public class SettingsScopeServices implements ServiceRegistrationProvider {
 
     public static CloseableServiceRegistry create(ServiceRegistry parent, SettingsInternal settings) {
         return ServiceRegistryBuilder.builder()
-            .scopeStrictly(Scope.Settings.class)
+            .scope(Scope.Settings.class)
             .displayName("settings services")
             .parent(parent)
             .provider(new SettingsScopeServices(settings))

@@ -397,7 +397,7 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
     @VisibleForTesting
     public ServiceRegistry createBasicGlobalServices(ServiceRegistry loggingServices) {
         return ServiceRegistryBuilder.builder()
-            .scopeStrictly(Scope.Global.class)
+            .scope(Scope.Global.class)
             .displayName("Basic global services")
             .parent(loggingServices)
             .parent(NativeServices.getInstance())
