@@ -17,8 +17,8 @@
 
 package org.gradle.api.internal.artifacts.configurations
 
-import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.project.ProjectIdentity
@@ -42,8 +42,8 @@ class TasksFromProjectDependenciesTest extends AbstractProjectBuilderSpec {
     def project2 = Mock(ProjectInternal)
     def projectPath1 = Path.path("project1")
     def projectPath2 = Path.path("project2")
-    def projectId1 = new ProjectIdentity(Mock(BuildIdentifier), projectPath1, projectPath1, "project1")
-    def projectId2 = new ProjectIdentity(Mock(BuildIdentifier), projectPath2, projectPath2, "project2")
+    def projectId1 = new ProjectIdentity(DefaultBuildIdentifier.ROOT, projectPath1, projectPath1, "project1")
+    def projectId2 = new ProjectIdentity(DefaultBuildIdentifier.ROOT, projectPath2, projectPath2, "project2")
     def projectDep1 = Mock(ProjectDependencyInternal) { getTargetProjectIdentity() >> projectId1 }
     def projectDep2 = Mock(ProjectDependencyInternal) { getTargetProjectIdentity() >> projectId2 }
     def tasks1 = Mock(TaskContainerInternal)

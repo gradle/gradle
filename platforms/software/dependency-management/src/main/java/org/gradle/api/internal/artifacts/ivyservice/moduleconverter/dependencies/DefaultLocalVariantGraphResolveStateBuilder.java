@@ -119,8 +119,6 @@ public class DefaultLocalVariantGraphResolveStateBuilder implements LocalVariant
             idGenerator.nextVariantId(),
             componentId,
             metadata,
-            idGenerator,
-            calculatedValueContainerFactory,
             dependencies,
             Collections.emptySet()
         );
@@ -179,8 +177,6 @@ public class DefaultLocalVariantGraphResolveStateBuilder implements LocalVariant
             idGenerator.nextVariantId(),
             componentId,
             metadata,
-            idGenerator,
-            calculatedValueContainerFactory,
             dependencies,
             artifactSets.build()
         );
