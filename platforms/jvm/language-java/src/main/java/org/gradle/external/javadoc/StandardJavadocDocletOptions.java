@@ -724,8 +724,8 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         this.noDeprecated.setValue(noDeprecated);
     }
 
-    public StandardJavadocDocletOptions noDeprecated(boolean nodeprecated) {
-        setNoDeprecated(nodeprecated);
+    public StandardJavadocDocletOptions noDeprecated(boolean noDeprecated) {
+        setNoDeprecated(noDeprecated);
         return this;
     }
 

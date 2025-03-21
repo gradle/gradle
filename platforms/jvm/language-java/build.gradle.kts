@@ -12,7 +12,6 @@ errorprone {
     disabledChecks.addAll(
         "CheckReturnValue", // 2 occurrences
         "DoNotClaimAnnotations", // 6 occurrences
-        "InconsistentCapitalization", // 1 occurrences
     )
 }
 
