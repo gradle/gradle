@@ -277,7 +277,13 @@ class ToolingApi implements TestRule {
 
     private createConnector() {
         if (isolatedToolingClient != null) {
-            return isolatedToolingClient.get(GradleConnectorFactory).createConnector()
+            // This fixture can be loaded with a classloader of TAPI jar from previous Gradle releases
+            def currentVersion = GradleVersion.current().baseVersion
+            if (currentVersion <= GradleVersion.version("8.13")) {
+                return isolatedToolingClient.getFactory(GradleConnector).create()
+            } else {
+                return isolatedToolingClient.get(GradleConnectorFactory).createConnector()
+            }
         }
         return GradleConnector.newConnector() as DefaultGradleConnector
     }
