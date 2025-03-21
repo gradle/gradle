@@ -300,6 +300,7 @@ dependencies {
     annotationProcessor(platform(projects.distributionsDependencies))
 
     testInterceptorsImplementation(platform(projects.distributionsDependencies))
+    testInterceptorsImplementation(testFixtures(projects.core))
     "testInterceptorsAnnotationProcessor"(projects.internalInstrumentationProcessor)
     "testInterceptorsAnnotationProcessor"(platform(projects.distributionsDependencies))
 }

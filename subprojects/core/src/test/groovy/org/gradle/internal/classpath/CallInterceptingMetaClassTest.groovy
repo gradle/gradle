@@ -305,6 +305,25 @@ class CallInterceptingMetaClassTest extends Specification {
         "via setProperty" | "string"  | "setNonExistentProperty(String)-non-existent" | "nonExistentProperty" | { instance.metaClass.setProperty(null, instance, "nonExistentProperty", "!", false, false) }
     }
 
+    def 'set meta property use Provider API coercion when a property is not intercepted but a property with the same name in another type exists'() {
+        given:
+        def propertyName = "richProperty"
+        instance = new InterceptorTestReceiver()
+        MetaProperty property = null
+
+        when:
+        withEntryPoint(SET_PROPERTY, propertyName) {
+            property = instance.metaClass.getMetaProperty(propertyName)
+            property.setProperty(instance, ["a": "b"])
+        }
+
+        then:
+        instance.intercepted == null
+        property != null
+        property instanceof CallInterceptingMetaClass.DefaultInterceptedMetaProperty
+        instance.richProperty.get() == ["a": "b"]
+    }
+
     def 'intercepts getMetaProperty for matching properties'() {
         MetaProperty property = null
 
@@ -340,6 +359,7 @@ class CallInterceptingMetaClassTest extends Specification {
         properties.size() == 4
         properties.every { it instanceof CallInterceptingMetaClass.DefaultInterceptedMetaProperty }
     }
+
 
     private Object withEntryPoint(InstrumentedGroovyCallsTracker.CallKind kind, String name, Closure<?> call) {
         def entryPoint = callTracker.enterCall("from-test", name, kind)

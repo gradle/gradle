@@ -428,9 +428,11 @@ public class BeanDynamicObject extends AbstractDynamicObject {
                     if (property instanceof MetaBeanProperty) {
                         MetaBeanProperty metaBeanProperty = (MetaBeanProperty) property;
                         if (metaBeanProperty.getSetter() == null) {
-                            if (metaBeanProperty.getField() == null) {
+                            if (metaBeanProperty.getField() == null || metaBeanProperty.getField().isFinal()) {
+                                // Set Property/ConfigurableFileCollection types via setFromAnyValue
                                 trySetGetterOnlyProperty(name, value, metaBeanProperty);
                             } else {
+                                // Set the field directly
                                 value = propertySetTransformer.transformValue(metaBeanProperty.getField().getType(), value);
                                 metaBeanProperty.getField().setProperty(bean, value);
                             }

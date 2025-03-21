@@ -24,6 +24,7 @@ import java.util.EnumSet;
  * Implemented as a enum, so it's easier to generate bytecode.
  */
 public enum BytecodeInterceptorFilter {
+    NONE(EnumSet.noneOf(BytecodeInterceptorType.class)),
     INSTRUMENTATION_ONLY(EnumSet.of(BytecodeInterceptorType.INSTRUMENTATION)),
     INSTRUMENTATION_AND_BYTECODE_REPORT(EnumSet.of(BytecodeInterceptorType.INSTRUMENTATION, BytecodeInterceptorType.BYTECODE_UPGRADE_REPORT)),
     INSTRUMENTATION_AND_BYTECODE_UPGRADE(EnumSet.of(BytecodeInterceptorType.INSTRUMENTATION, BytecodeInterceptorType.BYTECODE_UPGRADE)),
