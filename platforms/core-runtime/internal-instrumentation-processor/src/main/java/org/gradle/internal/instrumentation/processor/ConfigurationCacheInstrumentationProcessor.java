@@ -18,14 +18,15 @@ package org.gradle.internal.instrumentation.processor;
 
 import org.gradle.internal.instrumentation.api.annotations.InterceptGroovyCalls;
 import org.gradle.internal.instrumentation.api.annotations.InterceptJvmCalls;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.instrumentation.api.annotations.SpecificGroovyCallInterceptors;
 import org.gradle.internal.instrumentation.api.annotations.SpecificJvmCallInterceptors;
-import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.VisitForInstrumentation;
+import org.gradle.internal.instrumentation.extensions.property.InstrumentedPropertiesResourceGenerator;
 import org.gradle.internal.instrumentation.extensions.property.PropertyUpgradeAnnotatedMethodReader;
 import org.gradle.internal.instrumentation.extensions.property.PropertyUpgradeClassSourceGenerator;
-import org.gradle.internal.instrumentation.extensions.property.InstrumentedPropertiesResourceGenerator;
+import org.gradle.internal.instrumentation.extensions.property.PropertyUpgradeReplaceSuperGettersCodeGenerator;
 import org.gradle.internal.instrumentation.extensions.types.InstrumentedTypesResourceGenerator;
 import org.gradle.internal.instrumentation.model.RequestExtra;
 import org.gradle.internal.instrumentation.processor.codegen.groovy.InterceptGroovyCallsGenerator;
@@ -88,6 +89,7 @@ public class ConfigurationCacheInstrumentationProcessor extends AbstractInstrume
 
             // Properties upgrade extensions
             new PropertyUpgradeAnnotatedMethodReader(processingEnv),
+            (CodeGeneratorContributor) PropertyUpgradeReplaceSuperGettersCodeGenerator::new,
             (CodeGeneratorContributor) PropertyUpgradeClassSourceGenerator::new,
             // Generate resource with instrumented properties
             (ResourceGeneratorContributor) InstrumentedPropertiesResourceGenerator::new,

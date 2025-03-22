@@ -27,7 +27,16 @@ import javax.annotation.Nullable;
 import java.util.function.Supplier;
 
 public interface JvmBytecodeCallInterceptor extends FilterableBytecodeInterceptor {
-    boolean visitMethodInsn(
+
+    /**
+     * Potentially replace the whole method with a new one.
+     */
+    @Nullable
+    default ReplacementMethodBuilder findReplacementMethod(String className, int access, String name, String descriptor, String signature, String[] exceptions, Supplier<MethodNode> asNode) {
+        return null;
+    }
+
+    default boolean visitMethodInsn(
             MethodVisitorScope mv,
             String className,
             int opcode,
@@ -36,10 +45,14 @@ public interface JvmBytecodeCallInterceptor extends FilterableBytecodeIntercepto
             String descriptor,
             boolean isInterface,
             Supplier<MethodNode> readMethodNode
-    );
+    ) {
+        return false;
+    }
 
     @Nullable
-    BridgeMethodBuilder findBridgeMethodBuilder(String className, int tag, String owner, String name, String descriptor);
+    default BridgeMethodBuilder findBridgeMethodBuilder(String className, int tag, String owner, String name, String descriptor) {
+        return null;
+    }
 
     interface Factory extends FilterableBytecodeInterceptorFactory {
         JvmBytecodeCallInterceptor create(InstrumentationMetadata metadata, BytecodeInterceptorFilter interceptorFilter);
