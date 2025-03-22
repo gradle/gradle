@@ -349,7 +349,6 @@ public class ResolutionBackedPublicationDependencyResolver implements VariantDep
         return resolveComponentCoordinates(dependency.getProjectDependency());
     }
 
-
     @Nullable
     private ResolvedCoordinates resolveModuleComponentCoordinates(ModuleIdentifier module) {
         ModuleVersionIdentifier resolved = mappings.resolvedModuleComponents.get(module);
