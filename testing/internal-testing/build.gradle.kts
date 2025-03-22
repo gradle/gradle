@@ -21,7 +21,6 @@ dependencies {
     api(libs.groovy)
     api(libs.groovyXml)
     api(libs.hamcrest)
-    api(libs.hamcrestCore)
     api(libs.jsr305)
     api(libs.junit)
     api(libs.junit5JupiterApi)
