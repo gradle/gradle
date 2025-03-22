@@ -256,6 +256,9 @@ public interface JvmInstallationMetadata {
             if (getToolByExecutable("jar").exists()) {
                 capabilities.add(JavaInstallationCapability.JAR_TOOL);
             }
+            if (getToolByExecutable("native-image").exists()) {
+                capabilities.add(JavaInstallationCapability.NATIVE_IMAGE);
+            }
             boolean isJ9vm = jvmName.contains("J9");
             if (isJ9vm) {
                 capabilities.add(JavaInstallationCapability.J9_VIRTUAL_MACHINE);
