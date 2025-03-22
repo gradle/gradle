@@ -21,9 +21,11 @@ import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
+import spock.lang.Ignore
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
+@Ignore("Plugin needs to be updated in order for it to work with Gradle 9") //TODO: should be fixed before merging in https://github.com/gradle/gradle/pull/28436
 class PlayPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
     @Requires(UnitTestPreconditions.Jdk11OrEarlier)
