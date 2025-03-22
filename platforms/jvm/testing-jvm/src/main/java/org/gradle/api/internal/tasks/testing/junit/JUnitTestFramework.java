@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks.testing.junit;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.testing.TestFramework;
-import org.gradle.api.internal.tasks.testing.TestFrameworkDistributionModule;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.api.internal.tasks.testing.detection.ClassFileExtractionManager;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
@@ -35,37 +34,25 @@ import org.gradle.process.internal.worker.WorkerProcessBuilder;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
 import java.util.Set;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @UsedByScanPlugin("test-retry")
 public class JUnitTestFramework implements TestFramework {
     private static final Logger LOGGER = Logging.getLogger(JUnitTestFramework.class);
 
-    private static final List<TestFrameworkDistributionModule> DISTRIBUTION_MODULES =
-        Collections.singletonList(new TestFrameworkDistributionModule(
-            "junit",
-            Pattern.compile("junit-4.*\\.jar"),
-            "org.junit.runner.Runner"
-        ));
-
     private JUnitOptions options;
     private JUnitDetector detector;
     private final DefaultTestFilter filter;
-    private final boolean useImplementationDependencies;
     private final Factory<File> testTaskTemporaryDir;
     private final Provider<Boolean> dryRun;
 
-    public JUnitTestFramework(Test testTask, DefaultTestFilter filter, boolean useImplementationDependencies) {
-        this(filter, useImplementationDependencies, new JUnitOptions(), testTask.getTemporaryDirFactory(), testTask.getDryRun());
+    public JUnitTestFramework(Test testTask, DefaultTestFilter filter) {
+        this(filter, new JUnitOptions(), testTask.getTemporaryDirFactory(), testTask.getDryRun());
     }
 
-    private JUnitTestFramework(DefaultTestFilter filter, boolean useImplementationDependencies, JUnitOptions options, Factory<File> testTaskTemporaryDir, Provider<Boolean> dryRun) {
+    private JUnitTestFramework(DefaultTestFilter filter, JUnitOptions options, Factory<File> testTaskTemporaryDir, Provider<Boolean> dryRun) {
         this.filter = filter;
-        this.useImplementationDependencies = useImplementationDependencies;
         this.options = options;
         this.testTaskTemporaryDir = testTaskTemporaryDir;
         this.detector = new JUnitDetector(new ClassFileExtractionManager(testTaskTemporaryDir));
@@ -80,7 +67,6 @@ public class JUnitTestFramework implements TestFramework {
 
         return new JUnitTestFramework(
             (DefaultTestFilter) newTestFilters,
-            useImplementationDependencies,
             copiedOptions,
             testTaskTemporaryDir,
             dryRun
@@ -101,16 +87,6 @@ public class JUnitTestFramework implements TestFramework {
             workerProcessBuilder.sharedPackages("junit.extensions");
             workerProcessBuilder.sharedPackages("org.junit");
         };
-    }
-
-    @Override
-    public List<TestFrameworkDistributionModule> getWorkerImplementationClasspathModules() {
-        return DISTRIBUTION_MODULES;
-    }
-
-    @Override
-    public boolean getUseDistributionDependencies() {
-        return useImplementationDependencies;
     }
 
     @Override
