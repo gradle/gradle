@@ -49,9 +49,9 @@ import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType.GETTER;
 import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType.SETTER;
@@ -60,8 +60,7 @@ import static org.gradle.internal.instrumentation.api.annotations.ReplacesEagerP
 /**
  * Main options for Java compilation.
  */
-@SuppressWarnings("deprecation")
-public abstract class CompileOptions extends AbstractOptions {
+public abstract class CompileOptions implements Serializable {
     private static final long serialVersionUID = 0;
 
     private boolean failOnError = true;
@@ -413,48 +412,6 @@ public abstract class CompileOptions extends AbstractOptions {
      */
     public void setCompilerArgs(List<String> compilerArgs) {
         this.compilerArgs = compilerArgs;
-    }
-
-    /**
-     * Convenience method to set {@link ForkOptions} with named parameter syntax.
-     * Calling this method will set {@code fork} to {@code true}.
-     *
-     * @deprecated This method will be removed in Gradle 9.0
-     */
-    @Deprecated
-    public CompileOptions fork(Map<String, Object> forkArgs) {
-
-        DeprecationLogger.deprecateMethod(CompileOptions.class, "fork(Map)")
-            .withAdvice("Set properties directly on the 'forkOptions' property instead.")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "deprecated_abstract_options")
-            .nagUser();
-
-        fork = true;
-        DeprecationLogger.whileDisabled(() -> forkOptions.define(forkArgs));
-        return this;
-    }
-
-    /**
-     * Convenience method to set {@link DebugOptions} with named parameter syntax.
-     * Calling this method will set {@code debug} to {@code true}.
-     *
-     * @deprecated This method will be removed in Gradle 9.0
-     */
-    @Deprecated
-    public CompileOptions debug(Map<String, Object> debugArgs) {
-
-        DeprecationLogger.deprecateMethod(CompileOptions.class, "debug(Map)")
-            .withAdvice("Set properties directly on the 'debugOptions' property instead.")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "deprecated_abstract_options")
-            .nagUser();
-
-        debug = true;
-
-        // Disable deprecation to avoid double-warning
-        DeprecationLogger.whileDisabled(() -> debugOptions.define(debugArgs));
-        return this;
     }
 
     /**

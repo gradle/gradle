@@ -36,13 +36,6 @@ class ForkOptionsTest extends Specification {
         forkOptions.jvmArgs == []
     }
 
-    def 'options can be defined via a map'() {
-        when:
-        forkOptions.define(PROPS.collectEntries { [it, "${it}Value" as String ] })
-        then:
-        PROPS.each { assert forkOptions."${it}" == "${it}Value" as String }
-    }
-
     @Issue("https://github.com/gradle/gradle/issues/32606")
     def "getAllJvmArgs() returns only String"() {
         given:

@@ -16,7 +16,6 @@
 
 package org.gradle.smoketests
 
-import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.util.GradleVersion
@@ -36,7 +35,7 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
 
         def kotlinVersionNumber = VersionNumber.parse(kotlinVersion)
         replaceVariablesInBuildFile(kotlinVersion: kotlinVersion)
-        replaceCssSupportBlocksInBuildFile(kotlinVersionNumber)
+        replaceCssSupportBlocksInBuildFile()
 
         when:
         def result = kgpRunner(false, kotlinVersionNumber, ':tasks')
@@ -60,7 +59,7 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
 
         def kotlinVersionNumber = VersionNumber.parse(kotlinVersion)
         replaceVariablesInBuildFile(kotlinVersion: kotlinVersion)
-        replaceCssSupportBlocksInBuildFile(kotlinVersionNumber)
+        replaceCssSupportBlocksInBuildFile()
 
         when:
         def result = kgpRunner(false, kotlinVersionNumber, ':allTests', '-s')
@@ -69,7 +68,7 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
                 "https://youtrack.jetbrains.com/issue/KT-71879"
             )
             .expectDeprecationWarningIf(
-                kotlinVersionNumber >= VersionNumber.parse('1.9.22') && kotlinVersionNumber.baseVersion < KotlinGradlePluginVersions.KOTLIN_2_0_20,
+                kotlinVersionNumber.baseVersion < KotlinGradlePluginVersions.KOTLIN_2_0_20,
                 "Internal API BuildOperationExecutor.getCurrentOperation() has been deprecated. This is scheduled to be removed in Gradle 9.0.",
                 "https://youtrack.jetbrains.com/issue/KT-67110"
             )
@@ -83,10 +82,7 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         result.task(':allTests').outcome == SUCCESS
 
         where:
-        kotlinVersion << TestedVersions.kotlin.versions.findAll {
-            // versions prior to 2.0.0 don't support java 21
-            (JavaVersion.current() < JavaVersion.VERSION_21 || VersionNumber.parse(it) >= VersionNumber.parse('2.0.0-Beta1'))
-        }
+        kotlinVersion << TestedVersions.kotlin.versions
     }
 
     /**
@@ -171,8 +167,7 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         result.output.contains("other-jvm.jar")
 
         where:
-        // withJava is incompatible pre 1.6.20 since it attempts to set the `archiveName` convention property on the Jar task.
-        kotlinVersion << TestedVersions.kotlin.versions.findAll { VersionNumber.parse(it) > VersionNumber.parse("1.6.10") }
+        kotlinVersion << TestedVersions.kotlin.versions
     }
 
     @Override
@@ -182,23 +177,16 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         ]
     }
 
-    private void replaceCssSupportBlocksInBuildFile(VersionNumber kotlinVersionNumber) {
+    private void replaceCssSupportBlocksInBuildFile() {
         Map<String, String> replacementMap = [:]
-        if (kotlinVersionNumber >= VersionNumber.parse('1.8.0')) {
-            replacementMap['enableCssSupportNew'] = """
-            commonWebpackConfig {
-                cssSupport {
-                    enabled.set(true)
-                }
+        replacementMap['enableCssSupportNew'] = """
+        commonWebpackConfig {
+            cssSupport {
+                enabled.set(true)
             }
-            """
-            replacementMap['enableCssSupportOld'] = ''
-        } else {
-            replacementMap['enableCssSupportOld'] = """
-                    webpackConfig.cssSupport.enabled = true
-            """
-            replacementMap['enableCssSupportNew'] = ''
         }
+        """
+        replacementMap['enableCssSupportOld'] = ''
 
         replaceVariablesInBuildFile(replacementMap)
     }

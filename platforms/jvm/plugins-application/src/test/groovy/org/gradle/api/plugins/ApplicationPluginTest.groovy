@@ -95,7 +95,7 @@ class ApplicationPluginTest extends AbstractProjectBuilderSpec {
     void "applicationName is configurable"() {
         when:
         plugin.apply(project)
-        project.applicationName = "SuperApp";
+        project.applicationName = "SuperApp"
 
         then:
         def startScriptsTask = project.tasks[ApplicationPlugin.TASK_START_SCRIPTS_NAME]
@@ -111,22 +111,12 @@ class ApplicationPluginTest extends AbstractProjectBuilderSpec {
     void "executableDir is configurable"() {
         when:
         plugin.apply(project)
-        project.applicationName = "myApp";
-        project.executableDir = "custom_bin";
+        project.applicationName = "myApp"
+        project.executableDir = "custom_bin"
 
         then:
         def startScripts = project.tasks[ApplicationPlugin.TASK_START_SCRIPTS_NAME]
         startScripts.executableDir == "custom_bin"
-    }
-
-    void "mainClassName in project delegates to mainClassName in startScripts task"() {
-        when:
-        plugin.apply(project);
-        project.mainClassName = "Acme"
-
-        then:
-        def startScripts = project.tasks[ApplicationPlugin.TASK_START_SCRIPTS_NAME]
-        startScripts.mainClassName == "Acme"
     }
 
     void "applicationDefaultJvmArgs in project delegates to jvmArgs in run task"() {

@@ -19,10 +19,10 @@ import org.gradle.util.TestUtil
 import org.junit.Before
 import org.junit.Test
 
-import static org.junit.Assert.*
+import static org.junit.Assert.assertNull
+import static org.junit.Assert.assertTrue
 
 class GroovyForkOptionsTest {
-    static final Map PROPS = [memoryInitialSize: 'memoryInitialSize', memoryMaximumSize: 'memoryMaximumSize']
 
     GroovyForkOptions forkOptions
 
@@ -38,12 +38,4 @@ class GroovyForkOptionsTest {
         assertTrue(forkOptions.jvmArgs.empty)
     }
 
-    @Test
-    void testDefine() {
-        forkOptions.define(PROPS.keySet().inject([:]) { Map map, String prop ->
-            map[prop] = "${prop}Value" as String
-            map
-        })
-        PROPS.keySet().each {assertEquals("${it}Value" as String, forkOptions."${it}")}
-    }
 }
