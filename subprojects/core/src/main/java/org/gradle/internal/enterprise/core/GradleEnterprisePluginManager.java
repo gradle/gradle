@@ -23,6 +23,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.util.internal.VersionNumber;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
@@ -36,6 +37,9 @@ public class GradleEnterprisePluginManager {
     @VisibleForTesting
     public static final String NO_SCAN_PLUGIN_MSG = "An internal error occurred that prevented a build scan from being created.\n" +
         "Please report this via https://github.com/gradle/gradle/issues";
+
+    public static final String FIRST_GRADLE_ENTERPRISE_PLUGIN_VERSION_DISPLAY = "3.13.1";
+    public static final VersionNumber FIRST_GRADLE_ENTERPRISE_PLUGIN_VERSION = VersionNumber.parse(FIRST_GRADLE_ENTERPRISE_PLUGIN_VERSION_DISPLAY);
 
     public static final String OLD_SCAN_PLUGIN_VERSION_MESSAGE =
         "The build scan plugin is not compatible with this version of Gradle.\n"

@@ -35,16 +35,10 @@ import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
-import org.gradle.internal.snapshot.impl.ValueSnapshotterSerializerRegistry;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.plugin.use.resolve.internal.PluginResolverContributor;
 
 public class CompositeBuildServices extends AbstractGradleModuleServices {
-
-    @Override
-    public void registerBuildSessionServices(ServiceRegistration registration) {
-        registration.addProvider(new CompositeBuildSessionScopeServices());
-    }
 
     @Override
     public void registerBuildTreeServices(ServiceRegistration registration) {
@@ -55,13 +49,6 @@ public class CompositeBuildServices extends AbstractGradleModuleServices {
     @Override
     public void registerBuildServices(ServiceRegistration registration) {
         registration.add(PluginResolverContributor.class, HoldsProjectState.class, CompositeBuildPluginResolverContributor.class);
-    }
-
-    private static class CompositeBuildSessionScopeServices implements ServiceRegistrationProvider {
-        @Provides
-        public ValueSnapshotterSerializerRegistry createCompositeBuildsValueSnapshotterSerializerRegistry() {
-            return new CompositeBuildsValueSnapshotterSerializerRegistry();
-        }
     }
 
     private static class CompositeBuildTreeScopeServices implements ServiceRegistrationProvider {

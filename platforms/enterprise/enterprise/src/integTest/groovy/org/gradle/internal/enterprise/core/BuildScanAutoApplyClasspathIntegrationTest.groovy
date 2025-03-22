@@ -21,13 +21,12 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.enterprise.BaseBuildScanPluginCheckInFixture
 import org.gradle.internal.enterprise.DevelocityPluginCheckInFixture
 import org.gradle.internal.enterprise.GradleEnterprisePluginCheckInFixture
-import org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService
 import org.gradle.util.internal.VersionNumber
 import org.junit.Assume
 
 abstract class BuildScanAutoApplyClasspathIntegrationTest extends AbstractIntegrationSpec {
 
-    private static final VersionNumber PLUGIN_MINIMUM_NON_DEPRECATED_VERSION = DefaultGradleEnterprisePluginCheckInService.MINIMUM_SUPPORTED_PLUGIN_VERSION_SINCE_GRADLE_9
+    private static final VersionNumber PLUGIN_MINIMUM_NON_DEPRECATED_VERSION = GradleEnterprisePluginManager.FIRST_GRADLE_ENTERPRISE_PLUGIN_VERSION
 
     protected final DevelocityPluginCheckInFixture autoAppliedPluginFixture = new DevelocityPluginCheckInFixture(testDirectory, mavenRepo, createExecuter())
 

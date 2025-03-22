@@ -141,8 +141,6 @@ Required by:
             classes.doLast {
                 def rootComponent = rootProvider.get()
                 assert rootComponent.id.build.buildPath == ':'
-                assert rootComponent.id.build.name == ':'
-                assert rootComponent.id.build.currentBuild
                 assert rootComponent.id.projectPath == ':'
                 assert rootComponent.id.projectName == 'buildA'
                 assert rootComponent.id.buildTreePath == ':'
@@ -152,8 +150,6 @@ Required by:
                 def buildRootProject = components[0]
                 def componentId = components[0].id
                 assert componentId.build.buildPath == ':${buildName}'
-                assert componentId.build.name == '${buildName}'
-                assert !componentId.build.currentBuild
                 assert componentId.projectPath == ':'
                 assert componentId.projectName == '${dependencyName}'
                 assert componentId.buildTreePath == ':buildB'
@@ -162,8 +158,6 @@ Required by:
                 assert components.size() == 1
                 componentId = components[0].id
                 assert componentId.build.buildPath == ':${buildName}'
-                assert componentId.build.name == '${buildName}'
-                assert !componentId.build.currentBuild
                 assert componentId.projectPath == ':b1'
                 assert componentId.projectName == 'b1'
                 assert componentId.buildTreePath == ':buildB:b1'
@@ -180,11 +174,6 @@ Required by:
             }
         """
 
-        3.times {
-            executer.expectDocumentedDeprecationWarning("The BuildIdentifier.getName() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use getBuildPath() to get a unique identifier for the build. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation")
-            executer.expectDocumentedDeprecationWarning("The BuildIdentifier.isCurrentBuild() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use getBuildPath() to get a unique identifier for the build. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation")
-        }
-
         expect:
         execute(buildA, ":assemble")
 
@@ -194,68 +183,4 @@ Required by:
         "rootProject.name='someLib'" | "buildB"  | "someLib"      | "configured root project name"
     }
 
-    def "project component identifiers know if projects belong to the current build or not"() {
-        def buildC = singleProjectBuild('buildC') {
-            buildFile << "apply plugin: 'java'"
-        }
-        includeBuild(buildC)
-
-        buildA.buildFile << """
-            dependencies {
-                testImplementation 'org.test:buildC'
-                testImplementation 'org.test:buildA' // self dependency
-            }
-        """
-        buildB.buildFile << """
-            dependencies {
-                testImplementation 'org.test:buildC'
-                testImplementation 'org.test:buildB' // self dependency
-            }
-        """
-        buildC.buildFile << """
-            dependencies {
-                testImplementation 'org.test:buildC' // self dependency
-            }
-        """
-
-        buildA.buildFile << """
-            def rootProvider = configurations.testRuntimeClasspath.incoming.resolutionResult.rootComponent
-            classes.doLast {
-                def rootComponent = rootProvider.get()
-                def projectInOtherBuild = rootComponent.dependencies[0].selected
-                def self = rootComponent.dependencies[1].selected
-                assert rootComponent.id.build.currentBuild
-                assert self.id.build.currentBuild
-                assert self == rootComponent
-                assert !projectInOtherBuild.id.build.currentBuild
-            }
-        """
-        buildB.buildFile << """
-            def rootProvider = configurations.testRuntimeClasspath.incoming.resolutionResult.rootComponent
-            classes.doLast {
-                def rootComponent = rootProvider.get()
-                def projectInOtherBuild = rootComponent.dependencies[0].selected
-                def self = rootComponent.dependencies[1].selected
-                assert rootComponent.id.build.currentBuild
-                assert self.id.build.currentBuild
-                assert self == rootComponent
-                assert !projectInOtherBuild.id.build.currentBuild
-            }
-        """
-        buildC.buildFile << """
-            def rootProvider = configurations.testRuntimeClasspath.incoming.resolutionResult.rootComponent
-            classes.doLast {
-                def rootComponent = rootProvider.get()
-                def self = rootComponent.dependencies[0].selected
-                assert rootComponent.id.build.currentBuild
-                assert self.id.build.currentBuild
-                assert self == rootComponent
-            }
-        """
-
-        8.times { executer.expectDocumentedDeprecationWarning("The BuildIdentifier.isCurrentBuild() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use getBuildPath() to get a unique identifier for the build. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation") }
-
-        expect:
-        execute(buildA, ":buildC:assemble", ":buildB:assemble", ":assemble")
-    }
 }

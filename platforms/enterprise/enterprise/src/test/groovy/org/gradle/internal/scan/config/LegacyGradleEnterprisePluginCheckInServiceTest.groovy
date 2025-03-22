@@ -112,7 +112,7 @@ class LegacyGradleEnterprisePluginCheckInServiceTest extends Specification {
         )
     }
 
-    BuildScanConfig config(String versionNumber = LegacyGradleEnterprisePluginCheckInService.FIRST_GRADLE_ENTERPRISE_PLUGIN_VERSION) {
+    BuildScanConfig config(String versionNumber = GradleEnterprisePluginManager.FIRST_GRADLE_ENTERPRISE_PLUGIN_VERSION) {
         def manager = manager()
         manager.collect(new BuildScanPluginMetadata() {
             @Override

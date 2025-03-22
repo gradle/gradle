@@ -21,7 +21,7 @@ import org.gradle.internal.exceptions.Contextual;
 @Contextual
 public class UnsupportedBuildScanPluginVersionException extends IllegalStateException {
 
-    UnsupportedBuildScanPluginVersionException(String s) {
+    public UnsupportedBuildScanPluginVersionException(String s) {
         super(s);
     }
 
