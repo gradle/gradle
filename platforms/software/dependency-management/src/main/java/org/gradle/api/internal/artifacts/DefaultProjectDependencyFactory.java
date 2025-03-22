@@ -20,9 +20,9 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency;
+import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParser;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.project.ProjectStateRegistry;
-import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.scopes.Scope;
@@ -33,33 +33,27 @@ import org.gradle.util.Path;
 @ServiceScope({Scope.Build.class, Scope.Project.class})
 public class DefaultProjectDependencyFactory {
     private final Instantiator instantiator;
-    private final boolean buildProjectDependencies;
     private final NotationParser<Object, Capability> capabilityNotationParser;
     private final ObjectFactory objectFactory;
     private final AttributesFactory attributesFactory;
-    private final TaskDependencyFactory taskDependencyFactory;
     private final ProjectStateRegistry projectStateRegistry;
 
     public DefaultProjectDependencyFactory(
         Instantiator instantiator,
-        boolean buildProjectDependencies,
-        NotationParser<Object, Capability> capabilityNotationParser,
+        CapabilityNotationParser capabilityNotationParser,
         ObjectFactory objectFactory,
         AttributesFactory attributesFactory,
-        TaskDependencyFactory taskDependencyFactory,
         ProjectStateRegistry projectStateRegistry
     ) {
         this.instantiator = instantiator;
-        this.buildProjectDependencies = buildProjectDependencies;
         this.capabilityNotationParser = capabilityNotationParser;
         this.objectFactory = objectFactory;
         this.attributesFactory = attributesFactory;
-        this.taskDependencyFactory = taskDependencyFactory;
         this.projectStateRegistry = projectStateRegistry;
     }
 
     public ProjectDependency create(Project project) {
-        DefaultProjectDependency projectDependency = instantiator.newInstance(DefaultProjectDependency.class, project, buildProjectDependencies, taskDependencyFactory);
+        DefaultProjectDependency projectDependency = instantiator.newInstance(DefaultProjectDependency.class, project);
         injectServices(projectDependency);
         return projectDependency;
     }
@@ -74,4 +68,5 @@ public class DefaultProjectDependencyFactory {
         projectDependency.setCapabilityNotationParser(capabilityNotationParser);
         projectDependency.setObjectFactory(objectFactory);
     }
+
 }

@@ -20,14 +20,12 @@ import org.gradle.api.artifacts.FileCollectionDependency;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
-import java.util.Set;
+public class DefaultFileCollectionDependency implements SelfResolvingDependencyInternal, FileCollectionDependency {
 
-public class DefaultFileCollectionDependency extends AbstractDependency implements SelfResolvingDependencyInternal, FileCollectionDependency {
+    private @Nullable String reason;
     private final ComponentIdentifier targetComponentId;
     private final FileCollectionInternal source;
 
@@ -39,6 +37,17 @@ public class DefaultFileCollectionDependency extends AbstractDependency implemen
     public DefaultFileCollectionDependency(ComponentIdentifier targetComponentId, FileCollectionInternal source) {
         this.targetComponentId = targetComponentId;
         this.source = source;
+    }
+
+    @Nullable
+    @Override
+    public String getReason() {
+        return reason;
+    }
+
+    @Override
+    public void because(@Nullable String reason) {
+        this.reason = reason;
     }
 
     @Override
@@ -82,49 +91,6 @@ public class DefaultFileCollectionDependency extends AbstractDependency implemen
     @Override
     public String getVersion() {
         return null;
-    }
-
-    @Override
-    @Deprecated
-    @SuppressWarnings("deprecation")
-    public void resolve(org.gradle.api.internal.artifacts.CachingDependencyResolveContext context) {
-        context.add(source);
-    }
-
-    @Override
-    @Deprecated
-    public Set<File> resolve() {
-        DeprecationLogger.deprecate("Directly resolving a file collection dependency's files")
-            .withAdvice("Add the dependency to a resolvable configuration and resolve the configuration.")
-            .willBecomeAnErrorInGradle9()
-            .withUpgradeGuideSection(8, "deprecate_self_resolving_dependency")
-            .nagUser();
-
-        return source.getFiles();
-    }
-
-    @Override
-    @Deprecated
-    public Set<File> resolve(boolean transitive) {
-        DeprecationLogger.deprecate("Directly resolving a file collection dependency's files")
-            .withAdvice("Add the dependency to a resolvable configuration and resolve the configuration.")
-            .willBecomeAnErrorInGradle9()
-            .withUpgradeGuideSection(8, "deprecate_self_resolving_dependency")
-            .nagUser();
-
-        return source.getFiles();
-    }
-
-    @Override
-    @Deprecated
-    public TaskDependency getBuildDependencies() {
-        DeprecationLogger.deprecate("Accessing the build dependencies of a file collection dependency")
-            .withAdvice("Add the dependency to a resolvable configuration use the configuration to track task dependencies.")
-            .willBecomeAnErrorInGradle9()
-            .withUpgradeGuideSection(8, "deprecate_self_resolving_dependency")
-            .nagUser();
-
-        return source.getBuildDependencies();
     }
 
     @Override

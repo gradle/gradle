@@ -19,7 +19,6 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.internal.artifacts.DefaultProjectDependencyFactory
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
-import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.ProjectStateRegistry
@@ -40,8 +39,11 @@ class ProjectDependencyFactoryTest extends Specification {
         }
     }
     def depFactory = new DefaultProjectDependencyFactory(
-        TestUtil.instantiatorFactory().decorateLenient(), true, capabilityNotationParser, TestUtil.objectFactory(),
-        AttributeTestUtil.attributesFactory(), TestFiles.taskDependencyFactory(), projectStateRegistry
+        TestUtil.instantiatorFactory().decorateLenient(),
+        capabilityNotationParser,
+        TestUtil.objectFactory(),
+        AttributeTestUtil.attributesFactory(),
+        projectStateRegistry
     )
     def factory = new ProjectDependencyFactory(depFactory)
 
