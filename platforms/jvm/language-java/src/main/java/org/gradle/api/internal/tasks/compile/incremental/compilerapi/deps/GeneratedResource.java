@@ -48,6 +48,8 @@ public final class GeneratedResource implements Serializable {
                         return SOURCE_OUTPUT;
                     case NATIVE_HEADER_OUTPUT:
                         return NATIVE_HEADER_OUTPUT;
+                    default:
+                        break;
                 }
             }
             return null;

@@ -74,6 +74,8 @@ public class TestState {
                 case FAILURE:
                     failedCount = 1;
                     break;
+                case SKIPPED:
+                    break;
             }
         }
 

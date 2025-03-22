@@ -442,20 +442,20 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
         return arguments;
     }
 
-    private File writePathingJarFile(FileCollection classPath) throws IOException {
+    private File writePathingJarFile(FileCollection classpath) throws IOException {
         File pathingJarFile = temporaryFileProvider.createTemporaryFile("gradle-javaexec-classpath", ".jar");
         try (FileOutputStream fileOutputStream = new FileOutputStream(pathingJarFile);
-             JarOutputStream jarOutputStream = new JarOutputStream(fileOutputStream, toManifest(classPath))) {
+             JarOutputStream jarOutputStream = new JarOutputStream(fileOutputStream, toManifest(classpath))) {
             jarOutputStream.putNextEntry(new ZipEntry("META-INF/"));
         }
         return pathingJarFile;
     }
 
-    private static Manifest toManifest(FileCollection classPath) {
+    private static Manifest toManifest(FileCollection classpath) {
         Manifest manifest = new Manifest();
         Attributes attributes = manifest.getMainAttributes();
         attributes.put(Attributes.Name.MANIFEST_VERSION, "1.0");
-        attributes.putValue("Class-Path", classPath.getFiles().stream().map(File::toURI).map(URI::toString).collect(Collectors.joining(" ")));
+        attributes.putValue("Class-Path", classpath.getFiles().stream().map(File::toURI).map(URI::toString).collect(Collectors.joining(" ")));
         return manifest;
     }
 

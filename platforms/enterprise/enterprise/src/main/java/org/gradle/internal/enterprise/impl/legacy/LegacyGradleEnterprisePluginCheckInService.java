@@ -100,7 +100,7 @@ public class LegacyGradleEnterprisePluginCheckInService implements BuildScanConf
 
         return new Config(
             Requestedness.from(gradle),
-            new Attributes(buildType),
+            new LegacyGradleEnterprisePluginCheckInService.Attributes(buildType),
             unsupportedReason
         );
     }
@@ -122,7 +122,7 @@ public class LegacyGradleEnterprisePluginCheckInService implements BuildScanConf
         private final String unsupported;
         private final Attributes attributes;
 
-        public Config(Requestedness requestedness, Attributes attributes, String unsupported) {
+        public Config(Requestedness requestedness, LegacyGradleEnterprisePluginCheckInService.Attributes attributes, String unsupported) {
             this.requestedness = requestedness;
             this.unsupported = unsupported;
             this.attributes = attributes;
@@ -144,7 +144,7 @@ public class LegacyGradleEnterprisePluginCheckInService implements BuildScanConf
         }
 
         @Override
-        public Attributes getAttributes() {
+        public BuildScanConfig.Attributes getAttributes() {
             return attributes;
         }
     }

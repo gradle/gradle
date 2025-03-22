@@ -248,6 +248,7 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider {
         return libraries;
     }
 
+    @SuppressWarnings("unused")
     private <T extends NativeCompileSpec> Transformer<T, T> addDefinitions(Class<T> type) {
         return new Transformer<T, T>() {
             @Override

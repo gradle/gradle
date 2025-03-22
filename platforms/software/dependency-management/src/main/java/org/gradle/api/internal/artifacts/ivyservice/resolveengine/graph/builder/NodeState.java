@@ -507,6 +507,7 @@ public class NodeState implements DependencyGraphNode {
         return tmp;
     }
 
+    @SuppressWarnings("MixedMutabilityReturnType")
     private List<DependencyState> cacheDependencyStates(List<? extends DependencyMetadata> dependencies) {
         if (dependencies.isEmpty()) {
             return Collections.emptyList();

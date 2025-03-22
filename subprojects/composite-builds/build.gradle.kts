@@ -7,7 +7,6 @@ description = "Included build controller and composite build infrastructure"
 errorprone {
     disabledChecks.addAll(
         "FutureReturnValueIgnored", // 1 occurrences
-        "SameNameButDifferent", // 11 occurrences
         "ThreadLocalUsage", // 1 occurrences
     )
 }

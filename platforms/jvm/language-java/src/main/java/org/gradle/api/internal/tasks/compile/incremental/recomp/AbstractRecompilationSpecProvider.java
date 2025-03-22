@@ -157,8 +157,11 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
     /**
      * Collect source paths and independent classes.
      * <p>
-     * The source paths corresponding to the {@param classesToCompile} are added to the {@param spec}.
-     * It will also add the independent classes to the {@param spec}'s {@code classesToCompile}.
+     * The source paths corresponding to the {@code classesToCompile} are added to the {@code spec}.
+     * It will also add the independent classes to the {@code spec}'s {@code classesToCompile}.
+     *
+     * @param classesToCompile the source paths that will be added to the {@code spec}.
+     * @param spec the spec that will receive the source paths.
      *
      * @return independent classes for the detected source paths.
      */
@@ -173,6 +176,7 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
         return independentClasses;
     }
 
+    @SuppressWarnings("MixedMutabilityReturnType")
     private static Set<String> collectIndependentClassesForSourcePath(String sourcePath, RecompilationSpec spec, SourceFileClassNameConverter sourceFileClassNameConverter) {
         Set<String> classNames = sourceFileClassNameConverter.getClassNames(sourcePath);
         if (classNames.size() <= 1) {

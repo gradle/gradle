@@ -16,19 +16,12 @@ errorprone {
         "DefaultCharset", // 3 occurrences
         "Finally", // 4 occurrences
         "IdentityHashMapUsage", // 2 occurrences
-        "InconsistentCapitalization", // 2 occurrences
         "InlineFormatString", // 5 occurrences
-        "InlineMeSuggester", // 2 occurrences
         "InvalidParam", // 1 occurrences
-        "MathAbsoluteNegative",
-        "MissingCasesInEnumSwitch", // 7 occurrences
-        "MixedMutabilityReturnType", // 5 occurrences
-        "ModifiedButNotUsed", // 1 occurrences
         "MutablePublicArray", // 1 occurrences
         "NonApiType", // 3 occurrences
         "NonCanonicalType", // 3 occurrences
         "ReferenceEquality", // 10 occurrences
-        "SameNameButDifferent", // 4 occurrences
         "StringCharset", // 1 occurrences
         "TypeParameterShadowing", // 4 occurrences
         "TypeParameterUnusedInFormals", // 2 occurrences

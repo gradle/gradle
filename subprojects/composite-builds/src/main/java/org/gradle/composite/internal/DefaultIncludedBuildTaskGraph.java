@@ -49,6 +49,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 
+@SuppressWarnings("SameNameButDifferent")
 public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphController, Closeable {
     private enum State {
         NotPrepared, Preparing, ReadyToRun, Running, Finished

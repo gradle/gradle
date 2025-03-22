@@ -86,6 +86,8 @@ public class SignatureVerificationFailure extends AbstractVerificationFailure {
             case MISSING_KEY:
                 sb.append("but it wasn't found in any key server so it couldn't be verified");
                 break;
+            default:
+                break;
         }
     }
 

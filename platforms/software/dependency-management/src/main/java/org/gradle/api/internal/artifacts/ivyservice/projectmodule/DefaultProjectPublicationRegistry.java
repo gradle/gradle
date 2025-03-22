@@ -34,6 +34,7 @@ public class DefaultProjectPublicationRegistry implements ProjectPublicationRegi
     private final SetMultimap<BuildIdentifier, PublicationForProject<?>> publicationsByBuildId = LinkedHashMultimap.create();
 
     @Override
+    @SuppressWarnings("MixedMutabilityReturnType")
     public <T extends ProjectPublication> Collection<T> getPublicationsForProject(Class<T> type, Path projectIdentityPath) {
         synchronized (publicationsByProjectId) {
             Collection<ProjectPublication> projectPublications = publicationsByProjectId.get(projectIdentityPath);
@@ -51,6 +52,7 @@ public class DefaultProjectPublicationRegistry implements ProjectPublicationRegi
     }
 
     @Override
+    @SuppressWarnings("MixedMutabilityReturnType")
     public <T extends ProjectPublication> Collection<PublicationForProject<T>> getPublicationsForBuild(Class<T> type, BuildIdentifier buildIdentity) {
         synchronized (publicationsByBuildId) {
             Collection<PublicationForProject<?>> buildPublications = publicationsByBuildId.get(buildIdentity);

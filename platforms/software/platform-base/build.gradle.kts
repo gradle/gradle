@@ -2,12 +2,6 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
-errorprone {
-    disabledChecks.addAll(
-        "MixedMutabilityReturnType", // 1 occurrences
-        "ModifiedButNotUsed", // 1 occurrences
-    )
-}
 dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.serviceLookup)

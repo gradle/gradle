@@ -294,28 +294,24 @@ public class VersionNumber implements Comparable<VersionNumber> {
     }
 
     private static class DefaultScheme extends AbstractScheme {
-        private static final String VERSION_TEMPLATE = "%d.%d.%d%s";
-
         public DefaultScheme() {
             super(3);
         }
 
         @Override
         public String format(VersionNumber versionNumber) {
-            return String.format(VERSION_TEMPLATE, versionNumber.major, versionNumber.minor, versionNumber.micro, versionNumber.qualifier == null ? "" : "-" + versionNumber.qualifier);
+            return String.format("%d.%d.%d%s", versionNumber.major, versionNumber.minor, versionNumber.micro, versionNumber.qualifier == null ? "" : "-" + versionNumber.qualifier);
         }
     }
 
     private static class SchemeWithPatchVersion extends AbstractScheme {
-        private static final String VERSION_TEMPLATE = "%d.%d.%d.%d%s";
-
         private SchemeWithPatchVersion() {
             super(4);
         }
 
         @Override
         public String format(VersionNumber versionNumber) {
-            return String.format(VERSION_TEMPLATE, versionNumber.major, versionNumber.minor, versionNumber.micro, versionNumber.patch, versionNumber.qualifier == null ? "" : "-" + versionNumber.qualifier);
+            return String.format("%d.%d.%d.%d%s", versionNumber.major, versionNumber.minor, versionNumber.micro, versionNumber.patch, versionNumber.qualifier == null ? "" : "-" + versionNumber.qualifier);
         }
     }
 
