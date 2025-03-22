@@ -25,6 +25,7 @@ import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.extensions.stdlib.useToRun
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
+import java.io.File
 
 
 /**
@@ -57,7 +58,9 @@ interface WriteContext : MutableIsolateContext, Encoder {
 
     suspend fun write(value: Any?)
 
-    suspend fun <T: Any> writeSharedObject(value: T, encode: suspend WriteContext.(T) -> Unit)
+    suspend fun <T : Any> writeSharedObject(value: T, encode: suspend WriteContext.(T) -> Unit)
+
+    override fun writeFile(file: File)
 
     fun writeClass(type: Class<*>)
 
@@ -106,7 +109,9 @@ interface ReadContext : IsolateContext, MutableIsolateContext, Decoder {
 
     suspend fun read(): Any?
 
-    suspend fun <T: Any> readSharedObject(decode: suspend ReadContext.() -> T): T
+    override fun readFile(): File
+
+    suspend fun <T : Any> readSharedObject(decode: suspend ReadContext.() -> T): T
 
     fun readClass(): Class<*>
 

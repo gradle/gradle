@@ -27,6 +27,7 @@ import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
+import java.io.File
 
 
 @ServiceScope(Scope.BuildTree::class)
@@ -43,13 +44,15 @@ interface BeanStateReaderLookup {
 
 data class SpecialEncoders(
     val stringEncoder: StringEncoder = InlineStringEncoder,
-    val sharedObjectEncoder: SharedObjectEncoder = InlineSharedObjectEncoder
+    val sharedObjectEncoder: SharedObjectEncoder = InlineSharedObjectEncoder,
+    val fileEncoder: FileEncoder = InlineFileEncoder
 )
 
 
 data class SpecialDecoders(
     val stringDecoder: StringDecoder = InlineStringDecoder,
-    val sharedObjectDecoder: SharedObjectDecoder = InlineSharedObjectDecoder
+    val sharedObjectDecoder: SharedObjectDecoder = InlineSharedObjectDecoder,
+    val fileDecoder: FileDecoder = InlineFileDecoder
 )
 
 
@@ -81,6 +84,8 @@ class DefaultWriteContext(
 
     val sharedObjectEncoder = specialEncoders.sharedObjectEncoder
 
+    val fileEncoder = specialEncoders.fileEncoder
+
     override val sharedIdentities = WriteIdentities()
 
     override val circularReferences = CircularReferences()
@@ -107,6 +112,12 @@ class DefaultWriteContext(
     override suspend fun write(value: Any?) {
         getCodec().run {
             encode(value)
+        }
+    }
+
+    override fun writeFile(file: File) {
+        fileEncoder.run {
+            writeFile(this@DefaultWriteContext, file)
         }
     }
 
@@ -146,14 +157,14 @@ interface ClassEncoder {
 
 
 interface ClassDecoder {
-    fun Decoder.decodeClass(): Class<*>
+    fun ReadContext.decodeClass(): Class<*>
 
     /**
      * Decodes a [ClassLoader] previously encoded via [ClassEncoder.encodeClassLoader].
      *
      * @return the previously encoded [ClassLoader] or `null` when [ClassEncoder.encodeClassLoader] returns `false`
      */
-    fun Decoder.decodeClassLoader(): ClassLoader? = null
+    fun ReadContext.decodeClassLoader(): ClassLoader? = null
 }
 
 
@@ -192,19 +203,30 @@ object InlineStringDecoder : StringDecoder {
     override fun close() = Unit
 }
 
+
+interface FileEncoder : AutoCloseable {
+    fun writeFile(writeContext: WriteContext, file: File)
+}
+
+
+interface FileDecoder : AutoCloseable {
+    fun readFile(readContext: ReadContext): File
+}
+
+
 //TODO-RC consider making the implementations auto-closeable
 interface SharedObjectEncoder : AutoCloseable {
-    suspend fun <T: Any> write(writeContext: WriteContext, value: T, encode: suspend WriteContext.(T) -> Unit)
+    suspend fun <T : Any> write(writeContext: WriteContext, value: T, encode: suspend WriteContext.(T) -> Unit)
 }
 
 
 interface SharedObjectDecoder : AutoCloseable {
-    suspend fun <T: Any> read(readContext: ReadContext, decode: suspend ReadContext.() -> T): T
+    suspend fun <T : Any> read(readContext: ReadContext, decode: suspend ReadContext.() -> T): T
 }
 
 
 object InlineSharedObjectDecoder : SharedObjectDecoder {
-    override suspend fun <T: Any> read(readContext: ReadContext, decode: suspend ReadContext.() -> T): T =
+    override suspend fun <T : Any> read(readContext: ReadContext, decode: suspend ReadContext.() -> T): T =
         readContext.decode()
 
     override fun close() = Unit
@@ -215,6 +237,23 @@ object InlineSharedObjectEncoder : SharedObjectEncoder {
     override suspend fun <T : Any> write(writeContext: WriteContext, value: T, encode: suspend WriteContext.(T) -> Unit) {
         writeContext.encode(value)
     }
+
+    override fun close() = Unit
+}
+
+
+object InlineFileEncoder : FileEncoder {
+    override fun writeFile(writeContext: WriteContext, file: File) {
+        writeContext.writeString(file.path)
+    }
+
+    override fun close() = Unit
+}
+
+
+object InlineFileDecoder : FileDecoder {
+    override fun readFile(readContext: ReadContext): File =
+        File(readContext.readString())
 
     override fun close() = Unit
 }
@@ -245,6 +284,8 @@ class DefaultReadContext(
     val stringDecoder = specialDecoders.stringDecoder
 
     val sharedObjectDecoder = specialDecoders.sharedObjectDecoder
+
+    val fileDecoder = specialDecoders.fileDecoder
 
     private
     var singletonProperty: Any? = null
@@ -278,6 +319,9 @@ class DefaultReadContext(
     override suspend fun read(): Any? = getCodec().run {
         decode()
     }
+
+    override fun readFile(): File =
+        fileDecoder.readFile(this)
 
     override suspend fun <T : Any> readSharedObject(decode: suspend ReadContext.() -> T): T =
         sharedObjectDecoder.run {

@@ -24,7 +24,7 @@ import java.util.StringTokenizer;
 public class FilePathUtil {
     private static final String[] EMPTY_STRING_ARRAY = {};
     // On Windows, / and \ are separators, on Unix only / is a separator.
-    private static final String FILE_PATH_SEPARATORS = File.separatorChar != '/' ? ("/" + File.separator) : File.separator;
+    public static final String FILE_PATH_SEPARATORS = File.separatorChar != '/' ? ("/" + File.separator) : File.separator;
 
     private FilePathUtil() {
     }
