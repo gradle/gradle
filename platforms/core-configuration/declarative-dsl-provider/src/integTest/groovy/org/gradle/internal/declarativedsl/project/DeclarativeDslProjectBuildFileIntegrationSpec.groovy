@@ -101,7 +101,7 @@ secondaryAccess { three, true, true}"""
             defaults {
                 restricted {
                     arguments = listOf("one")
-                    flags = listOf("foo", "bar")
+                    flags = listOf(1, 2)
                 }
             }
         """
@@ -109,7 +109,7 @@ secondaryAccess { three, true, true}"""
         file("build.gradle.dcl") << """
             restricted {
                 arguments += listOf("two", "three")
-                flags += listOf("baz")
+                flags += listOf(3)
             }
         """
 
@@ -118,7 +118,7 @@ secondaryAccess { three, true, true}"""
 
         then:
         outputContains("arguments = [one, two, three]")
-        outputContains("flags = [foo, bar, baz]")
+        outputContains("flags = [1, 2, 3]")
 
         where:
         language | _
@@ -262,14 +262,14 @@ secondaryAccess { three, true, true}"""
             @Restricted
             public abstract ListProperty<String> getArguments();
 
-            private List<String> flags = new ArrayList<>();
+            private List<Integer> flags = new ArrayList<>();
 
-            @Restricted // TODO: test a primitive-typed list as well (has issues currently)
-            public List<String> getFlags() {
+            @Restricted
+            public List<Integer> getFlags() {
                 return flags;
             }
 
-            public void setFlags(List<String> flags) {
+            public void setFlags(List<Integer> flags) {
                 this.flags = flags;
             }
 
@@ -363,8 +363,8 @@ secondaryAccess { three, true, true}"""
             @get:Restricted
             abstract val arguments: ListProperty<String>
 
-            @get:Restricted // TODO: test a primitive-typed list as well (has issues currently)
-            var flags: List<String> = emptyList()
+            @get:Restricted
+            var flags: List<Int> = emptyList()
 
             @Configuring
             fun primaryAccess(configure: Access.() -> Unit) {
