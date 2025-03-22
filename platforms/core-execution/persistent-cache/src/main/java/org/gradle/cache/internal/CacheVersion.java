@@ -86,11 +86,11 @@ public final class CacheVersion implements Comparable<CacheVersion> {
     public int compareTo(CacheVersion that) {
         int minLength = Math.min(this.components.length, that.components.length);
         for (int i = 0; i < minLength; i++) {
-            int result = Ints.compare(this.components[i], that.components[i]);
+            int result = Integer.compare(this.components[i], that.components[i]);
             if (result != 0) {
                 return result;
             }
         }
-        return Ints.compare(this.components.length, that.components.length);
+        return Integer.compare(this.components.length, that.components.length);
     }
 }

@@ -16,7 +16,6 @@
 
 package org.gradle.plugin.devel.tasks.internal;
 
-import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.google.gson.Gson;
 import org.gradle.api.Task;
@@ -50,6 +49,7 @@ import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -90,7 +90,7 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
                 //noinspection ResultOfMethodCallIgnored
                 output.createNewFile();
                 Gson gson = ValidationProblemSerialization.createGsonBuilder().create();
-                Files.asCharSink(output, Charsets.UTF_8).write(gson.toJson(problemMessages));
+                Files.asCharSink(output, StandardCharsets.UTF_8).write(gson.toJson(problemMessages));
             } catch (IOException ex) {
                 throw new java.io.UncheckedIOException(ex);
             }
