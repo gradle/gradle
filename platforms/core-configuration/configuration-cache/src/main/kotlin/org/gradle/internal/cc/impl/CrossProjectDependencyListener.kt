@@ -22,12 +22,14 @@ import org.gradle.internal.service.scopes.Scope
 
 
 @EventScope(Scope.Build::class)
-interface CoupledProjectsListener {
+interface CrossProjectDependencyListener {
     /**
      * Notified when the build logic for a [referrer] project accesses the mutable state of some other [target] project.
      *
      * The [referrer] and [target] might represent the same project, and the listener implementation
      * should handle this specifically, probably ignoring such calls, as a project is naturally coupled with itself.
      */
-    fun onProjectReference(referrer: ProjectState, target: ProjectState)
+    fun onProjectCoupling(referrer: ProjectState, target: ProjectState)
+
+    fun onProjectDependency(referrer: ProjectState, target: ProjectState)
 }

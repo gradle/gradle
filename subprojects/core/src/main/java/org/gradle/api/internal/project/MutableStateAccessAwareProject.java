@@ -203,24 +203,34 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
 
     @Override
     public Object getGroup() {
-        onMutableStateAccess("group");
+        if (!delegate.getGradle().isOverStableProjectsCoordinatesBarrier()) {
+            onMutableStateAccess("group");
+        }
         return delegate.getGroup();
     }
 
     @Override
     public void setGroup(Object group) {
+        if (delegate.getGradle().isOverStableProjectsCoordinatesBarrier()) {
+            throw new IllegalStateException("Cannot set group after project coordinates have been finalized");
+        }
         onMutableStateAccess("group");
         delegate.setGroup(group);
     }
 
     @Override
     public Object getVersion() {
-        onMutableStateAccess("version");
+        if (!delegate.getGradle().isOverStableProjectsCoordinatesBarrier()) {
+            onMutableStateAccess("version");
+        }
         return delegate.getVersion();
     }
 
     @Override
     public void setVersion(Object version) {
+        if (delegate.getGradle().isOverStableProjectsCoordinatesBarrier()) {
+            throw new IllegalStateException("Cannot set version after project coordinates have been finalized");
+        }
         onMutableStateAccess("version");
         delegate.setVersion(version);
     }

@@ -168,4 +168,8 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
      * Resets the lifecycle for this Gradle object.
      */
     void resetState();
+
+    void crossStableProjectsCoordinatesBarrier();
+
+    boolean isOverStableProjectsCoordinatesBarrier();
 }

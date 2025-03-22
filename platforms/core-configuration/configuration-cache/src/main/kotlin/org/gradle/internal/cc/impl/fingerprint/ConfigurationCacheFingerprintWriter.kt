@@ -51,7 +51,7 @@ import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildoption.FeatureFlag
 import org.gradle.internal.buildoption.FeatureFlagListener
 import org.gradle.internal.cc.base.services.ConfigurationCacheEnvironmentChangeTracker
-import org.gradle.internal.cc.impl.CoupledProjectsListener
+import org.gradle.internal.cc.impl.CrossProjectDependencyListener
 import org.gradle.internal.cc.impl.InputTrackingState
 import org.gradle.internal.cc.impl.UndeclaredBuildInputListener
 import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprint.InputFile
@@ -105,7 +105,7 @@ class ConfigurationCacheFingerprintWriter(
     ScriptExecutionListener,
     UndeclaredBuildInputListener,
     ChangingValueDependencyResolutionListener,
-    CoupledProjectsListener,
+    CrossProjectDependencyListener,
     ToolingModelProjectDependencyListener,
     FileResourceListener,
     ScriptFileResolvedListener,
@@ -560,7 +560,7 @@ class ConfigurationCacheFingerprintWriter(
         }
     }
 
-    override fun onProjectReference(referrer: ProjectState, target: ProjectState) {
+    override fun onProjectCoupling(referrer: ProjectState, target: ProjectState) {
         if (referrer.identityPath == target.identityPath)
             return
 
@@ -570,6 +570,10 @@ class ConfigurationCacheFingerprintWriter(
                 projectScopedWriter.write(dependency)
             }
         }
+    }
+
+    override fun onProjectDependency(referrer: ProjectState, target: ProjectState) {
+        onProjectDependency(referrer.identityPath, target.identityPath)
     }
 
     override fun onToolingModelDependency(consumer: ProjectState, target: ProjectState) {
