@@ -21,11 +21,7 @@ public abstract class FailingTask extends DefaultTask {
             problemSpec.contextualLabel("This happened because ProblemReporter.throwing() was called")
                 .details("This is a demonstration of how to add\ndetailed information to a build failure")
                 .documentedAt("https://example.com/docs")
-                .solution("Remove the Problems.throwing() method call from the task action")
-                .additionalData(SomeAdditionalData.class, additionalData -> {
-                    additionalData.setName("Some name");
-                    additionalData.setNames(java.util.Arrays.asList("name1", "name2"));
-                });
+                .solution("Remove the Problems.throwing() method call from the task action");
         });
         // end::problems-api-fail-the-build[]
     }
