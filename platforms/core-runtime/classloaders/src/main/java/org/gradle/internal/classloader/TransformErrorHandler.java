@@ -117,7 +117,8 @@ public class TransformErrorHandler {
         if (pendingException != null) {
             addSuppressedIfAvailable(th, pendingException);
         }
-        Throwables.propagateIfPossible(th, ClassNotFoundException.class);
+        Throwables.throwIfInstanceOf(th, ClassNotFoundException.class);
+        Throwables.throwIfUnchecked(th);
         throw new RuntimeException("Unexpected exception type", th);
     }
 

@@ -17,6 +17,7 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.ZincScalaCompileFixture
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
@@ -49,7 +50,7 @@ apply plugin: 'scala'
 ${mavenCentralRepository()}
 dependencies {
     implementation 'org.codehaus.groovy:groovy-all:2.4.10'
-    implementation 'org.scala-lang:scala-library:2.11.12'
+    implementation 'org.scala-lang:scala-library:${ScalaCoverage.latestSupportedScala2Version}'
 }
 
 testing.suites.test.useJUnitJupiter()

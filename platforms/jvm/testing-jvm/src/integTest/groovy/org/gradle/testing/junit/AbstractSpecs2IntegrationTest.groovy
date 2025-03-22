@@ -17,6 +17,7 @@
 package org.gradle.testing.junit
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 
 abstract class AbstractSpecs2IntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
@@ -31,7 +32,7 @@ abstract class AbstractSpecs2IntegrationTest extends AbstractTestingMultiVersion
             ${mavenCentralRepository()}
 
             dependencies {
-                implementation 'org.scala-lang:scala-library:2.11.8'
+                implementation 'org.scala-lang:scala-library:${ScalaCoverage.latestSupportedScala2Version}'
                 testImplementation 'org.specs2:specs2_2.11:3.7'
                 testImplementation 'org.specs2:specs2-junit_2.11:4.7.0'
                 ${testFrameworkDependencies}
