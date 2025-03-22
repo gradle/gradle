@@ -1,0 +1,29 @@
+// tag::avoid-this[]
+abstract class BadTask extends DefaultTask { // <1>
+    @TaskAction
+    void run() {
+        def majorVersion =
+            org.gradle.api.internal.jvm.JavaVersionParser.parseMajorVersion( // <1>
+                "21.0.0"
+            )
+        println("Major version $majorVersion")
+    }
+}
+
+tasks.register("badTask", BadTask)
+// end::avoid-this[]
+
+// tag::do-this[]
+abstract class GoodTask extends DefaultTask {
+    @TaskAction
+    void run() {
+        def majorVersion =
+            org.gradle.api.JavaVersion.toVersion( // <2>
+                "21.0.0"
+            ).majorVersion
+        println("Major version $majorVersion")
+    }
+}
+
+tasks.register("goodTask", GoodTask)
+// end::do-this[]
