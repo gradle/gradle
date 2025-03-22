@@ -161,7 +161,6 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
     void buildProblem(Diagnostic<? extends JavaFileObject> diagnostic, ProblemSpec spec) {
         Severity severity = mapKindToSeverity(diagnostic.getKind());
         spec.severity(severity);
-        addFormattedMessage(spec, diagnostic);
         addDetails(spec, diagnostic);
         addLocations(spec, diagnostic);
         if (severity == Severity.ERROR) {
@@ -169,16 +168,18 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
         }
     }
 
-    private void addFormattedMessage(ProblemSpec spec, Diagnostic<? extends JavaFileObject> diagnostic) {
+    private void addDetails(ProblemSpec spec, Diagnostic<? extends JavaFileObject> diagnostic) {
         String formatted = toFormattedMessage(diagnostic);
-        System.err.println(formatted);
-        spec.details(formatted);
-    }
 
-    private static void addDetails(ProblemSpec spec, Diagnostic<? extends JavaFileObject> diagnostic) {
         String message = diagnostic.getMessage(Locale.getDefault());
         String[] messageLines = message.split("\n");
+        // NOTE: This is required to keep backward compatibility
+        // By default, when a compiler is called without a diagnostic listener
+        // the compiler will print the diagnostic message to the error stream
+        System.err.println(formatted);
 
+        // Details can contain the whole, possibly multi-line message
+        spec.details(formatted);
         // Contextual label is always the first line of the message
         spec.contextualLabel(messageLines[0]);
     }
@@ -223,12 +224,24 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
         }
     }
 
+    /**
+     * Using a {@link DiagnosticFormatter}, turns a diagnostic into a human-readable message.
+     * <p>
+     * This method uses an internal Java compiler API to get a formatter.
+     * <p>
+     * In some circumstances, getting the formatter can fail, after which we would use a
+     * fail-safe way of formatting the message.
+     * The drawback is that the formatters are not equal. Normally, we would get a {@code RichDiagnosticFormatter}
+     * instance that can simplify types, generics, and is the formatter normally used by {@code javac}.
+     * <p>
+     * The failsafe (normally {@code BasicDiagnosticFormatter}, however, uses a much simpler algorithm to format the message,
+     * and will make a different, more terse message.
+     **/
     private String toFormattedMessage(Diagnostic<? extends JavaFileObject> diagnostic) {
         try {
             DiagnosticFormatter<JCDiagnostic> formatter = Log.instance(context).getDiagnosticFormatter();
             return formatter.format((JCDiagnostic) diagnostic, JavacMessages.instance(context).getCurrentLocale());
         } catch (Exception ex) {
-            // If for some reason the formatter fails, we can still get the message
             LOGGER.info(FORMATTER_FALLBACK_MESSAGE);
             return diagnostic.getMessage(Locale.getDefault());
         }

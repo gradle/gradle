@@ -139,6 +139,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
                     return
                 }
 
+                println "Received problem: ${event.problem.toString()}"
                 this.problems.add(event.problem)
             }
         }
