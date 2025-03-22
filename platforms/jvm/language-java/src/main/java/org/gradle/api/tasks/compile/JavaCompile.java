@@ -312,6 +312,11 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
             spec.setSourceCompatibility(sourceCompatibility);
             spec.setTargetCompatibility(targetCompatibility);
         }
+
+        if (compileOptions.getEnablePreview().isPresent()) {
+            spec.setEnablePreview(compileOptions.getEnablePreview().get());
+        }
+
         spec.setCompileOptions(compileOptions);
     }
 
