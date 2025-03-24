@@ -24,7 +24,6 @@ import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.tasks.util.PatternSet;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
-import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
 
 import java.io.File;
@@ -32,7 +31,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class FileCollectionMatchers {
-    @Factory
     public static <T extends FileCollection> Matcher<T> sameCollection(final FileCollection expected) {
         return new BaseMatcher<T>() {
             @Override
