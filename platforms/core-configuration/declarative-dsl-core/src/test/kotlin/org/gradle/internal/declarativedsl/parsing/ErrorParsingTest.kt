@@ -1222,4 +1222,25 @@ class ErrorParsingTest {
         """.trimIndent()
         results.assert(removeCommentAndEmptyLines(expected))
     }
+
+    @Test
+    fun `assignment in place of a property RHS`() {
+        val code = """
+            a = b = 1
+        """.trimIndent()
+
+        val results = ParseTestUtil.parse(code)
+
+        val expected = """
+            ErroneousStatement (
+                ParsingError(
+                    message = Unexpected assignment target,
+                    potentialElementSource = indexes: 0..5, line/column: 1/1..1/6, file: test,
+                    erroneousSource = indexes: 0..5, line/column: 1/1..1/6, file: test
+                )
+            )
+        """.trimIndent()
+        results.assert(removeCommentAndEmptyLines(expected))
+    }
+
 }

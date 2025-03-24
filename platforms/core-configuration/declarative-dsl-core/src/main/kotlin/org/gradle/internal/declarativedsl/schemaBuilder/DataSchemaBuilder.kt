@@ -127,7 +127,8 @@ private inline fun <R> SchemaBuildingHost.inContextOf(contextElement: SchemaBuil
 class DataSchemaBuilder(
     private val typeDiscovery: TypeDiscovery,
     private val propertyExtractor: PropertyExtractor,
-    private val functionExtractor: FunctionExtractor
+    private val functionExtractor: FunctionExtractor,
+    private val augmentationsProvider: AugmentationsProvider
 ) {
 
     private class Host : SchemaBuildingHost {
@@ -290,7 +291,8 @@ class DataSchemaBuilder(
             host.typeInstances,
             extFunctions,
             extObjects,
-            defaultImports.toSet()
+            defaultImports.toSet(),
+            augmentationsProvider.augmentations(host)
         )
 
         validateSchema(host, schema)

@@ -36,6 +36,7 @@ import org.gradle.internal.buildevents.BuildExceptionReporter;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.logging.DefaultLoggingConfiguration;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
+import org.gradle.internal.logging.LoggingManagerFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
@@ -470,7 +471,7 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
                 // Ignore, deal with this problem later
             }
 
-            LoggingManagerInternal loggingManager = loggingServices.getFactory(LoggingManagerInternal.class).create();
+            LoggingManagerInternal loggingManager = loggingServices.get(LoggingManagerFactory.class).createLoggingManager();
             loggingManager.setLevelInternal(loggingConfiguration.getLogLevel());
             loggingManager.start();
             try {

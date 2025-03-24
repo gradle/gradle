@@ -156,7 +156,8 @@ public interface MapProperty<K, V> extends Provider<Map<K, V>>, HasConfigurableV
     /**
      * Returns a {@link Provider} that returns the set of keys for the map that is the property value.
      *
-     * <p>The returned provider will track the value of this property and query its value when it is queried.</p>
+     * <p>The returned provider tracks changes to this property and resolves its value dynamically when queried.
+     * It also inherits the task dependencies of all entries in the map, if any.
      *
      * <p>This method is equivalent to
      *

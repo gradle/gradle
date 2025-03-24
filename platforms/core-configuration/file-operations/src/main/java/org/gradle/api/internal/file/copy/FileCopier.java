@@ -24,8 +24,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.internal.Factory;
+import org.gradle.api.tasks.util.internal.PatternSetFactory;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
@@ -37,7 +36,7 @@ public class FileCopier {
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
     private final FileCollectionFactory fileCollectionFactory;
     private final FileResolver fileResolver;
-    private final Factory<PatternSet> patternSetFactory;
+    private final PatternSetFactory patternSetFactory;
     private final PropertyFactory propertyFactory;
     private final FileSystem fileSystem;
     private final Instantiator instantiator;
@@ -48,7 +47,7 @@ public class FileCopier {
         DirectoryFileTreeFactory directoryFileTreeFactory,
         FileCollectionFactory fileCollectionFactory,
         FileResolver fileResolver,
-        Factory<PatternSet> patternSetFactory,
+        PatternSetFactory patternSetFactory,
         PropertyFactory propertyFactory,
         FileSystem fileSystem,
         Instantiator instantiator,

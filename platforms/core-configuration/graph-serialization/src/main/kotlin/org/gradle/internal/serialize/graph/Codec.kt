@@ -40,6 +40,9 @@ interface EncodingProvider<T> {
 
 interface DecodingProvider<T> {
     suspend fun ReadContext.decode(): T?
+
+    val displayName: String
+        get() = this::class.simpleName ?: "Unknown"
 }
 
 
@@ -157,6 +160,7 @@ suspend fun <T : Any> ReadContext.readNonNull() = read()!!.uncheckedCast<T>()
 
 
 interface IsolateContext {
+    val isIntegrityCheckEnabled: Boolean
 
     val logger: Logger
 

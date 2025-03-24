@@ -25,8 +25,8 @@ import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.api.tasks.util.internal.PatternSetFactory;
 import org.gradle.internal.Cast;
-import org.gradle.internal.Factory;
 import org.gradle.internal.MutableBoolean;
 
 import java.io.File;
@@ -42,7 +42,7 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
         super();
     }
 
-    public AbstractFileTree(TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory) {
+    public AbstractFileTree(TaskDependencyFactory taskDependencyFactory, PatternSetFactory patternSetFactory) {
         super(taskDependencyFactory, patternSetFactory);
     }
 
@@ -73,12 +73,12 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
 
     @Override
     public FileTree matching(Closure filterConfigClosure) {
-        return matching(configure(filterConfigClosure, patternSetFactory.create()));
+        return matching(configure(filterConfigClosure, patternSetFactory.createPatternSet()));
     }
 
     @Override
     public FileTree matching(Action<? super PatternFilterable> filterConfigAction) {
-        PatternSet patternSet = patternSetFactory.create();
+        PatternSet patternSet = patternSetFactory.createPatternSet();
         filterConfigAction.execute(patternSet);
         return matching(patternSet);
     }

@@ -17,12 +17,15 @@
 package org.gradle.internal.declarativedsl.analysis
 
 import org.gradle.declarative.dsl.schema.AnalysisSchema
-import org.gradle.internal.declarativedsl.demo.demoPlugins.schema
 import org.gradle.internal.declarativedsl.demo.resolve
 import org.gradle.internal.declarativedsl.serialization.SchemaSerialization
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.Test
 import org.gradle.internal.declarativedsl.assertIs
+import org.gradle.internal.declarativedsl.demo.demoPlugins.PluginDefinition
+import org.gradle.internal.declarativedsl.demo.demoPlugins.PluginsBlock
+import org.gradle.internal.declarativedsl.demo.demoPlugins.TopLevelScope
+import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 
 
 class SerializationTest {
@@ -48,3 +51,9 @@ class SerializationTest {
         assertEquals("id", idOrigin.function.simpleName)
     }
 }
+
+
+private val schema = schemaFromTypes(
+    topLevelReceiver = TopLevelScope::class,
+    types = listOf(TopLevelScope::class, PluginsBlock::class, PluginDefinition::class)
+)

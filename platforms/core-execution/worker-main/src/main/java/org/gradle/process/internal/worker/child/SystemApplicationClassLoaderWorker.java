@@ -24,6 +24,7 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.event.ScopedListenerManager;
+import org.gradle.internal.logging.LoggingManagerFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.nativeintegration.services.NativeServices;
@@ -179,7 +180,7 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
     }
 
     LoggingManagerInternal createLoggingManager(ServiceRegistry loggingServiceRegistry) {
-        LoggingManagerInternal loggingManagerInternal = loggingServiceRegistry.newInstance(LoggingManagerInternal.class);
+        LoggingManagerInternal loggingManagerInternal = loggingServiceRegistry.get(LoggingManagerFactory.class).createLoggingManager();
         loggingManagerInternal.captureSystemSources();
         return loggingManagerInternal;
     }

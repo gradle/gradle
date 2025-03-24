@@ -108,6 +108,7 @@ class IsolatedActionSerializer(
         codec = isolatedActionCodecs.isolatedActionCodecs(),
         encoder = KryoBackedEncoder(outputStream),
         beanStateWriterLookup = beanStateWriterLookup,
+        isIntegrityCheckEnabled = false,
         logger = logger,
         tracer = null,
         problemsListener = ThrowingProblemsListener,
@@ -138,6 +139,7 @@ class IsolatedActionDeserializer(
         codec = isolatedActionCodecs.isolatedActionCodecs(),
         decoder = KryoBackedDecoder(action.graph.inputStream()),
         beanStateReaderLookup = beanStateReaderLookup,
+        isIntegrityCheckEnabled = false,
         logger = logger,
         problemsListener = ThrowingProblemsListener,
         classDecoder = EnvironmentDecoder(action.environment)
