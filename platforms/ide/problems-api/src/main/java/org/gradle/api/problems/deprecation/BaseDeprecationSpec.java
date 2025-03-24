@@ -55,7 +55,20 @@ public interface BaseDeprecationSpec<T extends BaseDeprecationSpec<?>> {
      */
     T removedInVersion(String version);
 
+    /**
+     * Declares where extra documentation can be found.
+     *
+     * @param link a {@link DocLink} object describing where the documentation can be found
+     * @return the fluent builder used to call this
+     * @since 8.14
+     */
     T documentedAt(DocLink link);
 
+    /**
+     * Declares where extra documentation can be found.
+     *
+     * @param url the URL to the documentation
+     * @return the fluent builder used to call this
+     */
     T documentedAt(String url);
 }
