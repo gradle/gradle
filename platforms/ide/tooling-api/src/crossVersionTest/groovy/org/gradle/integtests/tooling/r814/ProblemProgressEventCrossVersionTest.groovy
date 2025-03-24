@@ -174,6 +174,10 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         }
 
         then:
+        // TODO: Remove, only for testing
+        listener.problems.forEach {
+            println it.toString()
+        }
         listener.problems.size() == 1
 
         def someDataView = listener.problems[0].additionalData.get(SomeDataView)
