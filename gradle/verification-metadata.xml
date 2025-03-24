@@ -66,7 +66,6 @@
          <trust file=".*-sources[.]jar" regex="true"/>
       </trusted-artifacts>
       <ignored-keys>
-         <ignored-key id="164779204E106A76" reason="Key couldn't be downloaded from any key server"/>
          <ignored-key id="74DAFDFD6DAE2441" reason="Key couldn't be downloaded from any key server"/>
       </ignored-keys>
       <trusted-keys>
@@ -179,7 +178,6 @@
          </trusted-key>
          <trusted-key id="60C6700E08F02B9EB6F4A46745145F826CF4BF98" group="com.googlecode.plist" name="dd-plist"/>
          <trusted-key id="635EE627345F3C1DD422B2E207D3516820BCF6B1" group="com.github.ben-manes.caffeine" name="caffeine"/>
-         <trusted-key id="666A4692CE11B7B3F4EB7B3410066A9707090CF9" group="org.javassist" name="javassist"/>
          <trusted-key id="66CA61EA0FC7E9EA1216F83396B88EACD463B90B" group="com.diffplug.spotless"/>
          <trusted-key id="694621A7227D8D5289699830ABE9F3126BB741C1">
             <trusting group="com.google.guava"/>
@@ -305,6 +303,7 @@
             <trusting group="commons-beanutils"/>
             <trusting group="org.apache-extras.beanshell"/>
          </trusted-key>
+         <trusted-key id="E5C3B1929191DF06136CCB2B164779204E106A76" group="org.javassist" name="javassist"/>
          <trusted-key id="E62231331BCA7E1F292C9B88C1B12A5D99C0729D" group="org.jetbrains"/>
          <trusted-key id="E77417AC194160A3FABD04969A259C7EE636C5ED">
             <trusting group="com.google.errorprone" name="error_prone_annotations"/>
