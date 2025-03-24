@@ -65,66 +65,66 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         return CI_INJECTION_SCRIPT_CONTENTS.computeIfAbsent(ci) { new URL(it.getUrl()).getText(StandardCharsets.UTF_8.name()) }
     }
 
-    private static final List<String> UNSUPPORTED_WITH_GRADLE_5 = [
-        "2.4.2",
-        "2.4.1",
-        "2.4",
-        "2.3",
-        "2.2.1",
-        "2.2",
-        "2.1",
-        "2.0.2",
-        "2.0.1",
-        "2.0",
-        "1.16",
+    private static final List<String> LEGACY_UNSUPPORTED = [
+        "1.14",
         "1.15",
-        "1.14"
+        "1.16",
+        "2.0",
+        "2.0.1",
+        "2.0.2",
+        "2.1",
+        "2.2",
+        "2.2.1",
+        "2.3",
+        "2.4",
+        "2.4.1",
+        "2.4.2"
     ]
 
     private static final List<String> UNSUPPORTED = [
-        "3.13",
-        "3.12.6",
-        "3.12.5",
-        "3.12.4",
-        "3.12.3",
-        "3.12.2",
-        "3.12.1",
-        "3.12",
-        "3.11.4",
-        "3.11.3",
-        "3.11.2",
-        "3.11.1",
-        // "3.11", This doesn't work on Java 8, so let's not test it.
-        "3.10.3",
-        "3.10.2",
-        "3.10.1",
-        "3.10",
-        "3.9",
-        "3.8.1",
-        "3.8",
-        "3.7.2",
-        "3.7.1",
-        "3.7",
-        "3.6.4",
-        "3.6.3",
-        "3.6.2",
-        "3.6.1",
-        "3.6",
-        "3.5.2",
-        "3.5.1",
-        "3.5",
-        "3.4.1",
-        "3.4",
-        "3.3.4",
-        "3.3.3",
-        "3.3.2",
-        "3.3.1",
-        "3.3",
-        "3.2.1",
-        "3.2",
-        "3.1.1",
+        "3.0",
         "3.1",
-        "3.0"
+        "3.1.1",
+        "3.2",
+        "3.2.1",
+        "3.3",
+        "3.3.1",
+        "3.3.2",
+        "3.3.3",
+        "3.3.4",
+        "3.4",
+        "3.4.1",
+        "3.5",
+        "3.5.1",
+        "3.5.2",
+        "3.6",
+        "3.6.1",
+        "3.6.2",
+        "3.6.3",
+        "3.6.4",
+        "3.7",
+        "3.7.1",
+        "3.7.2",
+        "3.8",
+        "3.8.1",
+        "3.9",
+        "3.10",
+        "3.10.1",
+        "3.10.2",
+        "3.10.3",
+        // "3.11", This doesn't work on Java 8, so let's not test it.
+        "3.11.1",
+        "3.11.2",
+        "3.11.3",
+        "3.11.4",
+        "3.12",
+        "3.12.1",
+        "3.12.2",
+        "3.12.3",
+        "3.12.4",
+        "3.12.5",
+        "3.12.6",
+        "3.13"
     ]
 
     private static final List<String> SUPPORTED = [
@@ -158,13 +158,8 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
     private static final List<String> SUPPORTED_BY_CI_INJECTION = SUPPORTED
         .findAll { VersionNumber.parse("3.6.4") <= VersionNumber.parse(it) }
 
-    // This refers to GradleEnterprisePluginCheckInService and does not cover LegacyGradleEnterprisePluginCheckInService
-    private static final VersionNumber FIRST_VERSION_SUPPORTING_CHECK_IN_SERVICE = VersionNumber.parse("3.4")
-
     private static final VersionNumber FIRST_VERSION_SUPPORTING_ISOLATED_PROJECTS = VersionNumber.parse("3.15")
     private static final VersionNumber FIRST_VERSION_SUPPORTING_ISOLATED_PROJECTS_FOR_TEST_ACCELERATION = VersionNumber.parse("3.17")
-    private static final VersionNumber FIRST_VERSION_CALLING_BUILD_PATH = VersionNumber.parse("3.13.1")
-    private static final VersionNumber FIRST_VERSION_BUNDLING_TEST_RETRY_PLUGIN = VersionNumber.parse("3.12")
     private static final VersionNumber FIRST_VERSION_SUPPORTING_SAFE_MODE = VersionNumber.parse("3.15")
     private static final VersionNumber FIRST_VERSION_UNDER_DEVELOCITY_BRAND = VersionNumber.parse("3.17")
 
@@ -296,19 +291,20 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         output.contains(GradleEnterprisePluginManager.OLD_SCAN_PLUGIN_VERSION_MESSAGE)
 
         where:
-        version << UNSUPPORTED_WITH_GRADLE_5
+        version << LEGACY_UNSUPPORTED
     }
 
-    def "cannot use plugin #version"() {
+    def "plugin is disabled for unsupported version #version"() {
         when:
         usePluginVersion version
 
         and:
-        def output = runner("--stacktrace")
+        def output = scanRunner()
             .build().output
 
         then:
-        output.contains("Build Scans have been disabled as your version of the Gradle Enterprise plugin ($version) is incompatible with this version of Gradle. Please use Gradle Enterprise plugin version 3.13.1 or later.")
+        output.contains("Gradle Enterprise plugin $version has been disabled as it is incompatible with this version of Gradle. Upgrade to Gradle Enterprise plugin 3.13.1 or newer to restore functionality.")
+        !output.contains("Build scan written to")
 
         where:
         version << UNSUPPORTED
@@ -338,7 +334,7 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
 
         setupLocalBuildCache()
         setupJavaProject()
-        if (doesNotBundleTestRetryPluginOrSupportsSafeMode(versionNumber)) {
+        if (supportsSafeMode(versionNumber)) {
             new TestFile(buildFile).with {
                 touch()
                 prepend("""
@@ -385,8 +381,8 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         ciScriptVersion = ci.gitRef
     }
 
-    private boolean doesNotBundleTestRetryPluginOrSupportsSafeMode(VersionNumber pluginVersion) {
-        pluginVersion < FIRST_VERSION_BUNDLING_TEST_RETRY_PLUGIN || pluginVersion >= FIRST_VERSION_SUPPORTING_SAFE_MODE
+    private static boolean supportsSafeMode(VersionNumber pluginVersion) {
+        pluginVersion >= FIRST_VERSION_SUPPORTING_SAFE_MODE
     }
 
     BuildResult build(String... args) {
