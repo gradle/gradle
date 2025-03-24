@@ -409,6 +409,14 @@
             ]
         },
         {
+            "type": "org.gradle.api.tasks.wrapper.Wrapper",
+            "member": "Method org.gradle.api.tasks.wrapper.Wrapper.getAvailableDistributionTypes()",
+            "acceptation": "This method is @OptionValues method, that is not really needed, since getDistributionType() returns enum",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.jvm.application.tasks.CreateStartScripts",
             "member": "Method org.gradle.jvm.application.tasks.CreateStartScripts.getMainClassName()",
             "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
