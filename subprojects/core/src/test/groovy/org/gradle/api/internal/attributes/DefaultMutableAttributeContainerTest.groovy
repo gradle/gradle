@@ -269,7 +269,7 @@ final class DefaultMutableAttributeContainerTest extends BaseAttributeContainerT
 
     }
 
-    def "A copy of an attribute container contains the same attributes and the same values as the original"() {
+    def "a copy of an attribute container contains the same attributes and the same values as the original"() {
         given:
         def container = createContainer()
         container.attribute(Attribute.of("a1", Integer), 1)
@@ -306,7 +306,7 @@ final class DefaultMutableAttributeContainerTest extends BaseAttributeContainerT
         immutable.getAttribute(Attribute.of("a3", String)) == "3"
     }
 
-    def "An attribute container can provide the attributes through the HasAttributes interface"() {
+    def "an attribute container can provide the attributes through the HasAttributes interface"() {
         given:
         def container = createContainer()
         container.attribute(Attribute.of("a1", Integer), 1)

@@ -36,7 +36,7 @@ import spock.lang.Issue
  */
 @TargetGradleVersion('>=3.3')
 class BuildActionCompositeBuildCrossVersionSpec extends ToolingApiSpecification {
-    def "Can run no-op build action against root of composite build"() {
+    def "can run no-op build action against root of composite build"() {
         given:
         singleProjectBuildInRootFolder("root") {
             settingsFile << """
@@ -56,7 +56,7 @@ class BuildActionCompositeBuildCrossVersionSpec extends ToolingApiSpecification 
 
     @Issue("https://github.com/gradle/gradle/issues/5167")
     @TargetGradleVersion('>6.6')
-    def "Can run no-op build action against root of composite build with substitutions after Gradle 6.6"() {
+    def "can run no-op build action against root of composite build with substitutions after Gradle 6.6"() {
         given:
         singleProjectBuildInRootFolder("root") {
             settingsFile << """
@@ -78,7 +78,7 @@ class BuildActionCompositeBuildCrossVersionSpec extends ToolingApiSpecification 
         result == "result"
     }
 
-    def "Can fetch build scoped models from included builds"() {
+    def "can fetch build scoped models from included builds"() {
         given:
         singleProjectBuildInRootFolder("root") {
             settingsFile << """
@@ -98,7 +98,7 @@ class BuildActionCompositeBuildCrossVersionSpec extends ToolingApiSpecification 
 
     @Issue("https://github.com/gradle/gradle/issues/5167")
     @TargetGradleVersion('>6.6')
-    def "Can fetch build scoped models from included builds with substitutions after Gradle 6.6"() {
+    def "can fetch build scoped models from included builds with substitutions after Gradle 6.6"() {
         given:
         singleProjectBuildInRootFolder("root") {
             settingsFile << """
@@ -120,7 +120,7 @@ class BuildActionCompositeBuildCrossVersionSpec extends ToolingApiSpecification 
         builds.rootProject.name == ["root", "includedBuild"]
     }
 
-    def "Can fetch project scoped models from included builds"() {
+    def "can fetch project scoped models from included builds"() {
         given:
         multiProjectBuildInRootFolder("root", ["a", "b"]) {
             settingsFile << """
@@ -140,7 +140,7 @@ class BuildActionCompositeBuildCrossVersionSpec extends ToolingApiSpecification 
 
     @Issue("https://github.com/gradle/gradle/issues/5167")
     @TargetGradleVersion('>6.6')
-    def "Can fetch project scoped models from included builds with substitutions after Gradle 6.6"() {
+    def "can fetch project scoped models from included builds with substitutions after Gradle 6.6"() {
         given:
         multiProjectBuildInRootFolder("root", ["a", "b"]) {
             settingsFile << """

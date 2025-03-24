@@ -186,7 +186,7 @@ class ToolingApiEclipseModelClasspathContainerCrossVersionSpec extends ToolingAp
     }
 
     @Issue('https://issues.gradle.org/browse/GRADLE-3231')
-    def "Whether or not the eclipse plugin is explicitly applied, the same model is retrieved "() {
+    def "whether or not the eclipse plugin is explicitly applied, the same model is retrieved "() {
         setup:
         buildFile << """
             apply plugin: 'java'

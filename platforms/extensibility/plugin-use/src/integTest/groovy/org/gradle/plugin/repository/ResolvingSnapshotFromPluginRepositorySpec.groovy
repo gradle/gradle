@@ -45,7 +45,7 @@ class ResolvingSnapshotFromPluginRepositorySpec extends AbstractDependencyResolu
         """
     }
 
-    def 'Can specify snapshot version'() {
+    def 'can specify snapshot version'() {
         given:
         publishTestPlugin()
         buildFile """

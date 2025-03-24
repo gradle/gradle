@@ -204,7 +204,7 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
     }
 
     @Requires(UnitTestPreconditions.Online)
-    def "Can opt-in to plugin portal"() {
+    def "can opt-in to plugin portal"() {
         given:
         publishPlugins(MAVEN)
         requireOwnGradleUserHomeDir()
