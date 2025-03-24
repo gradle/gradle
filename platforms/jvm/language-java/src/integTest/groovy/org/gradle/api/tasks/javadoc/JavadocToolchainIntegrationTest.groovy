@@ -206,7 +206,7 @@ class JavadocToolchainIntegrationTest extends AbstractIntegrationSpec implements
         withInstallations(jre).fails("javadoc")
 
         then:
-        failure.assertHasCause("Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=${jre.javaVersionMajor}, vendor=any vendor, implementation=vendor-specific}. " +
+        failure.assertHasCause("Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=${jre.javaVersionMajor}, vendor=any vendor, implementation=vendor-specific, nativeImageCapable=false}. " +
                 "Toolchain auto-provisioning is not enabled.")
             .assertHasResolutions(
                 DocumentationUtils.normalizeDocumentationLink("Learn more about toolchain auto-detection and auto-provisioning at https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection."),

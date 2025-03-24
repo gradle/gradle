@@ -85,7 +85,9 @@ class ToolchainsParallelActionExecutionCrossVersionSpec extends ToolingApiSpecif
         def e = thrown(BuildActionFailureException)
         def root = rootCause(e)
         def message = 'No locally installed toolchains match'
-        if (targetVersion >= GradleVersion.version("8.13")) {
+        if (targetVersion >= GradleVersion.version("8.14")) {
+            message = "Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=99, vendor=any vendor, implementation=vendor-specific, nativeImageCapable=false}. No matching toolchain could be found in the configured toolchain download repositories."
+        } else if (targetVersion >= GradleVersion.version("8.13")) {
             message = "Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=99, vendor=any vendor, implementation=vendor-specific}. No matching toolchain could be found in the configured toolchain download repositories."
         } else if (targetVersion >= GradleVersion.version("8.8")) {
             message = 'No matching toolchain could be found in the locally installed toolchains'
