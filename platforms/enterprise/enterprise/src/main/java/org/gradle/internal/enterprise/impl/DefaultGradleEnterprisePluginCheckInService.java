@@ -28,6 +28,9 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.function.Supplier;
 
+import static org.gradle.internal.enterprise.impl.DevelocityPluginCompatibility.getUnsupportedPluginMessage;
+import static org.gradle.internal.enterprise.impl.DevelocityPluginCompatibility.isUnsupportedPluginVersion;
+
 public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterprisePluginCheckInService {
 
     private final GradleEnterprisePluginManager manager;
@@ -51,10 +54,6 @@ public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterp
     public static final VersionNumber MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_ISOLATED_PROJECTS = VersionNumber.version(3, 15);
     public static final String UNSUPPORTED_PLUGIN_DUE_TO_ISOLATED_PROJECTS_MESSAGE = "Gradle Enterprise plugin has been disabled as it is incompatible with the isolated projects feature";
 
-    public static final String MINIMUM_SUPPORTED_PLUGIN_VERSION_DISPLAY = "3.13.1";
-    // Gradle versions 9+ are not compatible Develocity plugin < 3.13.1
-    public static final VersionNumber MINIMUM_SUPPORTED_PLUGIN_VERSION = VersionNumber.parse(MINIMUM_SUPPORTED_PLUGIN_VERSION_DISPLAY);
-
     private static final String DISABLE_TEST_ACCELERATION_PROPERTY = "gradle.internal.testacceleration.disableImplicitApplication";
 
     @Override
@@ -67,7 +66,7 @@ public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterp
         VersionNumber pluginBaseVersion = VersionNumber.parse(pluginVersion).getBaseVersion();
 
         if (isUnsupportedPluginVersion(pluginBaseVersion)) {
-            return checkInUnsupportedResult(unsupportedPluginVersionReason(pluginVersion));
+            return checkInUnsupportedResult(getUnsupportedPluginMessage(pluginVersion));
         }
 
         if (isUnsupportedWithIsolatedProjects(pluginBaseVersion)) {
@@ -108,18 +107,6 @@ public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterp
 
     private boolean isUnsupportedWithIsolatedProjects(VersionNumber pluginBaseVersion) {
         return isIsolatedProjectsEnabled && MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_ISOLATED_PROJECTS.compareTo(pluginBaseVersion) > 0;
-    }
-
-    public static String unsupportedPluginVersionReason(String pluginVersion) {
-        return "Build Scans have been disabled as your version of the Gradle Enterprise plugin (" + pluginVersion + ") is incompatible with this version of Gradle. " +
-            "Please use Gradle Enterprise plugin version " +
-            MINIMUM_SUPPORTED_PLUGIN_VERSION_DISPLAY +
-            " or later.";
-    }
-
-
-    private static boolean isUnsupportedPluginVersion(VersionNumber pluginBaseVersion) {
-        return MINIMUM_SUPPORTED_PLUGIN_VERSION.compareTo(pluginBaseVersion) > 0;
     }
 
 }

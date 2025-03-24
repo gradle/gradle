@@ -20,7 +20,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.internal.BuildType;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
-import org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService;
+import org.gradle.internal.enterprise.impl.DevelocityPluginCompatibility;
 import org.gradle.internal.scan.config.BuildScanConfig;
 import org.gradle.internal.scan.config.BuildScanConfigProvider;
 import org.gradle.internal.scan.config.BuildScanPluginMetadata;
@@ -31,6 +31,13 @@ import org.gradle.util.internal.VersionNumber;
 
 import javax.inject.Inject;
 
+/**
+ * A check-in service used by the Gradle Enterprise plugin versions until 3.4, none of which are supported anymore.
+ * <p>
+ * We keep this service, because for the plugin versions 3.0+ we can gracefully avoid plugin application and report an unsupported message.
+ * <p>
+ * More modern versions of the plugin use {@link org.gradle.internal.enterprise.GradleEnterprisePluginCheckInService}.
+ */
 @ServiceScope(Scope.Build.class)
 public class LegacyGradleEnterprisePluginCheckInService implements BuildScanConfigProvider, BuildScanEndOfBuildNotifier {
 
@@ -58,14 +65,6 @@ public class LegacyGradleEnterprisePluginCheckInService implements BuildScanConf
         this.gradle = gradle;
         this.manager = manager;
         this.buildType = buildType;
-    }
-
-    private static String unsupportedReason(String pluginVersion) {
-        if (Boolean.getBoolean(UNSUPPORTED_TOGGLE)) {
-            return UNSUPPORTED_TOGGLE_MESSAGE;
-        } else {
-            return DefaultGradleEnterprisePluginCheckInService.unsupportedPluginVersionReason(pluginVersion);
-        }
     }
 
     @Override
@@ -101,8 +100,16 @@ public class LegacyGradleEnterprisePluginCheckInService implements BuildScanConf
         this.listener = listener;
     }
 
-    private boolean isPluginAwareOfUnsupported(VersionNumber pluginVersion) {
+    private static boolean isPluginAwareOfUnsupported(VersionNumber pluginVersion) {
         return pluginVersion.compareTo(FIRST_VERSION_AWARE_OF_UNSUPPORTED) >= 0;
+    }
+
+    private static String unsupportedReason(String pluginVersion) {
+        if (Boolean.getBoolean(UNSUPPORTED_TOGGLE)) {
+            return UNSUPPORTED_TOGGLE_MESSAGE;
+        } else {
+            return DevelocityPluginCompatibility.getUnsupportedPluginMessage(pluginVersion);
+        }
     }
 
     private static class Config implements BuildScanConfig {

@@ -27,74 +27,79 @@ import spock.util.environment.RestoreSystemProperties
 
 class LegacyGradleEnterprisePluginCheckInServiceTest extends Specification {
 
-    boolean scanEnabled
-    boolean scanDisabled
-
     def "conveys configuration"() {
-        when:
-        scanEnabled = true
+        def version = LegacyGradleEnterprisePluginCheckInService.FIRST_GRADLE_ENTERPRISE_PLUGIN_VERSION_DISPLAY
 
-        then:
-        with(config()) {
-            enabled
-            !disabled
-            unsupportedMessage == null
+        expect:
+        with(config(version, scanEnabled, scanDisabled)) {
+            enabled == (scanEnabled && !scanDisabled)
+            disabled == scanDisabled
         }
 
-        when:
-        scanEnabled = true
-
-        then:
-        with(config()) {
-            enabled
-            !disabled
-            unsupportedMessage == null
-        }
-
-        when:
-        scanEnabled = false
-        scanDisabled = true
-
-        then:
-        with(config()) {
-            !enabled
-            disabled
-        }
+        where:
+        scanEnabled | scanDisabled
+        false       | false
+        false       | true
+        true        | false
+        true        | true
     }
 
     @RestoreSystemProperties
-    def "can convey unsupported"() {
-        when:
+    def "can convey unsupported with artificial toggle"() {
+        def version = LegacyGradleEnterprisePluginCheckInService.FIRST_GRADLE_ENTERPRISE_PLUGIN_VERSION_DISPLAY
         System.setProperty(LegacyGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE, "true")
 
-        then:
-        with(config()) {
+        expect:
+        with(config(version)) {
             !enabled
             !disabled
             unsupportedMessage == LegacyGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE_MESSAGE
         }
 
-        when:
-        scanEnabled = true
-
-        then:
-        with(config()) {
+        and:
+        with(config(version, true)) {
             enabled
             !disabled
             unsupportedMessage == LegacyGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE_MESSAGE
         }
+
+        where:
+        scanEnabled | scanDisabled
+        false       | false
+        false       | true
+        true        | false
+        true        | true
     }
 
     def "fails if plugin version is not supported"() {
         when:
-        // 1.16 is older than BuildScanPluginCompatibility.MIN_SUPPORTED_VERSION, hence not supported
-        config("1.16")
+        // Earliest plugin version that does not cause an exception is 3.0
+        config("2.4.2")
 
         then:
         thrown(UnsupportedBuildScanPluginVersionException)
     }
 
-    LegacyGradleEnterprisePluginCheckInService manager() {
+    def "conveys unsupported without failing"() {
+        expect:
+        with(config("3.13")) {
+            !enabled
+            !disabled
+            unsupportedMessage == "Gradle Enterprise plugin 3.13 has been disabled as it is incompatible with this version of Gradle. Upgrade to Gradle Enterprise plugin 3.13.1 or newer to restore functionality."
+        }
+    }
+
+    BuildScanConfig config(String versionNumber, boolean scanEnabled = false, boolean scanDisabled = false) {
+        def manager = service(scanEnabled, scanDisabled)
+        manager.collect(new BuildScanPluginMetadata() {
+            @Override
+            String getVersion() {
+                versionNumber
+            }
+        })
+    }
+
+    LegacyGradleEnterprisePluginCheckInService service(boolean scanEnabled, boolean scanDisabled) {
         def gradle = Mock(GradleInternal) {
             getStartParameter() >> Mock(StartParameterInternal) {
                 isBuildScan() >> scanEnabled
@@ -104,20 +109,9 @@ class LegacyGradleEnterprisePluginCheckInServiceTest extends Specification {
         }
 
         new LegacyGradleEnterprisePluginCheckInService(
-            gradle
-            ,
+            gradle,
             new GradleEnterprisePluginManager(),
             BuildType.TASKS
         )
-    }
-
-    BuildScanConfig config(String versionNumber = LegacyGradleEnterprisePluginCheckInService.FIRST_GRADLE_ENTERPRISE_PLUGIN_VERSION) {
-        def manager = manager()
-        manager.collect(new BuildScanPluginMetadata() {
-            @Override
-            String getVersion() {
-                versionNumber
-            }
-        })
     }
 }
