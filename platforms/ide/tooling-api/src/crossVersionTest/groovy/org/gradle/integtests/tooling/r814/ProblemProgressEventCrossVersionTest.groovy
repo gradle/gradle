@@ -176,7 +176,9 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         then:
         // TODO: Remove, only for testing
         listener.problems.forEach {
-            println it.toString()
+            println "Problem: ${it.definition.id.name} (${it.definition}"
+            println "  " + it.contextualLabel
+            println "  " + it.details
         }
         listener.problems.size() == 1
 
