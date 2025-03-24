@@ -174,12 +174,6 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         }
 
         then:
-        // TODO: Remove, only for testing
-        listener.problems.forEach {
-            println "Problem: ${it.definition.id.name} (${it.definition}"
-            println "  " + it.contextualLabel
-            println "  " + it.details
-        }
         listener.problems.size() == 1
 
         def someDataView = listener.problems[0].additionalData.get(SomeDataView)
@@ -252,6 +246,13 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         @Override
         void statusChanged(ProgressEvent event) {
             if (event instanceof SingleProblemEvent) {
+                def problem = event.problem
+                def problemId = problem.definition.id
+                // We are not interested in this specific deprecation
+                if (problemId.name == 'executing-gradle-on-jvm-versions-and-lower') {
+                    return
+                }
+
                 this.problems.add(event.problem)
             }
         }
