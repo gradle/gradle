@@ -28,8 +28,8 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.function.Supplier;
 
-import static org.gradle.internal.enterprise.impl.DevelocityPluginCompatibility.getUnsupportedPluginMessage;
-import static org.gradle.internal.enterprise.impl.DevelocityPluginCompatibility.isUnsupportedPluginVersion;
+import static org.gradle.internal.enterprise.impl.legacy.DevelocityPluginCompatibility.getUnsupportedPluginMessage;
+import static org.gradle.internal.enterprise.impl.legacy.DevelocityPluginCompatibility.isUnsupportedPluginVersion;
 
 public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterprisePluginCheckInService {
 

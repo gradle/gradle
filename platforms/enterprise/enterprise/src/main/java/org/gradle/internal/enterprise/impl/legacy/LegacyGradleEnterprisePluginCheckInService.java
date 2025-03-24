@@ -20,7 +20,6 @@ import org.gradle.StartParameter;
 import org.gradle.api.internal.BuildType;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
-import org.gradle.internal.enterprise.impl.DevelocityPluginCompatibility;
 import org.gradle.internal.scan.config.BuildScanConfig;
 import org.gradle.internal.scan.config.BuildScanConfigProvider;
 import org.gradle.internal.scan.config.BuildScanPluginMetadata;

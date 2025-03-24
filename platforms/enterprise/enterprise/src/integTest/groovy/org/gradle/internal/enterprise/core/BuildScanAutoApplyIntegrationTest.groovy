@@ -25,7 +25,7 @@ import org.gradle.util.internal.VersionNumber
 import spock.lang.Issue
 
 import static org.gradle.initialization.StartParameterBuildOptions.BuildScanOption
-import static org.gradle.internal.enterprise.impl.DevelocityPluginCompatibility.MINIMUM_SUPPORTED_PLUGIN_VERSION_DISPLAY
+import static org.gradle.internal.enterprise.impl.legacy.DevelocityPluginCompatibility.MINIMUM_SUPPORTED_PLUGIN_VERSION_DISPLAY
 
 class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
 

@@ -23,7 +23,7 @@ import org.gradle.internal.enterprise.DevelocityPluginCheckInFixture
 import org.gradle.internal.enterprise.GradleEnterprisePluginCheckInFixture
 import org.junit.Assume
 
-import static org.gradle.internal.enterprise.impl.DevelocityPluginCompatibility.MINIMUM_SUPPORTED_PLUGIN_VERSION
+import static org.gradle.internal.enterprise.impl.legacy.DevelocityPluginCompatibility.MINIMUM_SUPPORTED_PLUGIN_VERSION
 
 abstract class BuildScanAutoApplyClasspathIntegrationTest extends AbstractIntegrationSpec {
 

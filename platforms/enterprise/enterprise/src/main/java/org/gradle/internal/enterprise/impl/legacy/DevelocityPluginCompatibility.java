@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.enterprise.impl;
+package org.gradle.internal.enterprise.impl.legacy;
 
 import org.gradle.util.internal.VersionNumber;
 
