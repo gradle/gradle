@@ -223,7 +223,7 @@ public class ProblemsProgressEventUtils {
             // For now, we only expose deprecation data to the tooling API with generic additional data
             DeprecationData data = (DeprecationData) additionalData;
             return new DefaultInternalAdditionalData(ImmutableMap.of("type", data.getType().name()));
-        } if (additionalData instanceof org.gradle.api.problems.deprecation.DeprecationData) {
+        } else if (additionalData instanceof org.gradle.api.problems.deprecation.DeprecationData) {
             org.gradle.api.problems.deprecation.DeprecationData data = (org.gradle.api.problems.deprecation.DeprecationData) additionalData;
             // Assemble the source data
             ImmutableMap.Builder<String, String> sourceBuilder = ImmutableMap.builder();
