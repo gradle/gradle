@@ -162,7 +162,11 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         }
 
         when: 'clean re-build'
-        agpRunner(agpVersion, 'clean').build()
+        agpRunner(agpVersion, 'clean')
+            .deprecations(AndroidDeprecations) {
+                maybeExpectIsPropertyDeprecationWarnings()
+            }
+            .build()
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(runner.projectDir, IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
         result = runner
             .deprecations(AndroidDeprecations) {

@@ -403,6 +403,11 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
 
         @Override
+        public ValueProducer getProducer() {
+            return DefaultMapProperty.this.getProducer();
+        }
+
+        @Override
         protected Value<? extends Set<K>> calculateOwnValue(ValueConsumer consumer) {
             try (EvaluationScopeContext context = DefaultMapProperty.this.openScope()) {
                 beforeRead(context, consumer);

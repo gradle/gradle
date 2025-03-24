@@ -17,34 +17,34 @@
 package org.gradle.api.internal.file.collections;
 
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.internal.Factory;
+import org.gradle.api.tasks.util.internal.PatternSetFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.nativeintegration.services.FileSystems;
 
 import java.io.File;
 
 public class DefaultDirectoryFileTreeFactory implements DirectoryFileTreeFactory {
-    private final Factory<PatternSet> patternSetFactory;
+    private final PatternSetFactory patternSetFactory;
     private final FileSystem fileSystem;
 
     public DefaultDirectoryFileTreeFactory() {
-        this.patternSetFactory = new Factory<PatternSet>() {
+        this.patternSetFactory = new PatternSetFactory() {
             @Override
-            public PatternSet create() {
+            public PatternSet createPatternSet() {
                 return new PatternSet();
             }
         };
         this.fileSystem = FileSystems.getDefault();
     }
 
-    public DefaultDirectoryFileTreeFactory(Factory<PatternSet> patternSetFactory, FileSystem fileSystem) {
+    public DefaultDirectoryFileTreeFactory(PatternSetFactory patternSetFactory, FileSystem fileSystem) {
         this.patternSetFactory = patternSetFactory;
         this.fileSystem = fileSystem;
     }
 
     @Override
     public DirectoryFileTree create(File directory) {
-        return new DirectoryFileTree(directory, patternSetFactory.create(), fileSystem);
+        return new DirectoryFileTree(directory, patternSetFactory.createPatternSet(), fileSystem);
     }
 
     @Override

@@ -57,14 +57,8 @@ class PublishNightlySnapshot(
                     // https://www.jetbrains.com/help/teamcity/2022.04/configuring-schedule-triggers.html#general-syntax-1
                     // We want it to be triggered only when there're pending changes in the specific vcs root, i.e. GradleMaster/GradleRelease
                     triggerRules = "+:root=${VersionedSettingsBranch.fromDslContext().vcsRootId()}:."
-                    branchFilter =
-                        if (VersionedSettingsBranch.fromDslContext().isExperimental) {
-                            // The promotion itself will be triggered on gradle-promote's master branch
-                            "+:master"
-                        } else {
-                            // The promotion itself will be triggered on gradle-promote's experimental branch
-                            "+:experimental"
-                        }
+                    // The promotion itself will be triggered on gradle-promote's master branch
+                    branchFilter = "+:master"
                 }
             }
         }
