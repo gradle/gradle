@@ -25,6 +25,14 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public abstract class ReportSource {
+
+    /**
+     * Protected constructor to prevent direct instantiation.
+     *
+     * @since 8.14
+     */
+    protected ReportSource() {}
+
     /**
      * TODO documentation.
      *

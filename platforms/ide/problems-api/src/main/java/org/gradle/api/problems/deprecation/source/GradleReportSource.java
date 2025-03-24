@@ -28,7 +28,7 @@ public class GradleReportSource extends ReportSource {
     static final ReportSource INSTANCE = new org.gradle.api.problems.deprecation.source.GradleReportSource();
 
     /**
-     * TODO documentation.
+     * Protected constructor to prevent direct instantiation.
      *
      * @since 8.14
      */
