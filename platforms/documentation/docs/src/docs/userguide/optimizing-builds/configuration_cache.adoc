@@ -65,7 +65,7 @@ Gradle performs the configuration phase as usual:
 1. Run init scripts.
 2. Run the settings script, applying any requested settings plugins.
 3. Configure and build the `buildSrc` project, if present.
-4. Run build scripts, applying any requested project plugins.
+4. Run build scripts, applying any requested project plugins. If plugins come from included builds, Gradle builds them first.
 5. Calculate the task graph, executing deferred configuration actions.
 
 Gradle then stores a snapshot of the task graph in the Configuration Cache for future use.
@@ -77,8 +77,8 @@ image::configuration-cache-3.png[]
 
 On subsequent executions of the same tasks (e.g., `gradlew check` again), Gradle:
 
-- Loads the task graph from the Configuration Cache.
 - Skips the configuration phase entirely.
+- Loads the task graph from the Configuration Cache instead.
 
 Before using the cache, Gradle verifies that no build configuration inputs have changed.
 If any input has changed, Gradle reruns the configuration phase and updates the cache.
@@ -101,7 +101,8 @@ The following elements determine whether a Configuration Cache entry is valid:
 Gradle uses an optimized serialization mechanism to store Configuration Cache entries.
 It automatically serializes object graphs containing simple state or supported types.
 
-For compatibility, Gradle provides limited support for <<configuration_cache#config_cache:not_yet_implemented:java_serialization, Java Serialization>>, but its use is discouraged due to performance reasons.
+While Configuration Cache serialization doesn't rely on Java Serialization, it understands <<configuration_cache#config_cache:not_yet_implemented:java_serialization, some of its features>>.
+This can be used to customize serialization behavior, but incurs performance penalty and should be avoided.
 
 [[config_cache:intro:performance_improvements]]
 === Performance Improvements
@@ -116,7 +117,7 @@ Beyond skipping the configuration phase, the Configuration Cache enhances perfor
 image::configuration-cache/running-help.gif[]
 
 [[config_cache:usage]]
-== Using the Configuration Cache
+== Trying out the Configuration Cache
 
 It is recommended to get started with the simplest task invocation possible.
 
@@ -129,7 +130,7 @@ include::{snippetsPath}/configurationCache/noProblem/tests/store.out[]
 ...
 BUILD SUCCESSFUL in 4s
 1 actionable task: 1 executed
-Configuration Cache entry stored.
+Configuration cache entry stored.
 ----
 
 Running this for the first time, the configuration phase executes, calculating the task graph.
@@ -145,7 +146,7 @@ include::{snippetsPath}/configurationCache/noProblem/tests/load.out[]
 ...
 BUILD SUCCESSFUL in 500ms
 1 actionable task: 1 executed
-Configuration Cache entry reused.
+Configuration cache entry reused.
 ----
 
 If it succeeds on your build, congratulations, you can now try with more useful tasks.
@@ -244,7 +245,7 @@ Or persistently in a `gradle.properties` file:
 org.gradle.configuration-cache.parallel=true
 ----
 
-[NOTE]
+[WARNING]
 ====
 The parallel configuration caching feature is _incubating_, and some builds may not work correctly.
 A common symptom of incompatibility is `ConcurrentModificationException` errors during the <<build_lifecycle#sec:configuration,configuration phase>>.
@@ -369,7 +370,7 @@ This section provides details on the current support in:
 [[config_cache:plugins:core]]
 === Core Gradle Plugins
 
-Not all <<plugin_reference#plugin_reference, Core Gradle Plugins>> support configuration caching at this time:
+Most <<plugin_reference#plugin_reference, Core Gradle Plugins>> support configuration caching at this time:
 
 [cols=3*]
 |===
@@ -583,7 +584,7 @@ include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingAllC
 
 When a task is marked as incompatible:
 
-- Configuration Cache problems in that task will no longer cause the build to fail.
+- Configuration Cache problems *in that task* will no longer cause the build to fail.
 - Gradle discards the configuration state at the end of the build if an incompatible task is executed.
 
 This mechanism can be useful during migration, allowing you to temporarily opt out tasks that require more extensive changes to become Configuration Cache-compatible.
@@ -694,11 +695,11 @@ It is possible to _temporarily_ opt out of configuration input detection in the 
 +
 To prevent input tracking from invalidating the cache due to these file system checks, use the `org.gradle.configuration-cache.inputs.unsafe.ignore.file-system-checks` property in `gradle.properties`.
 List the paths to be ignored, relative to the root project directory, separated by `;`.
-Wildcards (`*` for segments, pass:[**]` for multiple segments) are supported.
+Wildcards (`*` for segments, `pass:[**]` for multiple segments) are supported.
 Paths prefixed with `~/` are relative to the user’s home directory.
 For example:
 +
-[source,properties]
+[source,text]
 .gradle.properties
 ----
 org.gradle.configuration-cache.inputs.unsafe.ignore.file-system-checks=\
