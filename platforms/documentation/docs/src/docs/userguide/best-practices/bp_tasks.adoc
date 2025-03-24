@@ -71,23 +71,21 @@ Gradle can use this information to optimize task scheduling.
 `#tasks`, `#inputs-and-outputs`, `#up-to-date-checking`
 
 [[use_cacheability_annotations]]
-== Favor Cacheability Annotations Over Cache Control Methods
+== Favor `@CacheableTask` and `@DisableCachingByDefault` Over `cacheIf(Spec)` and `doNotCacheIf(String, Spec)`
 
-The link:{javadocPath}/org/gradle/api/tasks/TaskOutputs.html#cacheIf(org.gradle.api.specs.Spec)[`cacheIf`] and link:{javadocPath}/org/gradle/api/tasks/TaskOutputs.html#doNotCacheIf(java.lang.String,org.gradle.api.specs.Spec)[`doNotCacheIf`] methods should only be used in situations where the cacheability of a task varies between different task instances or cannot be determined until the task is configured by Gradle.
-
-Once you have decided to make a task <<build_cache.adoc#build_cache,cacheable>>, you should instead favor annotating the task class itself with the link:{javadocPath}/org/gradle/api/tasks/CacheableTask.html[`@CacheableTask`] annotation for any task that is meant to _always_ be cacheable.
-
+The link:{javadocPath}/org/gradle/api/tasks/TaskOutputs.html#cacheIf(org.gradle.api.specs.Spec)[`cacheIf`] and link:{javadocPath}/org/gradle/api/tasks/TaskOutputs.html#doNotCacheIf(java.lang.String,org.gradle.api.specs.Spec)[`doNotCacheIf`] methods should only be used in situations where the <<build_cache.adoc#build_cache,cacheability>> of a task varies between different task instances or cannot be determined until the task is executed by Gradle.
+You should instead favor annotating the task class itself with link:{javadocPath}/org/gradle/api/tasks/CacheableTask.html[`@CacheableTask`] annotation for any task that is _always_ cacheable.
 Likewise, the link:{javadocPath}/org/gradle/work/DisableCachingByDefault.html[`@DisableCachingByDefault`] should be used to always disable caching for all instances of a task type.
-This annotation allows you to provide an explanation for why caching is disabled, which is useful for documenting the behavior of the task type.
-
-Remember that only tasks that produce reproducible and relocatable output should be marked as `@CacheableTask`.
 
 === Explanation
 
 Annotating a task type will ensure that _each task instance_ of that type is properly understood by Gradle to be cacheable (or not cacheable).
 This removes the need to remember to configure each of the task instances separately in build scripts.
+
 Using the annotations also _documents_ the intended cacheability of the task type within its own source, appearing in Javadoc and making the task's behavior clear to other developers without requiring them to inspect each task instance's configuration.
-It is also slightly more efficient than running a test at configuration time to determine cacheability.
+It is also slightly more efficient than running a test to determine cacheability.
+
+Remember that only tasks that produce reproducible and relocatable output should be marked as `@CacheableTask`.
 
 === Example
 
