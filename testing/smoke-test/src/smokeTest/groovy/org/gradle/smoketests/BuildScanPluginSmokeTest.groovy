@@ -65,7 +65,7 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         return CI_INJECTION_SCRIPT_CONTENTS.computeIfAbsent(ci) { new URL(it.getUrl()).getText(StandardCharsets.UTF_8.name()) }
     }
 
-    private static final List<String> UNSUPPORTED = [
+    private static final List<String> UNSUPPORTED_WITH_GRADLE_5 = [
         "2.4.2",
         "2.4.1",
         "2.4",
@@ -81,50 +81,53 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         "1.14"
     ]
 
-    private static final List<String> SUPPORTED = [
-        "3.0",
-        "3.1",
-        "3.1.1",
-        "3.2",
-        "3.2.1",
-        "3.3",
-        "3.3.1",
-        "3.3.2",
-        "3.3.3",
-        "3.3.4",
-        "3.4",
-        "3.4.1",
-        "3.5",
-        "3.5.1",
-        "3.5.2",
-        "3.6",
-        "3.6.1",
-        "3.6.2",
-        "3.6.3",
-        "3.6.4",
-        "3.7",
-        "3.7.1",
-        "3.7.2",
-        "3.8",
-        "3.8.1",
-        "3.9",
-        "3.10",
-        "3.10.1",
-        "3.10.2",
-        "3.10.3",
-        // "3.11", This doesn't work on Java 8, so let's not test it.
-        "3.11.1",
-        "3.11.2",
-        "3.11.3",
-        "3.11.4",
-        "3.12",
-        "3.12.1",
-        "3.12.2",
-        "3.12.3",
-        "3.12.4",
-        "3.12.5",
-        "3.12.6",
+    private static final List<String> UNSUPPORTED = [
         "3.13",
+        "3.12.6",
+        "3.12.5",
+        "3.12.4",
+        "3.12.3",
+        "3.12.2",
+        "3.12.1",
+        "3.12",
+        "3.11.4",
+        "3.11.3",
+        "3.11.2",
+        "3.11.1",
+        // "3.11", This doesn't work on Java 8, so let's not test it.
+        "3.10.3",
+        "3.10.2",
+        "3.10.1",
+        "3.10",
+        "3.9",
+        "3.8.1",
+        "3.8",
+        "3.7.2",
+        "3.7.1",
+        "3.7",
+        "3.6.4",
+        "3.6.3",
+        "3.6.2",
+        "3.6.1",
+        "3.6",
+        "3.5.2",
+        "3.5.1",
+        "3.5",
+        "3.4.1",
+        "3.4",
+        "3.3.4",
+        "3.3.3",
+        "3.3.2",
+        "3.3.1",
+        "3.3",
+        "3.2.1",
+        "3.2",
+        "3.1.1",
+        "3.1",
+        "3.0"
+    ]
+
+    private static final List<String> SUPPORTED = [
         "3.13.1",
         "3.13.2",
         "3.13.3",
@@ -158,7 +161,6 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
     // This refers to GradleEnterprisePluginCheckInService and does not cover LegacyGradleEnterprisePluginCheckInService
     private static final VersionNumber FIRST_VERSION_SUPPORTING_CHECK_IN_SERVICE = VersionNumber.parse("3.4")
 
-    private static final VersionNumber FIRST_VERSION_SUPPORTING_GRADLE_8_CONFIGURATION_CACHE = VersionNumber.parse("3.12")
     private static final VersionNumber FIRST_VERSION_SUPPORTING_ISOLATED_PROJECTS = VersionNumber.parse("3.15")
     private static final VersionNumber FIRST_VERSION_SUPPORTING_ISOLATED_PROJECTS_FOR_TEST_ACCELERATION = VersionNumber.parse("3.17")
     private static final VersionNumber FIRST_VERSION_CALLING_BUILD_PATH = VersionNumber.parse("3.13.1")
@@ -166,92 +168,35 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
     private static final VersionNumber FIRST_VERSION_SUPPORTING_SAFE_MODE = VersionNumber.parse("3.15")
     private static final VersionNumber FIRST_VERSION_UNDER_DEVELOCITY_BRAND = VersionNumber.parse("3.17")
 
-    private static final List<String> SUPPORTED_WITH_GRADLE_8_CONFIGURATION_CACHE = SUPPORTED
-        .findAll { FIRST_VERSION_SUPPORTING_GRADLE_8_CONFIGURATION_CACHE <= VersionNumber.parse(it) }
-
     def "coverage at least up to auto-applied version"() {
         expect:
         VersionNumber.parse(AutoAppliedDevelocityPlugin.VERSION) <= VersionNumber.parse(SUPPORTED.last())
     }
 
-    @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "Usage with Configuration Cache is tested separately, because not all versions are supported")
     def "can use plugin #version"() {
-        given:
-        def versionNumber = VersionNumber.parse(version)
-
         when:
         usePluginVersion version
 
         then:
         scanRunner()
-            .expectLegacyDeprecationWarningIf(FIRST_VERSION_SUPPORTING_CHECK_IN_SERVICE <= versionNumber && versionNumber < FIRST_VERSION_CALLING_BUILD_PATH,
-                "Gradle Enterprise plugin $version has been deprecated. " +
-                    "Starting with Gradle 9.0, only Gradle Enterprise plugin 3.13.1 or newer is supported. " +
-                    "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#unsupported_ge_plugin_3.13"
-            )
-            .expectLegacyDeprecationWarningIf(versionNumber < FIRST_VERSION_CALLING_BUILD_PATH,
-                "The BuildIdentifier.getName() method has been deprecated. " +
-                    "This is scheduled to be removed in Gradle 9.0. " +
-                    "Use getBuildPath() to get a unique identifier for the build. " +
-                    "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation"
-            )
             .build().output.contains("Build scan written to")
 
         where:
         version << SUPPORTED
     }
 
-    @Requires(IntegTestPreconditions.IsConfigCached)
-    def "can use plugin #version with Gradle 8 configuration cache"() {
-        given:
-        def versionNumber = VersionNumber.parse(version)
-
-        when:
-        usePluginVersion version
-
-        then:
-        scanRunner()
-            .expectLegacyDeprecationWarningIf(versionNumber < FIRST_VERSION_CALLING_BUILD_PATH,
-                "Gradle Enterprise plugin $version has been deprecated. " +
-                    "Starting with Gradle 9.0, only Gradle Enterprise plugin 3.13.1 or newer is supported. " +
-                    "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#unsupported_ge_plugin_3.13"
-            )
-            .expectLegacyDeprecationWarningIf(versionNumber < FIRST_VERSION_CALLING_BUILD_PATH,
-                "The BuildIdentifier.getName() method has been deprecated. " +
-                    "This is scheduled to be removed in Gradle 9.0. " +
-                    "Use getBuildPath() to get a unique identifier for the build. " +
-                    "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation"
-            ).build().output.contains("Build scan written to")
-
-        where:
-        version << SUPPORTED_WITH_GRADLE_8_CONFIGURATION_CACHE
-    }
-
     @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "Isolated projects implies config cache")
     def "can use plugin #version with isolated projects"() {
-        given:
-        def versionNumber = VersionNumber.parse(version)
-
         when:
         usePluginVersion version
 
         then:
         scanRunner("-Dorg.gradle.unsafe.isolated-projects=true")
-            .expectLegacyDeprecationWarningIf(versionNumber < FIRST_VERSION_CALLING_BUILD_PATH,
-                "Gradle Enterprise plugin $version has been deprecated. " +
-                    "Starting with Gradle 9.0, only Gradle Enterprise plugin 3.13.1 or newer is supported. " +
-                    "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#unsupported_ge_plugin_3.13"
-            )
-            .expectLegacyDeprecationWarningIf(versionNumber < FIRST_VERSION_CALLING_BUILD_PATH,
-                "The BuildIdentifier.getName() method has been deprecated. " +
-                    "This is scheduled to be removed in Gradle 9.0. " +
-                    "Use getBuildPath() to get a unique identifier for the build. " +
-                    "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation"
-            ).build().output.contains("Build scan written to")
+            .build().output.contains("Build scan written to")
 
         where:
         // isolated projects requires configuration cache support
-        version << SUPPORTED_WITH_GRADLE_8_CONFIGURATION_CACHE
+        version << SUPPORTED
             .findAll { FIRST_VERSION_SUPPORTING_ISOLATED_PROJECTS <= VersionNumber.parse(it) }
     }
 
@@ -316,7 +261,7 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
 
         where:
         // isolated projects requires configuration cache support
-        version << SUPPORTED_WITH_GRADLE_8_CONFIGURATION_CACHE
+        version << SUPPORTED
             .findAll { VersionNumber.parse(it) >= FIRST_VERSION_SUPPORTING_ISOLATED_PROJECTS_FOR_TEST_ACCELERATION }
     }
 
@@ -335,7 +280,7 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
 
         where:
         // isolated projects requires configuration cache support
-        version << SUPPORTED_WITH_GRADLE_8_CONFIGURATION_CACHE
+        version << SUPPORTED
             .findAll { VersionNumber.parse(it) < FIRST_VERSION_SUPPORTING_ISOLATED_PROJECTS }
     }
 
@@ -349,6 +294,21 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
 
         then:
         output.contains(GradleEnterprisePluginManager.OLD_SCAN_PLUGIN_VERSION_MESSAGE)
+
+        where:
+        version << UNSUPPORTED_WITH_GRADLE_5
+    }
+
+    def "cannot use plugin #version"() {
+        when:
+        usePluginVersion version
+
+        and:
+        def output = runner("--stacktrace")
+            .build().output
+
+        then:
+        output.contains("Build Scans have been disabled as your version of the Gradle Enterprise plugin ($version) is incompatible with this version of Gradle. Please use Gradle Enterprise plugin version 3.13.1 or later.")
 
         where:
         version << UNSUPPORTED
@@ -409,17 +369,7 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
                 "- The deprecated \"gradleEnterprise.buildScan.value\" API has been replaced by \"develocity.buildScan.value\"")
             .maybeExpectLegacyDeprecationWarningIf(FIRST_VERSION_UNDER_DEVELOCITY_BRAND <= versionNumber && ci == CI.TEAM_CITY,
                 "- The deprecated \"gradleEnterprise.buildScan.buildScanPublished\" API has been replaced by \"develocity.buildScan.buildScanPublished\"")
-            .maybeExpectLegacyDeprecationWarningIf(FIRST_VERSION_SUPPORTING_CHECK_IN_SERVICE <= versionNumber && versionNumber < FIRST_VERSION_CALLING_BUILD_PATH,
-                "Gradle Enterprise plugin $pluginVersion has been deprecated. " +
-                    "Starting with Gradle 9.0, only Gradle Enterprise plugin 3.13.1 or newer is supported. " +
-                    "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#unsupported_ge_plugin_3.13"
-            )
-            .maybeExpectLegacyDeprecationWarningIf(versionNumber < FIRST_VERSION_CALLING_BUILD_PATH,
-                "The BuildIdentifier.getName() method has been deprecated. " +
-                    "This is scheduled to be removed in Gradle 9.0. " +
-                    "Use getBuildPath() to get a unique identifier for the build. " +
-                    "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation"
-            ).maybeExpectLegacyDeprecationWarning(
+            .maybeExpectLegacyDeprecationWarning(
             "Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated. " +
                 "This is scheduled to be removed in Gradle 10.0. " +
                 "Use assignment ('url = <value>') instead. " +
