@@ -111,7 +111,7 @@ fun builtinListAugmentation(lhs: Any, rhs: List<*>): Any =
     when (lhs) {
         is List<*> -> lhs + rhs
         is ListProperty<*> -> {
-            Cast.uncheckedNonnullCast<ListProperty<in Any>>(lhs).addAll(rhs)
+            Cast.uncheckedNonnullCast<ListProperty<Any>>(lhs).addAll(Cast.uncheckedNonnullCast<List<Any>>(rhs))
             skipSetterSpecialValue
         }
 
