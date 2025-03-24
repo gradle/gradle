@@ -1,0 +1,8 @@
+# Sample-oriented gitignore
+
+## Wrappers
+**/gradlew.bat
+**/gradlew
+
+# Gradle dir
+**/gradle/
