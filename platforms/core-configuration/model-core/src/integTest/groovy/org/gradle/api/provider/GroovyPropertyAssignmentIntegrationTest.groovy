@@ -16,6 +16,7 @@
 
 package org.gradle.api.provider
 
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 
 import static org.gradle.integtests.fixtures.executer.GradleContextualExecuter.configCache
 
@@ -302,6 +303,28 @@ class GroovyPropertyAssignmentIntegrationTest extends AbstractProviderOperatorIn
         run("help")
     }
 
+    def "test Groovy lazy object types assignment for 'property value' notation #description"() {
+        def inputDeclaration = "abstract $inputType getInput()"
+        groovyBuildFile(inputDeclaration, inputValue, " ")
+        expectedDeprecation(executer)
+
+        expect:
+        runAndAssert("myTask", expectedResult)
+
+        where:
+        description                                   | inputType             | inputValue                               | expectedResult                                                                  | expectedDeprecation
+        "T T"                                         | "Property<MyObject>"  | 'new MyObject("hello")'                  | "hello"                                                                         | {}
+        "T Provider<T>"                               | "Property<MyObject>"  | 'provider { new MyObject("hello") }'     | "hello"                                                                         | {}
+        "String Object"                               | "Property<String>"    | 'new MyObject("hello")'                  | unsupportedWithCause("Cannot set the value of task ':myTask' property 'input'") | {}
+        "Enum String"                                 | "Property<MyEnum>"    | '"YES"'                                  | "YES"                                                                           | { withStringToEnumDeprecation(it, "YES", "MyEnum") }
+        "File T extends FileSystemLocation"           | "DirectoryProperty"   | 'layout.buildDirectory.dir("out").get()' | "out"                                                                           | {}
+        "File Provider<T extends FileSystemLocation>" | "DirectoryProperty"   | 'layout.buildDirectory.dir("out")'       | "out"                                                                           | {}
+        "File File"                                   | "RegularFileProperty" | 'file("$buildDir/out.txt")'              | "out.txt"                                                                       | {}
+        "File File"                                   | "DirectoryProperty"   | 'file("$buildDir/out")'                  | "out"                                                                           | {}
+        "File Provider<File>"                         | "DirectoryProperty"   | 'provider { file("$buildDir/out") }'     | unsupportedWithCause("Cannot get the value of task ':myTask' property 'input'") | {}
+        "File Object"                                 | "DirectoryProperty"   | 'new MyObject("out")'                    | unsupportedWithCause("Cannot set the value of task ':myTask' property 'input'") | {}
+    }
+
     private void groovyBuildFile(String inputDeclaration, String inputValue, String operation) {
         buildFile.text = """
             ${groovyTypesDefinition()}
@@ -371,5 +394,9 @@ class GroovyPropertyAssignmentIntegrationTest extends AbstractProviderOperatorIn
                 println("$RESULT_PREFIX" + input.toString())
             }
         """
+    }
+
+    private static void withStringToEnumDeprecation(GradleExecuter executer, String value, String enumType) {
+        executer.expectDocumentedDeprecationWarning("Assigning String value '$value' to property of enum type '$enumType'. This behavior has been deprecated. This will fail with an error in Gradle 10.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_string_to_enum_coercion_for_rich_properties")
     }
 }
