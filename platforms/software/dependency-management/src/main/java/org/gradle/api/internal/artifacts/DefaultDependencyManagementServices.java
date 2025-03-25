@@ -623,7 +623,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return new DefaultConfigurationResolver(
                 repositoriesSupplier,
                 shortCircuitingResolutionExecutor,
-                attributeDesugaring,
                 artifactTypeRegistry,
                 componentModuleMetadataHandler,
                 attributeSchemaServices
