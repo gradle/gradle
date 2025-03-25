@@ -2154,7 +2154,7 @@ output.map { it.asFile.path }
 [[declaring_client_module_dependencies]]
 ==== Deprecated `ClientModule` dependencies
 
-`link:{javadocPath}/org/gradle/api/artifacts/ClientModule.html[ClientModule]` dependencies are deprecated and will be removed in Gradle 9.0.
+ClientModule dependencies are deprecated and will be removed in Gradle 9.0.
 
 Client module dependencies were originally intended to allow builds to override incorrect or missing component metadata of external dependencies by defining the metadata locally.
 This functionality has since been replaced by <<component_metadata_rules.adoc#component-metadata-rules,Component Metadata Rules>>.

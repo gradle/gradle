@@ -13,9 +13,9 @@ import org.gradle.api.Action
 import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.DependencyScopeConfiguration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencyConstraint
+import org.gradle.api.artifacts.DependencyScopeConfiguration
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.MinimalExternalModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
@@ -198,65 +198,6 @@ class DependencyHandlerExtensionsTest {
         }
 
         verify(dependencyHandler).add("c", "notation")
-    }
-
-    @Test
-    @Suppress("DEPRECATION")
-    fun `client module configuration`() {
-
-        val clientModule = mock<org.gradle.api.artifacts.ClientModule> {
-            on { isTransitive = any() }.thenAnswer { it.mock }
-        }
-
-        val commonsCliDependency = mock<ExternalModuleDependency>(name = "commonsCliDependency")
-
-        val antModule = mock<org.gradle.api.artifacts.ClientModule>(name = "antModule")
-        val antLauncherDependency = mock<ExternalModuleDependency>(name = "antLauncherDependency")
-        val antJUnitDependency = mock<ExternalModuleDependency>(name = "antJUnitDependency")
-
-        val dependencies = newDependencyHandlerMock {
-            on { module("org.codehaus.groovy:groovy:2.4.7") } doReturn clientModule
-
-            on { create("commons-cli:commons-cli:1.0") } doReturn commonsCliDependency
-
-            val antModuleNotation = mapOf("group" to "org.apache.ant", "name" to "ant", "version" to "1.9.6")
-            on { module(antModuleNotation) } doReturn antModule
-            on { create("org.apache.ant:ant-launcher:1.9.6@jar") } doReturn antLauncherDependency
-            on { create("org.apache.ant:ant-junit:1.9.6") } doReturn antJUnitDependency
-
-            on { add("runtime", clientModule) } doReturn clientModule
-        }
-
-        dependencies.apply {
-            val groovy = module("org.codehaus.groovy:groovy:2.4.7") {
-
-                // Configures the module itself
-                isTransitive = false
-
-                dependency("commons-cli:commons-cli:1.0") {
-                    // Configures the external module dependency
-                    isTransitive = false
-                }
-
-                module(group = "org.apache.ant", name = "ant", version = "1.9.6") {
-                    // Configures the inner module dependencies
-                    dependencies(
-                        "org.apache.ant:ant-launcher:1.9.6@jar",
-                        "org.apache.ant:ant-junit:1.9.6"
-                    )
-                }
-            }
-            add("runtime", groovy)
-        }
-
-        verify(clientModule).isTransitive = false
-        verify(clientModule).addDependency(commonsCliDependency)
-        verify(clientModule).addDependency(antModule)
-
-        verify(commonsCliDependency).isTransitive = false
-
-        verify(antModule).addDependency(antLauncherDependency)
-        verify(antModule).addDependency(antJUnitDependency)
     }
 
     @Test
