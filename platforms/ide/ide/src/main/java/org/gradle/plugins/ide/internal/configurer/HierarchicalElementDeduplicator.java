@@ -24,7 +24,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
-import com.google.common.primitives.Ints;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -257,7 +256,7 @@ public class HierarchicalElementDeduplicator<T> {
 
                 @Override
                 public int compare(T left, T right) {
-                    return Ints.compare(getDepth(left), getDepth(right));
+                    return Integer.compare(getDepth(left), getDepth(right));
                 }
 
                 private int getDepth(T element) {

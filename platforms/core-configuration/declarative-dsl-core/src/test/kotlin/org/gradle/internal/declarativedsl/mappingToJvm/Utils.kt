@@ -19,7 +19,7 @@ package org.gradle.internal.declarativedsl.mappingToJvm
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 import org.gradle.internal.declarativedsl.analysis.SchemaTypeRefContext
-import org.gradle.internal.declarativedsl.demo.assignmentTrace
+import org.gradle.internal.declarativedsl.demo.propertyLinkTrace
 import org.gradle.internal.declarativedsl.objectGraph.ReflectionContext
 import org.gradle.internal.declarativedsl.objectGraph.reflect
 import org.gradle.internal.declarativedsl.schemaBuilder.ConfigureLambdaHandler
@@ -35,8 +35,8 @@ fun <T : Any> runtimeInstanceFromResult(
     createInstance: () -> T,
     runtimeFunctionResolver: RuntimeFunctionResolver = DefaultRuntimeFunctionResolver(configureLambdas, DefaultRuntimeFunctionCandidatesProvider),
 ): T {
-    val trace = assignmentTrace(resolution)
-    val context = ReflectionContext(SchemaTypeRefContext(schema), resolution, trace)
+    val trace = propertyLinkTrace(resolution)
+    val context = ReflectionContext(SchemaTypeRefContext(schema), trace.resolvedPropertyLinksResolutionResult)
     val topLevel = reflect(resolution.topLevelReceiver, context)
 
     return createInstance().also {

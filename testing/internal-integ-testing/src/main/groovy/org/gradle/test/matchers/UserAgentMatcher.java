@@ -19,7 +19,6 @@ package org.gradle.test.matchers;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.Description;
-import org.hamcrest.Factory;
 
 public class UserAgentMatcher extends BaseMatcher {
 
@@ -36,7 +35,6 @@ public class UserAgentMatcher extends BaseMatcher {
         description.appendValue(expectedUserAgentString());
     }
 
-    @Factory
     public static UserAgentMatcher matchesNameAndVersion(String applicationName, String version) {
         return new UserAgentMatcher(applicationName, version);
     }

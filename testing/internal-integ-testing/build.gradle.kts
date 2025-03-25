@@ -50,7 +50,6 @@ dependencies {
     api(libs.groovy)
     api(libs.groovyXml)
     api(libs.guava)
-    api(libs.hamcrestCore)
     api(libs.hamcrest)
     api(libs.jettyWebApp) {
         because("Part of the public API via HttpServer")

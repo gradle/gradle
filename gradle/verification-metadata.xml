@@ -66,7 +66,6 @@
          <trust file=".*-sources[.]jar" regex="true"/>
       </trusted-artifacts>
       <ignored-keys>
-         <ignored-key id="164779204E106A76" reason="Key couldn't be downloaded from any key server"/>
          <ignored-key id="74DAFDFD6DAE2441" reason="Key couldn't be downloaded from any key server"/>
       </ignored-keys>
       <trusted-keys>
@@ -179,7 +178,6 @@
          </trusted-key>
          <trusted-key id="60C6700E08F02B9EB6F4A46745145F826CF4BF98" group="com.googlecode.plist" name="dd-plist"/>
          <trusted-key id="635EE627345F3C1DD422B2E207D3516820BCF6B1" group="com.github.ben-manes.caffeine" name="caffeine"/>
-         <trusted-key id="666A4692CE11B7B3F4EB7B3410066A9707090CF9" group="org.javassist" name="javassist"/>
          <trusted-key id="66CA61EA0FC7E9EA1216F83396B88EACD463B90B" group="com.diffplug.spotless"/>
          <trusted-key id="694621A7227D8D5289699830ABE9F3126BB741C1">
             <trusting group="com.google.guava"/>
@@ -305,6 +303,8 @@
             <trusting group="commons-beanutils"/>
             <trusting group="org.apache-extras.beanshell"/>
          </trusted-key>
+         <trusted-key id="E3A9F95079E84CE201F7CF60BEDE11EAF1164480" group="org.hamcrest"/>
+         <trusted-key id="E5C3B1929191DF06136CCB2B164779204E106A76" group="org.javassist" name="javassist"/>
          <trusted-key id="E62231331BCA7E1F292C9B88C1B12A5D99C0729D" group="org.jetbrains"/>
          <trusted-key id="E77417AC194160A3FABD04969A259C7EE636C5ED">
             <trusting group="com.google.errorprone" name="error_prone_annotations"/>
@@ -621,6 +621,12 @@
             <pgp value="EE0CA873074092F806F59B65D364ABAA39A47320"/>
          </artifact>
       </component>
+      <component group="com.google.guava" name="failureaccess" version="1.0.3">
+         <artifact name="failureaccess-1.0.3.jar">
+            <pgp value="BDB5FA4FE719D787FB3D3197F6D4A1D411E9D1AE"/>
+            <sha256 value="cbfc3906b19b8f55dd7cfd6dfe0aa4532e834250d7f080bd8d211a3e246b59cb" origin="Verified" reason="Added manually to fix CI"/>
+         </artifact>
+      </component>
       <component group="com.google.guava" name="guava-jdk5" version="14.0.1">
          <artifact name="guava-jdk5-14.0.1.jar">
             <pgp value="AC6A8BC1BA5426F13D93060E806E7D417A281864"/>
@@ -634,6 +640,11 @@
       <component group="com.google.j2objc" name="j2objc-annotations" version="2.8">
          <artifact name="j2objc-annotations-2.8.jar">
             <pgp value="EB1B3DE71713C9EC2E87CC26EE92349AD86DE446"/>
+         </artifact>
+      </component>
+      <component group="com.google.j2objc" name="j2objc-annotations" version="3.0.0">
+         <artifact name="j2objc-annotations-3.0.0.jar">
+            <pgp value="BDB5FA4FE719D787FB3D3197F6D4A1D411E9D1AE"/>
          </artifact>
       </component>
       <component group="com.google.protobuf" name="protobuf-java" version="3.19.6">
@@ -1423,11 +1434,6 @@
             <sha256 value="bdce53a751fdb27af6608039df81214ba22d902ed4169540a3daeb5828c99cad" reason="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="org.hamcrest" name="hamcrest" version="2.2">
-         <artifact name="hamcrest-2.2.jar">
-            <pgp value="E3A9F95079E84CE201F7CF60BEDE11EAF1164480"/>
-         </artifact>
-      </component>
       <component group="org.iq80.snappy" name="snappy" version="0.5">
          <artifact name="snappy-0.5.jar">
             <pgp value="9E93DB1192CEE3D3B581AABB37E9D58EA4598641"/>
@@ -1435,7 +1441,7 @@
       </component>
       <component group="org.javassist" name="javassist" version="3.30.2-GA">
          <artifact name="javassist-3.30.2-GA.jar">
-            <sha256 value="eba37290994b5e4868f3af98ff113f6244a6b099385d9ad46881307d3cb01aaf" reason="A key couldn't be downloaded"/>
+            <sha256 value="eba37290994b5e4868f3af98ff113f6244a6b099385d9ad46881307d3cb01aaf" origin="Verified" reason="A key couldn't be downloaded"/>
          </artifact>
       </component>
       <component group="org.jcommander" name="jcommander" version="1.85">

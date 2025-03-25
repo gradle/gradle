@@ -36,7 +36,6 @@ dependencies {
         // Read capabilities declared in capabilities.json
         readCapabilitiesFromJson()
 
-        withModule<ReplaceCglibNodepWithCglibRule>("org.spockframework:spock-core")
         // Prevent Spock from pulling in Groovy and third-party dependencies - see https://github.com/spockframework/spock/issues/899
         withLibraryDependencies<DependencyRemovalByNameRule>(
             "org.spockframework:spock-core",
@@ -238,34 +237,6 @@ abstract class DowngradeXmlApisRule : ComponentMetadataRule {
                 filter { it.group == "xml-apis" }.forEach {
                     it.version { require("1.4.01") }
                     it.because("Gradle has trouble with the versioning scheme and pom redirects in higher versions")
-                }
-            }
-        }
-    }
-}
-
-
-abstract class ReplaceCglibNodepWithCglibRule : ComponentMetadataRule {
-    override fun execute(context: ComponentMetadataContext) {
-        context.details.allVariants {
-            withDependencies {
-                filter { it.name == "cglib-nodep" }.forEach {
-                    add("${it.group}:cglib:3.2.7")
-                }
-                removeAll { it.name == "cglib-nodep" }
-            }
-        }
-    }
-}
-
-// https://youtrack.jetbrains.com/issue/IDEA-261387
-abstract class UnifyTrove4jVersionRule : ComponentMetadataRule {
-    override fun execute(context: ComponentMetadataContext) {
-        context.details.allVariants {
-            withDependencies {
-                if (any { it.name == "trove4j" }) {
-                    removeAll { it.name == "trove4j" }
-                    add("org.jetbrains.intellij.deps:trove4j:trove4j")
                 }
             }
         }

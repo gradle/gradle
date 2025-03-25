@@ -18,6 +18,7 @@ package org.gradle.launcher.daemon.bootstrap;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.instrumentation.agent.AgentInitializer;
+import org.gradle.internal.logging.LoggingManagerFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.daemon.configuration.DaemonServerConfiguration;
@@ -41,7 +42,7 @@ public class ForegroundDaemonAction implements Runnable {
 
     @Override
     public void run() {
-        LoggingManagerInternal loggingManager = loggingRegistry.newInstance(LoggingManagerInternal.class);
+        LoggingManagerInternal loggingManager = loggingRegistry.get(LoggingManagerFactory.class).createLoggingManager();
         loggingManager.start();
 
         DaemonProcessState daemonProcessState = new DaemonProcessState(configuration, loggingRegistry, loggingManager, DefaultClassPath.of());

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.file.collections
 
+import org.gradle.api.Buildable
 import org.gradle.api.Task
 import org.gradle.api.file.DirectoryTree
 import org.gradle.api.file.FileCollection
@@ -24,9 +25,8 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskOutputs
+import org.gradle.api.tasks.util.internal.PatternSetFactory
 import org.gradle.internal.file.PathToFileResolver
-import org.gradle.internal.Factory
-import org.gradle.api.Buildable
 import spock.lang.Specification
 
 import java.util.concurrent.Callable
@@ -35,8 +35,7 @@ import java.util.function.Consumer
 class UnpackingVisitorTest extends Specification {
     def context = Mock(Consumer)
     def resolver = Mock(PathToFileResolver)
-    def patternSetFactory = Mock(Factory)
-    def visitor = new UnpackingVisitor(context, resolver, TestFiles.taskDependencyFactory(), patternSetFactory)
+    def visitor = new UnpackingVisitor(context, resolver, TestFiles.taskDependencyFactory(), Stub(PatternSetFactory))
 
     def "resolves null"() {
         when:
