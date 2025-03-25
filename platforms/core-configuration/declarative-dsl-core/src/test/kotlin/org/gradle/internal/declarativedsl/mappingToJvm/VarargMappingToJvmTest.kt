@@ -28,12 +28,14 @@ class VarargMappingToJvmTest {
     fun `varargs with primitive type get properly converted`() {
         val code = """
             ints = myInts(1, 2, 3)
+            moreInts = myGenericValues(1, 2, 3, 4)
             longs = myLongs(1L, 2L, 3L)
             booleans = myBooleans(true, false, true)
         """.trimIndent()
 
         val receiver = runtimeInstanceFromResult(schema, schema.resolve(code), kotlinFunctionAsConfigureLambda, RuntimeCustomAccessors.none, ::MyTypeWithVarargs)
         assertEquals(listOf(1, 2, 3), receiver.ints)
+        assertEquals(listOf(1, 2, 3, 4), receiver.moreInts)
         assertEquals(listOf(1L, 2L, 3L), receiver.longs)
         assertEquals(listOf(true, false, true), receiver.booleans)
     }
@@ -77,11 +79,18 @@ class VarargMappingToJvmTest {
         @Restricted
         fun myBooleans(vararg booleans: Boolean): List<Boolean> = booleans.toList()
 
+        @Suppress("unused")
+        @Restricted
+        fun <T> myGenericValues(vararg values: T): List<T> = values.toList()
+
         @get:Restricted
         var strings: List<String> = emptyList()
 
         @get:Restricted
         var ints: List<Int> = emptyList()
+
+        @get:Restricted
+        var moreInts: List<Int> = emptyList()
 
         @get:Restricted
         var longs: List<Long> = emptyList()
