@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.internal.artifacts.TransformRegistration;
+import org.gradle.api.internal.artifacts.transform.RegisteredTransforms;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesFactory;
@@ -27,7 +28,6 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -71,7 +71,7 @@ public class ImmutableArtifactTypeRegistry {
         return defaultArtifactAttributes;
     }
 
-    public void visitArtifactTypeAttributes(Collection<TransformRegistration> transformRegistrations, Consumer<? super ImmutableAttributes> action) {
+    public void visitArtifactTypeAttributes(RegisteredTransforms transformRegistrations, Consumer<? super ImmutableAttributes> action) {
         // Apply default attributes before visiting
         Consumer<? super ImmutableAttributes> visitor = attributes -> {
             ImmutableAttributes attributesPlusDefaults = attributesFactory.concat(defaultArtifactAttributes.asImmutable(), attributes);
@@ -87,7 +87,7 @@ public class ImmutableArtifactTypeRegistry {
             }
         }
 
-        for (TransformRegistration registration : transformRegistrations) {
+        for (TransformRegistration registration : transformRegistrations.getTransforms()) {
             AttributeContainerInternal sourceAttributes = registration.getFrom();
             String format = sourceAttributes.getAttribute(ARTIFACT_TYPE_ATTRIBUTE);
             if (format != null && seen.add(format)) {
