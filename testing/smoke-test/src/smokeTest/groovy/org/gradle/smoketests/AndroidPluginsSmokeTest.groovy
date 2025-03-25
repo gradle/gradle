@@ -25,7 +25,6 @@ import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.util.internal.VersionNumber
 
-import static org.gradle.api.problems.Severity.ERROR
 import static org.junit.Assume.assumeTrue
 
 /**
@@ -91,7 +90,6 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
     }
 
     def "android library and application APK assembly (agp=#agpVersion, ide=#ide)"() {
-
         given:
         AGP_VERSIONS.assumeCurrentJavaVersionIsSupportedBy(agpVersion)
 
@@ -262,7 +260,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
 
             android.defaultConfig.applicationId "org.gradle.android.myapplication"
         """
-        appBuildFile << androidPluginConfiguration(appPackage, agpVersion)
+        appBuildFile << androidPluginConfiguration(appPackage)
         appBuildFile << activityDependency()
         appBuildFile << """
             dependencies {
@@ -276,7 +274,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         libraryBuildFile << """
             apply plugin: 'com.android.library'
         """
-        libraryBuildFile << androidPluginConfiguration(libPackage, agpVersion)
+        libraryBuildFile << androidPluginConfiguration(libPackage)
         libraryBuildFile << activityDependency()
 
         return {
@@ -350,17 +348,9 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
             </LinearLayout>'''.stripIndent()
     }
 
-    def androidPluginConfiguration(String appPackage, String agpVersion) {
+    def androidPluginConfiguration(String appPackage) {
 
         JavaVersion targetJvm = JavaVersion.current()
-
-        VersionNumber agp = VersionNumber.parse(agpVersion)
-        if (agp < VersionNumber.parse("8.2.1") && JavaVersion.current() >= JavaVersion.VERSION_21) {
-            // Bug in AGP that prevents targeting bytecode version > Java 8.
-            // This only occurs when compiling with JDK > 21
-            // See https://issuetracker.google.com/issues/294137077
-            targetJvm = JavaVersion.VERSION_1_8
-        }
 
         """
             android {
@@ -440,22 +430,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
             }
         """
         validatePlugins {
-            boolean failsValidation = version.startsWith('4.2.')
-            if (failsValidation) {
-                def pluginSuffix = testedPluginId.substring('com.android.'.length())
-                def failingPlugins = ['com.android.internal.version-check', testedPluginId, 'com.android.internal.' + pluginSuffix]
-                passing {
-                    it !in failingPlugins
-                }
-                onPlugins(failingPlugins) {
-                    failsWith([
-                        (missingAnnotationMessage { type('com.android.build.gradle.internal.TaskManager.ConfigAttrTask').property('consumable').missingInputOrOutput().includeLink() }): ERROR,
-                        (missingAnnotationMessage { type('com.android.build.gradle.internal.TaskManager.ConfigAttrTask').property('resolvable').missingInputOrOutput().includeLink() }): ERROR,
-                    ])
-                }
-            } else {
-                alwaysPasses()
-            }
+            alwaysPasses()
         }
     }
 }

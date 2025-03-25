@@ -91,15 +91,8 @@ class AndroidSantaTrackerIncrementalCompilationSmokeTest extends AndroidSantaTra
 
         then:
         result.task(":tracker:compileDebugJavaWithJavac").outcome == SUCCESS
-        // TODO - this is here because AGP >=7.4 and <8.1.0 reads build/generated/source/kapt/debug at configuration time
-        if (agpVersion.startsWith('7.3') || VersionNumber.parse(agpVersion) >= VersionNumber.parse('8.1.0')) {
-            if (GradleContextualExecuter.isConfigCache()) {
-                result.assertConfigurationCacheStateLoaded()
-            }
-        } else {
-            if (GradleContextualExecuter.isConfigCache()) {
-                result.assertConfigurationCacheStateStored()
-            }
+        if (GradleContextualExecuter.isConfigCache()) {
+            result.assertConfigurationCacheStateLoaded()
         }
         md5After != md5Before
 
