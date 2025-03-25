@@ -495,6 +495,1166 @@
             "changes": [
                 "Method has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.util.DistributionLocator",
+            "member": "Class org.gradle.util.DistributionLocator",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.DistributionLocator",
+            "member": "Constructor org.gradle.util.DistributionLocator()",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.DistributionLocator",
+            "member": "Method org.gradle.util.DistributionLocator.getDistributionFor(org.gradle.util.GradleVersion)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.DistributionLocator",
+            "member": "Method org.gradle.util.DistributionLocator.getDistributionFor(org.gradle.util.GradleVersion,java.lang.String)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GFileUtils",
+            "member": "Class org.gradle.util.GFileUtils",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GFileUtils",
+            "member": "Constructor org.gradle.util.GFileUtils()",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GFileUtils",
+            "member": "Method org.gradle.util.GFileUtils.checksum(java.io.File,java.util.zip.Checksum)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GFileUtils",
+            "member": "Method org.gradle.util.GFileUtils.copyDirectory(java.io.File,java.io.File)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GFileUtils",
+            "member": "Method org.gradle.util.GFileUtils.copyFile(java.io.File,java.io.File)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GFileUtils",
+            "member": "Method org.gradle.util.GFileUtils.copyURLToFile(java.net.URL,java.io.File)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GFileUtils",
+            "member": "Method org.gradle.util.GFileUtils.deleteDirectory(java.io.File)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GFileUtils",
+            "member": "Method org.gradle.util.GFileUtils.deleteQuietly(java.io.File)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GFileUtils",
+            "member": "Method org.gradle.util.GFileUtils.forceDelete(java.io.File)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GFileUtils",
+            "member": "Method org.gradle.util.GFileUtils.listFiles(java.io.File,java.lang.String[],boolean)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GFileUtils",
+            "member": "Method org.gradle.util.GFileUtils.mkdirs(java.io.File)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GFileUtils",
+            "member": "Method org.gradle.util.GFileUtils.moveDirectory(java.io.File,java.io.File)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GFileUtils",
+            "member": "Method org.gradle.util.GFileUtils.moveExistingDirectory(java.io.File,java.io.File)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GFileUtils",
+            "member": "Method org.gradle.util.GFileUtils.moveExistingFile(java.io.File,java.io.File)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GFileUtils",
+            "member": "Method org.gradle.util.GFileUtils.moveFile(java.io.File,java.io.File)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GFileUtils",
+            "member": "Method org.gradle.util.GFileUtils.openInputStream(java.io.File)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GFileUtils",
+            "member": "Method org.gradle.util.GFileUtils.parentMkdirs(java.io.File)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GFileUtils",
+            "member": "Method org.gradle.util.GFileUtils.readFile(java.io.File)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GFileUtils",
+            "member": "Method org.gradle.util.GFileUtils.readFile(java.io.File,java.lang.String)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GFileUtils",
+            "member": "Method org.gradle.util.GFileUtils.readFileQuietly(java.io.File)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GFileUtils",
+            "member": "Method org.gradle.util.GFileUtils.relativePathOf(java.io.File,java.io.File)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GFileUtils",
+            "member": "Method org.gradle.util.GFileUtils.tail(java.io.File,int)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GFileUtils",
+            "member": "Method org.gradle.util.GFileUtils.toPaths(java.util.Collection)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GFileUtils",
+            "member": "Method org.gradle.util.GFileUtils.touch(java.io.File)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GFileUtils",
+            "member": "Method org.gradle.util.GFileUtils.touchExisting(java.io.File)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GFileUtils",
+            "member": "Method org.gradle.util.GFileUtils.writeFile(java.lang.String,java.io.File)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GFileUtils",
+            "member": "Method org.gradle.util.GFileUtils.writeFile(java.lang.String,java.io.File,java.lang.String)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GFileUtils$TailReadingException",
+            "member": "Class org.gradle.util.GFileUtils$TailReadingException",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GFileUtils$TailReadingException",
+            "member": "Constructor org.gradle.util.GFileUtils$TailReadingException(java.lang.Throwable)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GUtil",
+            "member": "Class org.gradle.util.GUtil",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GUtil",
+            "member": "Constructor org.gradle.util.GUtil()",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GUtil",
+            "member": "Method org.gradle.util.GUtil.addMaps(java.util.Map,java.util.Map)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GUtil",
+            "member": "Method org.gradle.util.GUtil.addToCollection(java.util.Collection,boolean,java.lang.Iterable)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GUtil",
+            "member": "Method org.gradle.util.GUtil.addToCollection(java.util.Collection,boolean,java.lang.Iterable[])",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GUtil",
+            "member": "Method org.gradle.util.GUtil.addToCollection(java.util.Collection,java.lang.Iterable)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GUtil",
+            "member": "Method org.gradle.util.GUtil.addToCollection(java.util.Collection,java.lang.Iterable[])",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GUtil",
+            "member": "Method org.gradle.util.GUtil.addToMap(java.util.Map,java.util.Map)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GUtil",
+            "member": "Method org.gradle.util.GUtil.asPath(java.lang.Iterable)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GUtil",
+            "member": "Method org.gradle.util.GUtil.caseInsensitive()",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GUtil",
+            "member": "Method org.gradle.util.GUtil.collectionize(java.lang.Object)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GUtil",
+            "member": "Method org.gradle.util.GUtil.elvis(java.lang.Object,java.lang.Object)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GUtil",
+            "member": "Method org.gradle.util.GUtil.endsWith(java.lang.CharSequence,java.lang.CharSequence)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GUtil",
+            "member": "Method org.gradle.util.GUtil.flatten(java.lang.Object[],java.util.Collection)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GUtil",
+            "member": "Method org.gradle.util.GUtil.flatten(java.lang.Object[],java.util.Collection,boolean)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GUtil",
+            "member": "Method org.gradle.util.GUtil.flatten(java.util.Collection)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GUtil",
+            "member": "Method org.gradle.util.GUtil.flatten(java.util.Collection,boolean)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GUtil",
+            "member": "Method org.gradle.util.GUtil.flatten(java.util.Collection,java.util.Collection)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GUtil",
+            "member": "Method org.gradle.util.GUtil.flatten(java.util.Collection,java.util.Collection,boolean)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GUtil",
+            "member": "Method org.gradle.util.GUtil.flatten(java.util.Collection,java.util.Collection,boolean,boolean)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GUtil",
+            "member": "Method org.gradle.util.GUtil.flattenElements(java.lang.Object[])",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GUtil",
+            "member": "Method org.gradle.util.GUtil.getOrDefault(java.lang.Object,org.gradle.internal.Factory)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GUtil",
+            "member": "Method org.gradle.util.GUtil.isSecureUrl(java.net.URI)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GUtil",
+            "member": "Method org.gradle.util.GUtil.isTrue(java.lang.Object)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GUtil",
+            "member": "Method org.gradle.util.GUtil.last(java.util.Comparator,java.lang.Object)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GUtil",
+            "member": "Method org.gradle.util.GUtil.loadProperties(java.io.File)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GUtil",
+            "member": "Method org.gradle.util.GUtil.loadProperties(java.io.InputStream)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GUtil",
+            "member": "Method org.gradle.util.GUtil.loadProperties(java.net.URL)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GUtil",
+            "member": "Method org.gradle.util.GUtil.map(java.lang.Object[])",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GUtil",
+            "member": "Method org.gradle.util.GUtil.prefix(java.lang.String,java.util.Collection)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GUtil",
+            "member": "Method org.gradle.util.GUtil.saveProperties(java.util.Properties,java.io.File)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GUtil",
+            "member": "Method org.gradle.util.GUtil.saveProperties(java.util.Properties,java.io.OutputStream)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GUtil",
+            "member": "Method org.gradle.util.GUtil.serialize(java.lang.Object)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GUtil",
+            "member": "Method org.gradle.util.GUtil.serialize(java.lang.Object,java.io.OutputStream)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GUtil",
+            "member": "Method org.gradle.util.GUtil.toCamelCase(java.lang.CharSequence)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GUtil",
+            "member": "Method org.gradle.util.GUtil.toConstant(java.lang.CharSequence)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GUtil",
+            "member": "Method org.gradle.util.GUtil.toEnum(java.lang.Class,java.lang.Object)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GUtil",
+            "member": "Method org.gradle.util.GUtil.toEnumSet(java.lang.Class,java.lang.Iterable)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GUtil",
+            "member": "Method org.gradle.util.GUtil.toEnumSet(java.lang.Class,java.lang.Object[])",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GUtil",
+            "member": "Method org.gradle.util.GUtil.toLowerCamelCase(java.lang.CharSequence)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GUtil",
+            "member": "Method org.gradle.util.GUtil.toSecureUrl(java.net.URI)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GUtil",
+            "member": "Method org.gradle.util.GUtil.toString(java.lang.Iterable)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GUtil",
+            "member": "Method org.gradle.util.GUtil.toWords(java.lang.CharSequence)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GUtil",
+            "member": "Method org.gradle.util.GUtil.toWords(java.lang.CharSequence,char)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GUtil",
+            "member": "Method org.gradle.util.GUtil.uncheckedCall(java.util.concurrent.Callable)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.NameMatcher",
+            "member": "Class org.gradle.util.NameMatcher",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.NameMatcher",
+            "member": "Constructor org.gradle.util.NameMatcher()",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.NameMatcher",
+            "member": "Method org.gradle.util.NameMatcher.find(java.lang.String,java.util.Collection)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.NameMatcher",
+            "member": "Method org.gradle.util.NameMatcher.find(java.lang.String,java.util.Map)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.NameMatcher",
+            "member": "Method org.gradle.util.NameMatcher.formatErrorMessage(java.lang.String,java.lang.Object)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.NameMatcher",
+            "member": "Method org.gradle.util.NameMatcher.getCandidates()",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.NameMatcher",
+            "member": "Method org.gradle.util.NameMatcher.getMatches()",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.NameValidator",
+            "member": "Class org.gradle.util.NameValidator",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.NameValidator",
+            "member": "Method org.gradle.util.NameValidator.validate(java.lang.String,java.lang.String,java.lang.String)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.RelativePathUtil",
+            "member": "Class org.gradle.util.RelativePathUtil",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.RelativePathUtil",
+            "member": "Constructor org.gradle.util.RelativePathUtil()",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.RelativePathUtil",
+            "member": "Method org.gradle.util.RelativePathUtil.relativePath(java.io.File,java.io.File)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.SingleMessageLogger",
+            "member": "Class org.gradle.util.SingleMessageLogger",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.SingleMessageLogger",
+            "member": "Constructor org.gradle.util.SingleMessageLogger()",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.TextUtil",
+            "member": "Class org.gradle.util.TextUtil",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.TextUtil",
+            "member": "Constructor org.gradle.util.TextUtil()",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.TextUtil",
+            "member": "Method org.gradle.util.TextUtil.camelToKebabCase(java.lang.String)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.TextUtil",
+            "member": "Method org.gradle.util.TextUtil.containsWhitespace(java.lang.String)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.TextUtil",
+            "member": "Method org.gradle.util.TextUtil.convertLineSeparators(java.lang.String,java.lang.String)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.TextUtil",
+            "member": "Method org.gradle.util.TextUtil.convertLineSeparatorsToUnix(java.lang.String)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.TextUtil",
+            "member": "Method org.gradle.util.TextUtil.escapeString(java.lang.Object)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.TextUtil",
+            "member": "Method org.gradle.util.TextUtil.getPlatformLineSeparator()",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.TextUtil",
+            "member": "Method org.gradle.util.TextUtil.getUnixLineSeparator()",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.TextUtil",
+            "member": "Method org.gradle.util.TextUtil.getWindowsLineSeparator()",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.TextUtil",
+            "member": "Method org.gradle.util.TextUtil.indent(java.lang.String,java.lang.String)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.TextUtil",
+            "member": "Method org.gradle.util.TextUtil.minus(java.lang.String,java.lang.String)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.TextUtil",
+            "member": "Method org.gradle.util.TextUtil.normaliseFileAndLineSeparators(java.lang.String)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.TextUtil",
+            "member": "Method org.gradle.util.TextUtil.normaliseFileSeparators(java.lang.String)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.TextUtil",
+            "member": "Method org.gradle.util.TextUtil.normaliseLineSeparators(java.lang.String)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.TextUtil",
+            "member": "Method org.gradle.util.TextUtil.replaceLineSeparatorsOf(java.lang.CharSequence,java.lang.String)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.TextUtil",
+            "member": "Method org.gradle.util.TextUtil.shorterOf(java.lang.String,java.lang.String)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.TextUtil",
+            "member": "Method org.gradle.util.TextUtil.toLowerCaseLocaleSafe(java.lang.String)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.TextUtil",
+            "member": "Method org.gradle.util.TextUtil.toPlatformLineSeparators(java.lang.String)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.VersionNumber",
+            "member": "Class org.gradle.util.VersionNumber",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.VersionNumber",
+            "member": "Constructor org.gradle.util.VersionNumber(int,int,int,int,java.lang.String)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.VersionNumber",
+            "member": "Constructor org.gradle.util.VersionNumber(int,int,int,java.lang.String)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.VersionNumber",
+            "member": "Field UNKNOWN",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.VersionNumber",
+            "member": "Method org.gradle.util.VersionNumber.compareTo(java.lang.Object)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.VersionNumber",
+            "member": "Method org.gradle.util.VersionNumber.compareTo(org.gradle.util.VersionNumber)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.VersionNumber",
+            "member": "Method org.gradle.util.VersionNumber.equals(java.lang.Object)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.VersionNumber",
+            "member": "Method org.gradle.util.VersionNumber.getBaseVersion()",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.VersionNumber",
+            "member": "Method org.gradle.util.VersionNumber.getMajor()",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.VersionNumber",
+            "member": "Method org.gradle.util.VersionNumber.getMicro()",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.VersionNumber",
+            "member": "Method org.gradle.util.VersionNumber.getMinor()",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.VersionNumber",
+            "member": "Method org.gradle.util.VersionNumber.getPatch()",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.VersionNumber",
+            "member": "Method org.gradle.util.VersionNumber.getQualifier()",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.VersionNumber",
+            "member": "Method org.gradle.util.VersionNumber.hashCode()",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.VersionNumber",
+            "member": "Method org.gradle.util.VersionNumber.parse(java.lang.String)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.VersionNumber",
+            "member": "Method org.gradle.util.VersionNumber.scheme()",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.VersionNumber",
+            "member": "Method org.gradle.util.VersionNumber.toString()",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.VersionNumber",
+            "member": "Method org.gradle.util.VersionNumber.version(int)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.VersionNumber",
+            "member": "Method org.gradle.util.VersionNumber.version(int,int)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.VersionNumber",
+            "member": "Method org.gradle.util.VersionNumber.withPatchNumber()",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.VersionNumber$Scheme",
+            "member": "Class org.gradle.util.VersionNumber$Scheme",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.VersionNumber$Scheme",
+            "member": "Method org.gradle.util.VersionNumber$Scheme.format(org.gradle.util.VersionNumber)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.VersionNumber$Scheme",
+            "member": "Method org.gradle.util.VersionNumber$Scheme.parse(java.lang.String)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.WrapUtil",
+            "member": "Class org.gradle.util.WrapUtil",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.WrapUtil",
+            "member": "Constructor org.gradle.util.WrapUtil()",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.WrapUtil",
+            "member": "Method org.gradle.util.WrapUtil.toArray(java.lang.Object[])",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.WrapUtil",
+            "member": "Method org.gradle.util.WrapUtil.toDomainObjectSet(java.lang.Class,java.lang.Object[])",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.WrapUtil",
+            "member": "Method org.gradle.util.WrapUtil.toLinkedSet(java.lang.Object[])",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.WrapUtil",
+            "member": "Method org.gradle.util.WrapUtil.toList(java.lang.Iterable)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.WrapUtil",
+            "member": "Method org.gradle.util.WrapUtil.toList(java.lang.Object[])",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.WrapUtil",
+            "member": "Method org.gradle.util.WrapUtil.toMap(java.lang.Object,java.lang.Object)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.WrapUtil",
+            "member": "Method org.gradle.util.WrapUtil.toSet(java.lang.Object[])",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.WrapUtil",
+            "member": "Method org.gradle.util.WrapUtil.toSortedSet(java.lang.Object[])",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.WrapUtil",
+            "member": "Method org.gradle.util.WrapUtil.toSortedSet(java.util.Comparator,java.lang.Object[])",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
         }
     ]
 }
