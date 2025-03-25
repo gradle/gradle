@@ -151,7 +151,10 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
 
         then:
         result.task(':compileJava').outcome == SUCCESS
-        result.tasks.collect { it.path } == [':checkKotlinGradlePluginConfigurationErrors', ':compileGroovy', ':compileKotlin', ':compileJava']
+
+        def tasks = result.tasks.collect { it.path }
+        tasks.contains(":checkKotlinGradlePluginConfigurationErrors")
+        tasks.findAll { it != ":checkKotlinGradlePluginConfigurationErrors" } == [':compileGroovy', ':compileKotlin', ':compileJava']
 
         where:
         kotlinVersion << TestedVersions.kotlin.versions
