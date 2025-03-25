@@ -45,7 +45,7 @@ public abstract class NewerGradleNeededByPluginFailureDescriber extends Abstract
 
     @Override
     public boolean canDescribeFailure(NoCompatibleVariantsFailure failure) {
-        return allCandidatesIncompatibleDueToGradleVersionTooLow(failure);
+        return !failure.getCandidates().isEmpty() && allCandidatesIncompatibleDueToGradleVersionTooLow(failure);
     }
 
     @Override
