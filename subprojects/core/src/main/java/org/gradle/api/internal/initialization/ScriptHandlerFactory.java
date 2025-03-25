@@ -19,7 +19,6 @@ package org.gradle.api.internal.initialization;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -37,16 +36,15 @@ public interface ScriptHandlerFactory {
     );
 
     /**
-     * Create a script handler for the given project.
-     *
-     * TODO: The distinction between this and {@link #create(ScriptSource, ClassLoaderScope, DomainObjectContext)}
-     * should go away. Project scripts should have an anonymous root component identity.
+     * Create a script handler that resolves files using the given
+     * file resolver and file collection factory.
      */
-    ScriptHandlerInternal createProjectScriptHandler(
+    ScriptHandlerInternal create(
         ScriptSource scriptSource,
         ClassLoaderScope classLoaderScope,
         FileResolver fileResolver,
         FileCollectionFactory fileCollectionFactory,
-        ProjectInternal project
+        DomainObjectContext owner
     );
+
 }
