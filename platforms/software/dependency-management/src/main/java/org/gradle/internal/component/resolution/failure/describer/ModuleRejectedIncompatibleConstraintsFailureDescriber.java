@@ -16,8 +16,8 @@
 
 package org.gradle.internal.component.resolution.failure.describer;
 
-import org.gradle.StartParameter;
 import org.gradle.api.artifacts.result.ComponentSelectionCause;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.component.resolution.failure.SelectionReasonAssessor.AssessedSelection.AssessedSelectionReason;
 import org.gradle.internal.component.resolution.failure.exception.ConflictingConstraintsException;
 import org.gradle.internal.component.resolution.failure.type.ModuleRejectedFailure;
@@ -42,11 +42,11 @@ public abstract class ModuleRejectedIncompatibleConstraintsFailureDescriber exte
     private static final String DEBUGGING_WITH_DEPENDENCY_INSIGHT_SECTION = "sec:identifying-reason-dependency-selection";
 
     @Inject
-    public abstract StartParameter getStartParameter();
+    public abstract Gradle getGradle();
 
     @Override
     public boolean canDescribeFailure(ModuleRejectedFailure failure) {
-        boolean dependencyInsightRunning = getStartParameter().getTaskRequests().stream().anyMatch(request -> request.getArgs().get(0).contains(DEPENDENCY_INSIGHT_TASK_NAME));
+        boolean dependencyInsightRunning = getGradle().getStartParameter().getTaskRequests().stream().anyMatch(request -> request.getArgs().get(0).contains(DEPENDENCY_INSIGHT_TASK_NAME));
         return !dependencyInsightRunning && findConflictingConstraints(failure).size() > 1;
     }
 
