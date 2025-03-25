@@ -26,6 +26,7 @@ import java.util.List;
  * by Gradle are assumed to be an instance of this class.
  */
 public class TypedResolveException extends ResolveException {
+
     private final String type;
     private final ImmutableList<String> resolutions;
 
@@ -40,7 +41,7 @@ public class TypedResolveException extends ResolveException {
      * Creates a new instance with resolutions.
      */
     public TypedResolveException(String type, String displayName, Iterable<? extends Throwable> failures, List<String> resolutions) {
-        super(buildMessage(type, displayName), failures, false);
+        super(buildMessage(type, displayName), failures);
         this.type = type;
         this.resolutions = ImmutableList.copyOf(resolutions);
     }
@@ -65,4 +66,5 @@ public class TypedResolveException extends ResolveException {
     private static String buildMessage(String type, String displayName) {
         return String.format("Could not resolve all %s for %s.", type, displayName);
     }
+
 }
