@@ -220,7 +220,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         project.pluginManager.apply(JavaBasePlugin)
         project.sourceSets.create('custom')
         def compileJava = project.tasks['compileCustomJava'] as JavaCompile
-        compileJava.options.annotationProcessorGeneratedSourcesDirectory = generatedSourcesDir
+        compileJava.options.generatedSourceOutputDirectory.set(generatedSourcesDir)
 
         then:
         project.sourceSets.custom.output.generatedSourcesDirs.files == toLinkedSet(generatedSourcesDir)
