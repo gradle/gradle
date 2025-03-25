@@ -1121,6 +1121,70 @@
             ]
         },
         {
+            "type": "org.gradle.util.GradleVersion",
+            "member": "Field RESOURCE_NAME",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GradleVersion",
+            "member": "Field URL",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GradleVersion",
+            "member": "Field VERSION_NUMBER_PROPERTY",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GradleVersion",
+            "member": "Field VERSION_OVERRIDE_VAR",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GradleVersion",
+            "member": "Method org.gradle.util.GradleVersion.getBuildTime()",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GradleVersion",
+            "member": "Method org.gradle.util.GradleVersion.getNextMajor()",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GradleVersion",
+            "member": "Method org.gradle.util.GradleVersion.getRevision()",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GradleVersion",
+            "member": "Method org.gradle.util.GradleVersion.isValid()",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.util.NameMatcher",
             "member": "Class org.gradle.util.NameMatcher",
             "acceptation": "Deprecated in 8.x",

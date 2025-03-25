@@ -24,38 +24,6 @@ import org.gradle.util.internal.DefaultGradleVersion;
 public abstract class GradleVersion implements Comparable<GradleVersion> {
 
     /**
-     * This field only kept here to maintain binary compatibility.
-     *
-     * @deprecated will be removed in Gradle 9.
-     */
-    @Deprecated
-    public static final String URL = "https://www.gradle.org";
-
-    /**
-     * This field only kept here to maintain binary compatibility.
-     *
-     * @deprecated will be removed in Gradle 9.
-     */
-    @Deprecated
-    public static final String RESOURCE_NAME = "/org/gradle/build-receipt.properties";
-
-    /**
-     * This field only kept here to maintain binary compatibility.
-     *
-     * @deprecated will be removed in Gradle 9.
-     */
-    @Deprecated
-    public static final String VERSION_OVERRIDE_VAR = "GRADLE_VERSION_OVERRIDE";
-
-    /**
-     * This field only kept here to maintain binary compatibility.
-     *
-     * @deprecated will be removed in Gradle 9.
-     */
-    @Deprecated
-    public static final String VERSION_NUMBER_PROPERTY = "versionNumber";
-
-    /**
      * Returns the current Gradle version.
      *
      * @return The current Gradle version.
@@ -81,22 +49,6 @@ public abstract class GradleVersion implements Comparable<GradleVersion> {
     public abstract String getVersion();
 
     /**
-     * This method only kept here to maintain binary compatibility.
-     *
-     * @deprecated will be removed in Gradle 9.
-     */
-    @Deprecated
-    public abstract String getBuildTime();
-
-    /**
-     * This method only kept here to maintain binary compatibility.
-     *
-     * @deprecated will be removed in Gradle 9.
-     */
-    @Deprecated
-    public abstract String getRevision();
-
-    /**
      * Returns {@code true} if this instance represent a snapshot version (e.g. 7.0-20210406233629+0000).
      *
      * @return Whether the current instance is a snapshot version
@@ -111,22 +63,6 @@ public abstract class GradleVersion implements Comparable<GradleVersion> {
      * @return The version base
      */
     public abstract GradleVersion getBaseVersion();
-
-    /**
-     * This method only kept here to maintain binary compatibility.
-     *
-     * @deprecated will be removed in Gradle 9.
-     */
-    @Deprecated
-    public abstract GradleVersion getNextMajor();
-
-    /**
-     * This method only kept here to maintain binary compatibility.
-     *
-     * @deprecated will be removed in Gradle 9.
-     */
-    @Deprecated
-    public abstract boolean isValid();
 
     @Override
     public abstract int compareTo(GradleVersion o);
