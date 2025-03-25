@@ -87,6 +87,13 @@ We don't expect too many occurrences given the similar nullability semantics.
 Note that plugins using JSR-305 annotations on their types will continue to work as they did with previous Gradle versions.
 In other words, it is still supported to use `javax.annotations` for nullability on your plugin types such as tasks or extensions.
 
+==== Scala plugins no longer create unresolvable configurations
+
+The Scala plugins used configurations named `incrementalScalaAnalysisFor` to resolve incremental analysis information from other projects.
+Due to the way the configurations were created, they were unresolvable and produced errors in the `dependencies` report.
+
+These configurations are no longer created or used.
+
 ==== Gradle no longer implicitly builds certain artifacts when running assemble
 In previous versions of Gradle, the `assemble` task would implicitly build artifacts of any configuration where the `visible` flag was not set to `false`.  This behavior has been removed in Gradle 9.0.  If you have a custom configuration whose artifacts should be built when running `assemble`, you should add a dependency from the artifact to the `assemble` task.
 
