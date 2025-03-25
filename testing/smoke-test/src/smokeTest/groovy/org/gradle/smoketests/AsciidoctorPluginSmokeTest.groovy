@@ -59,11 +59,16 @@ class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
         TestedVersions.asciidoctor.collectEntries([:]) { version ->
             def base = [
                 "org.asciidoctor.editorconfig",
-                "org.asciidoctor.js.convert",
+
+                // Broken after 9.0. See https://github.com/asciidoctor/asciidoctor-gradle-plugin/pull/749
+//                "org.asciidoctor.js.convert",
+
                 "org.asciidoctor.jvm.convert",
                 "org.asciidoctor.jvm.epub",
+
                 // Plugin broken after JCenter dependency disappeared
 //                "org.asciidoctor.jvm.gems",
+
                 "org.asciidoctor.jvm.pdf",
             ].collectEntries { plugin ->
                 [(plugin): Versions.of(version)]
@@ -73,6 +78,7 @@ class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
                     "org.asciidoctor.decktape",
                     "org.asciidoctor.jvm.leanpub",
                     "org.asciidoctor.jvm.leanpub.dropbox-copy",
+
                     // Plugin broken after JCenter dependency disappeared
 //                    "org.asciidoctor.jvm.revealjs",
                 ].collectEntries { plugin ->
