@@ -6,7 +6,6 @@ import common.gradleWrapper
 import common.requiresOs
 import jetbrains.buildServer.configs.kotlin.BuildType
 import jetbrains.buildServer.configs.kotlin.triggers.vcs
-import vcsroots.gradlePromotionMaster
 import vcsroots.useAbsoluteVcs
 
 // Gradle_Master_Promotion_SanityCheck
@@ -15,7 +14,7 @@ object SanityCheck : BuildType({
     name = "SanityCheck"
     description = "Sanity check for promotion project"
 
-    vcs.useAbsoluteVcs(gradlePromotionMaster)
+    vcs.useAbsoluteVcs(VersionedSettingsBranch.fromDslContext().gradlePromoteVcsRootId())
 
     steps {
         gradleWrapper {

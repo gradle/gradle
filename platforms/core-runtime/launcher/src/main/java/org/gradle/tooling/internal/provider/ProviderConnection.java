@@ -35,6 +35,7 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.daemon.client.execution.ClientBuildRequestContext;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.logging.LoggingManagerFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.console.GlobalUserInputReceiver;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
@@ -151,7 +152,7 @@ public class ProviderConnection {
         this.consumerVersion = consumerVersion;
         LogLevel providerLogLevel = parameters.getVerboseLogging() ? LogLevel.DEBUG : LogLevel.INFO;
         LOGGER.debug("Configuring logging to level: {}", providerLogLevel);
-        LoggingManagerInternal loggingManager = sharedServices.newInstance(LoggingManagerInternal.class);
+        LoggingManagerInternal loggingManager = sharedServices.get(LoggingManagerFactory.class).createLoggingManager();
         loggingManager.setLevelInternal(providerLogLevel);
         loggingManager.start();
     }
@@ -310,12 +311,12 @@ public class ProviderConnection {
         }
         CompositeStoppable stoppable = new CompositeStoppable();
         if (Boolean.TRUE.equals(operationParameters.isEmbedded())) {
-            loggingManager = sharedServices.getFactory(LoggingManagerInternal.class).create();
+            loggingManager = sharedServices.get(LoggingManagerFactory.class).createLoggingManager();
             loggingManager.captureSystemSources();
             executor = new RunInProcess(new SystemPropertySetterExecuter(new ForwardStdInToThisProcess(userInputReceiver, userInputReader, standardInput, embeddedExecutor)));
         } else {
             ServiceRegistry requestSpecificLogging = LoggingServiceRegistry.newNestedLogging();
-            loggingManager = requestSpecificLogging.getFactory(LoggingManagerInternal.class).create();
+            loggingManager = requestSpecificLogging.get(LoggingManagerFactory.class).createLoggingManager();
             ServiceRegistry clientServices = daemonClientFactory.createBuildClientServices(requestSpecificLogging, params.daemonParams, params.requestContext, standardInput, Optional.ofNullable(operationParameters.getBuildProgressListener()));
             stoppable.add(clientServices);
             stoppable.add(requestSpecificLogging);

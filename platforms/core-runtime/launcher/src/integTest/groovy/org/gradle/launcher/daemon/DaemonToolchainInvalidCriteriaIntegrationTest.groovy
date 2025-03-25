@@ -62,7 +62,7 @@ class DaemonToolchainInvalidCriteriaIntegrationTest extends AbstractIntegrationS
         fails 'help'
 
         then:
-        failureDescriptionContains("Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=17, vendor=vendor matching('unexpectedVendor'), implementation=vendor-specific}.")
+        failureDescriptionContains("Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=17, vendor=vendor matching('unexpectedVendor'), implementation=vendor-specific, nativeImageCapable=false}.")
     }
 
     @NotYetImplemented

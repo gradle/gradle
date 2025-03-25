@@ -15,7 +15,6 @@
  */
 package org.gradle.internal.nativeintegration.filesystem.services;
 
-import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
@@ -34,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 import java.util.UUID;
 
@@ -140,7 +140,7 @@ class GenericFileSystem implements FileSystem {
 
     private File createFile(String content) throws IOException {
         File file = temporaryFileProvider.createTemporaryFile("gradle_fs_probing", null);
-        Files.asCharSink(file, Charsets.UTF_8).write(content);
+        Files.asCharSink(file, StandardCharsets.UTF_8).write(content);
         return file;
     }
 
@@ -158,7 +158,7 @@ class GenericFileSystem implements FileSystem {
     }
 
     private boolean hasContent(File file, String content) throws IOException {
-        return file.exists() && Files.asCharSource(file, Charsets.UTF_8).readFirstLine().equals(content);
+        return file.exists() && Files.asCharSource(file, StandardCharsets.UTF_8).readFirstLine().equals(content);
     }
 
     private void checkJavaIoTmpDirExists() throws IOException {

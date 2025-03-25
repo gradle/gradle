@@ -78,6 +78,19 @@ include::sample[dir="snippets/java/toolchain-filters/kotlin/",files="build.gradl
 include::sample[dir="snippets/java/toolchain-filters/groovy/",files="build.gradle[tags=toolchain-matching-vendor]"]
 ====
 
+[[sec:native_image]]
+=== Selecting toolchains that support GraalVM native image
+
+If your project needs a toolchain with https://www.graalvm.org/latest/reference-manual/native-image/[GraalVM Native Image capability], you can configure the spec to request it:
+
+====
+include::sample[dir="snippets/java/toolchain-filters/kotlin/",files="build.gradle.kts[tags=toolchain-native-image]"]
+include::sample[dir="snippets/java/toolchain-filters/groovy/",files="build.gradle[tags=toolchain-native-image]"]
+====
+
+Leaving that value unconfigured or set to `false` will not restrict the toolchain selection based on the Native Image capability.
+That means that a Native Image capable JDK can be selected if it matches the other criteria.
+
 === Selecting toolchains by virtual machine implementation
 
 If your project requires a specific implementation, you can filter based on the implementation as well.

@@ -1176,6 +1176,82 @@ Searched in the following locations:
         result.assertTasksExecuted(":c:jar1", ":resolveLenient")
     }
 
+    def "attributes on incoming artifact variants can be requested using Stringly or strongly-typed values"() {
+        settingsFile << """
+            include("producer")
+        """
+
+        file("producer/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+        """
+
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            dependencies {
+                implementation project(":producer")
+            }
+
+            task resolve {
+                def artifacts = configurations.runtimeClasspath.incoming.artifacts
+
+                doLast {
+                    def usage = artifacts.artifacts[0].variant.attributes.getAttribute(Usage.USAGE_ATTRIBUTE)
+                    assert Usage.class.isAssignableFrom(usage.class)
+                    assert usage.name == "java-runtime"
+
+                    def usageAsString = artifacts.artifacts[0].variant.attributes.getAttribute(Attribute.of(Usage.USAGE_ATTRIBUTE.name, String.class))
+                    assert usageAsString == "java-runtime"
+                }
+            }
+        """
+
+        expect:
+        succeeds("resolve")
+    }
+
+    def "attributes on incoming artifact resolved artifacts variants can be requested using Stringly or strongly-typed values"() {
+        settingsFile << """
+            include("producer")
+        """
+
+        file("producer/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+        """
+
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            dependencies {
+                implementation project(":producer")
+            }
+
+            task resolve {
+                def artifacts = configurations.runtimeClasspath.incoming.artifacts
+
+                doLast {
+                    def usage = artifacts.resolvedArtifacts.get()[0].variant.attributes.getAttribute(Usage.USAGE_ATTRIBUTE)
+                    assert Usage.class.isAssignableFrom(usage.class)
+                    assert usage.name == "java-runtime"
+
+                    def usageAsString = artifacts.artifacts[0].variant.attributes.getAttribute(Attribute.of(Usage.USAGE_ATTRIBUTE.name, String.class))
+                    assert usageAsString == "java-runtime"
+                }
+            }
+        """
+
+        expect:
+        succeeds("resolve")
+    }
+
     def showFailuresTask(expression) {
         """
             task show {

@@ -211,6 +211,39 @@ interface SomeDataView {
     SomeOtherDataView getOtherData();
 }
 ```
+
+### GraalVM Native Image selection for toolchains
+
+Gradle's [toolchain support](userguide/toolchains.html) allows provisioning and selection of JDK versions required for building projects (compiling code, running tests, etc) and running Gradle itself.
+
+With this release, the selection criteria have been expanded to include [GraalVM Native Image](https://www.graalvm.org/reference-manual/native-image/) capability selection:
+
+```kotlin
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+        nativeImageCapable = true
+    }
+}
+```
+
+See [the documentation](userguide/toolchains.html#sec:native_image) for details.
+
+### Configuration Cache improvements
+
+#### Integrity Check mode
+
+When facing cryptic configuration cache loading failures, you can now enable stricter integrity checks with `org.gradle.configuration-cache.integrity-check` property.
+It can help to pinpoint the piece of code that failed to serialize properly with more precision. You can get from:
+```
+Index 4 out of bounds for length 3
+```
+to:
+```
+Configuration cache state could not be cached: field `user` of task `:greet` of type `GreetTask`: The value cannot be decoded properly with 'JavaObjectSerializationCodec'. It may have been written incorrectly or its data is corrupted.
+```
+Enabling the checks inflates the configuration cache entry and slows down storing and loading it, so it should be used as a troubleshooting tool and doesn't need to be permanently enabled.
+
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================

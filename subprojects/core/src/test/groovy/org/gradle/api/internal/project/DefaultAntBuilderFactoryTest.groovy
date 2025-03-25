@@ -31,7 +31,7 @@ public class DefaultAntBuilderFactoryTest extends AbstractProjectBuilderSpec {
 
     public void "can create AntBuilder"() {
         when:
-        def ant = factory.create()
+        def ant = factory.createAntBuilder()
 
         then:
         ant != null
@@ -40,7 +40,7 @@ public class DefaultAntBuilderFactoryTest extends AbstractProjectBuilderSpec {
 
     public void "sets base directory of Ant project"() {
         when:
-        def ant = factory.create()
+        def ant = factory.createAntBuilder()
 
         then:
         ant.project.baseDir == project.projectDir

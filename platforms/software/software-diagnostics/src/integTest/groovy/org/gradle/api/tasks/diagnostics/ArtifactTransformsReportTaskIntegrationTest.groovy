@@ -120,7 +120,7 @@ To Attributes:
         assertsNudgesAboutCacheability()
     }
 
-    def "if named transform is registered by buildscript, task reports it"() {
+    def "if multiple non-cacheable transforms is registered by buildscript, task reports them without cacheability hint"() {
         given:
         buildFile << """
             ${defineAttributes()}

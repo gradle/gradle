@@ -34,10 +34,11 @@ fun schemaFromTypes(
     configureLambdas: ConfigureLambdaHandler = kotlinFunctionAsConfigureLambda,
     propertyExtractor: PropertyExtractor = DefaultPropertyExtractor(isPublicAndRestricted),
     functionExtractor: FunctionExtractor = DefaultFunctionExtractor(configureLambdas, isPublicAndRestricted),
+    augmentationsProvider: AugmentationsProvider = CompositeAugmentationsProvider(emptyList()),
     typeDiscovery: TypeDiscovery = TypeDiscovery.none
 ): AnalysisSchema =
-    DataSchemaBuilder(typeDiscovery, propertyExtractor, functionExtractor).schemaFromTypes(
-        topLevelReceiver, types, externalFunctionDiscovery.discoverTopLevelFunctions(), externalObjects, defaultImports
+    DataSchemaBuilder(typeDiscovery, propertyExtractor, functionExtractor, augmentationsProvider).schemaFromTypes(
+        topLevelReceiver, types, externalFunctionDiscovery.discoverTopLevelFunctions(), externalObjects, defaultImports,
     )
 
 

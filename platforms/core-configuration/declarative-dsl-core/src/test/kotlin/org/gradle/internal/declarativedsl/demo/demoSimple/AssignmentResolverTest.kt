@@ -1,10 +1,10 @@
 package org.gradle.internal.declarativedsl.demo.demoSimple
 
 import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
-import org.gradle.internal.declarativedsl.demo.assignmentTrace
+import org.gradle.internal.declarativedsl.demo.propertyLinkTrace
 import org.gradle.internal.declarativedsl.demo.resolve
-import org.gradle.internal.declarativedsl.objectGraph.AssignmentResolver
-import org.gradle.internal.declarativedsl.objectGraph.AssignmentTraceElement
+import org.gradle.internal.declarativedsl.objectGraph.PropertyLinksResolver
+import org.gradle.internal.declarativedsl.objectGraph.PropertyLinkTraceElement
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.Test
 import org.gradle.internal.declarativedsl.assertIs
@@ -13,7 +13,7 @@ import org.gradle.internal.declarativedsl.assertIs
 class AssignmentResolverTest {
     @Test
     fun `resolves transitive property`() {
-        assignmentTrace(
+        propertyLinkTrace(
             schema.resolve(
                 """
                 val myD = newD("shared")
@@ -23,10 +23,11 @@ class AssignmentResolverTest {
                 """.trimIndent()
             )
         ).run {
-            val strAssignment = elements.find { it.lhs.property.name == "str" }
-            assertIs<AssignmentTraceElement.RecordedAssignment>(strAssignment)
-            val value = resolvedAssignments[strAssignment.lhs]
-            assertIs<AssignmentResolver.AssignmentResolutionResult.Assigned>(value)
+            val strAssignment = trace.find { it.originElement.sourceData.text() == "str = c1.d.id" }
+            assertIs<PropertyLinkTraceElement.RecordedAssignment>(strAssignment)
+            val value = finalAssignments[strAssignment.lhs]
+            assertIs<PropertyLinksResolver.AssignmentResolutionResult.Assigned>(value)
+            assertEquals(strAssignment.resolvedRhs, value.objectOrigin)
             val valueOrigin = value.objectOrigin
             assertIs<ObjectOrigin.ConstantOrigin>(valueOrigin)
             assertEquals("shared", valueOrigin.literal.value)
@@ -35,7 +36,7 @@ class AssignmentResolverTest {
 
     @Test
     fun `reports assignment pointing to unassigned property`() {
-        assignmentTrace(
+        propertyLinkTrace(
             schema.resolve(
                 """
                 val c1 = c(1) { }
@@ -44,10 +45,10 @@ class AssignmentResolverTest {
                 """.trimIndent()
             )
         ).run {
-            val shouldBeUnassigned = elements[2]
-            assertIs<AssignmentTraceElement.UnassignedValueUsed>(shouldBeUnassigned)
+            val shouldBeUnassigned = trace.find { it.originElement.sourceData.text() == "c2.d = c1.d" }
+            assertIs<PropertyLinkTraceElement.UnassignedValueUsedInAssignment>(shouldBeUnassigned)
             val assignmentAdditionResult = shouldBeUnassigned.assignmentAdditionResult
-            assertIs<AssignmentResolver.AssignmentAdditionResult.UnresolvedValueUsedInRhs>(assignmentAdditionResult)
+            assertIs<PropertyLinksResolver.AssignmentAdditionResult.UnresolvedValueUsedInRhs>(assignmentAdditionResult)
             val propertyReference = assignmentAdditionResult.value
             assertIs<ObjectOrigin.PropertyReference>(propertyReference)
             assertEquals("d", propertyReference.property.name)
@@ -56,7 +57,7 @@ class AssignmentResolverTest {
 
     @Test
     fun `reports unassigned value used in lhs`() {
-        assignmentTrace(
+        propertyLinkTrace(
             schema.resolve(
                 """
                 val c1 = c(1) { }
@@ -64,10 +65,10 @@ class AssignmentResolverTest {
                 """.trimIndent()
             )
         ).run {
-            val shouldBeUnassigned = elements[1]
-            assertIs<AssignmentTraceElement.UnassignedValueUsed>(shouldBeUnassigned)
+            val shouldBeUnassigned = trace.find { it.originElement.sourceData.text() == "c1.d.id = \"test\"" }
+            assertIs<PropertyLinkTraceElement.UnassignedValueUsedInAssignment>(shouldBeUnassigned)
             val assignmentAdditionResult = shouldBeUnassigned.assignmentAdditionResult
-            assertIs<AssignmentResolver.AssignmentAdditionResult.UnresolvedValueUsedInLhs>(assignmentAdditionResult)
+            assertIs<PropertyLinksResolver.AssignmentAdditionResult.UnresolvedValueUsedInLhs>(assignmentAdditionResult)
             val propertyReference = assignmentAdditionResult.value
             assertIs<ObjectOrigin.PropertyReference>(propertyReference)
             assertEquals("d", propertyReference.property.name)

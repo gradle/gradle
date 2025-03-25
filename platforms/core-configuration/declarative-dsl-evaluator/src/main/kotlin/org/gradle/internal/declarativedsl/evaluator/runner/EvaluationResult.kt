@@ -20,7 +20,7 @@ import org.gradle.internal.declarativedsl.analysis.ResolutionError
 import org.gradle.internal.declarativedsl.evaluator.schema.DeclarativeScriptContext
 import org.gradle.internal.declarativedsl.evaluator.checks.DocumentCheckFailure
 import org.gradle.internal.declarativedsl.language.SingleFailureResult
-import org.gradle.internal.declarativedsl.objectGraph.AssignmentTraceElement
+import org.gradle.internal.declarativedsl.objectGraph.PropertyLinkTraceElement
 
 
 sealed interface EvaluationResult<out R : StepResult> {
@@ -37,7 +37,7 @@ sealed interface EvaluationResult<out R : StepResult> {
             data class FailuresInLanguageTree(val failures: List<SingleFailureResult>) : StageFailure
             data class FailuresInResolution(val errors: List<ResolutionError>) : StageFailure
             data class DocumentCheckFailures(val failures: List<DocumentCheckFailure>) : StageFailure
-            data class AssignmentErrors(val usages: List<AssignmentTraceElement.FailedToRecordAssignment>) : StageFailure
+            data class PropertyLinkErrors(val usages: List<PropertyLinkTraceElement.FailedToResolveLinks>) : StageFailure
         }
     }
 }

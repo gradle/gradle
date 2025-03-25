@@ -16,7 +16,6 @@
 
 package org.gradle.test.fixtures.server.http;
 
-import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.sun.net.httpserver.HttpExchange;
 import org.gradle.test.fixtures.server.http.BlockingHttpServer.BlockingRequest;
@@ -26,6 +25,7 @@ import org.hamcrest.StringDescription;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.concurrent.locks.Lock;
 
@@ -150,7 +150,7 @@ class ExpectMethod implements ResourceHandler, BuildableExpectedRequest, Resourc
 
         @Override
         public void writeTo(int requestId, HttpExchange exchange) throws IOException {
-            byte[] bytes = content.getBytes(Charsets.UTF_8);
+            byte[] bytes = content.getBytes(StandardCharsets.UTF_8);
             exchange.sendResponseHeaders(statusCode, bytes.length);
             exchange.getResponseBody().write(bytes);
         }
@@ -189,7 +189,7 @@ class ExpectMethod implements ResourceHandler, BuildableExpectedRequest, Resourc
                 description.appendText(" but ");
                 expectedUserAgent.describeMismatch(actual, description);
                 String message = description.toString();
-                byte[] bytes = message.getBytes(Charsets.UTF_8);
+                byte[] bytes = message.getBytes(StandardCharsets.UTF_8);
                 exchange.sendResponseHeaders(500, bytes.length);
                 exchange.getResponseBody().write(bytes);
                 throw new AssertionError(message);
