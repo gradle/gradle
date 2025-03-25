@@ -21,7 +21,7 @@ The sample consists of multiple, individual builds composed into a composite bui
 ## Emitting a problem
 
 Problems can be emitted via an injected `Problems` service.
-Here's an example on how to report a problem from a plugin.
+Here's an example on how to report a problem from a plugin, including adding custom additional data:
 
 ====
 include::sample[dir="groovy",files="reporters/standard-plugin/src/main/java/reporters/StandardPlugin.java[tags=problems-api-report]"]
@@ -35,5 +35,35 @@ Problems are emitted as Tooling API progress events. They can be processed by re
 ====
 include::sample[dir="groovy",files="sample-ide/src/main/java/org/gradle/sample/SampleIde.java[tags=problems-tapi-event]"]
 ====
+
+### Receiving custom additional data
+
+To read custom additional data on the Tooling API side, you need a **view type**.
+
+A **view type** represents interface or class through which you want to access the underlying data.
+The API will return an implementation of this type that provides a specific "view" of the data, allowing for type-safe access to underlying data.
+The **view type** must be compatible with the actual data structure.
+
+Your **view type** can include various properties based on the following rules:
+
+* Simple types (`String`, `Integer`, `Boolean`, etc.)
+* Collections (`List`, `Set`, `Map`)
+* Composite types made up of the above
+* Gradle Provider API types, which are automatically mapped to their corresponding types
+
+Also see the link:{javadocPath}/org/gradle/tooling/events/problems/CustomAdditionalData.html[CustomAdditionalData] for more information.
+
+This **view type** can be used to retrieve the additional data stored in the problem instance:
+
+====
+include::sample[dir="groovy",files="sample-ide/src/main/java/org/gradle/sample/SampleIde.java[tags=problems-tapi-additional-data-type]"]
+====
+
+This **view type** can be used to retrieve the additional data stored in the problem instance:
+
+====
+include::sample[dir="groovy",files="sample-ide/src/main/java/org/gradle/sample/SampleIde.java[tags=problems-tapi-additional-data-read]"]
+====
+
 
 
