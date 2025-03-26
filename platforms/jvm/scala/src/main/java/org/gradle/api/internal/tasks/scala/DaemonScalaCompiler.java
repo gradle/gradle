@@ -42,7 +42,7 @@ import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
-import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.language.base.internal.compile.CompilerParameters;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.gradle.workers.internal.DaemonForkOptions;
@@ -53,18 +53,17 @@ import org.gradle.workers.internal.KeepAliveMode;
 import java.io.File;
 
 public class DaemonScalaCompiler<T extends ScalaJavaJointCompileSpec> extends AbstractDaemonCompiler<T> {
-    private final Class<? extends Compiler<T>> compilerClass;
-    private final Object[] compilerConstructorArguments;
+
+    private final HashedClasspath hashedScalaClasspath;
     private final Iterable<File> zincClasspath;
     private final JavaForkOptionsFactory forkOptionsFactory;
     private final File daemonWorkingDir;
     private final ClassPathRegistry classPathRegistry;
     private final ClassLoaderRegistry classLoaderRegistry;
 
-    public DaemonScalaCompiler(File daemonWorkingDir, Class<? extends Compiler<T>> compilerClass, Object[] compilerConstructorArguments, CompilerWorkerExecutor compilerWorkerExecutor, Iterable<File> zincClasspath, JavaForkOptionsFactory forkOptionsFactory, ClassPathRegistry classPathRegistry, ClassLoaderRegistry classLoaderRegistry) {
+    public DaemonScalaCompiler(File daemonWorkingDir, HashedClasspath hashedScalaClasspath, CompilerWorkerExecutor compilerWorkerExecutor, Iterable<File> zincClasspath, JavaForkOptionsFactory forkOptionsFactory, ClassPathRegistry classPathRegistry, ClassLoaderRegistry classLoaderRegistry) {
         super(compilerWorkerExecutor);
-        this.compilerClass = compilerClass;
-        this.compilerConstructorArguments = compilerConstructorArguments;
+        this.hashedScalaClasspath = hashedScalaClasspath;
         this.zincClasspath = zincClasspath;
         this.forkOptionsFactory = forkOptionsFactory;
         this.daemonWorkingDir = daemonWorkingDir;
@@ -73,8 +72,8 @@ public class DaemonScalaCompiler<T extends ScalaJavaJointCompileSpec> extends Ab
     }
 
     @Override
-    protected CompilerWorkerExecutor.CompilerParameters getCompilerParameters(T spec) {
-        return new ScalaCompilerParameters<T>(compilerClass.getName(), compilerConstructorArguments, spec);
+    protected CompilerParameters getCompilerParameters(T spec) {
+        return new ScalaCompilerParameters<T>(ZincScalaCompilerFacade.class.getName(), new Object[] {hashedScalaClasspath}, spec);
     }
 
     @Override
@@ -82,7 +81,7 @@ public class DaemonScalaCompiler<T extends ScalaJavaJointCompileSpec> extends Ab
         MinimalJavaCompilerDaemonForkOptions javaOptions = spec.getCompileOptions().getForkOptions();
         MinimalScalaCompileOptions compileOptions = spec.getScalaCompileOptions();
         MinimalScalaCompilerDaemonForkOptions forkOptions = compileOptions.getForkOptions();
-        JavaForkOptions javaForkOptions = new BaseForkOptionsConverter(forkOptionsFactory).transform(mergeForkOptions(javaOptions, forkOptions));
+        JavaForkOptions javaForkOptions = new BaseForkOptionsConverter(forkOptionsFactory).transform(javaOptions, forkOptions);
         javaForkOptions.systemProperty("xsbt.skip.cp.lookup", true);
         javaForkOptions.setWorkingDir(daemonWorkingDir);
         javaForkOptions.setExecutable(spec.getJavaExecutable().getAbsolutePath());
@@ -96,7 +95,7 @@ public class DaemonScalaCompiler<T extends ScalaJavaJointCompileSpec> extends Ab
         return new DaemonForkOptionsBuilder(forkOptionsFactory)
             .javaForkOptions(javaForkOptions)
             .withClassLoaderStructure(classLoaderStructure)
-            .keepAliveMode(KeepAliveMode.valueOf(compileOptions.getKeepAliveMode().name()))
+            .keepAliveMode(KeepAliveMode.valueOf(compileOptions.getKeepAliveMode()))
             .build();
     }
 
@@ -112,18 +111,5 @@ public class DaemonScalaCompiler<T extends ScalaJavaJointCompileSpec> extends Ab
         return gradleApiAndScalaSpec;
     }
 
-    public static class ScalaCompilerParameters<T extends ScalaJavaJointCompileSpec> extends CompilerWorkerExecutor.CompilerParameters {
-        private final T compileSpec;
-
-        public ScalaCompilerParameters(String compilerClassName, Object[] compilerInstanceParameters, T compileSpec) {
-            super(compilerClassName, compilerInstanceParameters);
-            this.compileSpec = compileSpec;
-        }
-
-        @Override
-        public T getCompileSpec() {
-            return compileSpec;
-        }
-    }
 }
 
