@@ -27,13 +27,15 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Visit
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.DefaultVisitedGraphResults
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResults
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsLoader
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult
 import spock.lang.Specification
 
+import java.util.function.Function
+
 class DefaultLenientConfigurationTest extends Specification {
+
     def transientConfigurationResults = Mock(TransientConfigurationResults)
-    def resultsLoader = Mock(TransientConfigurationResultsLoader)
+    def resultsLoader = Mock(Function)
     def artifactSet = Stub(VisitedArtifactSet)
 
     def "should resolve first level dependencies in tree"() {
@@ -53,7 +55,7 @@ class DefaultLenientConfigurationTest extends Specification {
         results == expectedResults
 
         and:
-        1 * resultsLoader.create(_) >> transientConfigurationResults
+        1 * resultsLoader.apply(_) >> transientConfigurationResults
         1 * transientConfigurationResults.getFirstLevelDependencies() >> ImmutableSet.of(child)
         0 * _
     }
@@ -71,7 +73,7 @@ class DefaultLenientConfigurationTest extends Specification {
         result.size() == size
         result == expected
 
-        1 * resultsLoader.create(_) >> transientConfigurationResults
+        1 * resultsLoader.apply(_) >> transientConfigurationResults
         1 * transientConfigurationResults.getRootNode() >> root
 
         where:

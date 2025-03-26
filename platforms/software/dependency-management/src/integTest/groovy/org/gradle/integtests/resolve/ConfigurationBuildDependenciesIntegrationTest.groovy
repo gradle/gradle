@@ -43,7 +43,8 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
                 compile files('main-lib.jar') { builtBy lib }
             }
             task direct { inputs.files configurations.compile }
-            task artifactView { inputs.files configurations.compile.incoming.artifactView { componentFilter { true } }.files }
+            task artifactView { inputs.files configurations.compile.incoming.artifactView { }.files }
+            task artifactViewWithFilter { inputs.files configurations.compile.incoming.artifactView { componentFilter { true } }.files }
             task ownDependencies { dependsOn configurations.compile.dependencies }
             task allDependencies { dependsOn configurations.compile.allDependencies }
             task incomingFiles { inputs.files configurations.compile.incoming.files }
@@ -74,15 +75,16 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
         executed ":lib", ":child:jar", ":child:lib", ":$taskName"
 
         where:
-        taskName               | _
-        "direct"               | _
-        "artifactView"       | _
-        "ownDependencies"      | _
-        "allDependencies"      | _
-        "incomingFiles"        | _
-        "incomingDependencies" | _
-        "copy"                 | _
-        "filteredTree"         | _
+        taskName                 | _
+        "direct"                 | _
+        "artifactView"           | _
+        "artifactViewWithFilter" | _
+        "ownDependencies"        | _
+        "allDependencies"        | _
+        "incomingFiles"          | _
+        "incomingDependencies"   | _
+        "copy"                   | _
+        "filteredTree"           | _
     }
 
     def "builds correct artifacts when there is a project cycle in dependency graph - fluid: #fluid"() {
