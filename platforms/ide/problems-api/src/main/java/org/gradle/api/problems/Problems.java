@@ -37,7 +37,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 public interface Problems {
 
     /**
-     * Return a general problem reporter.
+     * Returns a general problem reporter.
      *
      * @return The problem reporter.
      * @since 8.11
@@ -45,7 +45,7 @@ public interface Problems {
     ProblemReporter getReporter();
 
     /**
-     * Return s a problem reporter for deprecations.
+     * Returns a problem reporter for deprecations.
      *
      * @return The problem reporter.
      * @since 8.14
