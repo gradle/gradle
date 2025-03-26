@@ -67,7 +67,7 @@ class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrat
         assertHasImplementationClasspath(pluginMetadata, expectedClasspath)
     }
 
-    def "can configure plugin and test source set by extension"() {
+    def "can configure test source set by extension"() {
         given:
         buildFile << """
             sourceSets {
@@ -99,13 +99,11 @@ class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrat
             check.dependsOn functionalTest
 
             gradlePlugin {
-                pluginSourceSet sourceSets.custom
                 testSourceSets sourceSets.functionalTest
             }
         """
         def module = mavenRepo.module('org.gradle.test', 'a', '1.3').publish()
         buildFile << compileDependency('customImplementation', module)
-        executer.expectDocumentedDeprecationWarning("The GradlePluginDevelopmentExtension.pluginSourceSet(SourceSet) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use the main source set. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_plugin_development_methods")
 
         when:
         succeeds 'build'
@@ -113,7 +111,7 @@ class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrat
         then:
         executedAndNotSkipped PLUGIN_UNDER_TEST_METADATA_TASK_PATH
         def pluginMetadata = file("build/$PLUGIN_UNDER_TEST_METADATA_TASK_NAME/$METADATA_FILE_NAME")
-        def expectedClasspath = [file('build/classes/java/custom'), file('build/resources/custom'), module.artifactFile]
+        def expectedClasspath = [file('build/classes/java/main'), file('build/resources/main')]
         assertHasImplementationClasspath(pluginMetadata, expectedClasspath)
     }
 
