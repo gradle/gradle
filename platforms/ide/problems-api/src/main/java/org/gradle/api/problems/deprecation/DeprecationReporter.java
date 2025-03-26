@@ -47,7 +47,7 @@ public interface DeprecationReporter {
      * @param spec a spec to configure the deprecation
      * @since 8.14
      */
-    void deprecateMethod(ReportSource reportSource, Class<?> containingClass, String signature, Action<DeprecateMethodSpec> spec);
+    void deprecateMethod(ReportSource reportSource, Class<?> containingClass, String signature, Action<DeprecateSpec> spec);
 
     /**
      * Declares a plugin deprecation for {@code pluginId}
@@ -56,5 +56,5 @@ public interface DeprecationReporter {
      * @param pluginId the id of the plugin to deprecate
      * @since 8.14
      */
-    void deprecatePlugin(ReportSource reportSource, String pluginId, Action<DeprecatePluginSpec> spec);
+    void deprecatePlugin(ReportSource reportSource, String pluginId, Action<DeprecateSpec> spec);
 }

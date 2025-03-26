@@ -17,14 +17,12 @@ package org.gradle.api.problems.internal.deprecation;
 
 import org.gradle.api.Action;
 import org.gradle.api.problems.DocLink;
-import org.gradle.api.problems.deprecation.DeprecateMethodSpec;
-import org.gradle.api.problems.deprecation.DeprecatePluginSpec;
 import org.gradle.api.problems.deprecation.DeprecateSpec;
 import org.gradle.api.problems.deprecation.source.ReportSource;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.InternalProblemBuilder;
 
-class DefaultDeprecationBuilder implements DeprecateSpec, DeprecatePluginSpec, DeprecateMethodSpec {
+class DefaultDeprecationBuilder implements DeprecateSpec {
 
     private final InternalProblemBuilder builder;
 
@@ -40,7 +38,6 @@ class DefaultDeprecationBuilder implements DeprecateSpec, DeprecatePluginSpec, D
             }
         );
     }
-
 
     @Override
     public DefaultDeprecationBuilder replacedBy(final String replacement) {
