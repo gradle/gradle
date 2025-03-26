@@ -533,7 +533,7 @@ class BuildscriptResolutionIntegrationTest extends AbstractIntegrationSpec {
         succeeds("help")
     }
 
-    def "removing the classpath configuration from project buildscript is deprecated"() {
+    def "removing the classpath configuration from project buildscript fails"() {
         buildFile << """
             buildscript {
                 configurations {
@@ -542,13 +542,15 @@ class BuildscriptResolutionIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        expect:
+        when:
         executer.expectDocumentedDeprecationWarning("Mutating configuration container for buildscript of root project 'root' using remove(Object) has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutating_buildscript_configurations")
-        executer.expectDeprecationWarning("Removing a configuration from the container before resolution This behavior has been deprecated. This will fail with an error in Gradle 9.0. Do not remove configurations from the container and resolve them after.")
-        succeeds("help")
+        fails("help")
+
+        then:
+        failure.assertHasCause("Expected resolvable configuration 'classpath' to be present in buildscript of root project 'root'")
     }
 
-    def "removing the classpath configuration from settings buildscript is deprecated"() {
+    def "removing the classpath configuration from settings buildscript fails"() {
         settingsFile << """
             buildscript {
                 configurations {
@@ -557,10 +559,12 @@ class BuildscriptResolutionIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        expect:
+        when:
         executer.expectDocumentedDeprecationWarning("Mutating configuration container for settings file 'settings.gradle' using remove(Object) has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutating_buildscript_configurations")
-        executer.expectDeprecationWarning("Removing a configuration from the container before resolution This behavior has been deprecated. This will fail with an error in Gradle 9.0. Do not remove configurations from the container and resolve them after.")
-        succeeds("help")
+        fails("help")
+
+        then:
+        failure.assertHasCause("Expected resolvable configuration 'classpath' to be present in settings file 'settings.gradle'")
     }
 
     def "removing the classpath configuration from init buildscript is deprecated"() {
@@ -580,7 +584,7 @@ class BuildscriptResolutionIntegrationTest extends AbstractIntegrationSpec {
         succeeds("help")
     }
 
-    def "removing the classpath configuration from standalone buildscript is deprecated"() {
+    def "removing the classpath configuration from standalone buildscript fails"() {
         file("foo.gradle") << """
             buildscript {
                 configurations {
@@ -593,10 +597,12 @@ class BuildscriptResolutionIntegrationTest extends AbstractIntegrationSpec {
             apply from: "foo.gradle"
         """
 
-        expect:
+        when:
         executer.expectDocumentedDeprecationWarning("Mutating configuration container for script 'foo.gradle' using remove(Object) has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutating_buildscript_configurations")
-        executer.expectDeprecationWarning("Removing a configuration from the container before resolution This behavior has been deprecated. This will fail with an error in Gradle 9.0. Do not remove configurations from the container and resolve them after.")
-        succeeds("help")
+        fails("help")
+
+        then:
+        failure.assertHasCause("Expected resolvable configuration 'classpath' to be present in script 'foo.gradle'")
     }
 
     def "project buildscripts support detached configurations for resolving external dependencies"() {
