@@ -87,6 +87,22 @@
             "changes": [
                 "Method has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.plugin.devel.GradlePluginDevelopmentExtension",
+            "member": "Constructor org.gradle.plugin.devel.GradlePluginDevelopmentExtension(org.gradle.api.Project,org.gradle.api.tasks.SourceSet,org.gradle.api.tasks.SourceSet[])",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugin.devel.GradlePluginDevelopmentExtension",
+            "member": "Method org.gradle.plugin.devel.GradlePluginDevelopmentExtension.pluginSourceSet(org.gradle.api.tasks.SourceSet)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
         }
     ]
 }
