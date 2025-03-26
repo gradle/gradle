@@ -20,6 +20,7 @@ import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.file.FileSystemLocationProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.instantiation.generator.AsmBackedClassGenerator;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
@@ -31,14 +32,17 @@ import java.io.File;
 public class PropertyExtensionModule {
 
     public static <T> void call(Property<T> property, @Nullable T value) {
+        AsmBackedClassGenerator.logGroovySpaceAssignmentDeprecation(property.toString(), null);
         property.set(value);
     }
 
     public static <T> void call(Property<T> property, Provider<? extends T> value) {
+        AsmBackedClassGenerator.logGroovySpaceAssignmentDeprecation(property.toString(), null);
         property.set(value);
     }
 
     public static void call(FileSystemLocationProperty<? extends FileSystemLocation> property, File value) {
+        AsmBackedClassGenerator.logGroovySpaceAssignmentDeprecation(property.toString(), null);
         property.set(value);
     }
 }

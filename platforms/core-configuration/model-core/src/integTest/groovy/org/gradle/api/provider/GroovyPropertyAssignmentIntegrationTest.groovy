@@ -306,13 +306,14 @@ class GroovyPropertyAssignmentIntegrationTest extends AbstractProviderOperatorIn
     def "test Groovy lazy object types assignment for 'property value' notation #description"() {
         def inputDeclaration = "abstract $inputType getInput()"
         groovyBuildFile(inputDeclaration, inputValue, " ")
-        expectedDeprecation(executer)
+        withSpaceOperatorDeprecation(executer, ":myTask' property 'input'")
+        withAdditionalDeprecation(executer)
 
         expect:
         runAndAssert("myTask", expectedResult)
 
         where:
-        description                                   | inputType             | inputValue                               | expectedResult                                                                  | expectedDeprecation
+        description                                   | inputType             | inputValue                               | expectedResult                                                                  | withAdditionalDeprecation
         "T T"                                         | "Property<MyObject>"  | 'new MyObject("hello")'                  | "hello"                                                                         | {}
         "T Provider<T>"                               | "Property<MyObject>"  | 'provider { new MyObject("hello") }'     | "hello"                                                                         | {}
         "String Object"                               | "Property<String>"    | 'new MyObject("hello")'                  | unsupportedWithCause("Cannot set the value of task ':myTask' property 'input'") | {}
@@ -396,7 +397,15 @@ class GroovyPropertyAssignmentIntegrationTest extends AbstractProviderOperatorIn
         """
     }
 
+    private static void withSpaceOperatorDeprecation(GradleExecuter executer, String propertyName) {
+        executer.expectDocumentedDeprecationWarning("Properties should be assigned using the 'propName = value' syntax. " +
+            "Setting a property 'task '$propertyName' via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated. " +
+            "This is scheduled to be removed in Gradle 10.0. Use assignment ('propName = <value>') instead. Consult the upgrading guide for further information: https://docs.gradle.org/9.0-20250325230000+0000/userguide/upgrading_version_8.html#groovy_space_assignment_syntax")
+    }
+
     private static void withStringToEnumDeprecation(GradleExecuter executer, String value, String enumType) {
-        executer.expectDocumentedDeprecationWarning("Assigning String value '$value' to property of enum type '$enumType'. This behavior has been deprecated. This will fail with an error in Gradle 10.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_string_to_enum_coercion_for_rich_properties")
+        executer.expectDocumentedDeprecationWarning("Assigning String value '$value' to property of enum type '$enumType'. " +
+            "This behavior has been deprecated. This will fail with an error in Gradle 10.0. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_string_to_enum_coercion_for_rich_properties")
     }
 }

@@ -263,11 +263,24 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         return new ClassInspectionVisitorImpl(type, decorate, suffix, factoryId);
     }
 
+    /**
+     * Used in generated code.
+     */
     @SuppressWarnings("unused")
     public static void logGroovySpaceAssignmentDeprecation(String propertyName) {
+        logGroovySpaceAssignmentDeprecation(null, propertyName);
+    }
+
+    public static void logGroovySpaceAssignmentDeprecation(@Nullable String deprecationPropertyName, @Nullable String advicePropertyName) {
+        String deprecation = deprecationPropertyName == null
+            ? "Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL"
+            : "Properties should be assigned using the 'propName = value' syntax. Setting a property " + "'" + deprecationPropertyName + "'" + " via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL";
+        String advice = advicePropertyName == null
+            ? "Use assignment ('propName = <value>') instead."
+            : "Use assignment ('" + advicePropertyName + " = <value>') instead.";
         DeprecationLogger
-            .deprecate("Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL")
-            .withAdvice("Use assignment ('" + propertyName + " = <value>') instead.")
+            .deprecate(deprecation)
+            .withAdvice(advice)
             .willBeRemovedInGradle10()
             .withUpgradeGuideSection(8, "groovy_space_assignment_syntax")
             .nagUser();
