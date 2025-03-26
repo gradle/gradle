@@ -17,7 +17,6 @@
 package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
-import org.gradle.util.GradleVersion
 import org.gradle.util.internal.VersionNumber
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
@@ -106,16 +105,7 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
 
         when:
         def result = kgpRunner(false, kotlinPluginVersion, 'test', 'integTest')
-            .deprecations(KotlinDeprecations) {
-                runner.expectLegacyDeprecationWarningIf(
-                    kotlinPluginVersion.baseVersion < KotlinGradlePluginVersions.KOTLIN_2_0_0,
-                    "Mutating dependency DefaultExternalModuleDependency{group='org.jetbrains.kotlin', name='kotlin-test-junit5', version='null', configuration='default'} after it has been finalized has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#dependency_mutate_dependency_collector_after_finalize"
-                )
-                runner.expectLegacyDeprecationWarningIf(
-                    kotlinPluginVersion.baseVersion == KotlinGradlePluginVersions.KOTLIN_2_0_0,
-                    "Mutating dependency org.jetbrains.kotlin:kotlin-test-junit5: after it has been finalized has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#dependency_mutate_dependency_collector_after_finalize"
-                )
-            }.build()
+            .build()
 
         then:
         result.task(':test').outcome == SUCCESS
@@ -161,11 +151,10 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
 
         then:
         result.task(':compileJava').outcome == SUCCESS
-        if (VersionNumber.parse(kotlinVersion).baseVersion < VersionNumber.parse("1.9.25")) {
-            result.tasks.collect { it.path } == [':compileGroovy', ':compileKotlin', ':compileJava']
-        } else {
-            result.tasks.collect { it.path } == [':checkKotlinGradlePluginConfigurationErrors', ':compileGroovy', ':compileKotlin', ':compileJava']
-        }
+
+        def tasks = result.tasks.collect { it.path }
+        tasks.contains(":checkKotlinGradlePluginConfigurationErrors")
+        tasks.findAll { it != ":checkKotlinGradlePluginConfigurationErrors" } == [':compileGroovy', ':compileKotlin', ':compileJava']
 
         where:
         kotlinVersion << TestedVersions.kotlin.versions

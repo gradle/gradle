@@ -26,11 +26,4 @@ class DebugOptionsTest {
     void testDebugOptions() {
         assert debugOptions.debugLevel == null
     }
-
-    @Test
-    void testDefine() {
-        debugOptions.debugLevel = null
-        debugOptions.define(debugLevel: "extreme")
-        assert debugOptions.debugLevel == "extreme"
-    }
 }

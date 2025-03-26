@@ -31,14 +31,14 @@ import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyPro
 import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Options for Scala platform compilation.
  */
-@SuppressWarnings("deprecation")
-public abstract class BaseScalaCompileOptions extends org.gradle.api.tasks.compile.AbstractOptions {
+public abstract class BaseScalaCompileOptions implements Serializable {
 
     private static final long serialVersionUID = 0;
 

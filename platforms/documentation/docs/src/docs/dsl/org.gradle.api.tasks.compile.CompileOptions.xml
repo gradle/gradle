@@ -114,12 +114,6 @@
                     <td>Name</td>
                 </tr>
             </thead>
-            <tr>
-                <td>debug</td>
-            </tr>
-            <tr>
-                <td>fork</td>
-            </tr>
         </table>
     </section>
 </section>
