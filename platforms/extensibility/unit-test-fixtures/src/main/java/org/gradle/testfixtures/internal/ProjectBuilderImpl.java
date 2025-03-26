@@ -319,11 +319,6 @@ public class ProjectBuilderImpl {
         }
 
         @Override
-        public ProjectComponentIdentifier idToReferenceProjectFromAnotherBuild(ProjectComponentIdentifier identifier) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
         public File getBuildRootDir() {
             return getBuildServices().get(BuildDefinition.class).getBuildRootDir();
         }

@@ -25,95 +25,74 @@ import org.gradle.internal.component.model.IvyArtifactName;
 import java.io.File;
 
 /**
- * Represents an artifact that has its owning component ID overridden.
+ * Formerly used to represent an artifact that belongs to a different build than the current build.
  * <p>
- * This is used when an artifact is referenced from another build, and its owning component id is overridden to its foreign counterpart.
- * This will go away in Gradle 9.0, when we no longer need to override the owning component id with a foreign identifier.
- * <p>
- * This should be better named as {@code OverriddenComponentIdArtifactMetadata} or similar, but Kotlin currently references this internal class.
+ * This class is no longer used as of Gradle 9.0, but remains as it is still referenced by KGP.
  *
- * @see <a href="https://github.com/JetBrains/kotlin/blame/83a7ecda3eccd378a3882b81d8e83ecc12b3b786/libraries/tools/kotlin-gradle-plugin/src/common/kotlin/org/jetbrains/kotlin/gradle/targets/js/npm/resolver/KotlinCompilationNpmResolver.kt#L245">Link</a>
+ * @see <a href="https://github.com/JetBrains/kotlin/blame/c42ea0396c9e9dbcd504dae4d308ce5ad7522771/libraries/tools/kotlin-gradle-plugin/src/common/kotlin/org/jetbrains/kotlin/gradle/targets/js/npm/resolver/KotlinCompilationNpmResolver.kt#L254">Link</a>
  *
- * @deprecated This class will be removed in Gradle 9.0.
+ * @deprecated This class is no longer in use as of Gradle 9.0.
  */
 @Deprecated
-public class CompositeProjectComponentArtifactMetadata implements LocalComponentArtifactMetadata, ComponentArtifactIdentifier {
-
-    private final ComponentIdentifier overrideComponentId;
-    private final LocalComponentArtifactMetadata delegate;
-
-    public CompositeProjectComponentArtifactMetadata(
-        ComponentIdentifier overrideComponentId,
-        LocalComponentArtifactMetadata delegate
-    ) {
-        this.overrideComponentId = overrideComponentId;
-        this.delegate = delegate;
-    }
+public abstract class CompositeProjectComponentArtifactMetadata implements LocalComponentArtifactMetadata, ComponentArtifactIdentifier {
 
     @Override
     public String toString() {
-        return delegate.toString();
+        throw new UnsupportedOperationException();
     }
 
     public LocalComponentArtifactMetadata getDelegate() {
-        return delegate;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public ComponentIdentifier getComponentId() {
-        return overrideComponentId;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public ComponentArtifactIdentifier getId() {
-        return this;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public IvyArtifactName getName() {
-        return delegate.getName();
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public ComponentIdentifier getComponentIdentifier() {
-        return overrideComponentId;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public String getDisplayName() {
-        return delegate.getDisplayName();
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public String getCapitalizedDisplayName() {
-        return delegate.getCapitalizedDisplayName();
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public File getFile() {
-        return delegate.getFile();
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public TaskDependency getBuildDependencies() {
-        return delegate.getBuildDependencies();
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof CompositeProjectComponentArtifactMetadata)) {
-            return false;
-        }
-
-        CompositeProjectComponentArtifactMetadata that = (CompositeProjectComponentArtifactMetadata) o;
-        return delegate.equals(that.delegate);
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public int hashCode() {
-        return delegate.hashCode();
+        throw new UnsupportedOperationException();
     }
+
 }

@@ -200,7 +200,8 @@ class BuildScanConfigIntegrationTest extends AbstractIntegrationSpec {
 
     def "can convey unsupported to plugin that supports it"() {
         given:
-        scanPlugin.runtimeVersion = "3.0"
+        scanPlugin.runtimeVersion = GradleEnterprisePluginManager.FIRST_GRADLE_ENTERPRISE_PLUGIN_VERSION_DISPLAY
+
         when:
         succeeds "t", "-D${LegacyGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE}=true"
 

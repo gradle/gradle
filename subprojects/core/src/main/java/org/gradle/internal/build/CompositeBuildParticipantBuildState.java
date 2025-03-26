@@ -24,6 +24,7 @@ import org.gradle.internal.composite.IncludedBuildInternal;
 import java.util.Set;
 
 public interface CompositeBuildParticipantBuildState extends BuildState {
+
     /**
      * Returns the public view of a reference to this build.
      */
@@ -34,8 +35,4 @@ public interface CompositeBuildParticipantBuildState extends BuildState {
      */
     Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> getAvailableModules();
 
-    /**
-     * Creates a copy of the identifier for a project in this build, to use in the dependency resolution result from some other build
-     */
-    ProjectComponentIdentifier idToReferenceProjectFromAnotherBuild(ProjectComponentIdentifier identifier);
 }

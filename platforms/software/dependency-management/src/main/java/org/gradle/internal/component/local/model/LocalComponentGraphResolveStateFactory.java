@@ -80,14 +80,12 @@ public class LocalComponentGraphResolveStateFactory {
         Set<LocalVariantMetadata> variants
     ) {
         CalculatedValue<DefaultLocalVariantGraphResolveState.VariantDependencyMetadata> calculatedDependencies =
-            calculatedValueContainerFactory.create(Describables.of("dependencies for", metadata), context -> dependencyMetadata);
+            calculatedValueContainerFactory.create(Describables.of(metadata, "dependencies"), context -> dependencyMetadata);
 
         return new DefaultLocalVariantGraphResolveState(
             idGenerator.nextVariantId(),
             componentId,
             metadata,
-            idGenerator,
-            calculatedValueContainerFactory,
             calculatedDependencies,
             variants
         );
@@ -143,12 +141,10 @@ public class LocalComponentGraphResolveStateFactory {
             idGenerator.nextComponentId(),
             metadata,
             attributeDesugaring,
-            idGenerator,
             adHoc,
             variantsFactory,
             calculatedValueContainerFactory,
-            cacheFactory,
-            null
+            cacheFactory
         );
     }
 
@@ -173,6 +169,7 @@ public class LocalComponentGraphResolveStateFactory {
         @Override
         public void invalidate() {}
 
+        @Nullable
         @Override
         public LocalVariantGraphResolveState getVariantByConfigurationName(String name) {
             return variants.stream()
