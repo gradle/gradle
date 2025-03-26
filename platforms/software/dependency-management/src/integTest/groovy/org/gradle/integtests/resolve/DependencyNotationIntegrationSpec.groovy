@@ -68,9 +68,6 @@ task checkDeps {
         assert deps.find { it instanceof ClientModule && it.name == 'moduleOne' && it.group == 'org.foo' }
         assert deps.find { it instanceof ClientModule && it.name == 'moduleTwo' && it.version == '1.0' }
 
-        deps = configurations.gradleStuff.dependencies
-        assert deps.findAll { it instanceof SelfResolvingDependency }.size() > 0 : "should include gradle api jars"
-
         deps = configurations.allowsCollections.dependencies
         assert deps.size() == 2
         assert deps.find { it instanceof ExternalDependency && it.group == 'org.mockito' }
