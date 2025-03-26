@@ -29,7 +29,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Selec
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResults;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsLoader;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
@@ -44,13 +43,14 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 
 public class DefaultLenientConfiguration implements LenientConfigurationInternal {
 
     private final ResolutionHost resolutionHost;
     private final VisitedGraphResults graphResults;
     private final VisitedArtifactSet artifactResults;
-    private final TransientConfigurationResultsLoader transientConfigurationResultsFactory;
+    private final Function<SelectedArtifactResults, TransientConfigurationResults> legacyArtifactResultsLoader;
     private final ResolvedArtifactSetResolver artifactSetResolver;
     private final ArtifactSelectionSpec implicitSelectionSpec;
 
@@ -61,14 +61,14 @@ public class DefaultLenientConfiguration implements LenientConfigurationInternal
         ResolutionHost resolutionHost,
         VisitedGraphResults graphResults,
         VisitedArtifactSet artifactResults,
-        TransientConfigurationResultsLoader transientConfigurationResultsLoader,
+        Function<SelectedArtifactResults, TransientConfigurationResults> legacyArtifactResultsLoader,
         ResolvedArtifactSetResolver artifactSetResolver,
         ArtifactSelectionSpec implicitSelectionSpec
     ) {
         this.resolutionHost = resolutionHost;
         this.graphResults = graphResults;
         this.artifactResults = artifactResults;
-        this.transientConfigurationResultsFactory = transientConfigurationResultsLoader;
+        this.legacyArtifactResultsLoader = legacyArtifactResultsLoader;
         this.artifactSetResolver = artifactSetResolver;
         this.implicitSelectionSpec = implicitSelectionSpec;
     }
@@ -91,7 +91,7 @@ public class DefaultLenientConfiguration implements LenientConfigurationInternal
     }
 
     private TransientConfigurationResults loadTransientGraphResults() {
-        return transientConfigurationResultsFactory.create(getSelectedArtifacts());
+        return legacyArtifactResultsLoader.apply(getSelectedArtifacts());
     }
 
     @Override
@@ -138,6 +138,7 @@ public class DefaultLenientConfiguration implements LenientConfigurationInternal
                 artifacts.add(resolvedArtifact);
             } catch (org.gradle.internal.resolve.ArtifactResolveException e) {
                 // Ignore
+                // TODO: Would be nice to not use exceptions for control flow
             } catch (Exception e) {
                 visitFailure(e);
             }
