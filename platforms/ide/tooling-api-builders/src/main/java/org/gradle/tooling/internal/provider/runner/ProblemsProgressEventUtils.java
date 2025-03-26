@@ -30,7 +30,6 @@ import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.deprecation.source.PluginReportSource;
 import org.gradle.api.problems.internal.DefaultProblemProgressDetails;
 import org.gradle.api.problems.internal.DefaultProblemsSummaryProgressDetails;
-import org.gradle.api.problems.internal.DeprecationData;
 import org.gradle.api.problems.internal.GeneralData;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.PluginIdLocation;
@@ -216,50 +215,63 @@ public class ProblemsProgressEventUtils {
             .collect(toImmutableList());
     }
 
+    private static InternalAdditionalData toDeprecationReporterData(org.gradle.api.problems.deprecation.DeprecationData data) {
+        // Assemble the source data
+        ImmutableMap.Builder<String, String> sourceBuilder = ImmutableMap.builder();
+        sourceBuilder.put("name", data.getSource().getName());
+        // Put source-specific data into the source map
+        if (data.getSource() instanceof PluginReportSource) {
+            sourceBuilder.put("id", ((PluginReportSource) data.getSource()).getId());
+        }
+        // Assemble the final additional data
+        ImmutableMap.Builder<String, Object> builder = ImmutableMap.builder();
+        if (data.getRemovedIn() != null) {
+            builder.put("removedIn", data.getRemovedIn());
+        }
+        if (data.getReplacedBy() != null) {
+            builder.put("replacedBy", data.getReplacedBy());
+        }
+        builder.put("source", sourceBuilder.build());
+        return new DefaultInternalAdditionalData(builder.build());
+    }
+
+    private static InternalAdditionalData toDeprecationLoggerData(org.gradle.api.problems.internal.DeprecationData data) {
+        // For now, we only expose deprecation data to the tooling API with generic additional data
+        return new DefaultInternalAdditionalData(ImmutableMap.of("type", data.getType().name()));
+    }
+
+    private static InternalAdditionalData toTypeValidationData(TypeValidationData data) {
+        ImmutableMap.Builder<String, Object> builder = ImmutableMap.builder();
+        Optional.ofNullable(data.getPluginId()).ifPresent(pluginId -> builder.put("pluginId", pluginId));
+        Optional.ofNullable(data.getPropertyName()).ifPresent(propertyName -> builder.put("propertyName", propertyName));
+        Optional.ofNullable(data.getParentPropertyName()).ifPresent(parentPropertyName -> builder.put("parentPropertyName", parentPropertyName));
+        Optional.ofNullable(data.getTypeName()).ifPresent(typeName -> builder.put("typeName", typeName));
+        return new DefaultInternalAdditionalData(builder.build());
+    }
+
+    private static InternalAdditionalData toGenericAdditionalData(GeneralData data) {
+        return new DefaultInternalAdditionalData(
+            data.getAsMap().entrySet().stream()
+                .filter(entry -> isSupportedType(entry.getValue()))
+                .collect(toMap(Map.Entry::getKey, Map.Entry::getValue))
+        );
+    }
+    private static InternalAdditionalData toTypedAdditionalData(TypedAdditionalData typedData) {
+        return new DefaultInternalPayloadSerializedAdditionalData(typedData.getBytesForIsolatedObject(), typedData.getSerializedType());
+    }
 
     private static InternalAdditionalData toInternalAdditionalData(InternalProblem problem) {
         Object additionalData = problem.getAdditionalData();
-        if (additionalData instanceof DeprecationData) {
-            // For now, we only expose deprecation data to the tooling API with generic additional data
-            DeprecationData data = (DeprecationData) additionalData;
-            return new DefaultInternalAdditionalData(ImmutableMap.of("type", data.getType().name()));
+        if (additionalData instanceof org.gradle.api.problems.internal.DeprecationData) {
+            return toDeprecationLoggerData((org.gradle.api.problems.internal.DeprecationData) additionalData);
         } else if (additionalData instanceof org.gradle.api.problems.deprecation.DeprecationData) {
-            org.gradle.api.problems.deprecation.DeprecationData data = (org.gradle.api.problems.deprecation.DeprecationData) additionalData;
-            // Assemble the source data
-            ImmutableMap.Builder<String, String> sourceBuilder = ImmutableMap.builder();
-            sourceBuilder.put("name", data.getSource().getName());
-            // Put source-specific data into the source map
-            if (data.getSource() instanceof PluginReportSource) {
-                sourceBuilder.put("id", ((PluginReportSource) data.getSource()).getId());
-            }
-            // Assemble the final additional data
-            ImmutableMap.Builder<String, Object> builder = ImmutableMap.builder();
-            if (data.getRemovedIn() != null) {
-                builder.put("removedIn", data.getRemovedIn());
-            }
-            if (data.getReplacedBy() != null) {
-                builder.put("replacedBy", data.getReplacedBy());
-            }
-            builder.put("source", sourceBuilder.build());
-            return new DefaultInternalAdditionalData(builder.build());
+            return toDeprecationReporterData((org.gradle.api.problems.deprecation.DeprecationData) additionalData);
         } else if (additionalData instanceof TypeValidationData) {
-            TypeValidationData data = (TypeValidationData) additionalData;
-            ImmutableMap.Builder<String, Object> builder = ImmutableMap.builder();
-            Optional.ofNullable(data.getPluginId()).ifPresent(pluginId -> builder.put("pluginId", pluginId));
-            Optional.ofNullable(data.getPropertyName()).ifPresent(propertyName -> builder.put("propertyName", propertyName));
-            Optional.ofNullable(data.getParentPropertyName()).ifPresent(parentPropertyName -> builder.put("parentPropertyName", parentPropertyName));
-            Optional.ofNullable(data.getTypeName()).ifPresent(typeName -> builder.put("typeName", typeName));
-            return new DefaultInternalAdditionalData(builder.build());
+            return toTypeValidationData((TypeValidationData) additionalData);
         } else if (additionalData instanceof GeneralData) {
-            GeneralData data = (GeneralData) additionalData;
-            return new DefaultInternalAdditionalData(
-                data.getAsMap().entrySet().stream()
-                    .filter(entry -> isSupportedType(entry.getValue()))
-                    .collect(toMap(Map.Entry::getKey, Map.Entry::getValue))
-            );
+            return toGenericAdditionalData((GeneralData) additionalData);
         } else if (additionalData instanceof TypedAdditionalData) {
-            TypedAdditionalData typedData = (TypedAdditionalData) additionalData;
-            return new DefaultInternalPayloadSerializedAdditionalData(typedData.getBytesForIsolatedObject(), typedData.getSerializedType());
+            return toTypedAdditionalData((TypedAdditionalData) additionalData);
         } else {
             return new DefaultInternalAdditionalData(Collections.emptyMap());
         }
