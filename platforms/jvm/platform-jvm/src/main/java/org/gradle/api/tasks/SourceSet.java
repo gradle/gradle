@@ -272,7 +272,7 @@ public interface SourceSet extends ExtensionAware {
      *
      * @param verb The action, may be null.
      * @param target The target, may be null
-     * @return The task name, generally of the form ${verb}${name}${noun}
+     * @return The task name, generally of the form ${verb}${name}${target}
      */
     String getTaskName(@Nullable String verb, @Nullable String target);
 
