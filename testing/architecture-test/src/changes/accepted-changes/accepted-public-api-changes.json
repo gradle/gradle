@@ -1,6 +1,30 @@
 {
     "acceptedApiChanges": [
         {
+            "type": "org.gradle.api.Task$Namer",
+            "member": "Class org.gradle.api.Task$Namer",
+            "acceptation": "Remove deprecated APIs",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.Task$Namer",
+            "member": "Constructor org.gradle.api.Task$Namer()",
+            "acceptation": "Remove deprecated APIs",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.Task$Namer",
+            "member": "Method org.gradle.api.Task$Namer.determineName(org.gradle.api.Task)",
+            "acceptation": "Remove deprecated APIs",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.artifacts.Configuration",
             "member": "Method org.gradle.api.artifacts.Configuration.getUploadTaskName()",
             "acceptation": "Removed deprecated method",
