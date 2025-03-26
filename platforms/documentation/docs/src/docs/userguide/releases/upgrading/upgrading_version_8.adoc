@@ -110,6 +110,10 @@ We don't expect too many occurrences given the similar nullability semantics.
 Note that plugins using JSR-305 annotations on their types will continue to work as they did with previous Gradle versions.
 In other words, it is still supported to use `javax.annotations` for nullability on your plugin types such as tasks or extensions.
 
+==== Upgrade to Kotlin 2.1.20
+
+The embedded Kotlin has been updated from 2.0.21 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.1.20[Kotlin 2.1.20].
+
 ==== Scala plugins no longer create unresolvable configurations
 
 The Scala plugins used configurations named `incrementalScalaAnalysisFor` to resolve incremental analysis information from other projects.
