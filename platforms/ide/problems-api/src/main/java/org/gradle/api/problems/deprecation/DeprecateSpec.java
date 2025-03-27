@@ -52,7 +52,7 @@ public interface DeprecateSpec {
      * @return the fluent builder used to call this
      * @since 8.14
      */
-    DeprecateSpec shouldBeRemovedInVersion(String version);
+    DeprecateSpec willBeRemovedInVersion(String version);
 
     /**
      * Declares where extra documentation can be found.

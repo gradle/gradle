@@ -54,7 +54,7 @@ class DefaultDeprecationBuilder implements DeprecateSpec {
     }
 
     @Override
-    public DefaultDeprecationBuilder shouldBeRemovedInVersion(final String version) {
+    public DefaultDeprecationBuilder willBeRemovedInVersion(final String version) {
         builder.additionalDataInternal(
             DeprecationDataSpec.class,
             new Action<DeprecationDataSpec>() {
