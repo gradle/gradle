@@ -68,8 +68,7 @@ class IntegrationTestSamplesExecutor extends CommandExecutor {
                 // TODO(mlopatkin) sometimes it is still possible to save the configuration cache state in the event of failure.
                 //  We need to figure out how to separate expected failure from the CC store failure.
                 ExecutionFailure result = executer.runWithFailure();
-                String error = getFilteredError(result);
-                outputStream.write((result.getOutput() + error).getBytes());
+                outputStream.write((result.getOutput() + result.getError()).getBytes());
             } else {
                 ExecutionResult result = executer.run();
                 outputStream.write(result.getOutput().getBytes());
@@ -78,20 +77,6 @@ class IntegrationTestSamplesExecutor extends CommandExecutor {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-    }
-
-    private static String getFilteredError(ExecutionFailure result) {
-        String error = result.getError();
-        // Remove known warning that occurs in the launcher. This can be fixed by refactoring the bin/gradle start script to pass the flag or by adding the flag to the launcher JAR
-        // and refactoring the start script to use the JAR.
-        error = error.replaceFirst(
-            "\\QWARNING: A restricted method in java.lang.System has been called\n" +
-                "WARNING: java.lang.System::load has been called by net.rubygrapefruit.platform.internal.NativeLibraryLoader in an unnamed module (\\E.+?\\Q)\n" +
-                "WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module\n" +
-                "WARNING: Restricted methods will be blocked in a future release unless native access is enabled",
-            ""
-        );
-        return error;
     }
 
     private GradleExecuter createExecuter(List<String> args, List<String> flags) {
