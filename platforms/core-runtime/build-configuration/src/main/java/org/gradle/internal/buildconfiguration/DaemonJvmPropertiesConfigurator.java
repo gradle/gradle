@@ -88,7 +88,7 @@ public class DaemonJvmPropertiesConfigurator implements ProjectConfigureAction {
                                 UnconfiguredToolchainRepositoriesResolver exception = new UnconfiguredToolchainRepositoriesResolver();
                                 throw reporter.throwing(exception, UpdateDaemonJvm.TASK_CONFIGURATION_PROBLEM_ID,
                                     problemSpec -> {
-                                        exception.getResolutions().forEach(problemSpec::solution);
+                                        problemSpec.solution("Learn more about toolchain repositories at " + Documentation.userManual("toolchains", "sub:download_repositories").getUrl() + ".");
                                     });
                             }
                             Map<BuildPlatform, Optional<URI>> buildPlatformOptionalUriMap = platforms.stream()
