@@ -522,7 +522,7 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
         }
     }
 
-    // TODO #9591: This does not reflect desired behavior. The recursive is a detached configuration, which
+    // TODO #9591: This does not reflect desired behavior. The recursive copy is a detached configuration, which
     // effectively replaces the root component, preventing the consumable configuration from being selected.
     @Issue('GRADLE-3280')
     def "cannot resolve recursive copy of configuration with cyclic project dependencies"() {
