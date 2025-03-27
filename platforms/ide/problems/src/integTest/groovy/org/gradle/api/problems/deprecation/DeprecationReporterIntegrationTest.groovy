@@ -79,8 +79,8 @@ class DeprecationReporterIntegrationTest extends AbstractIntegrationSpec {
                         "generic deprecation",
                         spec -> spec
                            .details("${TEST_DETAILS}")
-                           .removedInVersion("${TEST_REMOVED_IN_VERSION}")
-                           .replacedBy("${TEST_REPLACEMENT}")
+                           .willBeRemovedInVersion("${TEST_REMOVED_IN_VERSION}")
+                           .shouldBeReplacedBy("${TEST_REPLACEMENT}")
                     );
                 }
             }
@@ -97,8 +97,8 @@ class DeprecationReporterIntegrationTest extends AbstractIntegrationSpec {
             it.details == TEST_DETAILS
             it.getSingleOriginLocation(StackTraceLocation)
             def additionalData = it.additionalData.asMap
-            additionalData.removedIn == TEST_REMOVED_IN_VERSION
-            additionalData.replacedBy == TEST_REPLACEMENT
+            additionalData.willBeRemovedInVersion == TEST_REMOVED_IN_VERSION
+            additionalData.shouldBeReplacedBy == TEST_REPLACEMENT
         }
 
         where:
@@ -129,8 +129,8 @@ class DeprecationReporterIntegrationTest extends AbstractIntegrationSpec {
                         "${TEST_PLUGIN_ID}",
                         spec -> spec
                            .details("${TEST_DETAILS}")
-                           .removedInVersion("${TEST_REMOVED_IN_VERSION}")
-                           .replacedBy("${TEST_REPLACEMENT}")
+                           .willBeRemovedInVersion("${TEST_REMOVED_IN_VERSION}")
+                           .shouldBeReplacedBy("${TEST_REPLACEMENT}")
                     );
                 }
             }
@@ -147,8 +147,8 @@ class DeprecationReporterIntegrationTest extends AbstractIntegrationSpec {
             it.details == TEST_DETAILS
             it.getSingleOriginLocation(StackTraceLocation)
             def additionalData = it.additionalData.asMap
-            additionalData.removedIn == TEST_REMOVED_IN_VERSION
-            additionalData.replacedBy == TEST_REPLACEMENT
+            additionalData.willBeRemovedInVersion == TEST_REMOVED_IN_VERSION
+            additionalData.shouldBeReplacedBy == TEST_REPLACEMENT
         }
 
         where:
@@ -179,8 +179,8 @@ class DeprecationReporterIntegrationTest extends AbstractIntegrationSpec {
                         "apply(Project project)",
                         spec -> spec
                            .details("${TEST_DETAILS}")
-                           .removedInVersion("${TEST_REMOVED_IN_VERSION}")
-                           .replacedBy("${TEST_REPLACEMENT}")
+                           .willBeRemovedInVersion("${TEST_REMOVED_IN_VERSION}")
+                           .shouldBeReplacedBy("${TEST_REPLACEMENT}")
                     );
                 }
             }
@@ -197,8 +197,8 @@ class DeprecationReporterIntegrationTest extends AbstractIntegrationSpec {
             it.details == TEST_DETAILS
             it.getSingleOriginLocation(StackTraceLocation)
             def additionalData = it.additionalData.asMap
-            additionalData.removedIn == TEST_REMOVED_IN_VERSION
-            additionalData.replacedBy == TEST_REPLACEMENT
+            additionalData.willBeRemovedInVersion == TEST_REMOVED_IN_VERSION
+            additionalData.shouldBeReplacedBy == TEST_REPLACEMENT
         }
 
         where:
