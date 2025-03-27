@@ -51,6 +51,10 @@ The change is driven by the need to interpret such default values in the scope o
 Guava was updated from 32.1.2 to 33.4.6, which deprecates some core features like `Charsets`.
 See https://github.com/google/guava/releases for details.
 
+==== Incubating API `EclipseClasspath.baseSourceOutputDir` is now a `DirectoryProperty`
+
+This was erroneously a `Property<File>` and has been corrected to be a `DirectoryProperty` to reflect the expected type of file.
+
 === Deprecations
 
 [[null-attribute-lookup]]
