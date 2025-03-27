@@ -47,7 +47,7 @@ public interface Problems {
     /**
      * Returns a problem reporter for deprecations.
      *
-     * @return The problem reporter.
+     * @return The deprecation reporter.
      * @since 8.14
      */
     DeprecationReporter getDeprecationReporter();
