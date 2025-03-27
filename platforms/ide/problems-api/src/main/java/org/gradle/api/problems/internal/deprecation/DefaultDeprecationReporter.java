@@ -48,7 +48,7 @@ public class DefaultDeprecationReporter implements DeprecationReporter {
     @Override
     public void deprecateMethod(ReportSource reportSource, Class<?> containingClass, String signature, Action<DeprecateSpec> spec) {
         DefaultDeprecationBuilder deprecationBuilder = new DefaultDeprecationBuilder(reportSource, reporter.createProblemBuilder());
-        String name = containingClass.getSimpleName() + "." + signature;
+        String name = containingClass.getName() + "." + signature;
         deprecationBuilder.getProblemBuilder()
             .id(GradleCoreProblemGroup.deprecation().method())
             .contextualLabel(String.format("Method '%s' is deprecated", name))
