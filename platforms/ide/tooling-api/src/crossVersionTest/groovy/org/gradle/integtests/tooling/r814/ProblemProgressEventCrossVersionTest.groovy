@@ -230,9 +230,9 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         deprecation.details.details == "reasoning"
         def additionalData = deprecation.additionalData.asMap
         additionalData.size() == 3
-        additionalData['removedIn'] == "x.y.z"
-        additionalData['replacedBy'] == "replacement"
-        additionalData['source'] == expectedSourceFields
+        additionalData['willBeRemovedInVersion'] == "x.y.z"
+        additionalData['shouldBeReplacedBy'] == "replacement"
+        additionalData['reportSource'] == expectedSourceFields
 
         where:
         reportSource                         | expectedSourceFields
