@@ -103,7 +103,6 @@ class KnownProblemIds {
         'deprecation:plugin': ['Plugin has been deprecated.'],
         'deprecation:plugin-script': ['Plugin script has been deprecated.'],
         'deprecation:the-detachedconfiguration-configuration-has-been-deprecated-for-consumption': ['The detachedConfiguration1 configuration has been deprecated for consumption.'],
-        'deprecation:configurations-acting-as-both-root-and-variant': ['Configurations should not act as both a resolution root and a variant simultaneously.'],
         'deprecation:properties-should-be-assigned-using-the-propname-value-syntax-setting-a-property-via-the-gradle-generated-propname-value-or-propname-value-syntax-in-groovy-dsl': ['Properties should be assigned using the \'propName = value\' syntax. Setting a property via the Gradle-generated \'propName value\' or \'propName(value)\' syntax in Groovy DSL has been deprecated.'],
         'deprecation:repository-jcenter': ['The RepositoryHandler.jcenter() method has been deprecated.'],
         'task-selection:no-matches': ['No matches', 'cannot locate task'],
