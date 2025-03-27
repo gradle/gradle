@@ -16,7 +16,7 @@
 /**
  * Implementation of {@link org.gradle.api.invocation.Gradle} and related services.
  */
-@NonNullApi
+@NullMarked
 package org.gradle.invocation;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;

@@ -17,7 +17,7 @@
 /**
  * Classes related to requesting and providing capabilities of variants.
  */
-@NonNullApi
+@NullMarked
 package org.gradle.api.artifacts.capability;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;

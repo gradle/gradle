@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,19 @@
  * limitations under the License.
  */
 
-rootProject.name = "kotlin-js-sample"
+package org.gradle.util
 
-pluginManagement {
-    resolutionStrategy {
-        eachPlugin {
-            if (requested.id.id == "kotlin2js") {
-                useModule("org.jetbrains.kotlin:kotlin-gradle-plugin:${requested.version}")
-            }
-        }
-    }
-}
+import javax.annotation.Nonnull
+import javax.annotation.meta.TypeQualifierDefault
+import java.lang.annotation.Documented
+import java.lang.annotation.ElementType
+import java.lang.annotation.Retention
+import java.lang.annotation.RetentionPolicy
+import java.lang.annotation.Target
+
+@Target([ElementType.TYPE, ElementType.PACKAGE])
+@Nonnull
+@TypeQualifierDefault([ElementType.METHOD, ElementType.PARAMETER])
+@Documented
+@Retention(RetentionPolicy.RUNTIME)
+@interface GroovyNullMarked {}

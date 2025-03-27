@@ -18,8 +18,8 @@ package org.gradle.internal.reflect;
 import org.gradle.api.GradleException;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.internal.CollectionUtils;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;

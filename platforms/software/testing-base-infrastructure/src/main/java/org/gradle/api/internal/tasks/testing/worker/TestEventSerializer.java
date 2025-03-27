@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.testing.worker;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.testing.DefaultNestedTestSuiteDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultParameterizedTestDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestClassDescriptor;
@@ -40,6 +39,7 @@ import org.gradle.internal.serialize.DefaultSerializerRegistry;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.SerializerRegistry;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -169,7 +169,7 @@ public class TestEventSerializer {
         }
     }
 
-    @NonNullApi
+    @NullMarked
     private static class DefaultTestFailureSerializer implements Serializer<DefaultTestFailure> {
         private final Serializer<Throwable> throwableSerializer;
 
@@ -306,7 +306,7 @@ public class TestEventSerializer {
         }
     }
 
-    @NonNullApi
+    @NullMarked
     private static class DefaultParameterizedTestDescriptorSerializer implements Serializer<DefaultParameterizedTestDescriptor> {
         final Serializer<CompositeIdGenerator.CompositeId> idSerializer = new IdSerializer();
 

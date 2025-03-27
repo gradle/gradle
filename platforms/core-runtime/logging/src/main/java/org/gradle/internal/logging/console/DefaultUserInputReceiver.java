@@ -22,8 +22,8 @@ import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.PromptOutputEvent;
 import org.gradle.internal.logging.events.ReadStdInEvent;
 import org.gradle.internal.logging.events.UserInputValidationProblemEvent;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class DefaultUserInputReceiver implements GlobalUserInputReceiver {

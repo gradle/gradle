@@ -19,10 +19,9 @@ package org.gradle.internal.execution.steps;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.annotation.Nullable;
 
 import static org.gradle.internal.execution.UnitOfWork.ExecutionBehavior.NON_INCREMENTAL;
 

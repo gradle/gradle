@@ -19,7 +19,8 @@ dependencies {
     api(projects.problemsApi)
     api(projects.processMemoryServices)
     api(projects.native)
-    api(libs.jsr305)
+
+    api(libs.jspecify)
 
     implementation(projects.classloaders)
     implementation(projects.concurrent)

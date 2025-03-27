@@ -16,7 +16,6 @@
 
 package org.gradle.internal.jvm.inspection;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.IndexedCache;
@@ -26,6 +25,7 @@ import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.jvm.toolchain.internal.InstallationLocation;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.Closeable;
 import java.io.File;
@@ -36,7 +36,7 @@ import java.io.IOException;
  *
  * @implNote This currently only persistently caches the results for JVMs that are auto-provisioned.
  */
-@NonNullApi
+@NullMarked
 public class PersistentJvmMetadataDetector implements JvmMetadataDetector, Closeable {
     private final JvmMetadataDetector delegate;
     private final PersistentCache cache;
@@ -70,7 +70,7 @@ public class PersistentJvmMetadataDetector implements JvmMetadataDetector, Close
         cache.close();
     }
 
-    @NonNullApi
+    @NullMarked
     private static class FileSerializer implements Serializer<File> {
         @Override
         public File read(Decoder decoder) throws Exception {
@@ -83,7 +83,7 @@ public class PersistentJvmMetadataDetector implements JvmMetadataDetector, Close
         }
     }
 
-    @NonNullApi
+    @NullMarked
     private static class JvmInstallationMetadataSerializer implements Serializer<JvmInstallationMetadata> {
         @Override
         public JvmInstallationMetadata read(Decoder decoder) throws Exception {

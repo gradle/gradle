@@ -37,8 +37,8 @@ import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Map;

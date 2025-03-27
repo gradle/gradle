@@ -18,8 +18,8 @@ package org.gradle.api.publish.ivy.internal.dependency;
 
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Set;
 
 /**

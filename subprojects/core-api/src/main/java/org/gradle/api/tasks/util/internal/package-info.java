@@ -14,5 +14,5 @@
  * limitations under the License.
  */
 
-@org.gradle.api.NonNullApi
+@javax.annotation.Nonnull
 package org.gradle.api.tasks.util.internal;

@@ -18,8 +18,9 @@ package org.gradle.internal.operations;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
@@ -33,6 +34,7 @@ import java.util.concurrent.LinkedBlockingDeque;
  * Simply execute given operations, does not support current/parent operations.
  */
 @SuppressWarnings("Since15")
+@NullMarked
 public class TestBuildOperationRunner implements BuildOperationRunner {
 
     public final Log log = new Log();
@@ -70,6 +72,7 @@ public class TestBuildOperationRunner implements BuildOperationRunner {
             }
 
             @Override
+            @Nullable
             public OperationIdentifier getParentId() {
                 return null;
             }
@@ -150,11 +153,13 @@ public class TestBuildOperationRunner implements BuildOperationRunner {
         }
 
         @SuppressWarnings("unused")
+        @Nullable
         public <R, D, T extends BuildOperationType<D, R>> R mostRecentResult(Class<T> type) {
             return mostRecent(type).result;
         }
 
         @SuppressWarnings("unused")
+        @Nullable
         public <D, R, T extends BuildOperationType<D, R>> Throwable mostRecentFailure(Class<T> type) {
             return mostRecent(type).failure;
         }
@@ -168,7 +173,9 @@ public class TestBuildOperationRunner implements BuildOperationRunner {
 
             public final BuildOperationDescriptor descriptor;
 
+            @Nullable
             public Object result;
+            @Nullable
             public Throwable failure;
 
             private Record(BuildOperationDescriptor descriptor) {
@@ -199,10 +206,12 @@ public class TestBuildOperationRunner implements BuildOperationRunner {
 
             public final BuildOperationDescriptor descriptor;
             public final D details;
+            @Nullable
             public final R result;
+            @Nullable
             public final Throwable failure;
 
-            private TypedRecord(BuildOperationDescriptor descriptor, D details, R result, Throwable failure) {
+            private TypedRecord(BuildOperationDescriptor descriptor, D details, @Nullable R result, @Nullable Throwable failure) {
                 this.descriptor = descriptor;
                 this.details = details;
                 this.result = result;

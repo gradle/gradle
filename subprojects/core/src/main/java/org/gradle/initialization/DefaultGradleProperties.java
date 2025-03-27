@@ -18,8 +18,8 @@ package org.gradle.initialization;
 
 import com.google.common.collect.ImmutableMap;
 import org.gradle.initialization.properties.MutableGradleProperties;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 
 public class DefaultGradleProperties implements MutableGradleProperties {

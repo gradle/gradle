@@ -1302,14 +1302,14 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         return projectDir.file("buildSrc/src/main/java/TaskWithNestedBeanWithAction.java") << """
             import org.gradle.api.Action;
             import org.gradle.api.DefaultTask;
-            import org.gradle.api.NonNullApi;
             import org.gradle.api.tasks.Nested;
             import org.gradle.api.tasks.OutputFile;
             import org.gradle.api.tasks.TaskAction;
 
+            import javax.annotation.Nonnull;
             import java.io.File;
 
-            @NonNullApi
+            @Nonnull
             public class TaskWithNestedBeanWithAction extends DefaultTask {
                 private File outputFile = new File(getTemporaryDir(), "output.txt");
                 private NestedBeanWithAction bean;

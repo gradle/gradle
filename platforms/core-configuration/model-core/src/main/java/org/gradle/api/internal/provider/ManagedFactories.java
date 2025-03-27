@@ -24,8 +24,8 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.internal.Cast;
 import org.gradle.internal.state.ManagedFactory;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 
 public class ManagedFactories {

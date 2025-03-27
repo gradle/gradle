@@ -27,8 +27,8 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.util.internal.CollectionUtils;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -207,6 +207,7 @@ public class GUtil {
     }
 
     @Deprecated
+    @SuppressWarnings("unchecked")
     public static <V, T extends Collection<? super V>> T addToCollection(T dest, boolean failOnNull, Iterable<? extends V>... srcs) {
         for (Iterable<? extends V> src : srcs) {
             for (V v : src) {
@@ -220,6 +221,7 @@ public class GUtil {
     }
 
     @Deprecated
+    @SuppressWarnings("unchecked")
     public static <V, T extends Collection<? super V>> T addToCollection(T dest, Iterable<? extends V>... srcs) {
         return addToCollection(dest, false, srcs);
     }

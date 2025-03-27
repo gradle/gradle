@@ -44,8 +44,7 @@ import org.gradle.tooling.internal.provider.serialization.ClassLoaderCache;
 import org.gradle.tooling.internal.provider.serialization.DefaultPayloadClassLoaderRegistry;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.WellKnownClassLoaderRegistry;
-
-import javax.annotation.Nonnull;
+import org.jspecify.annotations.NonNull;
 
 public class WorkerProcessIsolationProblemsServiceProvider implements ServiceRegistrationProvider {
 
@@ -53,7 +52,7 @@ public class WorkerProcessIsolationProblemsServiceProvider implements ServiceReg
         serviceRegistration.add(FileLookup.class, DefaultFileLookup.class);
     }
 
-    @Nonnull
+    @NonNull
     @Provides
     PayloadSerializer createPayloadSerializer() {
         ClassLoaderCache classLoaderCache = new ClassLoaderCache();

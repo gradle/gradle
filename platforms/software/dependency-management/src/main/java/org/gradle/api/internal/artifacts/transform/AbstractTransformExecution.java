@@ -46,10 +46,10 @@ import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.operations.dependencies.transforms.ExecuteTransformActionBuildOperationType;
 import org.gradle.operations.dependencies.transforms.IdentifyTransformExecutionProgressDetails;
 import org.gradle.operations.dependencies.transforms.SnapshotTransformInputsBuildOperationType;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.io.File;
 import java.util.Map;

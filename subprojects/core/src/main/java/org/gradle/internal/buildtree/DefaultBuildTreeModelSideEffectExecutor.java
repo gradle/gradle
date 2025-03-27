@@ -16,10 +16,10 @@
 
 package org.gradle.internal.buildtree;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;
 
 
-@NonNullApi
+@NullMarked
 public class DefaultBuildTreeModelSideEffectExecutor implements BuildTreeModelSideEffectExecutor {
 
     @Override

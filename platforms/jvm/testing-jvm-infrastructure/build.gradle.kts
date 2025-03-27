@@ -33,7 +33,7 @@ dependencies {
     api(projects.messaging)
     api(projects.testingBaseInfrastructure)
 
-    api(libs.jsr305)
+    api(libs.jspecify)
     api(libs.junit)
     api(libs.testng)
     api(libs.bsh) {

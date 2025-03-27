@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.internal.protocol.events;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.

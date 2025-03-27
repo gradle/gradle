@@ -176,7 +176,7 @@ plugins.withType<IdeaPlugin>().configureEach {
     val smokeTestCompileClasspath: Configuration by configurations
     val smokeTestRuntimeClasspath: Configuration by configurations
     model.module {
-        testSources.from(smokeTestSourceSet.groovy.srcDirs)
+        testSources.from(smokeTestSourceSet.java.srcDirs, smokeTestSourceSet.groovy.srcDirs)
         testResources.from(smokeTestSourceSet.resources.srcDirs)
         scopes["TEST"]!!["plus"]!!.add(smokeTestCompileClasspath)
         scopes["TEST"]!!["plus"]!!.add(smokeTestRuntimeClasspath)

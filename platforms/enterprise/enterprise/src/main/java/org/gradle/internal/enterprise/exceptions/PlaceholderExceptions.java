@@ -19,8 +19,7 @@ package org.gradle.internal.enterprise.exceptions;
 import org.gradle.internal.serialize.PlaceholderAssertionError;
 import org.gradle.internal.serialize.PlaceholderException;
 import org.gradle.internal.serialize.PlaceholderExceptionSupport;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class PlaceholderExceptions {
 

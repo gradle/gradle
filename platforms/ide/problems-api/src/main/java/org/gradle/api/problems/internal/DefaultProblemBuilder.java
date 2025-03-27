@@ -31,9 +31,9 @@ import org.gradle.internal.isolation.Isolatable;
 import org.gradle.problems.Location;
 import org.gradle.problems.ProblemDiagnostics;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -223,12 +223,12 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         return addFileLocation(DefaultLineInFileLocation.from(path, line));
     }
 
-    @Nonnull
+    @NonNull
     private DefaultProblemBuilder addFileLocation(FileLocation from) {
         return addFileLocationTo(this.locations, from);
     }
 
-    @Nonnull
+    @NonNull
     private DefaultProblemBuilder addFileLocationTo(List<ProblemLocation> problemLocations, FileLocation from) {
         if (problemLocations.contains(from)) {
             return this;
@@ -344,7 +344,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         return this;
     }
 
-    @Nonnull
+    @NonNull
     private <T extends AdditionalData> AdditionalData createAdditionalData(Class<T> type, Action<? super T> config) {
         T additionalDataInstance = problemsInfrastructure.getInstantiator().newInstance(type);
         config.execute(additionalDataInstance);

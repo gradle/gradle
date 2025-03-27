@@ -34,6 +34,8 @@ dependencies {
     implementation(projects.platformBase)
     implementation(projects.platformJvm)
 
+    implementation(libs.jspecify)
+
     runtimeOnly(libs.groovy)
 
     integTestImplementation(testFixtures(projects.core))

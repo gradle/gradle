@@ -19,8 +19,7 @@ package org.gradle.internal.snapshot.impl;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.snapshot.ValueSnapshot;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Isolates a value serialized using Java Serialization and is a snapshot for that value.

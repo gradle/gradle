@@ -20,8 +20,7 @@ import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.problems.buildtree.ProblemStream;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class ProblemsInfrastructure {
     private final IsolatableToBytesSerializer isolatableSerializer;

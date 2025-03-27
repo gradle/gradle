@@ -16,8 +16,8 @@
 package org.gradle.api.internal.plugins;
 
 import org.gradle.util.internal.VersionNumber;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.regex.Matcher;

@@ -18,7 +18,6 @@ package org.gradle.api.internal.catalog;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.artifacts.ExternalModuleDependencyBundle;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.MutableVersionConstraint;
@@ -37,8 +36,9 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.plugin.use.PluginDependency;
 import org.gradle.util.internal.TextUtil;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -180,7 +180,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
 
     private void writeEntryPoints(String className, EntryPoints entryPoints, boolean deprecated) throws IOException {
         writeLn(" */");
-        writeLn("@NonNullApi");
+        writeLn("@NullMarked");
         writeLn("public class " + className + " extends AbstractExternalDependencyFactory {");
         writeLn();
         indent(() -> {
@@ -208,7 +208,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
     }
 
     private void addImports() throws IOException {
-        addImport(NonNullApi.class);
+        addImport(NullMarked.class);
         addImport(MinimalExternalModuleDependency.class);
         addImport(PluginDependency.class);
         addImport(ExternalModuleDependencyBundle.class);

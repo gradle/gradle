@@ -18,9 +18,8 @@ package org.gradle.internal.component.external.model.maven;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Meta-data for a component resolved from a Maven repository.
@@ -32,7 +31,7 @@ public interface MavenModuleResolveMetadata extends ModuleComponentResolveMetada
     @Override
     MutableMavenModuleResolveMetadata asMutable();
 
-    @Nonnull String getPackaging();
+    @NonNull String getPackaging();
     boolean isRelocated();
     boolean isPomPackaging();
     boolean isKnownJarPackaging();

@@ -16,10 +16,10 @@
 
 package org.gradle.buildinit.plugins.internal;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.Directory;
 import org.gradle.util.internal.GFileUtils;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -35,7 +35,7 @@ import static java.lang.String.format;
 /**
  * Generates version catalogs based on versions, libraries and plugins tracked in the BuildContentGenerationContext's VersionCatalogDependencyRegistry.
  */
-@NonNullApi
+@NullMarked
 public class VersionCatalogGenerator {
 
     private final Directory target;

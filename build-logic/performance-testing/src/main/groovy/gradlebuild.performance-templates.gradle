@@ -573,7 +573,6 @@ performanceTest.registerTestProject("largeNativeBuild", RemoteProject) {
 }
 
 performanceTest.registerTestProject("largeNativeBuildPrebuilt", GradleBuild) {
-    buildFile = file("$largeNativeBuild.outputDirectory/prebuilt/util/build.gradle")
     dir = file("$largeNativeBuild.outputDirectory/prebuilt/util")
     tasks = ['build']
 }

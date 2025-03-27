@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform.toolchain.internal.clang;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.os.OperatingSystem;
@@ -29,8 +28,9 @@ import org.gradle.nativeplatform.toolchain.internal.gcc.DefaultGccPlatformToolCh
 import org.gradle.nativeplatform.toolchain.internal.gcc.metadata.SystemLibraryDiscovery;
 import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerMetaDataProviderFactory;
 import org.gradle.process.internal.ExecActionFactory;
+import org.jspecify.annotations.NullMarked;
 
-@NonNullApi
+@NullMarked
 public class ClangToolChain extends AbstractGccCompatibleToolChain implements Clang {
     public static final String DEFAULT_NAME = "clang";
 

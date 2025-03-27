@@ -17,7 +17,6 @@
 package org.gradle.process.internal;
 
 import com.google.common.collect.Maps;
-import org.gradle.api.NonNullApi;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.process.CommandLineArgumentProvider;
@@ -26,8 +25,9 @@ import org.gradle.process.internal.streams.EmptyStdInStreamsHandler;
 import org.gradle.process.internal.streams.ForwardStdinStreamsHandler;
 import org.gradle.process.internal.streams.OutputStreamsForwarder;
 import org.gradle.process.internal.streams.SafeStreams;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -37,7 +37,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.Executor;
 
-@NonNullApi
+@NullMarked
 public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, ProcessArgumentsSpec.HasExecutable {
 
     private static final EmptyStdInStreamsHandler DEFAULT_STDIN = new EmptyStdInStreamsHandler();

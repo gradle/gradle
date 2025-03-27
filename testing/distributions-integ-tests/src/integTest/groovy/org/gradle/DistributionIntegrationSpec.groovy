@@ -34,7 +34,7 @@ import static org.hamcrest.MatcherAssert.assertThat
 
 abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
-    protected static final THIRD_PARTY_LIB_COUNT = 140
+    protected static final THIRD_PARTY_LIB_COUNT = 141
 
     @Shared
     String baseVersion = GradleVersion.current().baseVersion.version
@@ -291,7 +291,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
         def toolingApiJar = contentsDir.file("lib/gradle-tooling-api-${baseVersion}.jar")
         toolingApiJar.assertIsFile()
-        assert toolingApiJar.length() < 500 * 1024 // tooling api jar is the small plain tooling api jar version and not the fat jar.
+        assert toolingApiJar.length() < 512 * 1024 // tooling api jar is the small plain tooling api jar version and not the fat jar.
 
         // Kotlin DSL
         assertIsGradleJar(contentsDir.file("lib/gradle-kotlin-dsl-${baseVersion}.jar"))

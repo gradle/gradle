@@ -4,12 +4,6 @@ plugins {
 
 description = "Version control integration (with git) for source dependencies"
 
-errorprone {
-    disabledChecks.addAll(
-        "UnusedVariable", // 3 occurrences
-    )
-}
-
 dependencies {
     api(projects.baseServices)
     api(projects.concurrent)
@@ -23,7 +17,7 @@ dependencies {
 
     api(libs.jgit)
     api(libs.inject)
-    api(libs.jsr305)
+    api(libs.jspecify)
 
     implementation(projects.serialization)
     implementation(projects.files)
@@ -35,6 +29,7 @@ dependencies {
     implementation(libs.jgitSsh) {
         exclude("org.apache.sshd", "sshd-osgi") // Because it duplicates sshd-core and sshd-commons contents
     }
+    implementation(libs.jsr305)
 
     testImplementation(projects.native)
     testImplementation(projects.snapshots)

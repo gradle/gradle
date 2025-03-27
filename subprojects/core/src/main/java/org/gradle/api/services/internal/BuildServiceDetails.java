@@ -18,8 +18,7 @@ package org.gradle.api.services.internal;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Details about a service registration.

@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.testing;
 
 import com.google.common.base.Preconditions;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.testing.results.DefaultTestResult;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.tasks.testing.TestEventReporter;
@@ -25,13 +24,14 @@ import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestFailureDetails;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
+import org.jspecify.annotations.NullMarked;
 
 import java.time.Instant;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-@NonNullApi
+@NullMarked
 class DefaultTestEventReporter implements TestEventReporter {
 
     protected final TestListenerInternal listener;

@@ -22,8 +22,8 @@ import org.gradle.internal.component.external.model.ExternalModuleComponentGraph
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.resolve.RejectedByRuleVersion;
 import org.gradle.internal.resolve.result.ComponentSelectionContext;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 
 public interface VersionedComponentChooser {

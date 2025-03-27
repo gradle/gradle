@@ -17,8 +17,7 @@
 package org.gradle.internal.serialize;
 
 import org.gradle.internal.exceptions.Contextual;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 @Contextual
 public class ContextualPlaceholderException extends PlaceholderException {

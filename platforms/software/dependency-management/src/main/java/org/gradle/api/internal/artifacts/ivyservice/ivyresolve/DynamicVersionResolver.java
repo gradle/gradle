@@ -48,10 +48,10 @@ import org.gradle.internal.resolve.result.ComponentSelectionContext;
 import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableModuleVersionListingResolveResult;
 import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;

@@ -17,8 +17,7 @@
 package org.gradle.tooling.events.internal;
 
 import org.gradle.tooling.events.BinaryPluginIdentifier;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class DefaultBinaryPluginIdentifier extends AbstractPluginIdentifier implements BinaryPluginIdentifier {
 

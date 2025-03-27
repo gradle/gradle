@@ -27,6 +27,7 @@ dependencies {
 
     compileOnly(libs.slf4jApi)
     compileOnly(libs.inject)
+    compileOnly(libs.jspecify)
 
     api(libs.kotlinStdlib)
 

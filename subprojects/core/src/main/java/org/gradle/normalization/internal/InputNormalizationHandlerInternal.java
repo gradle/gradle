@@ -19,8 +19,7 @@ package org.gradle.normalization.internal;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.normalization.InputNormalizationHandler;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 @ServiceScope(Scope.Project.class)
 public interface InputNormalizationHandlerInternal extends InputNormalizationHandler {

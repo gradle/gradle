@@ -26,8 +26,8 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSetOutput;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.logging.text.TreeFormatter;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Collections;

@@ -47,8 +47,8 @@ import org.gradle.plugins.signing.type.DefaultSignatureTypeProvider;
 import org.gradle.plugins.signing.type.SignatureType;
 import org.gradle.plugins.signing.type.SignatureTypeProvider;
 import org.gradle.util.internal.DeferredUtil;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;

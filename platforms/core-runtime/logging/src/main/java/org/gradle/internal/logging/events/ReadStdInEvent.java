@@ -17,8 +17,7 @@
 package org.gradle.internal.logging.events;
 
 import org.gradle.api.logging.LogLevel;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class ReadStdInEvent extends OutputEvent implements InteractiveEvent {
     @Nullable

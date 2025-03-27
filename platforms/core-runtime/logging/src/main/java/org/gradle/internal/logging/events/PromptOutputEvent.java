@@ -19,8 +19,7 @@ package org.gradle.internal.logging.events;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.operations.OperationIdentifier;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Requests that the client present the given prompt to the user and return the user's response as a single line of text.

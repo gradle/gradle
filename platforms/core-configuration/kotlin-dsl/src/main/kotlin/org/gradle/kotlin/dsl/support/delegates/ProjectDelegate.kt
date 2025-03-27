@@ -181,13 +181,13 @@ abstract class ProjectDelegate : Project {
     override fun allprojects(configureClosure: Closure<*>) =
         delegate.allprojects(configureClosure)
 
-    override fun <T : Any?> container(type: Class<T>): NamedDomainObjectContainer<T> =
+    override fun <T : Any> container(type: Class<T>): NamedDomainObjectContainer<T> =
         delegate.container(type)
 
-    override fun <T : Any?> container(type: Class<T>, factory: NamedDomainObjectFactory<T>): NamedDomainObjectContainer<T> =
+    override fun <T : Any> container(type: Class<T>, factory: NamedDomainObjectFactory<T>): NamedDomainObjectContainer<T> =
         delegate.container(type, factory)
 
-    override fun <T : Any?> container(type: Class<T>, factoryClosure: Closure<*>): NamedDomainObjectContainer<T> =
+    override fun <T : Any> container(type: Class<T>, factoryClosure: Closure<*>): NamedDomainObjectContainer<T> =
         delegate.container(type, factoryClosure)
 
     override fun repositories(configureClosure: Closure<*>) =
@@ -202,7 +202,7 @@ abstract class ProjectDelegate : Project {
     override fun configure(objects: Iterable<*>, configureClosure: Closure<*>): Iterable<*> =
         delegate.configure(objects, configureClosure)
 
-    override fun <T : Any?> configure(objects: Iterable<T>, configureAction: Action<in T>): Iterable<T> =
+    override fun <T : Any> configure(objects: Iterable<T>, configureAction: Action<in T>): Iterable<T> =
         delegate.configure(objects, configureAction)
 
     @Deprecated("Deprecated in Java")
@@ -233,7 +233,7 @@ abstract class ProjectDelegate : Project {
     override fun getProjectDir(): File =
         delegate.projectDir
 
-    override fun files(vararg paths: Any?): ConfigurableFileCollection =
+    override fun files(vararg paths: Any): ConfigurableFileCollection =
         delegate.files(*paths)
 
     override fun files(paths: Any, configureClosure: Closure<*>): ConfigurableFileCollection =
@@ -265,10 +265,10 @@ abstract class ProjectDelegate : Project {
         @Suppress("DEPRECATION")
         delegate.setBuildDir(path)
 
-    override fun defaultTasks(vararg defaultTasks: String?) =
+    override fun defaultTasks(vararg defaultTasks: String) =
         delegate.defaultTasks(*defaultTasks)
 
-    override fun compareTo(other: Project?): Int =
+    override fun compareTo(other: Project): Int =
         delegate.compareTo(other)
 
     override fun artifacts(configureClosure: Closure<*>) =
@@ -448,7 +448,7 @@ abstract class ProjectDelegate : Project {
     override fun tarTree(tarPath: Any): FileTree =
         delegate.tarTree(tarPath)
 
-    override fun delete(vararg paths: Any?): Boolean =
+    override fun delete(vararg paths: Any): Boolean =
         delegate.delete(*paths)
 
     override fun delete(action: Action<in DeleteSpec>): WorkResult =

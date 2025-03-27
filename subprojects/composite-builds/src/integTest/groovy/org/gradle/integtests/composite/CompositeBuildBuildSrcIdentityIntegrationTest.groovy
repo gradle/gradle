@@ -169,7 +169,6 @@ Required by:
                 assert selectors.size() == 1
                 assert selectors[0].displayName == 'project :buildB:buildSrc:a'
                 assert selectors[0].buildPath == ':buildB:buildSrc'
-                assert selectors[0].buildName == 'buildSrc'
                 assert selectors[0].projectPath == ':a'
             }
         """
@@ -178,7 +177,6 @@ Required by:
             executer.expectDocumentedDeprecationWarning("The BuildIdentifier.getName() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use getBuildPath() to get a unique identifier for the build. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation")
             executer.expectDocumentedDeprecationWarning("The BuildIdentifier.isCurrentBuild() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use getBuildPath() to get a unique identifier for the build. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation")
         }
-        executer.expectDocumentedDeprecationWarning("The ProjectComponentSelector.getBuildName() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use getBuildPath() to get a unique identifier for the build. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation")
 
         expect:
         execute(buildA, ":assemble")

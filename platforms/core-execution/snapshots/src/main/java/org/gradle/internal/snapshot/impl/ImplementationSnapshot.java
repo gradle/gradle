@@ -21,8 +21,7 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.snapshot.impl.UnknownImplementationSnapshot.UnknownReason;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import static org.gradle.internal.snapshot.impl.SerializedLambdaQueries.isLambdaClass;
 import static org.gradle.internal.snapshot.impl.SerializedLambdaQueries.isLambdaClassName;

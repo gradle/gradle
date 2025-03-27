@@ -15,7 +15,7 @@
  */
 package org.gradle.api.artifacts;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A {@code Dependency} represents a dependency on the artifacts from a particular source. A source can be an Ivy

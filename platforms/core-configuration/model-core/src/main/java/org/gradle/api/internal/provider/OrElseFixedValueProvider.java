@@ -18,8 +18,7 @@ package org.gradle.api.internal.provider;
 
 import org.gradle.internal.Cast;
 import org.gradle.internal.evaluation.EvaluationScopeContext;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 class OrElseFixedValueProvider<T> extends AbstractProviderWithValue<T> {
     private final ProviderInternal<? extends T> provider;

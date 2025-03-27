@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.testing.junit;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.testing.DefaultTestDescriptor;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
@@ -33,11 +32,12 @@ import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 import org.junit.runner.Description;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
 
-import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -50,7 +50,7 @@ import java.util.regex.Pattern;
 /**
  * A {@link RunListener} that maps JUnit4 events to Gradle test events.
  */
-@NonNullApi
+@NullMarked
 public class JUnitTestEventAdapter extends RunListener {
 
     private static final List<TestFailureMapper> MAPPERS = Arrays.asList(

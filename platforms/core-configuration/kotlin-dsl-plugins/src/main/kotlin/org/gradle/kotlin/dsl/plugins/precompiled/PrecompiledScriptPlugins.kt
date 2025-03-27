@@ -86,7 +86,7 @@ abstract class PrecompiledScriptPlugins : Plugin<Project> {
             }
             task.libraries.from(sourceSets["main"].compileClasspath)
             task.pluginClasspath.from(pluginClasspath.get())
-            task.compilerOptions.freeCompilerArgs.addAll(listOf("-script-templates", PrecompiledPluginsBlock::class.qualifiedName))
+            task.compilerOptions.freeCompilerArgs.addAll(listOf("-script-templates", PrecompiledPluginsBlock::class.qualifiedName!!))
         }
     }
 

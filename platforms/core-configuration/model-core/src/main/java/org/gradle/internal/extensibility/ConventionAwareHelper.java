@@ -33,8 +33,8 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.deprecation.DocumentedFailure;
 import org.gradle.internal.reflect.JavaPropertyReflectionUtil;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collection;

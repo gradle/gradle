@@ -16,11 +16,11 @@
 
 package org.gradle.api.tasks.wrapper.internal;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.tasks.wrapper.Wrapper;
 import org.gradle.wrapper.Install;
+import org.jspecify.annotations.NullMarked;
 
-@NonNullApi
+@NullMarked
 public class WrapperDefaults {
     public static final String SCRIPT_PATH = "gradlew";
     public static final String JAR_FILE_PATH = "gradle/wrapper/gradle-wrapper.jar";

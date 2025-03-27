@@ -15,7 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.configurations;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import java.util.Set;
 import java.util.function.Consumer;
 

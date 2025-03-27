@@ -19,8 +19,8 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.capabilities.ImmutableCapability;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Iterator;
 

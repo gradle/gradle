@@ -18,8 +18,7 @@ package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.scan.UsedByScanPlugin;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 @UsedByScanPlugin
 public class TestCompleteEvent {
@@ -41,8 +40,7 @@ public class TestCompleteEvent {
         return endTime;
     }
 
-    @Nullable
-    public TestResult.ResultType getResultType() {
+    public TestResult.@Nullable ResultType getResultType() {
         return resultType;
     }
 }

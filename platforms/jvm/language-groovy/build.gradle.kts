@@ -12,7 +12,6 @@ dependencies {
     api(projects.coreApi)
     api(projects.daemonServerWorker)
     api(projects.fileOperations)
-    api(projects.fileTemp)
     api(projects.files)
     api(projects.jvmServices)
     api(projects.languageJava)
@@ -27,12 +26,13 @@ dependencies {
     api(projects.workers)
 
     api(libs.inject)
-    api(libs.jsr305)
+    api(libs.jspecify)
 
     implementation(projects.classloaders)
     implementation(projects.concurrent)
     implementation(projects.serviceLookup)
     implementation(projects.fileCollections)
+    implementation(projects.fileTemp)
     implementation(projects.logging)
     implementation(projects.loggingApi)
 

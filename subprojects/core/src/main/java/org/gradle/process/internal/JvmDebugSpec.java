@@ -16,12 +16,11 @@
 
 package org.gradle.process.internal;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.process.JavaDebugOptions;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
-
-@NonNullApi
+@NullMarked
 public interface JvmDebugSpec {
 
     boolean isEnabled();
@@ -45,7 +44,7 @@ public interface JvmDebugSpec {
 
     void setSuspend(boolean suspend);
 
-    @NonNullApi
+    @NullMarked
     class DefaultJvmDebugSpec implements JvmDebugSpec {
         private boolean enabled;
         private String host;
@@ -113,7 +112,7 @@ public interface JvmDebugSpec {
         }
     }
 
-    @NonNullApi
+    @NullMarked
     class JavaDebugOptionsBackedSpec implements JvmDebugSpec {
         private final JavaDebugOptions delegate;
 

@@ -20,8 +20,8 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.jvm.JavaVersionParser;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.serialization.Cached;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.nio.file.Path;
 import java.text.MessageFormat;

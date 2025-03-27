@@ -15,7 +15,8 @@
  */
 package org.gradle.initialization;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import java.io.File;
 
 public class SettingsLocation {

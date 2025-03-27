@@ -17,8 +17,7 @@
 package org.gradle.api.problems.internal;
 
 import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Default implementation of {@link ResolutionFailureData}.

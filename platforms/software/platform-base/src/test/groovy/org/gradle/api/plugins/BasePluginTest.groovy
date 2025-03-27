@@ -19,8 +19,6 @@ package org.gradle.api.plugins
 import org.gradle.api.DefaultTask
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Dependency
-import org.gradle.api.artifacts.PublishArtifact
-import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.bundling.Tar
 import org.gradle.api.tasks.bundling.Zip
@@ -37,7 +35,6 @@ class BasePluginTest extends AbstractProjectBuilderSpec {
 
         then:
         project.convention.plugins.base instanceof BasePluginConvention
-        project.extensions.findByType(DefaultArtifactPublicationSet) != null
         project.extensions.findByType(BasePluginExtension) != null
     }
 
@@ -186,16 +183,5 @@ class BasePluginTest extends AbstractProjectBuilderSpec {
         defaultConfig.extendsFrom == [] as Set
         archives.visible
         archives.transitive
-    }
-
-    def "adds every published artifact to the archives configuration"() {
-        PublishArtifact artifact = Mock()
-
-        when:
-        project.pluginManager.apply(BasePlugin)
-        project.configurations.create("custom").artifacts.add(artifact)
-
-        then:
-        project.configurations[Dependency.ARCHIVES_CONFIGURATION].artifacts.contains(artifact)
     }
 }

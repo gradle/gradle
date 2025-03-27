@@ -21,7 +21,7 @@ errorprone {
 
 dependencies {
     api(libs.inject)
-    api(libs.jsr305)
+    api(libs.jspecify)
     api(libs.maven3Settings)
 
     api(projects.baseServices)

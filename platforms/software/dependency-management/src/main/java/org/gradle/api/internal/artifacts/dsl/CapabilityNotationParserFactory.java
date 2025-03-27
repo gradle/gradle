@@ -27,9 +27,8 @@ import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.internal.typeconversion.TypeConversionException;
 import org.gradle.internal.typeconversion.TypedNotationConverter;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 public class CapabilityNotationParserFactory implements Factory<NotationParser<Object, Capability>> {
     private final static CapabilityNotationParser STRICT_CONVERTER = createSingletonConverter(true);
@@ -59,7 +58,7 @@ public class CapabilityNotationParserFactory implements Factory<NotationParser<O
         };
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public CapabilityNotationParser create() {
         // Currently the converter is stateless, doesn't need any external context, so for performance we return a singleton

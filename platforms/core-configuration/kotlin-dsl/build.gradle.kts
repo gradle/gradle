@@ -24,7 +24,6 @@ dependencies {
     api(libs.groovy)
     api(libs.guava)
     api(libs.kotlinStdlib)
-    api(libs.jsr305)
     api(libs.inject)
     api(libs.slf4jApi)
 
@@ -53,12 +52,14 @@ dependencies {
     implementation(projects.serviceLookup)
     implementation(projects.serviceProvider)
     implementation(projects.snapshots)
+    implementation(projects.wrapperShared)
 
     implementation("org.gradle:java-api-extractor")
     implementation("org.gradle:kotlin-dsl-shared-runtime")
 
     implementation(libs.asm)
     implementation(libs.groovyJson)
+    implementation(libs.jspecify)
     implementation(libs.kotlinReflect)
 
     implementation(libs.kotlinCompilerEmbeddable)

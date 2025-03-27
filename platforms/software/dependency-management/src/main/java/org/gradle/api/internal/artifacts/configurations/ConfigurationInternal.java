@@ -27,8 +27,8 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.operations.dependencies.configurations.ConfigurationIdentity;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Set;
 

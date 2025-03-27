@@ -32,10 +32,10 @@ import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.CompositeBuildParticipantBuildState;
 import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.util.Path;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.util.LinkedHashSet;
 import java.util.Set;
 

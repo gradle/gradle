@@ -27,13 +27,13 @@ import org.gradle.api.internal.artifacts.result.ResolvedComponentResultInternal;
 import org.gradle.api.internal.attributes.AbstractAttributeContainer;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeValue;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.AttributesFactory;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Actions;
 import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;

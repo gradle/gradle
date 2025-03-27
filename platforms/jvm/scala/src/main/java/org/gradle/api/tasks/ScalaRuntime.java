@@ -30,8 +30,8 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.plugins.scala.ScalaPluginExtension;
 import org.gradle.api.tasks.scala.internal.ScalaRuntimeHelper;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 
 /**

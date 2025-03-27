@@ -19,8 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The final representation of a dependency in the resolved dependency graph.

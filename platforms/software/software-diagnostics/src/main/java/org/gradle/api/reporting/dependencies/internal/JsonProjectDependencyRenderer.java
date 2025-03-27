@@ -35,8 +35,8 @@ import org.gradle.api.tasks.diagnostics.internal.insight.DependencyInsightReport
 import org.gradle.internal.Actions;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.CollectionUtils;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;

@@ -39,19 +39,14 @@ errorprone {
         "Finally", // 1 occurrences
         "HidingField", // 1 occurrences
         "IdentityHashMapUsage", // 1 occurrences
-        "ImmutableEnumChecker", // 2 occurrences
         "InconsistentCapitalization", // 2 occurrences
         "InlineFormatString", // 2 occurrences
         "InlineMeSuggester", // 1 occurrences
-        "InvalidBlockTag", // 1 occurrences
-        "InvalidInlineTag", // 1 occurrences
-        "MissingCasesInEnumSwitch", // 1 occurrences
         "MixedMutabilityReturnType", // 1 occurrences
         "ModifyCollectionInEnhancedForLoop", // 1 occurrences
         "MutablePublicArray", // 2 occurrences
         "NonApiType", // 1 occurrences
         "NonCanonicalType", // 16 occurrences
-        "NotJavadoc", // 1 occurrences
         "OptionalMapUnusedValue", // 1 occurrences
         "ProtectedMembersInFinalClass", // 1 occurrences
         "ReferenceEquality", // 2 occurrences
@@ -61,9 +56,7 @@ errorprone {
         "TypeParameterShadowing", // 1 occurrences
         "TypeParameterUnusedInFormals", // 2 occurrences
         "UndefinedEquals", // 1 occurrences
-        "UnrecognisedJavadocTag", // 1 occurrences
         "UnusedMethod", // 18 occurrences
-        "UnusedVariable", // 8 occurrences
     )
 }
 
@@ -127,6 +120,7 @@ dependencies {
     api(libs.groovy)
     api(libs.guava)
     api(libs.inject)
+    api(libs.jspecify)
     api(libs.jsr305)
     api(libs.nativePlatform)
 
@@ -136,6 +130,7 @@ dependencies {
     implementation(projects.modelGroovy)
     implementation(projects.problemsRendering)
     implementation(projects.serviceRegistryBuilder)
+    implementation(projects.wrapperShared)
 
     implementation(libs.asmCommons)
     implementation(libs.commonsCompress)

@@ -23,7 +23,7 @@ dependencies {
 
     api(libs.asm)
     api(libs.javaPoet)
-    api(libs.jsr305)
+    api(libs.jspecify)
 
     implementation(libs.asmTree)
     implementation(libs.jacksonAnnotations)

@@ -20,8 +20,9 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.GraphSelectionCandidates;
+import org.gradle.internal.component.model.VariantGraphResolveState;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.List;
 
@@ -41,7 +42,7 @@ public interface LocalComponentGraphResolveState extends ComponentGraphResolveSt
      * to migrate away from this method for that purpose.
      *
      * TODO: This is a legacy mechanism, and does not verify that the named configuration is
-     * consumable. Prefer {@link GraphSelectionCandidates#getVariantByConfigurationName(String)}.
+     * consumable. Prefer {@link LocalComponentGraphSelectionCandidates#getVariantByConfigurationName(String)}.
      *
      * <strong>Do not use this method, as it will be removed in Gradle 9.0.</strong>
      */
@@ -86,6 +87,12 @@ public interface LocalComponentGraphResolveState extends ComponentGraphResolveSt
          * </ul>
          */
         List<LocalVariantGraphResolveState> getAllSelectableVariants();
+
+        /**
+         * Returns the variant that is identified by the given configuration name.
+         */
+        @Nullable
+        VariantGraphResolveState getVariantByConfigurationName(String name);
 
     }
 }

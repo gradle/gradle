@@ -20,8 +20,7 @@ import org.gradle.api.Describable;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.internal.Describables;
 import org.gradle.util.Path;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Identifies a single project within the build and the build tree.

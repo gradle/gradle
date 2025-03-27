@@ -21,7 +21,7 @@ plugins {
 description = "Public types for unit testing plugins"
 
 dependencies {
-    api(libs.jsr305)
+    api(libs.jspecify)
     api(projects.serviceLookup)
     api(projects.serviceProvider)
     api(projects.baseServices)

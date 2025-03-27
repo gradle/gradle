@@ -16,13 +16,13 @@
 
 package org.gradle.api.plugins.internal;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.Project;
 import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.util.internal.WrapUtil;
+import org.jspecify.annotations.NullMarked;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -32,7 +32,7 @@ import static org.gradle.api.reflect.TypeOf.typeOf;
 
 @SuppressWarnings("DeprecatedIsStillUsed")
 @Deprecated
-@NonNullApi
+@NullMarked
 public abstract class DefaultProjectReportsPluginConvention extends org.gradle.api.plugins.ProjectReportsPluginConvention implements HasPublicType {
     private String projectReportDirName = "project";
     private final Project project;

@@ -20,8 +20,7 @@ import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class NullValueSnapshot implements ValueSnapshot, Isolatable<Object> {
     public static final NullValueSnapshot INSTANCE = new NullValueSnapshot();

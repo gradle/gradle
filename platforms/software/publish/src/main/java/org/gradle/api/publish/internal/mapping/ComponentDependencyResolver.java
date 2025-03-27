@@ -20,8 +20,7 @@ import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependencyConstraint;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Given a declared dependency to be published, determines the coordinates

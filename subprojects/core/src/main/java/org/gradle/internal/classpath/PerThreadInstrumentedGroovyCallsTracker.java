@@ -16,12 +16,12 @@
 
 package org.gradle.internal.classpath;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.function.Supplier;
 
-@NonNullApi
+@NullMarked
 public class PerThreadInstrumentedGroovyCallsTracker implements InstrumentedGroovyCallsTracker {
     private final ThreadLocal<InstrumentedGroovyCallsTracker> perThreadImplementation;
 

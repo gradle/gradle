@@ -677,4 +677,8 @@ class DefaultConfigurationCacheIO internal constructor(
     private
     inline fun <reified T : Any> service() =
         host.service<T>()
+
+    private
+    inline fun <reified T : Any> factory() =
+        host.factory(T::class.java)
 }

@@ -48,8 +48,8 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.publish.internal.validation.VariantWarningCollector;
 import org.gradle.internal.component.local.model.ProjectComponentSelectorInternal;
 import org.gradle.util.Path;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -348,7 +348,6 @@ public class ResolutionBackedPublicationDependencyResolver implements VariantDep
     public ResolvedCoordinates resolveComponentCoordinates(DefaultProjectDependencyConstraint dependency) {
         return resolveComponentCoordinates(dependency.getProjectDependency());
     }
-
 
     @Nullable
     private ResolvedCoordinates resolveModuleComponentCoordinates(ModuleIdentifier module) {

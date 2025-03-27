@@ -20,8 +20,7 @@ import org.gradle.internal.problems.failure.Failure;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.problems.Location;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 @ServiceScope(Scope.BuildSession.class)
 public interface ProblemLocationAnalyzer {

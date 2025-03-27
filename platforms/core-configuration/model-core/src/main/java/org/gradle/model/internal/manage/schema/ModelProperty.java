@@ -20,13 +20,13 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
-import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.PropertyAccessorType;
 import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.type.ModelType;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 import java.lang.annotation.Annotation;
 import java.util.Collection;
 import java.util.Map;

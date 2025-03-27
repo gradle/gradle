@@ -18,8 +18,7 @@ package org.gradle.api.internal.artifacts;
 
 import com.google.common.base.Objects;
 import org.gradle.api.artifacts.ModuleIdentifier;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class DefaultModuleIdentifier implements ModuleIdentifier {
     private final String group;

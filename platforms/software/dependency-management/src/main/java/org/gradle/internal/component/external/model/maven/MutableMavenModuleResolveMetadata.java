@@ -18,9 +18,8 @@ package org.gradle.internal.component.external.model.maven;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 public interface MutableMavenModuleResolveMetadata extends MutableModuleComponentResolveMetadata {
     @Override
@@ -31,8 +30,8 @@ public interface MutableMavenModuleResolveMetadata extends MutableModuleComponen
     @Nullable
     String getSnapshotTimestamp();
 
-    @Nonnull String getPackaging();
-    void setPackaging(@Nonnull String packaging);
+    @NonNull String getPackaging();
+    void setPackaging(@NonNull String packaging);
 
     boolean isPomPackaging();
     boolean isKnownJarPackaging();

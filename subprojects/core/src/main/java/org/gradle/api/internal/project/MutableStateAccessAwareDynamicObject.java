@@ -20,8 +20,8 @@ import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 
 public class MutableStateAccessAwareDynamicObject extends AbstractDynamicObject {

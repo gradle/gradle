@@ -5,7 +5,10 @@ plugins {
 
 description = "A set of generic services and utilities."
 
-gradlebuildJava.usedInWorkers()
+gradlebuildJava {
+    usedInWorkers()
+    usesFutureStdlib = true
+}
 
 /**
  * Use Java 8 compatibility for Unit tests, so we can test Java 8 features as well
@@ -37,8 +40,9 @@ dependencies {
     api(projects.hashing)
     api(projects.serviceLookup)
     api(projects.stdlibJavaExtensions)
+
     api(libs.inject)
-    api(libs.jsr305)
+    api(libs.jspecify)
     api(libs.guava)
 
     implementation(projects.time)
@@ -46,6 +50,7 @@ dependencies {
 
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
+    implementation(libs.jsr305)
     implementation(libs.slf4jApi)
 
     integTestImplementation(projects.logging)

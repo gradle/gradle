@@ -17,8 +17,7 @@
 package org.gradle.launcher.daemon.diagnostics;
 
 import org.gradle.internal.remote.Address;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class DaemonStartupInfo {
     private final String uid;

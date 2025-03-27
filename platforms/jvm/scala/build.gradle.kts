@@ -4,12 +4,6 @@ plugins {
 
 description = "Plugins for building Scala code with Gradle."
 
-errorprone {
-    disabledChecks.addAll(
-        "UnusedMethod", // 2 occurrences
-    )
-}
-
 dependencies {
     api(projects.baseServices)
     api(projects.buildProcessServices)
@@ -34,7 +28,7 @@ dependencies {
 
     api(libs.groovy)
     api(libs.inject)
-    api(libs.jsr305)
+    api(libs.jspecify)
 
     implementation(projects.time)
     implementation(projects.serviceLookup)

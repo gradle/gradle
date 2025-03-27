@@ -17,8 +17,7 @@ package org.gradle;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.invocation.Gradle;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * <p>A {@code BuildResult} packages up the result of a build.</p>

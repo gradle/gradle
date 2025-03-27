@@ -78,7 +78,6 @@ import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.internal.work.WorkerThreadRegistry
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.Path
@@ -1417,19 +1416,6 @@ class DefaultConfigurationSpec extends Specification {
         conf.attributes.getAttribute(buildType).name == 'release'
     }
 
-    def "cannot define two attributes with the same name but different types"() {
-        def conf = conf()
-        def flavor = Attribute.of('flavor', Flavor)
-
-        when:
-        conf.getAttributes().attribute(flavor, new FlavorImpl(name: 'free'))
-        conf.getAttributes().attribute(Attribute.of('flavor', String.class), 'paid')
-
-        then:
-        def e = thrown(IllegalArgumentException)
-        e.message == 'Cannot have two attributes with the same name but different types. This container already has an attribute named \'flavor\' of type \'org.gradle.api.internal.artifacts.configurations.DefaultConfigurationSpec$Flavor\' and you are trying to store another one of type \'java.lang.String\''
-    }
-
     def "can overwrite a configuration attribute"() {
         def conf = conf()
         def flavor = Attribute.of(Flavor)
@@ -1786,11 +1772,11 @@ class DefaultConfigurationSpec extends Specification {
             userCodeApplicationContext,
             CollectionCallbackActionDecorator.NOOP,
             projectStateRegistry,
-            Stub(WorkerThreadRegistry),
             TestUtil.domainObjectCollectionFactory(),
             calculatedValueContainerFactory,
             TestFiles.taskDependencyFactory(),
-            TestUtil.problemsService()
+            TestUtil.problemsService(),
+            new DocumentationRegistry()
         )
     }
 

@@ -41,8 +41,8 @@ import org.gradle.api.publish.internal.validation.VariantWarningCollector;
 import org.gradle.api.publish.internal.versionmapping.VariantVersionMappingStrategyInternal;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
 import org.gradle.util.Path;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 
 /**
@@ -50,17 +50,6 @@ import javax.inject.Inject;
  * resolves dependencies using version mapping.
  */
 public class DefaultDependencyCoordinateResolverFactory implements DependencyCoordinateResolverFactory {
-
-    /**
-     * Determines whether we implement publication versionMapping with the legacy implementation
-     * or the new dependency mapping implementation.
-     *
-     * TODO: While this is currently static, we should selectively enable it in order to run
-     *       versionMapping tests against both implementations.
-     *
-     * TODO: Once dependency mapping is stabilized, we should be able to turn this off / remove it entirely
-     */
-    private static final boolean USE_LEGACY_VERSION_MAPPING = true;
 
     private final ProjectDependencyPublicationResolver projectDependencyResolver;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
@@ -110,11 +99,7 @@ public class DefaultDependencyCoordinateResolverFactory implements DependencyCoo
             }
 
             if (configuration != null) {
-                if (USE_LEGACY_VERSION_MAPPING) {
-                    componentResolver = getLegacyResolver(configuration);
-                } else {
-                    componentResolver = getDependencyMappingResolver(configuration).map(DependencyResolvers::getComponentResolver);
-                }
+                componentResolver = getDependencyMappingResolver(configuration).map(DependencyResolvers::getComponentResolver);
             }
         }
 
@@ -141,11 +126,6 @@ public class DefaultDependencyCoordinateResolverFactory implements DependencyCoo
         );
 
         return new DependencyResolvers(resolver, resolver);
-    }
-
-    private Provider<ComponentDependencyResolver> getLegacyResolver(Configuration configuration) {
-        return configuration.getIncoming().getResolutionResult().getRootComponent()
-            .map(root -> new VersionMappingComponentDependencyResolver(projectDependencyResolver, root));
     }
 
     /**

@@ -16,8 +16,8 @@
 package org.gradle.internal.reflect.validation;
 
 import org.gradle.api.Action;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;

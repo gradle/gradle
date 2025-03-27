@@ -19,8 +19,8 @@ package org.gradle.model.internal.core;
 import com.google.common.base.Optional;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collections;
 
 public class EmptyModelProjection implements ModelProjection {

@@ -16,16 +16,16 @@
 
 package org.gradle.tooling.events.test.internal;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.test.TestMetadataEvent;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.Map;
 
 /**
  * Implementation of the {@code TestMetadataEvent} interface.
  */
-@NonNullApi
+@NullMarked
 public class DefaultTestMetadataEvent implements TestMetadataEvent {
     private final long eventTime;
     private final OperationDescriptor descriptor;

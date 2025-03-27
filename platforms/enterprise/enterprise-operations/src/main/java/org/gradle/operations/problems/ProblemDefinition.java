@@ -16,7 +16,7 @@
 
 package org.gradle.operations.problems;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Describes a specific problem without a concrete usage.

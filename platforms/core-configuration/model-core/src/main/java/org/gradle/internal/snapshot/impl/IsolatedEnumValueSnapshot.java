@@ -19,8 +19,7 @@ package org.gradle.internal.snapshot.impl;
 import org.gradle.internal.Cast;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.snapshot.ValueSnapshot;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Isolates an Enum value and is a snapshot for that value.

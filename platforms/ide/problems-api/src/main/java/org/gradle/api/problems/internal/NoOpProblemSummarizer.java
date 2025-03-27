@@ -17,8 +17,8 @@
 package org.gradle.api.problems.internal;
 
 import org.gradle.internal.operations.OperationIdentifier;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 
 public class NoOpProblemSummarizer implements ProblemSummarizer {

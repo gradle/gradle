@@ -18,8 +18,8 @@ package org.gradle.api.tasks.scala;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -182,9 +182,4 @@ public abstract class ScalaDocOptions extends org.gradle.api.tasks.compile.Abstr
     public void setAdditionalParameters(@Nullable List<String> additionalParameters) {
         this.additionalParameters = additionalParameters;
     }
-
-    private String toOnOffString(boolean value) {
-        return value ? "on" : "off";
-    }
-
 }

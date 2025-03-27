@@ -19,8 +19,8 @@ package org.gradle.plugin.management.internal;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.plugin.management.PluginRequest;
 import org.gradle.plugin.use.PluginId;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Optional;
 
 public class DefaultPluginRequest implements PluginRequestInternal {

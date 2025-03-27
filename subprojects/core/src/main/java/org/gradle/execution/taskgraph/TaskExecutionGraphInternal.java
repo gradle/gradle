@@ -20,10 +20,10 @@ import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.execution.plan.FinalizedExecutionPlan;
 import org.gradle.execution.plan.Node;
 import org.gradle.internal.build.ExecutionResult;
+import org.jspecify.annotations.Nullable;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Set;
 import java.util.function.BiConsumer;

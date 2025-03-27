@@ -17,8 +17,7 @@
 package org.gradle.configuration;
 
 import org.gradle.internal.operations.BuildOperationType;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Details about a script plugin being applied.

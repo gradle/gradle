@@ -10,7 +10,6 @@ description = "A library that aids in testing Gradle plugins and build logic in 
 errorprone {
     disabledChecks.addAll(
         "CatchAndPrintStackTrace", // 1 occurrences
-        "ImmutableEnumChecker", // 1 occurrences
     )
 }
 
@@ -20,7 +19,7 @@ dependencies {
     api(projects.logging)
     api(projects.toolingApi)
 
-    api(libs.jsr305)
+    api(libs.jspecify)
 
     implementation(projects.baseServices)
     implementation(projects.core)

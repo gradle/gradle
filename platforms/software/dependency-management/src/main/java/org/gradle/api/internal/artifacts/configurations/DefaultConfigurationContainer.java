@@ -27,9 +27,9 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConsumableConfiguration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyScopeConfiguration;
+import org.gradle.api.artifacts.LegacyConfiguration;
 import org.gradle.api.artifacts.ResolvableConfiguration;
 import org.gradle.api.artifacts.UnknownConfigurationException;
-import org.gradle.api.artifacts.LegacyConfiguration;
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
 import org.gradle.api.internal.AbstractValidatingNamedDomainObjectContainer;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
@@ -45,9 +45,8 @@ import org.gradle.internal.artifacts.configurations.NoContextRoleBasedConfigurat
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.scopes.DetachedDependencyMetadataProvider;
-import org.gradle.util.GradleVersion;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.Arrays;
 import java.util.Collection;
@@ -421,12 +420,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         );
     }
 
-    @SuppressWarnings("deprecation")
     private Configuration createLegacyConfiguration(String name, ConfigurationRole role, Action<? super Configuration> configureAction) {
-        // Sanity check to make sure we are locking all non-legacy configurations by 9.0
-        assert GradleVersion.current().getBaseVersion().compareTo(GradleVersion.version("9.0")) < 0 || role == ConfigurationRoles.ALL
-            : "Sanity check: All non-legacy configurations must be locked by 9.0";
-
         assertElementNotPresent(name);
         validateNameIsAllowed(name);
         Configuration configuration = defaultConfigurationFactory.create(name, this, resolutionStrategyFactory, rootComponentMetadataBuilder, role);

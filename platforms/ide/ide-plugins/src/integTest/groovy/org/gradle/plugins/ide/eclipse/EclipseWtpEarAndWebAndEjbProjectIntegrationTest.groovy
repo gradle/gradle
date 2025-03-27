@@ -38,7 +38,7 @@ project(':ear') {
 
     dependencies {
         deploy project(':java')
-        deploy project(path: ':web', configuration: 'archives')
+        deploy project(path: ':web')
     }
 }
 project(':web') {

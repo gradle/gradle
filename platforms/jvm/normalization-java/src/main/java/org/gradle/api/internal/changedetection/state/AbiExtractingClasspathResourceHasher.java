@@ -26,10 +26,10 @@ import org.gradle.internal.io.IoFunction;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.gradle.internal.tools.api.ApiClassExtractor;
 import org.gradle.internal.tools.api.impl.JavaApiMemberWriter;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;

@@ -25,9 +25,9 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.verifier.HttpRedirectVerifier;
 import org.gradle.internal.verifier.HttpRedirectVerifierFactory;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.net.URI;
 import java.util.function.Supplier;
@@ -75,7 +75,7 @@ public class DefaultUrlArtifactRepository implements UrlArtifactRepository {
         return allowInsecureProtocol;
     }
 
-    @Nonnull
+    @NonNull
     public URI validateUrl() {
         URI rootUri = getUrl();
         if (rootUri == null) {

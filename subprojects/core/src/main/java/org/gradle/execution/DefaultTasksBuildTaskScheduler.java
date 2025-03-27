@@ -22,10 +22,10 @@ import org.gradle.configuration.project.BuiltInCommand;
 import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.internal.RunDefaultTasksExecutionRequest;
 import org.gradle.util.internal.GUtil;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 

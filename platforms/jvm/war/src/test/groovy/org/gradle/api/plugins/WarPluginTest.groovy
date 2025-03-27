@@ -26,13 +26,12 @@ import org.gradle.util.TestUtil
 import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
 
 class WarPluginTest extends AbstractProjectBuilderSpec {
-    def "applies Java plugin and adds convention"() {
+    def "applies Java plugin"() {
         when:
         project.pluginManager.apply(WarPlugin)
 
         then:
         project.getPlugins().hasPlugin(JavaPlugin)
-        project.convention.plugins.war instanceof WarPluginConvention
     }
 
     def "creates configurations"() {
@@ -71,7 +70,7 @@ class WarPluginTest extends AbstractProjectBuilderSpec {
         task = project.tasks[BasePlugin.ASSEMBLE_TASK_NAME]
 
         then:
-        dependsOn(WarPlugin.WAR_TASK_NAME).matches(task)
+        task dependsOn(WarPlugin.WAR_TASK_NAME, JavaPlugin.JAR_TASK_NAME)
     }
 
     def "depends on runtime config"() {
@@ -126,7 +125,7 @@ class WarPluginTest extends AbstractProjectBuilderSpec {
         task.destinationDirectory.get().asFile == project.libsDirectory.get().asFile
     }
 
-    def "replaces jar as publication"() {
+    def "adds to jar as publication"() {
         given:
         project.pluginManager.apply(WarPlugin)
 
@@ -134,7 +133,7 @@ class WarPluginTest extends AbstractProjectBuilderSpec {
         def archiveConfiguration = project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION)
 
         then:
-        archiveConfiguration.getAllArtifacts().size() == 1
-        archiveConfiguration.getAllArtifacts()[0].type == "war"
+        archiveConfiguration.getAllArtifacts().size() == 2
+        archiveConfiguration.getAllArtifacts().collect { it.type }.containsAll("war", "jar")
     }
 }

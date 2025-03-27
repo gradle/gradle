@@ -29,8 +29,8 @@ import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria;
 import org.gradle.launcher.daemon.toolchain.ToolchainDownloadUrlProvider;
 import org.gradle.process.internal.JvmOptions;
 import org.gradle.util.internal.GUtil;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collections;
 import java.util.HashMap;

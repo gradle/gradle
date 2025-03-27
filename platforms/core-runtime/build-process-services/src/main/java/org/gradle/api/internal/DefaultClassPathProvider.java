@@ -59,6 +59,7 @@ public class DefaultClassPathProvider implements ClassPathProvider {
             classpath = classpath.plus(moduleRegistry.getModule("gradle-logging").getImplementationClasspath());
             classpath = classpath.plus(moduleRegistry.getModule("gradle-dependency-management").getImplementationClasspath());
             classpath = classpath.plus(moduleRegistry.getExternalModule("javax.inject").getClasspath());
+            classpath = classpath.plus(moduleRegistry.getExternalModule("jspecify").getClasspath());
             return classpath;
         }
         if (name.equals("JAVA-COMPILER-PLUGIN")) {

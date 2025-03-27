@@ -11,7 +11,7 @@ dependencies {
     api(projects.serviceProvider)
     api(projects.stdlibJavaExtensions)
 
-    api(libs.jsr305)
+    api(libs.jspecify)
 
     implementation(projects.concurrent)
 

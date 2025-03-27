@@ -16,7 +16,6 @@ errorprone {
         "DefaultCharset", // 3 occurrences
         "Finally", // 4 occurrences
         "IdentityHashMapUsage", // 2 occurrences
-        "ImmutableEnumChecker", // 2 occurrences
         "InconsistentCapitalization", // 2 occurrences
         "InlineFormatString", // 5 occurrences
         "InlineMeSuggester", // 2 occurrences
@@ -76,6 +75,7 @@ dependencies {
     api(libs.guava)
     api(libs.inject)
     api(libs.ivy)
+    api(libs.jspecify)
     api(libs.jsr305)
     api(libs.maven3Settings)
     api(libs.maven3SettingsBuilder)
@@ -88,6 +88,7 @@ dependencies {
     implementation(projects.loggingApi)
     implementation(projects.resourcesHttp)
     implementation(projects.serviceRegistryBuilder)
+    implementation(projects.wrapperShared)
 
     implementation(libs.ant)
     implementation(libs.asm)

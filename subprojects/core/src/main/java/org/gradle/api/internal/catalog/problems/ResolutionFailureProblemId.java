@@ -17,7 +17,7 @@
 package org.gradle.api.internal.catalog.problems;
 
 import org.gradle.api.Describable;
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * Problem IDs for Variant Selection resolution failure problems.
@@ -25,7 +25,7 @@ import org.gradle.api.NonNullApi;
  * These should correspond with the <em>non-abstract failures classes</em> of the {@code ResolutionFailure} type hierarchy.
  * in the {@code org.gradle.internal.component.resolution.failure.type} package.
  */
-@NonNullApi
+@NullMarked
 public enum ResolutionFailureProblemId implements Describable {
     // Variant Selection failures
     CONFIGURATION_NOT_COMPATIBLE("Configuration selected by name is not compatible"),

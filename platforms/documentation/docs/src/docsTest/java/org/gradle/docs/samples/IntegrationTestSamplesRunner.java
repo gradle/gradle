@@ -21,14 +21,16 @@ import org.gradle.exemplar.executor.ExecutionMetadata;
 import org.gradle.exemplar.model.Command;
 import org.gradle.exemplar.model.Sample;
 import org.gradle.exemplar.test.runner.SamplesRunner;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.model.InitializationError;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.nio.file.Paths;
 
+@NullMarked
 class IntegrationTestSamplesRunner extends SamplesRunner {
     private static final String SAMPLES_DIR_PROPERTY = "integTest.samplesdir";
 

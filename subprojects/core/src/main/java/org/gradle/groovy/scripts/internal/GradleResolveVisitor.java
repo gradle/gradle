@@ -844,8 +844,7 @@ public class GradleResolveVisitor extends ResolveVisitor {
         if (currentClass.getModule().hasPackageName() && name.indexOf('.') == -1) {
             return false;
         }
-        ClassNodeResolver.LookupResult lr = null;
-        lr = classNodeResolver.resolveName(name, compilationUnit);
+        ClassNodeResolver.LookupResult lr = classNodeResolver.resolveName(name, compilationUnit);
         if (lr != null) {
             if (lr.isSourceUnit()) {
                 SourceUnit su = lr.getSourceUnit();

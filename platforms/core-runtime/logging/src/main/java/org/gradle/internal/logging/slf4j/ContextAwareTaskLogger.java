@@ -19,8 +19,7 @@ package org.gradle.internal.logging.slf4j;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.internal.operations.OperationIdentifier;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public interface ContextAwareTaskLogger extends Logger {
     interface MessageRewriter {

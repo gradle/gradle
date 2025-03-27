@@ -17,9 +17,9 @@
 package org.gradle.plugin.devel.tasks.internal;
 
 
-import javax.annotation.Nonnull;
+import org.jspecify.annotations.NullMarked;
 
-@Nonnull
+@NullMarked
 public class ValidationTypes {
     public static final String NOT_CACHEABLE_WITHOUT_REASON = "NOT_CACHEABLE_WITHOUT_REASON";
 }

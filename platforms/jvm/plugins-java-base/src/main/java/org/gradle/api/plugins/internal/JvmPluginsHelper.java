@@ -46,8 +46,8 @@ import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.internal.Cast;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.function.BiFunction;

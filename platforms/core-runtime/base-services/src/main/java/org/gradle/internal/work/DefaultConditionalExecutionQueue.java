@@ -19,8 +19,8 @@ package org.gradle.internal.work;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import java.util.Deque;
 import java.util.LinkedList;

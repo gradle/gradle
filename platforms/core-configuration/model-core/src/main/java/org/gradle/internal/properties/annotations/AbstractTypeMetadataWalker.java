@@ -20,8 +20,8 @@ import com.google.common.reflect.TypeToken;
 import org.gradle.api.Named;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.reflect.JavaReflectionUtil;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.util.HashMap;
 import java.util.IdentityHashMap;

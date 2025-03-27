@@ -17,7 +17,6 @@
 package org.gradle.internal.reflect.validation;
 
 import org.gradle.api.Action;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.AdditionalData;
 import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.ProblemGroup;
@@ -29,10 +28,10 @@ import org.gradle.api.problems.internal.InternalProblemBuilder;
 import org.gradle.api.problems.internal.InternalProblemSpec;
 import org.gradle.api.problems.internal.ProblemsInfrastructure;
 import org.gradle.problems.ProblemDiagnostics;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
-
-@NonNullApi
+@NullMarked
 class DelegatingProblemBuilder implements InternalProblemBuilder {
 
     private final InternalProblemBuilder delegate;

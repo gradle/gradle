@@ -16,7 +16,8 @@
 
 package org.gradle.swiftpm.internal;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import java.net.URI;
 
 public class VersionDependency extends Dependency {

@@ -16,12 +16,11 @@
 
 package org.gradle.smoketests
 
-import org.gradle.testdistribution.LocalOnly
 import org.gradle.integtests.fixtures.android.AndroidHome
 import org.gradle.test.fixtures.dsl.GradleDsl
+import org.gradle.testdistribution.LocalOnly
 import org.gradle.util.internal.VersionNumber
 
-import static org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions.hasConfigurationCacheWarnings
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 /**
@@ -77,10 +76,5 @@ abstract class AbstractKotlinPluginAndroidSmokeTest extends AbstractSmokeTest im
         ].combinations()
 
         dsl = getDSL().name()
-    }
-
-    @Override
-    protected int maxConfigurationCacheProblems() {
-        return hasConfigurationCacheWarnings(kotlinPluginVersion) ? 2 : 0
     }
 }

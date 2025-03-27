@@ -20,8 +20,7 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 @ServiceScope(Scope.Global.class)
 public interface OverlappingOutputDetector {

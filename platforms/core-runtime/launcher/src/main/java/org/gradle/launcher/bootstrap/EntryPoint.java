@@ -23,8 +23,8 @@ import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.internal.buildevents.BuildExceptionReporter;
 import org.gradle.internal.logging.DefaultLoggingConfiguration;
 import org.gradle.internal.logging.text.StreamingStyledTextOutputFactory;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.CheckForNull;
 import java.io.PrintStream;
 
 /**
@@ -86,7 +86,7 @@ public abstract class EntryPoint {
             this.failure = failure;
         }
 
-        @CheckForNull
+        @Nullable
         public Throwable getFailure() {
             return failure;
         }

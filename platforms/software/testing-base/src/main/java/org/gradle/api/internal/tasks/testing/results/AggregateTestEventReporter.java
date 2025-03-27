@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.testing.results;
 
 import org.apache.commons.io.FileUtils;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.testing.GenericTestReportGenerator;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.report.generic.MetadataRendererRegistry;
@@ -27,6 +26,7 @@ import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.problems.buildtree.ProblemReporter;
+import org.jspecify.annotations.NullMarked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,7 +45,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Aggregates test results from multiple test executions and generates a report at the end of the build.
  */
-@NonNullApi
+@NullMarked
 @ServiceScope(Scope.BuildTree.class)
 public class AggregateTestEventReporter implements ProblemReporter, TestExecutionResultsListener {
 

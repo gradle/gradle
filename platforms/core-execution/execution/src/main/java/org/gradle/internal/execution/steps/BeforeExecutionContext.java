@@ -20,8 +20,8 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Optional;
 
 public class BeforeExecutionContext extends PreviousExecutionContext {

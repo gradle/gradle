@@ -21,7 +21,6 @@ import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.NamedDomainObjectList;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.artifacts.ComponentMetadataDetails;
 import org.gradle.api.artifacts.ComponentMetadataRule;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
@@ -46,12 +45,13 @@ import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.lazy.Lazy;
+import org.jspecify.annotations.NullMarked;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 
-@NonNullApi
+@NullMarked
 public class DefaultDependencyResolutionManagement implements DependencyResolutionManagementInternal {
     private static final DisplayName UNKNOWN_CODE = Describables.of("unknown code");
     private static final Logger LOGGER = Logging.getLogger(DependencyResolutionManagement.class);

@@ -10,13 +10,10 @@ errorprone {
         "EqualsUnsafeCast", // 1 occurrences
         "GetClassOnClass", // 1 occurrences
         "HidingField", // 1 occurrences
-        "ImmutableEnumChecker", // 2 occurrences
         "ReferenceEquality", // 2 occurrences
         "StaticAssignmentInConstructor", // 1 occurrences
         "StringCharset", // 2 occurrences
-        "UnnecessaryTypeArgument", // 2 occurrences
         "UnusedMethod", // 11 occurrences
-        "UnusedTypeParameter", // 1 occurrences
         "UnusedVariable", // 6 occurrences
     )
 }
@@ -39,7 +36,7 @@ dependencies {
     api(projects.platformBase)
     api(projects.workers)
 
-    api(libs.jsr305)
+    api(libs.jspecify)
     api(libs.inject)
     api(libs.nativePlatform)
     api(libs.slf4jApi)

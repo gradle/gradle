@@ -16,12 +16,12 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskInputFilePropertyBuilder;
 import org.gradle.internal.fingerprint.FileNormalizer;
+import org.jspecify.annotations.NullMarked;
 
-@NonNullApi
+@NullMarked
 public interface TaskInputFilePropertyBuilderInternal extends TaskInputFilePropertyBuilder, TaskFilePropertyBuilderInternal {
 
     @Override

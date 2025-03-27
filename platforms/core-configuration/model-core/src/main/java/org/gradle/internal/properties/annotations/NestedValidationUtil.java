@@ -17,9 +17,9 @@
 package org.gradle.internal.properties.annotations;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -30,7 +30,7 @@ import static org.gradle.internal.deprecation.Documentation.userManual;
 /**
  * Utility methods for validating {@link org.gradle.api.tasks.Nested} properties.
  */
-@NonNullApi
+@NullMarked
 public class NestedValidationUtil {
 
     /**

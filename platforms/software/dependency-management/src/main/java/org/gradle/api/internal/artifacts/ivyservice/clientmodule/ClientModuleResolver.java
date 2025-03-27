@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.clientmodule;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -29,9 +28,9 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.internal.component.external.model.DefaultConfigurationMetadata;
 import org.gradle.internal.component.external.model.ExternalComponentResolveMetadata;
+import org.gradle.internal.component.external.model.ExternalModuleComponentGraphResolveMetadata;
 import org.gradle.internal.component.external.model.ExternalModuleVariantGraphResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
-import org.gradle.internal.component.external.model.ExternalModuleComponentGraphResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveStateFactory;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
@@ -45,14 +44,15 @@ import org.gradle.internal.component.model.ModuleConfigurationMetadata;
 import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-@NonNullApi
+@NullMarked
 public class ClientModuleResolver implements ComponentMetaDataResolver {
     private final ComponentMetaDataResolver resolver;
     private final DependencyMetadataFactory dependencyMetadataFactory;
