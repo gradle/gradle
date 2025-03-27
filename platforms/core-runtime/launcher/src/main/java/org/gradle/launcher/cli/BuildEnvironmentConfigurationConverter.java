@@ -96,7 +96,7 @@ public class BuildEnvironmentConfigurationConverter {
         toolchainConfigurationBuildOptionBackedConverter.convert(args, gradlePropertiesAsSeenByToolchains, environmentVariables, daemonParameters.getToolchainConfiguration());
         daemonParameters.setRequestedJvmCriteriaFromMap(properties.getDaemonJvmProperties());
 
-        return new Parameters(startParameter, daemonParameters, properties);
+        return new Parameters(startParameter, daemonParameters, buildLayout, properties);
     }
 
     public void configure(CommandLineParser parser) {
