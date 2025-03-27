@@ -270,15 +270,15 @@ class JarEncodingIntegrationTest extends AbstractIntegrationSpec {
         fails 'jar'
 
         then:
-        failure.assertHasDescription("A problem occurred evaluating root project 'root'.")
+        failure.assertHasDescription(description)
         failure.assertHasCause(cause)
 
         where:
-        writeCharset    | readCharset     | cause
-        "'UNSUPPORTED'" | "'UTF-8'"       | "Charset for manifestContentCharset 'UNSUPPORTED' is not supported by your JVM"
-        "'UTF-8'"       | "'UNSUPPORTED'" | "Charset for contentCharset 'UNSUPPORTED' is not supported by your JVM"
-        null            | "'UTF-8'"       | "manifestContentCharset must not be null"
-        "'UTF-8'"       | null            | "contentCharset must not be null"
+        writeCharset    | readCharset     | description                                          | cause
+        "'UNSUPPORTED'" | "'UTF-8'"       | "Execution failed for task ':jar'."                  | "Charset for manifestContentCharset 'UNSUPPORTED' is not supported by your JVM"
+        "'UTF-8'"       | "'UNSUPPORTED'" | "A problem occurred evaluating root project 'root'." | "Charset for contentCharset 'UNSUPPORTED' is not supported by your JVM"
+        null            | "'UTF-8'"       | "Execution failed for task ':jar'."                  | "Charset for manifestContentCharset must not be null"
+        "'UTF-8'"       | null            | "A problem occurred evaluating root project 'root'." | "contentCharset must not be null"
     }
 
     private static String customJarManifestTask() {
