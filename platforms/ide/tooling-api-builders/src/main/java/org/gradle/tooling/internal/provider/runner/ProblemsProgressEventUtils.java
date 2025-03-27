@@ -218,20 +218,20 @@ public class ProblemsProgressEventUtils {
     private static InternalAdditionalData toDeprecationReporterData(org.gradle.api.problems.deprecation.DeprecationData data) {
         // Assemble the source data
         ImmutableMap.Builder<String, String> sourceBuilder = ImmutableMap.builder();
-        sourceBuilder.put("name", data.getSource().getName());
+        sourceBuilder.put("name", data.getReportSource().getName());
         // Put source-specific data into the source map
-        if (data.getSource() instanceof PluginReportSource) {
-            sourceBuilder.put("id", ((PluginReportSource) data.getSource()).getId());
+        if (data.getReportSource() instanceof PluginReportSource) {
+            sourceBuilder.put("id", ((PluginReportSource) data.getReportSource()).getId());
         }
         // Assemble the final additional data
         ImmutableMap.Builder<String, Object> builder = ImmutableMap.builder();
-        if (data.getRemovedIn() != null) {
-            builder.put("removedIn", data.getRemovedIn());
+        if (data.getWillBeRemovedInVersion() != null) {
+            builder.put("willBeRemovedInVersion", data.getWillBeRemovedInVersion());
         }
-        if (data.getReplacedBy() != null) {
-            builder.put("replacedBy", data.getReplacedBy());
+        if (data.getShouldBeReplacedBy() != null) {
+            builder.put("shouldBeReplacedBy", data.getShouldBeReplacedBy());
         }
-        builder.put("source", sourceBuilder.build());
+        builder.put("reportSource", sourceBuilder.build());
         return new DefaultInternalAdditionalData(builder.build());
     }
 

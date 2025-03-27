@@ -19,7 +19,7 @@ package org.gradle.api.problems.deprecation.source;
 import org.gradle.api.Incubating;
 
 /**
- * TODO documentation.
+ * If this class is used, it means that the deprecated item comes from Gradle itself.
  *
  * @since 8.14
  */

@@ -25,39 +25,39 @@ import javax.annotation.Nullable;
 
 public class DefaultDeprecationData implements DeprecationData {
 
-    private final ReportSource source;
-    private final String removedIn;
-    private final String replacedBy;
+    private final ReportSource reportSource;
+    private final String shouldBeRemovedIn;
+    private final String willBeReplacedBy;
 
-    public DefaultDeprecationData(ReportSource source, String removedIn, String replacedBy) {
-        this.source = source;
-        this.removedIn = removedIn;
-        this.replacedBy = replacedBy;
+    public DefaultDeprecationData(ReportSource reportSource, String shouldBeRemovedIn, String willBeReplacedBy) {
+        this.reportSource = reportSource;
+        this.shouldBeRemovedIn = shouldBeRemovedIn;
+        this.willBeReplacedBy = willBeReplacedBy;
     }
 
     @Nullable
     @Override
-    public ReportSource getSource() {
-        return source;
+    public ReportSource getReportSource() {
+        return reportSource;
     }
 
     @Nullable
     @Override
-    public String getRemovedIn() {
-        return removedIn;
+    public String getWillBeRemovedInVersion() {
+        return shouldBeRemovedIn;
     }
 
     @Nullable
     @Override
-    public String getReplacedBy() {
-        return replacedBy;
+    public String getShouldBeReplacedBy() {
+        return willBeReplacedBy;
     }
 
     public static AdditionalDataBuilder<? extends AdditionalData> builder(@Nullable DeprecationData input) {
         if (input == null) {
             return new DefaultDeprecationDataBuilder(null, null, null);
         } else {
-            return new DefaultDeprecationDataBuilder(input.getSource(), input.getRemovedIn(), input.getReplacedBy());
+            return new DefaultDeprecationDataBuilder(input.getReportSource(), input.getWillBeRemovedInVersion(), input.getShouldBeReplacedBy());
         }
     }
 

@@ -39,7 +39,7 @@ public interface DeprecationData extends AdditionalData {
      * @since 8.14
      */
     @Nullable
-    ReportSource getSource();
+    ReportSource getReportSource();
 
     /**
      * Returns the version in which the deprecation will become an error.
@@ -48,7 +48,7 @@ public interface DeprecationData extends AdditionalData {
      * @since 8.14
      */
     @Nullable
-    String getRemovedIn();
+    String getWillBeRemovedInVersion();
 
     /**
      * Returns the feature that replaces the deprecated feature.
@@ -57,5 +57,5 @@ public interface DeprecationData extends AdditionalData {
      * @since 8.14
      */
     @Nullable
-    String getReplacedBy();
+    String getShouldBeReplacedBy();
 }
