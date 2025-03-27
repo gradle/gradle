@@ -28,17 +28,11 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.problems.buildtree.ProblemStream;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 
-import javax.annotation.Nonnull;
-
 @ServiceScope(Scope.BuildTree.class)
 public class DefaultProblems implements InternalProblems {
 
-    private final CurrentBuildOperationRef currentBuildOperationRef;
-    private final ProblemSummarizer problemSummarizer;
-    private final InternalProblemReporter internalReporter;
-    private final ExceptionProblemRegistry exceptionProblemRegistry;
-    private final ExceptionAnalyser exceptionAnalyser;
     private final ProblemsInfrastructure infrastructure;
+    private final DefaultProblemReporter problemReporter;
 
     public DefaultProblems(
         ProblemSummarizer problemSummarizer,
@@ -51,43 +45,36 @@ public class DefaultProblems implements InternalProblems {
         IsolatableFactory isolatableFactory,
         IsolatableToBytesSerializer isolatableSerializer
     ) {
-        this.problemSummarizer = problemSummarizer;
-        this.currentBuildOperationRef = currentBuildOperationRef;
-        this.exceptionProblemRegistry = exceptionProblemRegistry;
-        this.exceptionAnalyser = exceptionAnalyser;
         this.infrastructure = new ProblemsInfrastructure(new AdditionalDataBuilderFactory(), instantiator, payloadSerializer, isolatableFactory, isolatableSerializer, problemStream);
-        this.internalReporter = createReporter();
-    }
-
-    @Override
-    public ProblemReporter getReporter() {
-        return createReporter();
-    }
-
-    @Override
-    public DeprecationReporter getDeprecationReporter() {
-        return new DefaultDeprecationReporter(createReporter());
-    }
-
-    @Nonnull
-    private DefaultProblemReporter createReporter() {
-        return new DefaultProblemReporter(
+        this.problemReporter = new DefaultProblemReporter(
             problemSummarizer,
             currentBuildOperationRef,
             exceptionProblemRegistry,
             exceptionAnalyser,
-            infrastructure);
+            infrastructure
+        );
+    }
+
+    @Override
+    public ProblemReporter getReporter() {
+        return problemReporter;
+    }
+
+    @Override
+    public DeprecationReporter getDeprecationReporter() {
+        return new DefaultDeprecationReporter(this.problemReporter);
     }
 
     @Override
     public InternalProblemReporter getInternalReporter() {
-        return internalReporter;
+        return problemReporter;
     }
 
     @Override
     public ProblemsInfrastructure getInfrastructure() {
         return infrastructure;
     }
+
     @Override
     public InternalProblemBuilder getProblemBuilder() {
         return new DefaultProblemBuilder(infrastructure);
