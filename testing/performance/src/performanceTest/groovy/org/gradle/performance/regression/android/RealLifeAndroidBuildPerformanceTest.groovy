@@ -46,9 +46,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
     def setup() {
         runner.args = [AndroidGradlePluginVersions.OVERRIDE_VERSION_CHECK]
         agpVersion = AndroidTestProject.useAgpLatestStableOrRcVersion(runner)
-        // TODO Use dynamic Kotlin version once https://issuetracker.google.com/issues/312738720 is fixed
-        // kgpVersion = AndroidTestProject.useKotlinLatestStableOrRcVersion(runner)
-        kgpVersion = "1.9.22"
+        kgpVersion = AndroidTestProject.useKotlinLatestStableOrRcVersion(runner)
     }
 
     @RunFor([
