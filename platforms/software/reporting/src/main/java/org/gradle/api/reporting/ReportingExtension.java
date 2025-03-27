@@ -21,6 +21,7 @@ import org.gradle.api.Project;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import javax.inject.Inject;
@@ -61,6 +62,25 @@ public abstract class ReportingExtension {
         this.baseDirectory = project.getObjects().directoryProperty();
         this.reports = project.getObjects().polymorphicDomainObjectContainer(ReportSpec.class);
         baseDirectory.set(project.getLayout().getBuildDirectory().dir(DEFAULT_REPORTS_DIR_NAME));
+    }
+
+    /**
+     * The base directory for all reports
+     * <p>
+     * This value can be changed, so any files derived from this should be calculated on demand.
+     *
+     * @return The base directory for all reports
+     * @deprecated use {@link #getBaseDirectory()} property instead
+     */
+    @Deprecated
+    public File getBaseDir() {
+        DeprecationLogger.deprecateMethod(ReportingExtension.class, "getBaseDir()")
+            .replaceWith("getBaseDirectory() property")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "reporting-base-dir")
+            .nagUser();
+
+        return baseDirectory.getAsFile().get();
     }
 
     /**

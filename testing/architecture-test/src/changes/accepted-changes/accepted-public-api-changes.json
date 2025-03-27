@@ -122,14 +122,6 @@
         },
         {
             "type": "org.gradle.api.reporting.ReportingExtension",
-            "member": "Method org.gradle.api.reporting.ReportingExtension.getBaseDir()",
-            "acceptation": "Removed deprecated method",
-            "changes": [
-                "Method has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.api.reporting.ReportingExtension",
             "member": "Method org.gradle.api.reporting.ReportingExtension.setBaseDir(java.io.File)",
             "acceptation": "Removed deprecated method",
             "changes": [
