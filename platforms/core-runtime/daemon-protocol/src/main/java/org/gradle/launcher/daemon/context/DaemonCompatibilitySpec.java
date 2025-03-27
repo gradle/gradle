@@ -18,6 +18,7 @@ package org.gradle.launcher.daemon.context;
 import org.gradle.api.internal.specs.ExplainingSpec;
 import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria;
 
 import java.io.File;
@@ -66,7 +67,17 @@ public class DaemonCompatibilitySpec implements ExplainingSpec<DaemonContext> {
     private boolean jvmCompatible(DaemonContext potentialContext) {
         DaemonJvmCriteria criteria = desiredContext.getJvmCriteria();
         if (criteria instanceof DaemonJvmCriteria.Spec) {
-            return ((DaemonJvmCriteria.Spec) criteria).isCompatibleWith(potentialContext.getJavaVersion(), potentialContext.getJavaVendor());
+            DaemonJvmCriteria.Spec daemonJvmCriteria = (DaemonJvmCriteria.Spec) criteria;
+            if (daemonJvmCriteria.isCompatibleWith(potentialContext.getJavaVersion(), potentialContext.getJavaVendor())) {
+                if (daemonJvmCriteria.isNativeImageCapable()) {
+                    // Need to assess that $JAVA_HOME/bin/native-image exists
+                    return new File(new File(potentialContext.getJavaHome(), "bin"), OperatingSystem.current().getExecutableName("native-image")).exists();
+                } else {
+                    return true;
+                }
+            } else {
+                return false;
+            }
         }
         try {
             File potentialJavaHome = potentialContext.getJavaHome();
