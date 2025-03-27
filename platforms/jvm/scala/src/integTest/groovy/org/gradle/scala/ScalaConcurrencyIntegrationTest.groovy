@@ -18,11 +18,13 @@ package org.gradle.scala
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ScalaCoverage
+import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 import spock.lang.Issue
 
 
+@Flaky(because = "https://github.com/gradle/gradle-private/issues/4636")
 class ScalaConcurrencyIntegrationTest extends AbstractIntegrationSpec {
     @Rule BlockingHttpServer httpServer = new BlockingHttpServer()
 
