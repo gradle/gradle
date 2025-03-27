@@ -66,7 +66,7 @@ public class MavenResolver extends ExternalResourceResolver {
         FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
         ImmutableMetadataSources metadataSources,
         MetadataArtifactProvider metadataArtifactProvider,
-        MavenMetadataLoader mavenMetadataLoader,
+        MavenMetadataLoader mavenMetaDataLoader,
         @Nullable InstantiatingAction<ComponentMetadataSupplierDetails> componentMetadataSupplierFactory,
         @Nullable InstantiatingAction<ComponentMetadataListerDetails> versionListerFactory,
         Instantiator injector,
@@ -82,7 +82,7 @@ public class MavenResolver extends ExternalResourceResolver {
             versionListerFactory,
             injector,
             checksumService);
-        this.mavenMetaDataLoader = mavenMetadataLoader;
+        this.mavenMetaDataLoader = mavenMetaDataLoader;
         this.root = rootUri;
     }
 

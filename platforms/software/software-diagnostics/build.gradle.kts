@@ -9,8 +9,6 @@ dependency management types should be included here."""
 
 errorprone {
     disabledChecks.addAll(
-        "InlineMeInliner", // 1 occurrences
-        "MixedMutabilityReturnType", // 1 occurrences
         "NonApiType" // 1 occurrences
     )
 }

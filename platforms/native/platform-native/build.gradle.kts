@@ -9,12 +9,9 @@ errorprone {
         "DefaultCharset", // 2 occurrences
         "EqualsUnsafeCast", // 1 occurrences
         "GetClassOnClass", // 1 occurrences
-        "HidingField", // 1 occurrences
         "ReferenceEquality", // 2 occurrences
         "StaticAssignmentInConstructor", // 1 occurrences
         "StringCharset", // 2 occurrences
-        "UnusedMethod", // 11 occurrences
-        "UnusedVariable", // 6 occurrences
     )
 }
 

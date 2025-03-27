@@ -71,8 +71,8 @@ public class TemplateOperationFactory {
             return this;
         }
 
-        public TemplateOperationBuilder withTemplate(URL templateURL) {
-            this.templateUrl = templateURL;
+        public TemplateOperationBuilder withTemplate(URL templateUrl) {
+            this.templateUrl = templateUrl;
             return this;
         }
 

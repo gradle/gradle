@@ -108,6 +108,8 @@ class LifecycleTrackingTestEventReporter<T extends TestEventReporter> implements
                 throw new IllegalStateException("completed(...) has already been called");
             case CLOSED:
                 throw new IllegalStateException("close() has already been called");
+            case STARTED:
+                break;
         }
     }
 

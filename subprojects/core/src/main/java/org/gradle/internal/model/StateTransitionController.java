@@ -327,13 +327,11 @@ public class StateTransitionController<T extends StateTransitionController.State
      * Currently in the given state.
      */
     private static class InState<T> extends CurrentState<T> {
-        private final DisplayName displayName;
         @Nullable
         private final InState<T> previous;
 
         public InState(DisplayName displayName, T state, @Nullable InState<T> previous) {
             super(displayName, state);
-            this.displayName = displayName;
             this.previous = previous;
         }
 
