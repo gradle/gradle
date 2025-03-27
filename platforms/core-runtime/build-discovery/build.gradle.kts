@@ -23,6 +23,7 @@ description = "Internal API for discovery of build settings and build-relevant l
 dependencies {
     api(projects.stdlibJavaExtensions)
 
+    api(libs.inject)
     api(libs.jspecify)
 
     implementation(projects.buildProcessServices)
