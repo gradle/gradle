@@ -201,8 +201,8 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
                     getProblems()
                         .getDeprecationReporter()
                         .deprecate(${reportSource}, "test deprecation", feature -> feature
-                            .removedInVersion("x.y.z")
-                            .replacedBy("replacement")
+                            .willBeRemovedInVersion("x.y.z")
+                            .shouldBeReplacedBy("replacement")
                             .details("reasoning")
                         )
                 }
