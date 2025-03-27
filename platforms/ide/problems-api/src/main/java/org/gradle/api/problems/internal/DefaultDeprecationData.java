@@ -70,9 +70,7 @@ public class DefaultDeprecationData implements DeprecationData {
             this.type = type;
             return this;
         }
-
-
-
+        
         @Override
         public DeprecationData build() {
             return new DefaultDeprecationData(type);
