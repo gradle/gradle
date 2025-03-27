@@ -211,9 +211,9 @@ The `Settings.getDefaults()` incubating method introduced in 8.10 has been remov
 Use`Settings.defaults(Action<SharedModelDefaults>)` method, taking a lambda, instead.
 The change is driven by the need to interpret such default values in the scope of individual projects and not at Settings level.
 
-==== Upgrade to Guava 33.4.5
+==== Upgrade to Guava 33.4.6
 
-Guava was updated from 32.1.2 to 33.4.5, which deprecates some core features like `Charsets` or `Ints.compare`.
+Guava was updated from 32.1.2 to 33.4.6, which deprecates some core features like `Charsets`.
 See https://github.com/google/guava/releases for details.
 
 === Deprecations
