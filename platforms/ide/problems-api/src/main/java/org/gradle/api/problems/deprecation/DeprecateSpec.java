@@ -43,7 +43,7 @@ public interface DeprecateSpec {
      * @return the fluent builder used to call this
      * @since 8.14
      */
-    DeprecateSpec replacedBy(String replacement);
+    DeprecateSpec shouldBeReplacedBy(String replacement);
 
     /**
      * Declares in which version the deprecated item will be removed.
@@ -52,7 +52,7 @@ public interface DeprecateSpec {
      * @return the fluent builder used to call this
      * @since 8.14
      */
-    DeprecateSpec removedInVersion(String version);
+    DeprecateSpec shouldBeRemovedInVersion(String version);
 
     /**
      * Declares where extra documentation can be found.

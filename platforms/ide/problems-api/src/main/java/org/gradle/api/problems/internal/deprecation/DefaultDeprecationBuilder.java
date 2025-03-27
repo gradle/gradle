@@ -40,7 +40,7 @@ class DefaultDeprecationBuilder implements DeprecateSpec {
     }
 
     @Override
-    public DefaultDeprecationBuilder replacedBy(final String replacement) {
+    public DefaultDeprecationBuilder shouldBeReplacedBy(final String replacement) {
         builder.additionalDataInternal(
             DeprecationDataSpec.class,
             new Action<DeprecationDataSpec>() {
@@ -54,7 +54,7 @@ class DefaultDeprecationBuilder implements DeprecateSpec {
     }
 
     @Override
-    public DefaultDeprecationBuilder removedInVersion(final String version) {
+    public DefaultDeprecationBuilder shouldBeRemovedInVersion(final String version) {
         builder.additionalDataInternal(
             DeprecationDataSpec.class,
             new Action<DeprecationDataSpec>() {
