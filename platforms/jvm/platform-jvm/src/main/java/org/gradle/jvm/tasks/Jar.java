@@ -35,6 +35,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.bundling.Zip;
 import org.gradle.internal.execution.OutputChangeListener;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.serialization.Cached;
 import org.gradle.util.internal.ConfigureUtil;
@@ -55,7 +56,6 @@ public abstract class Jar extends Zip {
     public static final String DEFAULT_EXTENSION = "jar";
     private Manifest manifest;
     private final CopySpecInternal metaInf;
-    private final Property<String> manifestContentCharset;
 
     @SuppressWarnings("this-escape")
     @Inject
@@ -63,8 +63,8 @@ public abstract class Jar extends Zip {
         getArchiveExtension().set(DEFAULT_EXTENSION);
         getMetadataCharset().convention("UTF-8");
 
-        this.manifestContentCharset = getObjectFactory().property(String.class).convention(ManifestInternal.DEFAULT_CONTENT_CHARSET);
-        manifest = new DefaultManifest(getFileResolver(), manifestContentCharset);
+        getManifestContentCharset().convention(ManifestInternal.DEFAULT_CONTENT_CHARSET);
+        manifest = new DefaultManifest(getFileResolver(), getManifestContentCharset());
         // Add these as separate specs, so they are not affected by the changes to the main spec
         metaInf = (CopySpecInternal) getRootSpec().addFirst().into("META-INF");
         metaInf.addChild().from(manifestFileTree());
@@ -83,9 +83,15 @@ public abstract class Jar extends Zip {
     }
 
     private ManifestInternal computeManifest() {
+        if (!getManifestContentCharset().isPresent()) {
+            throw new InvalidUserDataException("Charset for manifestContentCharset must not be null");
+        }
+        if (!Charset.isSupported(getManifestContentCharset().get())) {
+            throw new InvalidUserDataException(String.format("Charset for manifestContentCharset '%s' is not supported by your JVM", getManifestContentCharset().get()));
+        }
         Manifest manifest = getManifest();
         if (manifest == null) {
-            manifest = new DefaultManifest(getFileResolver(), manifestContentCharset);
+            manifest = new DefaultManifest(getFileResolver(), getManifestContentCharset());
         }
         ManifestInternal manifestInternal;
         if (manifest instanceof ManifestInternal) {
@@ -93,7 +99,7 @@ public abstract class Jar extends Zip {
             manifestInternal = (ManifestInternal) manifest;
         } else {
             // If the manifest is not charset-aware, wrap it in a charset-aware wrapper
-            manifestInternal = new CustomManifestInternalWrapper(manifest, manifestContentCharset);
+            manifestInternal = new CustomManifestInternalWrapper(manifest, getManifestContentCharset());
         }
         return manifestInternal;
     }
@@ -127,27 +133,8 @@ public abstract class Jar extends Zip {
      * @since 2.14
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public String getManifestContentCharset() {
-        return manifestContentCharset.get();
-    }
-
-    /**
-     * The character set used to encode the manifest content.
-     *
-     * @param manifestContentCharset the character set used to encode the manifest content
-     * @see #getManifestContentCharset()
-     * @since 2.14
-     */
-    public void setManifestContentCharset(String manifestContentCharset) {
-        if (manifestContentCharset == null) {
-            throw new InvalidUserDataException("manifestContentCharset must not be null");
-        }
-        if (!Charset.isSupported(manifestContentCharset)) {
-            throw new InvalidUserDataException(String.format("Charset for manifestContentCharset '%s' is not supported by your JVM", manifestContentCharset));
-        }
-        this.manifestContentCharset.set(manifestContentCharset);
-    }
+    @ReplacesEagerProperty
+    public abstract Property<String> getManifestContentCharset();
 
     /**
      * Returns the manifest for this JAR archive.
@@ -198,7 +185,7 @@ public abstract class Jar extends Zip {
 
     private Manifest forceManifest() {
         if (manifest == null) {
-            manifest = new DefaultManifest(getFileResolver(), manifestContentCharset);
+            manifest = new DefaultManifest(getFileResolver(), getManifestContentCharset());
         }
         return manifest;
     }
