@@ -165,6 +165,29 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
         result.error.contains("2 warnings\n")
     }
 
+    def "problem is received when a single-file note happens"() {
+        given:
+        possibleFileLocations.put(writeJavaCausingOneNoteCompilationWarnings("Foo").absolutePath, 2)
+        buildFile.text = buildFile.text.replaceAll(/"-Xlint:all"/, "")
+
+        when:
+        run("compileJava")
+
+        then:
+        verifyAll(receivedProblem(0)) {
+            assertLocations(it, false, false)
+            severity == Severity.ADVICE
+            fqid == 'compilation:java:compiler-note-unchecked-filename'
+            contextualLabel == "${buildFile.parentFile.path}/src/main/java/Foo.java uses unchecked or unsafe operations."
+        }
+        verifyAll(receivedProblem(1)) {
+            assertLocations(it, false, false)
+            severity == Severity.ADVICE
+            fqid == 'compilation:java:compiler-note-unchecked-recompile'
+            contextualLabel == "Recompile with -Xlint:unchecked for details."
+        }
+    }
+
     def "problems are received when a multi-file warning happens"() {
         given:
         possibleFileLocations.put(writeJavaCausingTwoCompilationWarnings("Foo").absolutePath, 2)
@@ -321,7 +344,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
                 it.path == fooFileLocation.absolutePath
             }
             details == """\
-$fooFileLocation:5: warning: [cast] redundant cast to $expectedType
+$fooFileLocation:11: warning: [cast] redundant cast to $expectedType
         String s = (String)"Hello World";
                    ^"""
         }
@@ -332,7 +355,7 @@ $fooFileLocation:5: warning: [cast] redundant cast to $expectedType
             contextualLabel == 'redundant cast to java.lang.String'
             solutions.empty
             details == """\
-${fooFileLocation}:9: warning: [cast] redundant cast to $expectedType
+${fooFileLocation}:7: warning: [cast] redundant cast to $expectedType
         String s = (String)"Hello World";
                    ^"""
         }
@@ -524,6 +547,7 @@ ${fooFileLocation}:9: warning: [cast] redundant cast to $expectedType
         boolean expectLineLocation = true,
         boolean expectOffsetLocation = !expectLineLocation
     ) {
+
         assert problem.contextualLabel != null, "Expected contextual label to be non-null, but was null"
 
         def locations = problem.originLocations + problem.contextualLocations
@@ -578,6 +602,12 @@ ${fooFileLocation}:9: warning: [cast] redundant cast to $expectedType
         def generator = new ProblematicClassGenerator(testDirectory, className)
         generator.addWarning()
         generator.addWarning()
+        return generator.save()
+    }
+
+    TestFile writeJavaCausingOneNoteCompilationWarnings(String className) {
+        def generator = new ProblematicClassGenerator(testDirectory, className)
+        generator.addNotable()
         return generator.save()
     }
 
