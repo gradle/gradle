@@ -62,6 +62,26 @@ class DaemonToolchainCrossVersionTest extends ToolingApiSpecification implements
         assertDaemonUsedJvm(otherJvm.javaHome)
     }
 
+    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    def "Given installation with relative path to project and disabled auto-detection When executing any task Then daemon jvm was set up with the relative path toolchain"() {
+        given:
+        def otherJvm = AvailableJavaHomes.getJdk11()
+        def relativePathOtherJvmInstallation = projectDir.relativePath(otherJvm.javaHome)
+        writeJvmCriteria(otherJvm.javaVersion.majorVersion)
+        withInstallations(file(relativePathOtherJvmInstallation))
+        captureJavaHome()
+
+        when:
+        withConnection {
+            it.newBuild().forTasks("help").withArguments(
+                "-Dorg.gradle.java.installations.auto-detect=false",
+            ).run()
+        }
+
+        then:
+        assertDaemonUsedJvm(otherJvm.javaHome)
+    }
+
     @Requires(IntegTestPreconditions.Java11HomeAvailable)
     def "Given daemon toolchain criteria that doesn't match installed ones When executing any task Then fails with the expected message"() {
         given:
