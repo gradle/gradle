@@ -363,5 +363,11 @@ class CrossProjectConfigurationReportingGradle private constructor(
 
     override fun includedBuilds(): MutableList<out IncludedBuildInternal> =
         delegate.includedBuilds()
+
+    override fun crossStableProjectsCoordinatesBarrier() =
+        delegate.crossStableProjectsCoordinatesBarrier()
+
+    override fun isOverStableProjectsCoordinatesBarrier(): Boolean =
+        delegate.isOverStableProjectsCoordinatesBarrier()
     //endregion delegated members
 }
