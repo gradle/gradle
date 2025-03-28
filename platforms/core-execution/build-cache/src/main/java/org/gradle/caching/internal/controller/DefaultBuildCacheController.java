@@ -300,7 +300,7 @@ public class DefaultBuildCacheController implements BuildCacheController {
 
     private static class AsyncExecutor implements Closeable {
         private final Executor delegate;
-        private final Set<Runnable> runnables = ConcurrentHashMap.newKeySet();
+        private final Set<CompletableFuture<?>> runningOrFailedFutures = ConcurrentHashMap.newKeySet();
 
         private AsyncExecutor(Executor delegate) {
             this.delegate = delegate;
@@ -308,15 +308,14 @@ public class DefaultBuildCacheController implements BuildCacheController {
 
         @SuppressWarnings("FutureReturnValueIgnored")
         public void runAsync(Runnable runnable) {
-            runnables.add(runnable);
+            CompletableFuture<Void> future = CompletableFuture.runAsync(runnable, delegate);
+            runningOrFailedFutures.add(future);
+            future.thenAccept(result -> runningOrFailedFutures.remove(future));
         }
 
         @Override
         public void close() {
-            CompletableFuture<?>[] futures = runnables.stream()
-                .map(runnable -> CompletableFuture.runAsync(runnable, delegate))
-                .toArray(CompletableFuture<?>[]::new);
-            CompletableFuture.allOf(futures).join();
+            CompletableFuture.allOf(runningOrFailedFutures.toArray(new CompletableFuture<?>[0])).join();
         }
     }
 
