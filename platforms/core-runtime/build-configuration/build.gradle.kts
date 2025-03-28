@@ -11,7 +11,6 @@ dependencies {
     api(projects.core)
     api(projects.coreApi)
     api(projects.jvmServices)
-    api(projects.modelCore)
     api(projects.native)
     api(projects.problemsApi)
     api(projects.serviceProvider)

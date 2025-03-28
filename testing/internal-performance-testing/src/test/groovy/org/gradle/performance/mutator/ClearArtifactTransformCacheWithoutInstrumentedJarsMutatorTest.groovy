@@ -23,7 +23,7 @@ import static org.gradle.api.internal.initialization.transform.utils.Instrumenta
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.MERGE_OUTPUT_DIR
 import static org.gradle.internal.classpath.TransformedClassPath.FileMarker.INSTRUMENTATION_CLASSPATH_MARKER
 import static org.gradle.performance.mutator.ClearArtifactTransformCacheWithoutInstrumentedJarsMutator.GRADLE_PRE_8_8_CLASSPATH_MAKER
-import static org.gradle.profiler.mutations.AbstractCleanupMutator.CleanupSchedule.BUILD
+import static org.gradle.profiler.mutations.AbstractScheduledMutator.Schedule.BUILD
 
 class ClearArtifactTransformCacheWithoutInstrumentedJarsMutatorTest extends Specification {
 

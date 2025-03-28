@@ -18,6 +18,8 @@ package org.gradle.smoketests
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.VersionNumber
 
@@ -27,6 +29,7 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 @UnsupportedWithConfigurationCache(
     because = "The Gretty plugin does not support configuration caching"
 )
+@Requires(UnitTestPreconditions.Jdk11OrLater)
 class GrettySmokeTest extends AbstractPluginValidatingSmokeTest {
 
     def 'run Jetty with Gretty #grettyConfig.version'() {

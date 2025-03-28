@@ -25,14 +25,6 @@
                 </tr>
             </thead>
             <tr>
-                <td>jvmVendor</td>
-                <td>defaults to allowing any JVM vendor</td>
-            </tr>
-            <tr>
-                <td>jvmVersion</td>
-                <td>defaults to current JVM version</td>
-            </tr>
-            <tr>
                 <td>languageVersion</td>
                 <td>defaults to current JVM version</td>
             </tr>

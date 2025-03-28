@@ -16,7 +16,7 @@
 
 package org.gradle.performance.mutator;
 
-import org.gradle.profiler.mutations.AbstractCleanupMutator;
+import org.gradle.profiler.mutations.AbstractScheduledMutator;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,18 +36,18 @@ import java.util.stream.Stream;
  * This will become unnecessary once Gradle waits for the daemon to completely shut down before `--stop` exits.
  * </p>
  */
-public class RetryingClearGradleUserHomeMutator extends AbstractCleanupMutator {
+public class RetryingClearGradleUserHomeMutator extends AbstractScheduledMutator {
     private static final int MAX_RETRIES = 3;
 
     private final File gradleUserHome;
 
-    public RetryingClearGradleUserHomeMutator(File gradleUserHome, CleanupSchedule schedule) {
+    public RetryingClearGradleUserHomeMutator(File gradleUserHome, Schedule schedule) {
         super(schedule);
         this.gradleUserHome = gradleUserHome;
     }
 
     @Override
-    protected void cleanup() {
+    protected void executeOnSchedule() {
         System.out.println(String.format("> Cleaning Gradle user home: %s", gradleUserHome.getAbsolutePath()));
         if (!gradleUserHome.exists()) {
             throw new IllegalArgumentException(String.format(
