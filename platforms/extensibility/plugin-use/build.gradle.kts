@@ -16,15 +16,16 @@ dependencies {
     api(projects.modelCore)
     api(projects.modelReflect)
     api(projects.problemsApi)
+    api(projects.softwareFeatures)
 
     api(libs.guava)
     api(libs.jspecify)
 
     implementation(projects.functional)
-
-    implementation(libs.slf4jApi)
-
     implementation(projects.jvmServices)
+
+    implementation(libs.jsr305)
+    implementation(libs.slf4jApi)
 
     testImplementation(testFixtures(projects.resourcesHttp))
     testImplementation(testFixtures(projects.core))

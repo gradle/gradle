@@ -34,6 +34,7 @@ import org.gradle.internal.reflect.DefaultTypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.plugin.software.internal.ModelDefault;
+import org.gradle.plugin.software.internal.ModelDefaultsApplicator;
 import org.gradle.plugin.software.internal.ModelDefaultsHandler;
 import org.gradle.plugin.software.internal.SoftwareFeatureRegistry;
 import org.gradle.plugin.software.internal.SoftwareFeatureImplementation;
@@ -64,7 +65,7 @@ public class ActionBasedModelDefaultsHandler implements ModelDefaultsHandler {
     }
 
     @Override
-    public <T> void apply(T target, ClassLoaderScope classLoaderScope, String softwareFeatureName, Plugin<?> plugin) {
+    public <T> void apply(T target, ModelDefaultsApplicator.ClassLoaderContext classLoaderContext, String softwareFeatureName, Plugin<?> plugin) {
         SoftwareFeatureImplementation<?> softwareFeatureImplementation = softwareFeatureRegistry.getSoftwareFeatureImplementations().get(softwareFeatureName);
 
         DefaultTypeValidationContext typeValidationContext = DefaultTypeValidationContext.withRootType(plugin.getClass(), false, problems);

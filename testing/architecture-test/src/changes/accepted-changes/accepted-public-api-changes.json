@@ -1641,6 +1641,14 @@
             ]
         },
         {
+            "type": "org.gradle.api.tasks.diagnostics.ProjectReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.ProjectReportTask.getSoftwareTypeRegistry()",
+            "acceptation": "Protected internal method only used for service injection",
+            "changes": [
+                "Method return type has changed"
+            ]
+        },
+        {
             "type": "org.gradle.api.tasks.javadoc.Groovydoc",
             "member": "Method org.gradle.api.tasks.javadoc.Groovydoc.getAntGroovydoc()",
             "acceptation": "these methods were deprecated",
