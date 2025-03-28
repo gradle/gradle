@@ -90,7 +90,7 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractLa
         buildFile << """
             apply plugin: SomePlugin
 
-            println "flag = " + tasks.someTask.flag
+            println "flag = " + tasks.someTask.flag.toDebugString()
         """
 
         when:

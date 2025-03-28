@@ -218,7 +218,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
 
             extensions.create("thing", Thing)
             assert thing.value.getOrNull() == null
-            assert thing.value.toString() == "extension 'thing' property 'value'"
+            assert thing.value.toDebugString() == "extension 'thing' property 'value'"
             thing {
                 value = "value"
             }
@@ -236,7 +236,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
             }
 
             extensions.create("thing", Thing)
-            assert thing.value.toString() == "extension 'thing' property 'value'"
+            assert thing.value.toDebugString() == "extension 'thing' property 'value'"
             assert thing.value.getOrNull() == null
             thing {
                 value = file("thing.txt")
@@ -255,7 +255,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
             }
 
             extensions.create("thing", Thing)
-            assert thing.value.toString() == "extension 'thing' property 'value'"
+            assert thing.value.toDebugString() == "extension 'thing' property 'value'"
             assert thing.value.getOrNull() == null
             thing {
                 value = file("thing.txt")
@@ -274,7 +274,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
             }
 
             extensions.create("thing", Thing)
-            assert thing.value.toString() == "extension 'thing' property 'value'"
+            assert thing.value.toDebugString() == "extension 'thing' property 'value'"
             assert thing.value.getOrNull() == []
             thing {
                 value = ["thing"]
@@ -293,7 +293,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
             }
 
             extensions.create("thing", Thing)
-            assert thing.value.toString() == "extension 'thing' property 'value'"
+            assert thing.value.toDebugString() == "extension 'thing' property 'value'"
             assert thing.value.getOrNull() == [] as Set
             thing {
                 value = ["thing"]
@@ -312,7 +312,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
             }
 
             extensions.create("thing", Thing)
-            assert thing.value.toString() == "extension 'thing' property 'value'"
+            assert thing.value.toDebugString() == "extension 'thing' property 'value'"
             assert thing.value.getOrNull() == [:]
             thing {
                 value = [a: "b"]
@@ -388,7 +388,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
 
             extensions.create("thing", Thing)
             assert thing.value.toString() == "extension 'thing' property 'value'"
-            assert thing.value.name.toString() == "extension 'thing' property 'value.name'"
+            assert thing.value.name.toDebugString() == "extension 'thing' property 'value.name'"
             thing.value.name = 'some name'
             assert thing.value.name.get() == 'some name'
         """
@@ -535,7 +535,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
             abstract class DisplayName {
                 abstract Property<String> getProp()
 
-                String toString() { return "<display name> prop=" + prop }
+                String toString() { return "<display name> prop=" + prop.toDebugString() }
             }
 
             def displayName = extensions.create("name", DisplayName)

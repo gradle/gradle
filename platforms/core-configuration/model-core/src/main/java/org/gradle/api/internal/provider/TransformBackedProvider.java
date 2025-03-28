@@ -96,7 +96,7 @@ public class TransformBackedProvider<OUT, IN> extends AbstractMinimalProvider<OU
         provider.getProducer().visitContentProducerTasks(producer -> {
             if (!producer.getState().getExecuted()) {
                 throw new InvalidUserCodeException(
-                    String.format("Querying the mapped value of %s before %s has completed is not supported", provider, producer)
+                    String.format("Querying the mapped value of %s before %s has completed is not supported", provider.toDebugString(), producer)
                 );
             }
         });
@@ -104,6 +104,6 @@ public class TransformBackedProvider<OUT, IN> extends AbstractMinimalProvider<OU
 
     @Override
     protected String toStringNoReentrance() {
-        return "map(" + (type == null ? "" : type.getName() + " ") + provider + ")";
+        return "map(" + (type == null ? "" : type.getName() + " ") + provider.toDebugString() + ")";
     }
 }

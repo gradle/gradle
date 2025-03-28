@@ -129,6 +129,7 @@ class PublicApiIntegrationTest extends AbstractIntegrationSpec implements JavaTo
 
             import org.gradle.api.DefaultTask
             import org.gradle.api.provider.MapProperty
+            import org.gradle.api.provider.Provider
             import org.gradle.api.tasks.Input
             import org.gradle.api.tasks.TaskAction
 
@@ -141,7 +142,7 @@ class PublicApiIntegrationTest extends AbstractIntegrationSpec implements JavaTo
                 @TaskAction
                 void customAction() {
                     println("Hello from custom task")
-                    println("- mapValues['alma'] = \${mapValues['alma']}")
+                    println("- mapValues['alma'] = \${(mapValues['alma'] as Provider<Integer>).get()}")
                 }
             }
         """

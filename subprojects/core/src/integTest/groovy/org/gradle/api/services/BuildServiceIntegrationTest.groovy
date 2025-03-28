@@ -921,6 +921,7 @@ service: closed with value 12
         """)
 
         when:
+        executer.expectDeprecationWarning("Calling toString() on a Provider This behavior has been deprecated. This will fail with an error in Gradle 9.0.")
         fails("hello")
 
         then:
@@ -932,6 +933,7 @@ Hello, subproject1
 > Task :subproject2:hello FAILED
 """
         failureDescriptionContains("Execution failed for task ':subproject2:hello'.")
+        // TODO: the rendering of the power assert calls toString on providers referenced by the service
         failureCauseContains("assert MyService == myService.type")
     }
 
