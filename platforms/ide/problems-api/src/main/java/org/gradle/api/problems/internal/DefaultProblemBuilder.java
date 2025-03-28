@@ -116,9 +116,10 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         if (diagnostics != null) {
             return diagnostics;
         }
-        return problemsInfrastructure.getProblemStream() != null
-            ? problemsInfrastructure.getProblemStream().forCurrentCaller(exceptionForStackLocation())
-            : null;
+        if(!collectStackLocation || problemsInfrastructure.getProblemStream() == null) {
+            return null;
+        }
+        return problemsInfrastructure.getProblemStream().forCurrentCaller(exceptionForStackLocation());
     }
 
     private void addLocationsFromDiagnostics(List<ProblemLocation> locations, ProblemDiagnostics diagnostics) {
@@ -178,7 +179,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         );
     }
 
-    public Throwable exceptionForStackLocation() {
+    private Throwable exceptionForStackLocation() {
         return getException() == null && collectStackLocation ? new RuntimeException() : getException();
     }
 
