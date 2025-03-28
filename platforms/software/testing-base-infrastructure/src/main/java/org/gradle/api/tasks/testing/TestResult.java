@@ -20,6 +20,7 @@ import org.gradle.api.Incubating;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Describes a test result.
@@ -73,9 +74,8 @@ public interface TestResult {
      *
      * @since 8.14
      */
-    @Nullable
     @Incubating
-    Throwable getAssumptionFailureException();
+    Optional<TestFailure> getAssumptionFailure();
 
     /**
      * Returns the time when this test started execution.

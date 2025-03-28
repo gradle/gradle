@@ -313,6 +313,8 @@ public class JUnitXmlResultWriter {
         public void write(SimpleXmlWriter writer) throws IOException {
             writer.startElement("skipped");
             if (assumptionFailure != null) {
+                writer.attribute("message", assumptionFailure.getMessage());
+                writer.attribute("type", assumptionFailure.getExceptionType());
                 writer.write(assumptionFailure.getStackTrace());
             }
             writer.endElement();

@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.testing.junit;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.testing.DefaultTestDescriptor;
+import org.gradle.api.internal.tasks.testing.DefaultTestFailure;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
@@ -39,6 +40,7 @@ import org.junit.runner.notification.RunListener;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -140,7 +142,7 @@ public class JUnitTestEventAdapter extends RunListener {
     }
 
     private void reportAssumptionFailure(Object descriptorId, Throwable throwable) {
-        TestFailure assumptionFailure = TestFailure.fromAssumptionFailure(throwable);
+        TestFailure assumptionFailure = DefaultTestFailure.fromTestAssumptionFailure(throwable, Collections.<TestFailure>emptyList());
         resultProcessor.failure(descriptorId, assumptionFailure);
     }
 

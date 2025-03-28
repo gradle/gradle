@@ -79,7 +79,7 @@ class JUnitXmlResultWriterSpec extends Specification {
     <skipped/>
   </testcase>
   <testcase name="some assumption failure test" classname="com.foo.FooTest" time="0.01">
-    <skipped>[assumption-failure-stack-trace]</skipped>
+    <skipped message="assumption failed" type="AssumptionViolationException">[assumption-failure-stack-trace]</skipped>
   </testcase>
   <system-out><![CDATA[1st output message
 2nd output message

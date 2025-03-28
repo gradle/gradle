@@ -14,18 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.testing.results;
-
+package org.gradle.api.internal.tasks.testing.results
 
 import org.gradle.api.internal.tasks.testing.DefaultTestDescriptor
+import org.gradle.api.internal.tasks.testing.DefaultTestFailure
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent
 import org.gradle.api.internal.tasks.testing.TestStartEvent
-import org.gradle.api.tasks.testing.TestFailure
 import org.gradle.api.tasks.testing.TestResult.ResultType
 import org.junit.AssumptionViolatedException
 import spock.lang.Specification
 
-public class DefaultTestResultTest extends Specification {
+class DefaultTestResultTest extends Specification {
 
     def "construct itself from the state"() {
         expect:
@@ -34,7 +33,7 @@ public class DefaultTestResultTest extends Specification {
 
         when:
         def assumptionFailureException = new AssumptionViolatedException("")
-        state.assumptionFailure = TestFailure.fromAssumptionFailure(assumptionFailureException)
+        state.assumptionFailure = DefaultTestFailure.fromTestAssumptionFailure(assumptionFailureException, [])
         def result = new DefaultTestResult(state)
 
         then:
@@ -45,7 +44,7 @@ public class DefaultTestResultTest extends Specification {
         result.testCount == state.testCount
         result.successfulTestCount == state.successfulCount
         result.failedTestCount == state.failedCount
-        result.assumptionFailureException == state.assumptionFailure.getRawFailure()
+        result.assumptionFailure.get() == state.assumptionFailure
     }
 
     def "return null for unset assumption failure"() {
@@ -57,6 +56,6 @@ public class DefaultTestResultTest extends Specification {
         def result = new DefaultTestResult(state)
 
         then:
-        result.assumptionFailureException == null
+        !result.assumptionFailure.isPresent()
     }
 }

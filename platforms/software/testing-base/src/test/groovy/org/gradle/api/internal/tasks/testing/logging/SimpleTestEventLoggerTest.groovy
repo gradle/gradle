@@ -16,11 +16,13 @@
 
 package org.gradle.api.internal.tasks.testing.logging
 
+import org.gradle.api.internal.tasks.testing.AssertionFailureDetails
 import org.gradle.api.internal.tasks.testing.DecoratingTestDescriptor
 import org.gradle.api.internal.tasks.testing.DefaultTestDescriptor
 import org.gradle.api.internal.tasks.testing.DefaultTestFailure
 import org.gradle.api.internal.tasks.testing.DefaultTestFailureDetails
 import org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor
+import org.gradle.api.internal.tasks.testing.FileComparisonFailureDetails
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal
 import org.gradle.api.internal.tasks.testing.TestStartEvent
@@ -48,7 +50,7 @@ class SimpleTestEventLoggerTest extends Specification {
         def logger = new SimpleTestEventLogger(textOutputFactory)
 
         def descriptor = new DefaultTestDescriptor(0, "Class", "method", "Class", "method()")
-        def result = new DefaultTestResult(TestResult.ResultType.FAILURE, 0, 0, 0, 0, 0, [new DefaultTestFailure(null, new DefaultTestFailureDetails("message", "Exception", "stack", true, false, null, null, null, null), [])], null)
+        def result = new DefaultTestResult(TestResult.ResultType.FAILURE, 0, 0, 0, 0, 0, [new DefaultTestFailure(null, new AssertionFailureDetails("message", "Exception", "stack", null, null), [])], null)
         def complete = new TestCompleteEvent(0, TestResult.ResultType.FAILURE)
 
         when:
@@ -68,7 +70,7 @@ method() {failure}FAILED{normal}
         def logger = new SimpleTestEventLogger(textOutputFactory)
 
         def descriptor = new DefaultTestDescriptor(0, "Class", "method", "Class", "method()")
-        def result = new DefaultTestResult(TestResult.ResultType.FAILURE, 0, 0, 0, 0, 0, [new DefaultTestFailure(null, new DefaultTestFailureDetails("message", "TestFrameworkException", "stack", false, false, null, null, null, null), [])], null)
+        def result = new DefaultTestResult(TestResult.ResultType.FAILURE, 0, 0, 0, 0, 0, [new DefaultTestFailure(null, new DefaultTestFailureDetails("message", "TestFrameworkException", "stack"), [])], null)
         def complete = new TestCompleteEvent(0, TestResult.ResultType.FAILURE)
 
         when:
@@ -87,7 +89,7 @@ method() {failure}FAILED{normal}
         def logger = new SimpleTestEventLogger(textOutputFactory)
 
         def descriptor = new DefaultTestDescriptor(0, "Class", "method", "Class", "method()")
-        def result = new DefaultTestResult(TestResult.ResultType.FAILURE, 0, 0, 0, 0, 0, [new DefaultTestFailure(null, new DefaultTestFailureDetails("message", "TestFrameworkException", "stack", false, true, "expected", "actual", null, null), [])], null)
+        def result = new DefaultTestResult(TestResult.ResultType.FAILURE, 0, 0, 0, 0, 0, [new DefaultTestFailure(null, new FileComparisonFailureDetails("message", "TestFrameworkException", "stack", "expected", "actual", new byte[0], new byte[0]), [])], null)
         def complete = new TestCompleteEvent(0, TestResult.ResultType.FAILURE)
 
         when:

@@ -16,7 +16,13 @@
 
 package org.gradle.api.internal.tasks.testing.junit.result
 
-import org.gradle.api.internal.tasks.testing.*
+
+import org.gradle.api.internal.tasks.testing.DecoratingTestDescriptor
+import org.gradle.api.internal.tasks.testing.DefaultTestClassDescriptor
+import org.gradle.api.internal.tasks.testing.DefaultTestDescriptor
+import org.gradle.api.internal.tasks.testing.DefaultTestFailure
+import org.gradle.api.internal.tasks.testing.DefaultTestOutputEvent
+import org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor
 import org.gradle.api.internal.tasks.testing.results.DefaultTestResult
 import org.gradle.api.tasks.testing.TestFailure
 import org.gradle.internal.serialize.PlaceholderException
@@ -32,8 +38,8 @@ import static org.gradle.api.tasks.testing.TestResult.ResultType.SKIPPED
 import static org.gradle.api.tasks.testing.TestResult.ResultType.SUCCESS
 
 class TestReportDataCollectorSpec extends Specification {
-    def Map<String, TestClassResult> results = [:]
-    def TestOutputStore.Writer writer = Mock()
+    Map<String, TestClassResult> results = [:]
+    TestOutputStore.Writer writer = Mock()
     def collector = new TestReportDataCollector(results, writer)
 
     def "keeps track of test results"() {
@@ -46,7 +52,7 @@ class TestReportDataCollectorSpec extends Specification {
         def result2 = new DefaultTestResult(FAILURE, 250, 300, 1, 0, 1, asList(TestFailure.fromTestFrameworkFailure(new RuntimeException("Boo!"))), null)
 
         def test3 = new DecoratingTestDescriptor(new DefaultTestDescriptor("1.1.3", "FooTest", "testMethod3"), clazz)
-        def result3 = new DefaultTestResult(SKIPPED, 350, 400, 1, 0, 0, [], TestFailure.fromAssumptionFailure(new AssumptionViolatedException("Assumption violeted!")))
+        def result3 = new DefaultTestResult(SKIPPED, 350, 400, 1, 0, 0, [], DefaultTestFailure.fromTestAssumptionFailure(new AssumptionViolatedException("Assumption violeted!"), []))
 
         when:
         //simulating TestNG, where we don't receive beforeSuite for classes
@@ -149,7 +155,7 @@ class TestReportDataCollectorSpec extends Specification {
 
     def "collects assumption failure for test"() {
         def test = new DefaultTestDescriptor("1.1.1", "FooTest", "testMethod")
-        def assumptionFailure = TestFailure.fromAssumptionFailure(new AssumptionViolatedException("assumption"))
+        def assumptionFailure = DefaultTestFailure.fromTestAssumptionFailure(new AssumptionViolatedException("assumption"), [])
         def result = new DefaultTestResult(SKIPPED, 0, 0, 1, 0, 0, [], assumptionFailure)
 
         when:
@@ -159,7 +165,7 @@ class TestReportDataCollectorSpec extends Specification {
         then:
         def failure = results["FooTest"].results[0].assumptionFailure
         failure.exceptionType == AssumptionViolatedException.name
-        failure.message == assumptionFailure.rawFailure.toString()
+        failure.message == assumptionFailure.rawFailure.message
         failure.stackTrace.startsWith(assumptionFailure.rawFailure.toString())
     }
 

@@ -83,10 +83,9 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
 
                 TestMethodResult methodResult = new TestMethodResult(internalIdCounter++, suite.getName());
 
-                Throwable assumptionFailureException = result.getAssumptionFailureException();
-                if (assumptionFailureException != null) {
-                    methodResult.setAssumptionFailure(failureMessage(assumptionFailureException), stackTrace(assumptionFailureException), exceptionClassName(assumptionFailureException));
-                }
+                result.getAssumptionFailure().ifPresent(assumptionFailure -> {
+                    methodResult.setAssumptionFailure(assumptionFailure.getDetails().getMessage(), assumptionFailure.getDetails().getStacktrace(), assumptionFailure.getDetails().getClassName());
+                });
 
                 methodResult.completed(result);
                 classResult.add(methodResult);
@@ -110,10 +109,9 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
             methodResult.addFailure(failureMessage(throwable), stackTrace(throwable), exceptionClassName(throwable));
         }
 
-        Throwable assumptionFailureException = result.getAssumptionFailureException();
-        if (assumptionFailureException != null) {
-            methodResult.setAssumptionFailure(failureMessage(assumptionFailureException), stackTrace(assumptionFailureException), exceptionClassName(assumptionFailureException));
-        }
+        result.getAssumptionFailure().ifPresent(assumptionFailure -> {
+            methodResult.setAssumptionFailure(assumptionFailure.getDetails().getMessage(), assumptionFailure.getDetails().getStacktrace(), assumptionFailure.getDetails().getClassName());
+        });
 
         TestClassResult classResult = results.get(className);
         if (classResult == null) {

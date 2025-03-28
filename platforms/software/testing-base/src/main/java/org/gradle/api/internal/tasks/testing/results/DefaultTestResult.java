@@ -23,6 +23,7 @@ import org.gradle.util.internal.CollectionUtils;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Optional;
 
 public class DefaultTestResult implements TestResult, Serializable {
     private final List<TestFailure> failures;
@@ -60,8 +61,8 @@ public class DefaultTestResult implements TestResult, Serializable {
     }
 
     @Override
-    public Throwable getAssumptionFailureException() {
-        return (assumptionFailure == null) ? null : assumptionFailure.getRawFailure();
+    public Optional<TestFailure> getAssumptionFailure() {
+        return Optional.ofNullable(assumptionFailure);
     }
 
     @Override

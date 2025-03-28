@@ -23,7 +23,7 @@ class SimpleTestResult implements TestResult {
     TestResult.ResultType resultType = TestResult.ResultType.SUCCESS
     List<Throwable> exceptions = []
     Throwable exception = exceptions[0]
-    Throwable assumptionFailureException = null
+    Optional<TestFailure> assumptionFailure = Optional.empty()
     List<TestFailure> failures
     long startTime = 0
     long endTime = startTime + 100

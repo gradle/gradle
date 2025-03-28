@@ -17,6 +17,7 @@ package org.gradle.api.internal.tasks.testing.results
 
 import org.gradle.api.internal.tasks.testing.DecoratingTestDescriptor
 import org.gradle.api.internal.tasks.testing.DefaultTestDescriptor
+import org.gradle.api.internal.tasks.testing.DefaultTestFailure
 import org.gradle.api.internal.tasks.testing.DefaultTestOutputEvent
 import org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent
@@ -91,7 +92,7 @@ class StateTrackingTestResultProcessorTest extends Specification {
 
     void createsAResultForATestWithAssumptionFailure() {
         given:
-        def failure = TestFailure.fromAssumptionFailure(new AssumptionViolatedException(""))
+        def failure = DefaultTestFailure.fromTestAssumptionFailure(new AssumptionViolatedException(""), [])
         def test = new DefaultTestDescriptor("15", "Foo", "bar");
         def startEvent = new TestStartEvent(100L)
         def completeEvent = new TestCompleteEvent(200L, ResultType.SKIPPED)
@@ -104,7 +105,7 @@ class StateTrackingTestResultProcessorTest extends Specification {
         then:
         1 * listener.started(_, _)
         1 * listener.completed({ it.descriptor == test },
-            { it.successfulTestCount == 0 && it.testCount == 1 && it.failedTestCount == 0 && it.skippedTestCount == 1 && it.assumptionFailureException.is(failure.rawFailure) },
+            { it.successfulTestCount == 0 && it.testCount == 1 && it.failedTestCount == 0 && it.skippedTestCount == 1 && it.assumptionFailure.get().is(failure) },
             completeEvent
         )
         0 * _
