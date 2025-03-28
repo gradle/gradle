@@ -23,6 +23,7 @@ dependencies {
     api(projects.resources)
     api(projects.persistentCache)
     api(projects.declarativeDslApi)
+    api(projects.softwareFeaturesApi)
     api(libs.jspecify)
     api(libs.groovy)
     api(libs.groovyAnt)

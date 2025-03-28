@@ -58,7 +58,6 @@ import org.gradle.plugin.software.internal.DefaultSoftwareFeatureApplicator;
 import org.gradle.plugin.software.internal.DefaultSoftwareFeatureRegistry;
 import org.gradle.plugin.software.internal.ModelDefaultsApplicator;
 import org.gradle.plugin.software.internal.ModelDefaultsHandler;
-import org.gradle.plugin.software.internal.PluginScheme;
 import org.gradle.plugin.software.internal.SoftwareFeatureApplicator;
 import org.gradle.plugin.software.internal.SoftwareFeatureRegistry;
 import org.gradle.plugin.software.internal.SoftwareTypeAnnotationHandler;

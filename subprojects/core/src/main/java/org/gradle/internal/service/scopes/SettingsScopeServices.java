@@ -48,7 +48,7 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
-import org.gradle.plugin.software.internal.PluginScheme;
+import org.gradle.plugin.internal.PluginScheme;
 import org.gradle.plugin.software.internal.SoftwareFeatureRegistry;
 
 import java.util.List;

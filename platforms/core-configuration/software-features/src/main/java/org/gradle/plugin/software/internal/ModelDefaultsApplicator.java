@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,14 +17,18 @@
 package org.gradle.plugin.software.internal;
 
 import org.gradle.api.Plugin;
-import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
- * Applies the model defaults from a given software type to a target object.
+ * Applies the model defaults for the software type declared in the given plugin to a target object.
  */
-@ServiceScope({Scope.Build.class, Scope.Project.class})
-public interface ModelDefaultsHandler {
-    <T> void apply(T target, ClassLoaderScope classLoaderScope, String softwareFeatureName, Plugin<?> plugin);
+@ServiceScope(Scope.Project.class)
+public interface ModelDefaultsApplicator {
+    <T> void applyDefaultsTo(T target, ClassLoaderContext classLoaderContext, Plugin<?> plugin, SoftwareFeatureImplementation<?> softwareFeatureImplementation);
+
+    interface ClassLoaderContext {
+        ClassLoader getClassLoader();
+        ClassLoader getParentClassLoader();
+    }
 }
