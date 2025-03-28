@@ -99,7 +99,7 @@ public class DefaultVisitedArtifactSet implements VisitedArtifactSet {
     }
 
     @Override
-    public SelectedArtifactResults selectLegacy(ArtifactSelectionSpec spec, boolean lenient) {
-        return artifactsResults.select(consumerServices, spec, lenient);
+    public SelectedArtifactResults selectLegacy(ArtifactSelectionSpec spec) {
+        return artifactsResults.select(consumerServices, spec, true);
     }
 }

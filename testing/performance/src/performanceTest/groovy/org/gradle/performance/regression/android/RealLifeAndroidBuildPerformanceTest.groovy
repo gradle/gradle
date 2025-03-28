@@ -48,7 +48,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
         agpVersion = AndroidTestProject.useAgpLatestStableOrRcVersion(runner)
         // TODO Use dynamic Kotlin version once https://issuetracker.google.com/issues/312738720 is fixed
         // kgpVersion = AndroidTestProject.useKotlinLatestStableOrRcVersion(runner)
-        kgpVersion = "1.9.22"
+        kgpVersion = "2.0.20"
     }
 
     @RunFor([
@@ -65,9 +65,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
         runner.args.add('-Dorg.gradle.parallel=true')
         runner.warmUpRuns = warmUpRuns
         runner.runs = runs
-        if (IncrementalAndroidTestProject.NOW_IN_ANDROID == testProject) {
-            configureRunnerSpecificallyForNowInAndroid()
-        }
+        configureBuildForProject(testProject)
         applyDevelocityPlugin()
 
         when:
@@ -105,9 +103,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
         runner.addBuildMutator { invocationSettings ->
             ClearArtifactTransformCacheWithoutInstrumentedJarsMutator.create(invocationSettings.getGradleUserHome(), BUILD)
         }
-        if (IncrementalAndroidTestProject.NOW_IN_ANDROID == testProject) {
-            configureRunnerSpecificallyForNowInAndroid()
-        }
+        configureBuildForProject(testProject)
         applyDevelocityPlugin()
 
         when:
@@ -143,6 +139,14 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
         result.assertCurrentVersionHasNotRegressed()
     }
 
+    private void configureBuildForProject(AndroidTestProject testProject) {
+        if (IncrementalAndroidTestProject.NOW_IN_ANDROID == testProject) {
+            configureRunnerSpecificallyForNowInAndroid()
+        } else if (IncrementalAndroidTestProject.SANTA_TRACKER == testProject) {
+            configureRunnerSpecificallyForSantaTracker()
+        }
+    }
+
     private void configureRunnerSpecificallyForNowInAndroid() {
         runner.gradleOpts.addAll([
             "--add-opens",
@@ -158,6 +162,10 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
         ]) // needed when tests are being run with CC on, see https://github.com/gradle/gradle/issues/22765
         runner.addBuildMutator { is -> new SupplementaryRepositoriesMutator(is) }
         runner.addBuildMutator { is -> new AgpAndKgpVersionMutator(is, agpVersion, kgpVersion) }
+    }
+
+    private void configureRunnerSpecificallyForSantaTracker() {
+        runner.args.add("-DkotlinVersion=$kgpVersion")
     }
 
     private class TestFinalizerMutator implements BuildMutator {

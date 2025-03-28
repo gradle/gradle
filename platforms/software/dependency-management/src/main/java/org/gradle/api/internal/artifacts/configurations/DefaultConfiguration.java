@@ -565,65 +565,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     }
 
     @Override
-    @Deprecated
-    public Set<File> files(Dependency... dependencies) {
-        Set<Dependency> deps = WrapUtil.toLinkedSet(dependencies);
-        return fileCollectionInternal("files(Dependency...)", deps::contains).getFiles();
-    }
-
-    @Override
-    @Deprecated
-    public Set<File> files(Closure dependencySpecClosure) {
-        return fileCollectionInternal("files(Closure)", Specs.convertClosureToSpec(dependencySpecClosure)).getFiles();
-    }
-
-    @Override
-    @Deprecated
-    public Set<File> files(Spec<? super Dependency> dependencySpec) {
-        return fileCollectionInternal("files(Spec)", dependencySpec).getFiles();
-    }
-
-    @Override
-    @Deprecated
-    public FileCollection fileCollection(Closure dependencySpecClosure) {
-        return fileCollectionInternal("fileCollection(Closure)", Specs.convertClosureToSpec(dependencySpecClosure));
-    }
-
-    @Override
-    @Deprecated
-    public FileCollection fileCollection(Dependency... dependencies) {
-        Set<Dependency> deps = WrapUtil.toLinkedSet(dependencies);
-        return fileCollectionInternal("fileCollection(Dependency...)", deps::contains);
-    }
-
-    @Override
-    @Deprecated
-    public FileCollection fileCollection(Spec<? super Dependency> dependencySpec) {
-        return fileCollectionInternal("fileCollection(Spec)", dependencySpec);
-    }
-
-    private FileCollection fileCollectionInternal(String methodName, Spec<? super Dependency> dependencySpec) {
-        assertIsResolvable();
-
-        DeprecationLogger.deprecateMethod(Configuration.class, methodName)
-            .withAdvice("Use Configuration.getIncoming().artifactView(Action) with a componentFilter instead.")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "deprecate_filtered_configuration_file_and_filecollection_methods")
-            .nagUser();
-
-        return new ResolutionBackedFileCollection(
-            new ResolutionResultProviderBackedSelectedArtifactSet(
-                resolutionAccess.getResults().map(resolverResults ->
-                    resolverResults.getLegacyResults().getLegacyVisitedArtifactSet().select(dependencySpec)
-                )
-            ),
-            false,
-            getResolutionHost(),
-            taskDependencyFactory
-        );
-    }
-
-    @Override
     public void markAsObserved(InternalState requestedState) {
         synchronized (observationLock) {
             if (observedState.compareTo(requestedState) < 0) {
