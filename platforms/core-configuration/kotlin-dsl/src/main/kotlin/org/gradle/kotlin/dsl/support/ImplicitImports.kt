@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.support
 
+import com.google.common.annotations.VisibleForTesting
 import org.gradle.configuration.ImportsReader
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
@@ -25,7 +26,7 @@ import org.gradle.internal.service.scopes.ServiceScope
  * Holds the list of imports implicitly added to every Kotlin build script.
  */
 @ServiceScope(Scope.Global::class)
-class ImplicitImports internal constructor(
+class ImplicitImports @VisibleForTesting constructor(
     @Transient
     private val importsReader: ImportsReader
 ) {
