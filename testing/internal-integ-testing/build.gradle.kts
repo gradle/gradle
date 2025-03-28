@@ -158,12 +158,6 @@ dependencies {
     runtimeOnly(libs.mavenResolverTransportHttp) {
         because("For ApiMavenResolver. To resolve http:// URLs")
     }
-
-    testRuntimeOnly(projects.distributionsCore) {
-        because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
-    }
-
-    integTestDistributionRuntimeOnly(projects.distributionsCore)
 }
 
 packageCycles {

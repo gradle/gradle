@@ -206,9 +206,13 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
     }
 
     private boolean isForkRequired() {
-        if (isDaemonExplicitlyRequired() || !getJavaHomeLocation().equals(Jvm.current().getJavaHome())) {
-            return true;
+        if (isDaemonExplicitlyRequired()) {
+            throw new RuntimeException("Fork required because explicitly daemon is required");
         }
+        if (!getJavaHomeLocation().equals(Jvm.current().getJavaHome())) {
+            throw new RuntimeException("requiring forked executor because of different Java home location: " + getJavaHomeLocation() + " not " + Jvm.current().getJavaHome());
+        }
+
         File daemonJvmProperties = new File(getWorkingDir(), "gradle/gradle-daemon-jvm.properties");
         if (daemonJvmProperties.isFile()) {
             Properties properties = GUtil.loadProperties(daemonJvmProperties);
