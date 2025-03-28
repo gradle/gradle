@@ -48,6 +48,7 @@ dependencies {
     crossVersionTestImplementation(projects.functional)
 
     integTestImplementation(testFixtures(projects.core))
+    integTestImplementation(testFixtures(projects.scala))
     integTestImplementation(testFixtures(projects.platformNative))
     integTestImplementation(libs.jgit)
     integTestImplementation(libs.javaParser) {

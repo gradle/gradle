@@ -17,6 +17,7 @@
 package org.gradle.scala.compile
 
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
+import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.ZincCoverage
 
@@ -32,7 +33,7 @@ class ZincScalaCompilerMultiVersionIntegrationTest extends MultiVersionIntegrati
                 zincVersion = "${version}"
             }
             dependencies {
-                implementation "org.scala-lang:scala-library:2.10.7"
+                implementation "org.scala-lang:scala-library:${ScalaCoverage.latestSupportedScala2Version}"
             }
             task assertZincVersion {
                 dependsOn configurations.zinc
@@ -64,10 +65,10 @@ class ZincScalaCompilerMultiVersionIntegrationTest extends MultiVersionIntegrati
             """
 package compile.test
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 class Person(val name: String, val age: Int) {
-    def hello() {
+    def hello(): Unit = {
         val x: java.util.List[Int] = List(3, 1, 2).asJava
         java.util.Collections.reverse(x)
     }

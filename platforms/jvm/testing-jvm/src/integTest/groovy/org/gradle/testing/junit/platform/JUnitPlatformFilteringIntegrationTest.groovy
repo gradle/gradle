@@ -17,11 +17,12 @@
 package org.gradle.testing.junit.platform
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.Java24UnsafeWarningFixture
 import spock.lang.Issue
 
 import static org.gradle.testing.fixture.JUnitCoverage.LATEST_ARCHUNIT_VERSION
 
-class JUnitPlatformFilteringIntegrationTest extends JUnitPlatformIntegrationSpec {
+class JUnitPlatformFilteringIntegrationTest extends JUnitPlatformIntegrationSpec implements Java24UnsafeWarningFixture {
 
     def 'can filter nested tests'() {
         given:
@@ -170,6 +171,7 @@ class JUnitPlatformFilteringIntegrationTest extends JUnitPlatformIntegrationSpec
         '''
 
         when:
+        maybeExpectUnsuppressableUnsafeDeprecationWarning(usesLoadingCache("ArchUnit"))
         succeeds('test')
 
         then:
@@ -215,6 +217,7 @@ class JUnitPlatformFilteringIntegrationTest extends JUnitPlatformIntegrationSpec
         '''
 
         when:
+        maybeExpectUnsuppressableUnsafeDeprecationWarning(usesLoadingCache("ArchUnit"))
         succeeds('test')
 
         then:
