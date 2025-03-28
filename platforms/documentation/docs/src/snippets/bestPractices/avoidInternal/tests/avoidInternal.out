@@ -1,0 +1,21 @@
+
+> Configure project :
+org.gradle.usage -> java-runtime
+org.gradle.usage -> java-runtime
+
+> Task :projects
+
+Projects:
+
+------------------------------------------------------------
+Root project 'avoid-internal'
+------------------------------------------------------------
+
+Root project 'avoid-internal'
+No sub-projects
+
+To see a list of the tasks of a project, run gradle <project-path>:tasks
+For example, try running gradle :tasks
+
+BUILD SUCCESSFUL in 0s
+1 actionable task: 1 executed

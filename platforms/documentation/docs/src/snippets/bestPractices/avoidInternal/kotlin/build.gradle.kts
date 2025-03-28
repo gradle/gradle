@@ -1,29 +1,27 @@
 // tag::avoid-this[]
-abstract class BadTask : DefaultTask() {
-    @TaskAction
-    fun run() {
-        val majorVersion =
-            org.gradle.api.internal.jvm.JavaVersionParser.parseMajorVersion( // <1>
-                "21.0.0"
-            )
-        println("Major version $majorVersion")
+import org.gradle.api.internal.attributes.AttributeContainerInternal
+
+configurations.create("bad") {
+    attributes {
+        attribute(Usage.USAGE_ATTRIBUTE, objects.named<Usage>(Usage.JAVA_RUNTIME))
+    }
+    val badMap = (attributes as AttributeContainerInternal).asMap() // <1>
+    badMap.forEach { (key, value) ->
+        logger.warn("$key -> $value")
     }
 }
-
-tasks.register<BadTask>("badTask")
 // end::avoid-this[]
 
 // tag::do-this[]
-abstract class GoodTask : DefaultTask() {
-    @TaskAction
-    fun run() {
-        val majorVersion =
-            org.gradle.api.JavaVersion.toVersion( // <2>
-                "21.0.0"
-            ).majorVersion
-        println("Major version $majorVersion")
+configurations.create("good") {
+    attributes {
+        attribute(Usage.USAGE_ATTRIBUTE, objects.named<Usage>(Usage.JAVA_RUNTIME))
+    }
+    val goodMap = attributes.keySet().associate {
+        Attribute.of(it.name, it.type) to attributes.getAttribute(it)
+    }
+    goodMap.forEach { (key, value) ->
+        logger.warn("$key -> $value")
     }
 }
-
-tasks.register<GoodTask>("goodTask")
 // end::do-this[]
