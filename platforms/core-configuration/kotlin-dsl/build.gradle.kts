@@ -1,8 +1,11 @@
+import com.github.jengelman.gradle.plugins.shadow.ShadowJavaPlugin.Companion.shadowRuntimeElements
+
 plugins {
     id("gradlebuild.distribution.api-kotlin")
     id("gradlebuild.kotlin-dsl-dependencies-embedded")
     id("gradlebuild.kotlin-dsl-sam-with-receiver")
     id("gradlebuild.kotlin-dsl-plugin-bundle-integ-tests")
+    id("com.gradleup.shadow").version("9.0.0-beta11")
 }
 
 description = "Kotlin DSL Provider"
@@ -86,7 +89,7 @@ dependencies {
     implementation(libs.futureKotlin("assignment-compiler-plugin-embeddable")) {
         isTransitive = false
     }
-    implementation("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.9.0") {
+    shadow("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.9.0") {
         isTransitive = false
     }
 
@@ -141,6 +144,55 @@ dependencies {
 
     integTestDistributionRuntimeOnly(projects.distributionsBasics)
 }
+
+// Relocate kotlinx-metadata-jvm
+configurations.compileOnly {
+    extendsFrom(configurations.shadow.get())
+}
+configurations.testImplementation {
+    extendsFrom(configurations.shadow.get())
+}
+tasks.shadowJar {
+    archiveClassifier = ""
+    configurations = setOf(project.configurations.shadow.get())
+    relocate("kotlin.metadata", "org.gradle.kotlin.dsl.internal.relocated.kotlin.metadata")
+    relocate("kotlinx.metadata", "org.gradle.kotlin.dsl.internal.relocated.kotlinx.metadata")
+    mergeServiceFiles()
+    exclude("META-INF/kotlin-metadata-jvm.kotlin_module")
+    exclude("META-INF/kotlin-metadata.kotlin_module")
+    exclude("META-INF/metadata.jvm.kotlin_module")
+    exclude("META-INF/metadata.kotlin_module")
+}
+val beforeShadowClassifier = "before-shadow"
+tasks.jar {
+    archiveClassifier = beforeShadowClassifier
+}
+tasks.assemble {
+    dependsOn(tasks.shadowJar)
+}
+// Replace the standard jar with the one built by 'shadowJar' in both api and runtime variants
+configurations.apiElements {
+    outgoing.artifacts.removeIf { it.classifier == beforeShadowClassifier && it.extension == "jar" }
+    outgoing.artifact(tasks.shadowJar) {
+        builtBy(tasks.shadowJar)
+    }
+}
+configurations.runtimeElements {
+    outgoing.artifacts.removeIf { it.classifier == beforeShadowClassifier && it.extension == "jar" }
+    outgoing.artifact(tasks.shadowJar) {
+        builtBy(tasks.shadowJar)
+    }
+}
+// Restore Kotlin's friendPath so tests and fixtures can access internals
+tasks.compileTestKotlin {
+    friendPaths.from(tasks.shadowJar)
+}
+tasks.compileTestFixturesKotlin {
+    friendPaths.from(tasks.shadowJar)
+}
+// Remove spurious configuration from shadow plugin to resolve ambiguity building the distribution
+// It seems to win over runtimeElements where it should not
+configurations.remove(configurations.shadowRuntimeElements.get())
 
 packageCycles {
     excludePatterns.add("org/gradle/kotlin/dsl/**")
