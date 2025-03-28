@@ -59,7 +59,10 @@ import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
 import org.jspecify.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -68,9 +71,15 @@ import java.io.InputStream;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class DefaultBuildCacheController implements BuildCacheController {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildCacheController.class);
 
     @VisibleForTesting
     final RemoteBuildCacheServiceHandle remote;
@@ -80,6 +89,7 @@ public class DefaultBuildCacheController implements BuildCacheController {
 
     private final BuildCacheTempFileStore tmp;
     private final PackOperationExecutor packExecutor;
+    private final AsyncExecutor asyncExecutor;
 
     private boolean closed;
 
@@ -92,11 +102,13 @@ public class DefaultBuildCacheController implements BuildCacheController {
         boolean disableRemoteOnError,
         BuildCacheEntryPacker packer,
         OriginMetadataFactory originMetadataFactory,
-        Interner<String> stringInterner
+        Interner<String> stringInterner,
+        Executor executor
     ) {
         this.local = toLocalHandle(config.getLocal(), config.isLocalPush(), buildOperationRunner);
         this.remote = toRemoteHandle(config.getBuildPath(), config.getRemote(), config.isRemotePush(), buildOperationRunner, buildOperationProgressEventEmitter, logStackTraces, disableRemoteOnError);
         this.tmp = toTempFileStore(config.getLocal(), temporaryFileFactory);
+        this.asyncExecutor = new AsyncExecutor(executor);
         this.packExecutor = new PackOperationExecutor(
             buildOperationRunner,
             packer,
@@ -160,9 +172,26 @@ public class DefaultBuildCacheController implements BuildCacheController {
     }
 
     @Override
+    public void storeAsync(BuildCacheKey cacheKey, CacheableEntity entity, Map<String, FileSystemSnapshot> snapshots, Duration executionTime) {
+        String entityDisplayName = entity.getDisplayName();
+        asyncExecutor.runAsync(() -> {
+            try {
+                store(cacheKey, entity, snapshots, executionTime);
+                if (LOGGER.isInfoEnabled()) {
+                    LOGGER.info("Stored cache entry for {} with cache key {}", entityDisplayName, cacheKey.getHashCode());
+                }
+            } catch (Exception e) {
+                throw new RuntimeException(
+                    String.format("Failed to store cache entry %s for %s: %s", cacheKey.getHashCode(), entityDisplayName, e.getMessage()), e);
+            }
+        });
+    }
+
+    @Override
     public void close() throws IOException {
         if (!closed) {
             closed = true;
+            asyncExecutor.close();
             Closer closer = Closer.create();
             closer.register(local);
             closer.register(remote);
@@ -266,6 +295,27 @@ public class DefaultBuildCacheController implements BuildCacheController {
                         .progressDisplayName("Packing build cache entry");
                 }
             });
+        }
+    }
+
+    private static class AsyncExecutor implements Closeable {
+        private final Executor delegate;
+        private final Set<CompletableFuture<?>> runningOrFailedFutures = ConcurrentHashMap.newKeySet();
+
+        private AsyncExecutor(Executor delegate) {
+            this.delegate = delegate;
+        }
+
+        @SuppressWarnings("FutureReturnValueIgnored")
+        public void runAsync(Runnable runnable) {
+            CompletableFuture<Void> future = CompletableFuture.runAsync(runnable, delegate);
+            runningOrFailedFutures.add(future);
+            future.thenAccept(result -> runningOrFailedFutures.remove(future));
+        }
+
+        @Override
+        public void close() {
+            CompletableFuture.allOf(runningOrFailedFutures.toArray(new CompletableFuture<?>[0])).join();
         }
     }
 

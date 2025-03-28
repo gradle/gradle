@@ -38,6 +38,7 @@ import org.gradle.caching.local.DirectoryBuildCache;
 import org.gradle.caching.local.internal.DirectoryBuildCacheServiceFactory;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.RootBuildState;
+import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.file.BufferProvider;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.FileException;
@@ -159,7 +160,8 @@ public final class BuildCacheServices extends AbstractGradleModuleServices {
                 TemporaryFileProvider temporaryFileProvider,
                 BuildCacheEntryPacker packer,
                 OriginMetadataFactory originMetadataFactory,
-                StringInterner stringInterner
+                StringInterner stringInterner,
+                ExecutorFactory managedExecutorFactory
             ) {
                 return new DefaultBuildCacheControllerFactory(
                     startParameter,
@@ -168,7 +170,8 @@ public final class BuildCacheServices extends AbstractGradleModuleServices {
                     originMetadataFactory,
                     stringInterner,
                     temporaryFileProvider,
-                    packer
+                    packer,
+                    managedExecutorFactory.create("build cache")
                 );
             }
         });

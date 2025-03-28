@@ -169,20 +169,7 @@ public class BuildCacheStep<C extends WorkspaceContext & CachingContext> impleme
     }
 
     private void store(CacheableWork work, BuildCacheKey cacheKey, ImmutableSortedMap<String, FileSystemSnapshot> outputFilesProducedByWork, Duration executionTime) {
-        try {
-            buildCache.store(cacheKey, work, outputFilesProducedByWork, executionTime);
-            if (LOGGER.isInfoEnabled()) {
-                LOGGER.info("Stored cache entry for {} with cache key {}",
-                    work.getDisplayName(), cacheKey.getHashCode());
-            }
-        } catch (Exception e) {
-            throw new RuntimeException(
-                String.format("Failed to store cache entry %s for %s: %s",
-                    cacheKey.getHashCode(),
-                    work.getDisplayName(),
-                    e.getMessage()),
-                e);
-        }
+        buildCache.storeAsync(cacheKey, work, outputFilesProducedByWork, executionTime);
     }
 
     private AfterExecutionResult executeWithoutCache(UnitOfWork work, C context) {

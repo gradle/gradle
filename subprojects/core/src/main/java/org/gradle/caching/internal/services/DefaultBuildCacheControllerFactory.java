@@ -29,6 +29,7 @@ import org.gradle.caching.internal.origin.OriginMetadataFactory;
 import org.gradle.caching.internal.packaging.BuildCacheEntryPacker;
 import org.gradle.caching.local.DirectoryBuildCache;
 import org.gradle.caching.local.internal.DirectoryBuildCacheService;
+import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.util.Path;
@@ -39,6 +40,7 @@ public class DefaultBuildCacheControllerFactory extends AbstractBuildCacheContro
     private final TemporaryFileProvider temporaryFileProvider;
     private final BuildCacheEntryPacker packer;
     private final BuildOperationProgressEventEmitter buildOperationProgressEmitter;
+    private final ManagedExecutor managedExecutor;
 
     public DefaultBuildCacheControllerFactory(
         StartParameter startParameter,
@@ -47,7 +49,8 @@ public class DefaultBuildCacheControllerFactory extends AbstractBuildCacheContro
         OriginMetadataFactory originMetadataFactory,
         StringInterner stringInterner,
         TemporaryFileProvider temporaryFileProvider,
-        BuildCacheEntryPacker packer
+        BuildCacheEntryPacker packer,
+        ManagedExecutor managedExecutor
     ) {
         super(
             startParameter,
@@ -58,6 +61,7 @@ public class DefaultBuildCacheControllerFactory extends AbstractBuildCacheContro
         this.temporaryFileProvider = temporaryFileProvider;
         this.packer = packer;
         this.buildOperationProgressEmitter = buildOperationProgressEmitter;
+        this.managedExecutor = managedExecutor;
     }
 
     @Override
@@ -83,7 +87,8 @@ public class DefaultBuildCacheControllerFactory extends AbstractBuildCacheContro
             !Boolean.getBoolean(REMOTE_CONTINUE_ON_ERROR_PROPERTY),
             packer,
             originMetadataFactory,
-            stringInterner
+            stringInterner,
+            managedExecutor
         );
     }
 

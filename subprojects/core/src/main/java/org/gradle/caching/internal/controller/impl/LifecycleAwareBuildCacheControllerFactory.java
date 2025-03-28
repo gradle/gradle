@@ -83,6 +83,11 @@ public class LifecycleAwareBuildCacheControllerFactory {
         }
 
         @Override
+        public void storeAsync(BuildCacheKey cacheKey, CacheableEntity entity, Map<String, FileSystemSnapshot> snapshots, Duration executionTime) {
+            getDelegate().storeAsync(cacheKey, entity, snapshots, executionTime);
+        }
+
+        @Override
         public void close() {
             resetState();
         }
