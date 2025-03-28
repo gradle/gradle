@@ -116,8 +116,14 @@ class AndroidTestProject implements TestProject {
         @Override
         void beforeScenario(ScenarioContext context) {
             def gradleProps = new File(invocation.projectDir, "gradle.properties")
-            gradleProps << "\norg.gradle.java.home=${buildJavaHome.absolutePath.replace("\\", "/")}\n"
-            gradleProps << "\nsystemProp.javaVersion=${javaVersion.majorVersion}\n"
+            gradleProps << """
+
+org.gradle.java.home=${buildJavaHome.absolutePath.replace("\\", "/")}
+systemProp.javaVersion=${javaVersion.majorVersion}
+org.gradle.java.installations.paths=${AvailableJavaHomes.getAvailableJvms().collect { it.javaHome.absolutePath }.join(",")}
+org.gradle.java.installations.auto-detect=false
+org.gradle.java.installations.auto-download=false
+"""
         }
     }
 
