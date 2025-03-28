@@ -17,6 +17,7 @@
 package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.CacheableEntity;
 import org.gradle.caching.internal.controller.BuildCacheController;
@@ -143,10 +144,32 @@ public class BuildCacheStep<C extends WorkspaceContext & CachingContext> impleme
         }
         AfterExecutionResult result = executeWithoutCache(cacheableWork.work, context);
         try {
+            result.getExecution().ifSuccessfulOrElse(
+                executionResult -> storeInCacheUnlessDisabled(cacheableWork, cacheKey, result, executionResult),
+                failure -> LOGGER.debug("Not storing result of {} in cache because the execution failed", cacheableWork.getDisplayName())
+            );
             return result;
         } catch (Exception storeFailure) {
             return new AfterExecutionResult(Result.failed(storeFailure, result.getDuration()), result.getAfterExecutionOutputState().orElse(null));
         }
+    }
+
+    /**
+     * Stores the results of the given work in the build cache, unless storing was disabled for this execution or work was untracked.
+     * <p>
+     * The former is currently used only for tasks and can be triggered via {@code org.gradle.api.internal.TaskOutputsEnterpriseInternal}.
+     */
+    private void storeInCacheUnlessDisabled(CacheableWork cacheableWork, BuildCacheKey cacheKey, AfterExecutionResult result, Execution executionResult) {
+        if (executionResult.canStoreOutputsInCache()) {
+            result.getAfterExecutionOutputState()
+                .ifPresent(afterExecutionState -> store(cacheableWork, cacheKey, afterExecutionState.getOutputFilesProducedByWork(), afterExecutionState.getOriginMetadata().getExecutionTime()));
+        } else {
+            LOGGER.debug("Not storing result of {} in cache because storing was disabled for this execution", cacheableWork.getDisplayName());
+        }
+    }
+
+    private void store(CacheableWork work, BuildCacheKey cacheKey, ImmutableSortedMap<String, FileSystemSnapshot> outputFilesProducedByWork, Duration executionTime) {
+        buildCache.storeAsync(cacheKey, work, outputFilesProducedByWork, executionTime);
     }
 
     private AfterExecutionResult executeWithoutCache(UnitOfWork work, C context) {
