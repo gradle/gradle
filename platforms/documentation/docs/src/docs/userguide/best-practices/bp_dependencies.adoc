@@ -69,3 +69,41 @@ include::sample[dir="snippets/bestPractices/versionCatalogNaming/groovy",files="
 === Tags
 
 `<<tags_reference.adoc#tag:version-catalog,#version-catalog>>`
+
+[[set_up_repositories_in_settings]]
+== Set up your dependency repositories in `settings.gradle.kts`
+
+Declare your repositories for your plugins and dependencies in `settings.gradle.kts`.
+
+=== Explanation
+
+Using `settings.gradle.kts` file to declare repositories has several benefits:
+
+ - Avoids repetition: Centralizing repository declarations eliminates the need to repeat them in each project's `build.gradle.kts`.
+ - Improves debuggability: Ensures all projects resolve dependencies during resolution from the same repositories, in a consistent order.
+ - Matches the build model: Repositories are not part of the project definition; they are part of global build logic, so settings is a more appropriate place for them.
+
+Note: While https://github.com/gradle/gradle/issues/32443[`dependencyResolutionManagement.repositories` is an incubating API], it is the preferred way of declaring repositories.
+
+=== Example
+
+==== Don't Do This
+
+You could set up repositories in individual `build.gradle.kts` files with:
+
+====
+include::sample[dir="snippets/bestPractices/settingsRepositoriesDont/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/settingsRepositoriesDont/groovy",files="build.gradle[tags=avoid-this]"]
+====
+
+==== Do This Instead
+
+Instead, you should set them up in `settings.gradle.kts` like this:
+
+====
+include::sample[dir="snippets/bestPractices/settingsRepositoriesDo/kotlin",files="settings.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/settingsRepositoriesDo/groovy",files="settings.gradle[tags=do-this]"]
+====
+
+=== Tags
+`<<tags_reference.adoc#tag:structuring-builds,#structuring-builds>>`
