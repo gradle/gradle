@@ -43,6 +43,9 @@ import java.util.Map;
  * See the package documentation for the complete description.
  */
 public class CompoundAssignmentTransformer extends AbstractScriptTransformer {
+    static final String FOR_COMPOUND_ASSIGNMENT_METHOD_NAME = "forCompoundAssignment";
+    static final String TO_ASSIGNMENT_RESULT_METHOD_NAME = "toAssignmentResult";
+
     @Override
     protected int getPhase() {
         return Phases.CANONICALIZATION;
@@ -154,14 +157,14 @@ public class CompoundAssignmentTransformer extends AbstractScriptTransformer {
          * @see CompoundAssignmentExtensions#forCompoundAssignment(Object)
          */
         private Expression applyForCompoundAssignment(Expression receiver) {
-            return callSupportMethodOn(receiver, "forCompoundAssignment");
+            return callSupportMethodOn(receiver, FOR_COMPOUND_ASSIGNMENT_METHOD_NAME);
         }
 
         /**
          * @see CompoundAssignmentExtensions#toAssignmentResult(Object)
          */
         private Expression applyToAssignmentResult(Expression receiver) {
-            return callSupportMethodOn(receiver, "toAssignmentResult");
+            return callSupportMethodOn(receiver, TO_ASSIGNMENT_RESULT_METHOD_NAME);
         }
 
         private Expression callSupportMethodOn(Expression receiver, String methodName) {
