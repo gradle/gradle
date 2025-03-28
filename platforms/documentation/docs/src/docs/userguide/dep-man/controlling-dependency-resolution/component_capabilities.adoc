@@ -139,7 +139,7 @@ include::sample[dir="snippets/dependencyManagement/modelingFeatures-outgoingCapa
 include::sample[dir="snippets/dependencyManagement/modelingFeatures-outgoingCapabilities/groovy",files="build.gradle[tags=declare-outgoing-capabilities]"]
 ====
 
-Capabilities must be attached to _outgoing configurations_, which are <<declaring_dependencies.adoc#sec:resolvable-consumable-configs,consumable configurations>> of a component.
+Capabilities must be attached to _outgoing configurations_, which are <<declaring_configurations.adoc#sec:resolvable-consumable-configs,consumable configurations>> of a component.
 
 In this example, we declare two capabilities:
 
@@ -149,7 +149,7 @@ In this example, we declare two capabilities:
 It's important to declare the implicit capability explicitly because once you define any _explicit_ capability, _all_ capabilities must be declared, including the _implicit_ one.
 
 The second capability can either be specific to this library or match a capability provided by an external component.
-If `com.other:module` appears elsewhere in the dependency graph, the build will fail, and consumers <<dependency_capability_conflict.adoc#sub:selecting-between-candidates,must choose which module to use>>.
+If `com.other:module` appears elsewhere in the dependency graph, the build will fail, and consumers <<component_capabilities.adoc#sec:selecting-between-candidates,must choose which module to use>>.
 
 Capabilities are published in Gradle Module Metadata but have no equivalent in POM or Ivy metadata files.
 As a result, when publishing such a component, Gradle warns that this feature is only supported for Gradle consumers:
