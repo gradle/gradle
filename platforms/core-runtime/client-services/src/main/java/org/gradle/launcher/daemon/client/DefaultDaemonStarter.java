@@ -216,6 +216,9 @@ public class DefaultDaemonStarter implements DaemonStarter {
         toolchainSpec.getLanguageVersion().value(JavaLanguageVersion.of(daemonJvmCriteria.getJavaVersion().asInt()));
         toolchainSpec.getVendor().value(daemonJvmCriteria.getVendorSpec());
         toolchainSpec.getImplementation().convention(JvmImplementation.VENDOR_SPECIFIC);
+        if (daemonJvmCriteria.isNativeImageCapable()) {
+            toolchainSpec.getNativeImageCapable().set(true);
+        }
         return toolchainSpec;
     }
 

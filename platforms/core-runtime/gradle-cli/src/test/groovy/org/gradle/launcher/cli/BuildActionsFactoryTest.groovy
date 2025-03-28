@@ -177,7 +177,7 @@ class BuildActionsFactoryTest extends Specification {
     }
 
     private DaemonRequestContext createDaemonRequest(Collection<String> daemonOpts = []) {
-        def request = new DaemonRequestContext(new DaemonJvmCriteria.Spec(JavaLanguageVersion.current(), null, null), daemonOpts, false, NativeServices.NativeServicesMode.NOT_SET, DaemonPriority.NORMAL)
+        def request = new DaemonRequestContext(new DaemonJvmCriteria.Spec(JavaLanguageVersion.current(), null, null, false), daemonOpts, false, NativeServices.NativeServicesMode.NOT_SET, DaemonPriority.NORMAL)
         request
     }
 
