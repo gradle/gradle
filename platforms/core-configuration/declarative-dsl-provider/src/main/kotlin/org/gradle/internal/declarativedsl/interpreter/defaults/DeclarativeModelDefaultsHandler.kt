@@ -17,7 +17,6 @@
 package org.gradle.internal.declarativedsl.interpreter.defaults
 
 import org.gradle.api.Plugin
-import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.declarative.dsl.evaluation.EvaluationSchema
 import org.gradle.internal.declarativedsl.analysis.AssignmentRecord
 import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
@@ -44,6 +43,7 @@ import org.gradle.internal.declarativedsl.language.Expr
 import org.gradle.internal.declarativedsl.language.LanguageTreeResult
 import org.gradle.internal.declarativedsl.language.SyntheticallyProduced
 import org.gradle.internal.declarativedsl.project.PROJECT_INTERPRETATION_SEQUENCE_STEP_KEY
+import org.gradle.plugin.software.internal.ModelDefaultsApplicator.ClassLoaderContext
 import org.gradle.plugin.software.internal.ModelDefaultsHandler
 import org.gradle.plugin.software.internal.SoftwareFeatureRegistry
 import javax.inject.Inject
@@ -65,7 +65,7 @@ abstract class DeclarativeModelDefaultsHandler @Inject constructor(
     private
     val modelDefaultsRepository = softwareFeatureRegistryBasedModelDefaultsRepository(softwareFeatureRegistry)
 
-    override fun <T : Any> apply(target: T, classLoaderScope: ClassLoaderScope, softwareFeatureName: String, plugin: Plugin<*>) {
+    override fun <T : Any> apply(target: T, classLoaderContext: ClassLoaderContext, softwareFeatureName: String, plugin: Plugin<*>) {
         val analysisStepRunner = ApplyDefaultsOnlyAnalysisStepRunner()
         val analysisStepContext = AnalysisStepContext(
             emptySet(),
@@ -77,7 +77,7 @@ abstract class DeclarativeModelDefaultsHandler @Inject constructor(
                 "<none>",
                 "",
                 step,
-                ConversionStepContext(target, { classLoaderScope.localClassLoader }, { classLoaderScope.parent.localClassLoader }, analysisStepContext)
+                ConversionStepContext(target, { classLoaderContext.classLoader }, { classLoaderContext.parentClassLoader }, analysisStepContext)
             )
 
         when (result) {

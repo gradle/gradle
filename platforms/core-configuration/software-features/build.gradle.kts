@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +15,21 @@
  */
 
 plugins {
-    id("gradlebuild.distribution.implementation-kotlin")
+    id("gradlebuild.distribution.implementation-java")
 }
 
-description = "DCL-related utilities that are meant to be reused in the Gradle subprojects but not in DCL client applications"
+description = "Implementation of Software Features and Types"
 
 dependencies {
-    api(projects.core)
-    api(projects.softwareFeatures)
+    api(projects.coreApi)
+    api(projects.modelCore)
+    api(projects.stdlibJavaExtensions)
 
-    implementation(projects.declarativeDslApi)
-    implementation(projects.coreApi)
+    api(libs.inject)
+    api(libs.jspecify)
 
-    api(libs.futureKotlin("stdlib"))
-    implementation(libs.futureKotlin("reflect"))
+    implementation(projects.softwareFeaturesApi)
 
-    testImplementation(projects.internalTesting)
+    implementation(libs.groovy)
 }
+

@@ -73,7 +73,7 @@ public class DefaultSoftwareFeatureApplicator implements SoftwareFeatureApplicat
             Plugin<Project> plugin = pluginManager.getPluginContainer().getPlugin(softwareFeature.getPluginClass());
             applyAndMaybeRegisterExtension(target, softwareFeature, plugin);
             applied.add(appliedFeature);
-            modelDefaultsApplicator.applyDefaultsTo(target, classLoaderScope, plugin, softwareFeature);
+            modelDefaultsApplicator.applyDefaultsTo(target, new ClassLoaderContextFromScope(classLoaderScope), plugin, softwareFeature);
         }
         return Cast.uncheckedCast(target.getExtensions().getByName(softwareFeature.getFeatureName()));
     }
@@ -188,6 +188,24 @@ public class DefaultSoftwareFeatureApplicator implements SoftwareFeatureApplicat
             int result = System.identityHashCode(target);
             result = 31 * result + softwareFeature.hashCode();
             return result;
+        }
+    }
+
+    private static class ClassLoaderContextFromScope implements ModelDefaultsApplicator.ClassLoaderContext {
+        private final ClassLoaderScope scope;
+
+        public ClassLoaderContextFromScope(ClassLoaderScope scope) {
+            this.scope = scope;
+        }
+
+        @Override
+        public ClassLoader getClassLoader() {
+            return scope.getLocalClassLoader();
+        }
+
+        @Override
+        public ClassLoader getParentClassLoader() {
+            return scope.getParent().getLocalClassLoader();
         }
     }
 }

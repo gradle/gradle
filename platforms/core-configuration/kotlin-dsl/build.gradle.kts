@@ -59,6 +59,7 @@ dependencies {
     implementation(projects.serviceLookup)
     implementation(projects.serviceProvider)
     implementation(projects.snapshots)
+    implementation(projects.softwareFeatures)
 
     implementation(projects.javaApiExtractor)
     implementation("org.gradle:kotlin-dsl-shared-runtime")

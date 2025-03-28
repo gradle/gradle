@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,10 @@
  * limitations under the License.
  */
 
-plugins {
-    id("gradlebuild.distribution.implementation-kotlin")
-}
+package org.gradle.api.internal.plugins;
 
-description = "DCL-related utilities that are meant to be reused in the Gradle subprojects but not in DCL client applications"
-
-dependencies {
-    api(projects.core)
-    api(projects.softwareFeatures)
-
-    implementation(projects.declarativeDslApi)
-    implementation(projects.coreApi)
-
-    api(libs.futureKotlin("stdlib"))
-    implementation(libs.futureKotlin("reflect"))
-
-    testImplementation(projects.internalTesting)
+/**
+ * Marks a field as exposing a software feature.
+ */
+public @interface SoftwareFeature {
 }

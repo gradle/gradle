@@ -112,6 +112,7 @@ dependencies {
     api(projects.serviceLookup)
     api(projects.serviceProvider)
     api(projects.snapshots)
+    api(projects.softwareFeatures)
     api(projects.stdlibJavaExtensions)
     api(projects.time)
     api(projects.versionedCache)
