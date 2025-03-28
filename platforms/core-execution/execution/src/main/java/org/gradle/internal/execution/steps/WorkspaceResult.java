@@ -36,4 +36,9 @@ public class WorkspaceResult extends CachingResult implements ExecutionEngine.Re
             .map(execution -> execution.getOutput(workspace))
             .map(type::cast);
     }
+
+    @Nullable
+    public File getWorkspace() {
+        return workspace;
+    }
 }

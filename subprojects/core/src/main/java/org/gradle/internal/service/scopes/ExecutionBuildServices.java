@@ -45,6 +45,7 @@ import org.gradle.internal.execution.steps.AssignImmutableWorkspaceStep;
 import org.gradle.internal.execution.steps.AssignMutableWorkspaceStep;
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep;
 import org.gradle.internal.execution.steps.BuildCacheStep;
+import org.gradle.internal.execution.steps.BuildCacheStoreStep;
 import org.gradle.internal.execution.steps.CancelExecutionStep;
 import org.gradle.internal.execution.steps.CaptureIncrementalStateBeforeExecutionStep;
 import org.gradle.internal.execution.steps.CaptureNonIncrementalStateBeforeExecutionStep;
@@ -171,6 +172,7 @@ public class ExecutionBuildServices implements ServiceRegistrationProvider {
         ))));
 
         Step<IdentityContext,WorkspaceResult> immutablePipeline =
+            new BuildCacheStoreStep<>(buildCacheController,
             new AssignImmutableWorkspaceStep<>(deleter, fileSystemAccess, immutableWorkspaceMetadataStore, outputSnapshotter,
             new MarkSnapshottingInputsStartedStep<>(
             new CaptureNonIncrementalStateBeforeExecutionStep<>(buildOperationRunner, classLoaderHierarchyHasher,
@@ -183,9 +185,10 @@ public class ExecutionBuildServices implements ServiceRegistrationProvider {
             new NoInputChangesStep<>(
             new BroadcastChangingOutputsStep<>(outputChangeListener,
             sharedExecutionPipeline
-        )))))))))));
+        ))))))))))));
 
         Step<IdentityContext,WorkspaceResult> mutablePipeline =
+            new BuildCacheStoreStep<>(buildCacheController,
             new AssignMutableWorkspaceStep<>(
             new HandleStaleOutputsStep<>(buildOperationRunner, buildOutputCleanupRegistry,  deleter, outputChangeListener, outputFilesRepository,
             new LoadPreviousExecutionStateStep<>(
@@ -204,7 +207,7 @@ public class ExecutionBuildServices implements ServiceRegistrationProvider {
             new BroadcastChangingOutputsStep<>(outputChangeListener,
             new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
             sharedExecutionPipeline
-        )))))))))))))))));
+        ))))))))))))))))));
 
         return new DefaultExecutionEngine(
             new IdentifyStep<>(buildOperationRunner,
