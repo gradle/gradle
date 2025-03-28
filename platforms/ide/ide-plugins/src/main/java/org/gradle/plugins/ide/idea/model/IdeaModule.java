@@ -25,6 +25,7 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import org.gradle.plugins.ide.internal.resolver.DefaultGradleApiSourcesResolver;
@@ -35,6 +36,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -201,8 +203,8 @@ public abstract class IdeaModule {
         this.testSources = project.getObjects().fileCollection();
         this.testResources = project.getObjects().fileCollection();
 
-        testSources.from(project.provider(this::getTestSourceDirs));
-        testResources.from(project.provider(this::getTestResourceDirs));
+        testSources.from(project.provider(() -> DeprecationLogger.whileDisabled(this::getTestSourceDirs)));
+        testResources.from(project.provider(() -> DeprecationLogger.whileDisabled(this::getTestResourceDirs)));
     }
 
     /**
@@ -342,8 +344,13 @@ public abstract class IdeaModule {
      *
      * <strong>This field is {@code @Deprecated}, please use {@link #getTestSources()} instead.</strong>
      */
+    @SuppressWarnings("DeprecatedIsStillUsed")
     @Deprecated
     public Set<File> getTestSourceDirs() {
+        DeprecationLogger.deprecateProperty(IdeaModule.class, "testSourceDirs").replaceWith("testSources")
+            .willBeRemovedInGradle9()
+            .withDslReference()
+            .nagUser();
         return testSourceDirs;
     }
 
@@ -352,6 +359,10 @@ public abstract class IdeaModule {
      */
     @Deprecated
     public void setTestSourceDirs(Set<File> testSourceDirs) {
+        DeprecationLogger.deprecateProperty(IdeaModule.class, "testSourceDirs").replaceWith("testSources")
+            .willBeRemovedInGradle9()
+            .withDslReference()
+            .nagUser();
         this.testSourceDirs = testSourceDirs;
     }
 
@@ -392,8 +403,13 @@ public abstract class IdeaModule {
      *
      * @since 4.7
      */
+    @SuppressWarnings("DeprecatedIsStillUsed")
     @Deprecated
     public Set<File> getTestResourceDirs() {
+        DeprecationLogger.deprecateProperty(IdeaModule.class, "testResourceDirs").replaceWith("testResources")
+            .willBeRemovedInGradle9()
+            .withDslReference()
+            .nagUser();
         return testResourceDirs;
     }
 
@@ -406,6 +422,10 @@ public abstract class IdeaModule {
      */
     @Deprecated
     public void setTestResourceDirs(Set<File> testResourceDirs) {
+        DeprecationLogger.deprecateProperty(IdeaModule.class, "testResourceDirs").replaceWith("testResources")
+            .willBeRemovedInGradle9()
+            .withDslReference()
+            .nagUser();
         this.testResourceDirs = testResourceDirs;
     }
 
