@@ -135,7 +135,8 @@ jdks:
     os: "windows"
     arch: "amd64"
     vendor: "temurin"
-    version: "jdk-24+36-ea-beta"
+    version: "jdk-24+36"
+    sha256: "4c27c9f5ddf12b2b8cdd3e1c57938976847db0dc7c4438dd8df8f29d1e798244"
   - params:
       - "macos.java8.openjdk.64bit"
     os: "macos"
