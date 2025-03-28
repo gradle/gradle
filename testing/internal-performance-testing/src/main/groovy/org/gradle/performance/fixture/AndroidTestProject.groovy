@@ -98,6 +98,10 @@ class AndroidTestProject implements TestProject {
         }
     }
 
+    static String configureBuildToolsForAgpVersion(CrossVersionPerformanceTestRunner runner, String agpVersion) {
+        runner.args.add("-DbuildToolsVersion=${AGP_VERSIONS.getBuildToolsVersionFor(agpVersion)}")
+    }
+
     static class JavaVersionMutator implements BuildMutator {
         private final File buildJavaHome
         private final JavaVersion javaVersion

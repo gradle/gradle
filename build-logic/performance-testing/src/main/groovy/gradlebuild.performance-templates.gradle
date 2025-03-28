@@ -411,8 +411,8 @@ performanceTest.registerTestProject("bigSwiftApp", BuildBuilderGenerator) {
 // === Android ===
 performanceTest.registerAndroidTestProject("largeAndroidBuild", RemoteProject) {
     remoteUri = 'https://github.com/gradle/perf-android-large.git'
-    // From android-73 branch
-    ref = "6f56fcdbaade0a9ce43777cf91ab8bf79cd14dd0"
+    // From android-84 branch
+    ref = "5fdf1ddadcefd401a9cacd699bde014fdb691b1c"
 }
 
 performanceTest.registerAndroidTestProject("largeAndroidBuild2", RemoteProject) {
@@ -424,7 +424,7 @@ performanceTest.registerAndroidTestProject("largeAndroidBuild2", RemoteProject) 
 performanceTest.registerAndroidTestProject("nowInAndroidBuild", RemoteProject) {
     remoteUri = 'https://github.com/android/nowinandroid.git'
     // Pinned from main branch
-    ref = "b85cf7d4766ca84a424700f86a96f5eab0a3cfbd" // latest of May 14th, 2024
+    ref = "25d80b459815e34d5da4c7618fec7280fd48d9f9" // latest of March 28th, 2025
     doLast {
         setMaxWorkers(outputDirectory, 8)
     }
