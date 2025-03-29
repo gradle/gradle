@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableSortedMap;
 import org.apache.commons.io.FileUtils;
+import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.execution.ExecutionEngine.Execution;
@@ -38,6 +39,7 @@ import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
+import org.gradle.internal.snapshot.PathUtil;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
 import org.gradle.internal.vfs.FileSystemAccess;
 import org.slf4j.Logger;
@@ -96,12 +98,14 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
     private final ImmutableWorkspaceMetadataStore workspaceMetadataStore;
     private final OutputSnapshotter outputSnapshotter;
     private final Step<? super PreviousExecutionContext, ? extends CachingResult> delegate;
+    private final StringInterner stringInterner;
 
     public AssignImmutableWorkspaceStep(
         Deleter deleter,
         FileSystemAccess fileSystemAccess,
         ImmutableWorkspaceMetadataStore workspaceMetadataStore,
         OutputSnapshotter outputSnapshotter,
+        StringInterner stringInterner,
         Step<? super PreviousExecutionContext, ? extends CachingResult> delegate
     ) {
         this.deleter = deleter;
@@ -109,6 +113,7 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
         this.workspaceMetadataStore = workspaceMetadataStore;
         this.outputSnapshotter = outputSnapshotter;
         this.delegate = delegate;
+        this.stringInterner = stringInterner;
     }
 
     @Override
@@ -165,7 +170,8 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
                 afterExecutionOutputState,
                 null,
                 originMetadata),
-            immutableLocation);
+            immutableLocation,
+            outputSnapshots);
     }
 
     private void moveInconsistentImmutableWorkspaceToTemporaryLocation(File immutableLocation, File failedWorkspaceLocation, ImmutableSortedMap<String, FileSystemSnapshot> outputSnapshots) {
@@ -221,7 +227,7 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
                     new WorkspaceMoveHandler(work, workspace, temporaryWorkspace, delegateResult));
             } else {
                 // TODO Do not capture a null workspace in case of a failure
-                return new WorkspaceResult(delegateResult, null);
+                return new WorkspaceResult(delegateResult, null, ImmutableSortedMap.of());
             }
         });
     }
@@ -267,11 +273,22 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
             this.delegateResult = delegateResult;
         }
 
+        @SuppressWarnings("OptionalGetWithoutIsPresent")
         public WorkspaceResult executeMoveOr(Function<FileSystemException, WorkspaceResult> failedMoveHandler) {
             File immutableLocation = workspace.getImmutableLocation();
             try {
                 fileSystemAccess.moveAtomically(temporaryWorkspace.getAbsolutePath(), immutableLocation.getAbsolutePath());
-                return new WorkspaceResult(delegateResult, immutableLocation);
+                ImmutableSortedMap.Builder<String, FileSystemSnapshot> relocatedSnapshots = ImmutableSortedMap.naturalOrder();
+                delegateResult.getAfterExecutionOutputState().get().getOutputFilesProducedByWork().forEach((name, snapshot) -> {
+                    String targetLocation = immutableLocation.getAbsolutePath() + File.separator + PathUtil.getFileName(((FileSystemLocationSnapshot) snapshot).getAbsolutePath());
+                    FileSystemLocationSnapshot newSnapshot = ((FileSystemLocationSnapshot) snapshot).relocate(targetLocation, stringInterner).get();
+                    relocatedSnapshots.put(name, newSnapshot);
+                });
+                return new WorkspaceResult(
+                    delegateResult,
+                    immutableLocation,
+                    relocatedSnapshots.build()
+                );
             } catch (FileSystemException moveWorkspaceException) {
                 // `Files.move()` says it would throw DirectoryNotEmptyException, but it's a lie, so this is the best we can catch here
                 if (immutableLocation.isDirectory()) {

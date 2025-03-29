@@ -41,4 +41,9 @@ public interface BuildCacheController extends Closeable {
     Optional<BuildCacheLoadResult> load(BuildCacheKey cacheKey, CacheableEntity cacheableEntity);
 
     void store(BuildCacheKey cacheKey, CacheableEntity entity, Map<String, FileSystemSnapshot> snapshots, Duration executionTime);
+
+    /**
+     * Asynchronously store the given entity in the build cache.
+     */
+    void storeAsync(BuildCacheKey cacheKey, CacheableEntity entity, Map<String, FileSystemSnapshot> snapshots, Duration executionTime);
 }

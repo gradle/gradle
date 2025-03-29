@@ -16,8 +16,10 @@
 
 package org.gradle.internal.execution.steps;
 
+import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.execution.MutableUnitOfWork;
 import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
 
 public class AssignMutableWorkspaceStep<C extends IdentityContext> implements Step<C, WorkspaceResult> {
     private final Step<? super WorkspaceContext, ? extends CachingResult> delegate;
@@ -26,6 +28,7 @@ public class AssignMutableWorkspaceStep<C extends IdentityContext> implements St
         this.delegate = delegate;
     }
 
+    @SuppressWarnings("OptionalGetWithoutIsPresent")
     @Override
     public WorkspaceResult execute(UnitOfWork work, C context) {
         return ((MutableUnitOfWork) work).getWorkspaceProvider().withWorkspace(
@@ -33,7 +36,10 @@ public class AssignMutableWorkspaceStep<C extends IdentityContext> implements St
             (workspace, history) -> {
                 WorkspaceContext delegateContext = new WorkspaceContext(context, workspace, history, history != null);
                 CachingResult delegateResult = delegate.execute(work, delegateContext);
-                return new WorkspaceResult(delegateResult, workspace);
+                ImmutableSortedMap<String, FileSystemSnapshot> outputs = delegateResult.getAfterExecutionOutputState().isPresent()
+                    ? delegateResult.getAfterExecutionOutputState().get().getOutputFilesProducedByWork()
+                    : ImmutableSortedMap.of();
+                return new WorkspaceResult(delegateResult, workspace, outputs);
             });
     }
 }

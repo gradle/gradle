@@ -103,6 +103,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.nio.file.Files;
+import java.util.concurrent.Executors;
 import java.util.function.Supplier;
 
 import static org.gradle.cache.FileLockManager.LockMode.OnDemand;
@@ -142,7 +143,8 @@ class BuildCacheClientModule extends AbstractModule {
             true,
             buildCacheEntryPacker,
             originMetadataFactory,
-            stringInterner
+            stringInterner,
+            Executors.newCachedThreadPool()
         );
     }
 

@@ -16,18 +16,22 @@
 
 package org.gradle.internal.execution.steps;
 
+import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.ExecutionEngine;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 
 public class WorkspaceResult extends CachingResult implements ExecutionEngine.Result {
     private final File workspace;
+    private final ImmutableSortedMap<String, FileSystemSnapshot> workspaceSnapshots;
 
-    public WorkspaceResult(CachingResult parent, @Nullable File workspace) {
+    public WorkspaceResult(CachingResult parent, @Nullable File workspace, ImmutableSortedMap<String, FileSystemSnapshot> workspaceSnapshots) {
         super(parent);
         this.workspace = workspace;
+        this.workspaceSnapshots = workspaceSnapshots;
     }
 
     @Override
@@ -35,5 +39,14 @@ public class WorkspaceResult extends CachingResult implements ExecutionEngine.Re
         return getExecution()
             .map(execution -> execution.getOutput(workspace))
             .map(type::cast);
+    }
+
+    @Nullable
+    public File getWorkspace() {
+        return workspace;
+    }
+
+    public ImmutableSortedMap<String, FileSystemSnapshot> getWorkspaceSnapshots() {
+        return workspaceSnapshots;
     }
 }
