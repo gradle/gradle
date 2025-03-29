@@ -38,7 +38,7 @@ public class DefaultScriptHandlerFactory implements ScriptHandlerFactory {
 
     @Override
     public ScriptHandlerInternal create(ScriptSource scriptSource, ClassLoaderScope classLoaderScope, DomainObjectContext context) {
-        DependencyResolutionServices services = dependencyManagementServices.newBuildscriptResolver(context);
+        DependencyResolutionServices services = dependencyManagementServices.newDetachedResolver(context);
         return getDefaultScriptHandler(scriptSource, classLoaderScope, services);
     }
 
@@ -50,10 +50,10 @@ public class DefaultScriptHandlerFactory implements ScriptHandlerFactory {
         FileCollectionFactory fileCollectionFactory,
         ProjectInternal project
     ) {
-        DependencyResolutionServices services = dependencyManagementServices.newProjectBuildscriptResolver(
+        DependencyResolutionServices services = dependencyManagementServices.newDetachedResolver(
             fileResolver,
             fileCollectionFactory,
-            project
+            StandaloneDomainObjectContext.forProjectBuildscript(project)
         );
         return getDefaultScriptHandler(scriptSource, classLoaderScope, services);
     }

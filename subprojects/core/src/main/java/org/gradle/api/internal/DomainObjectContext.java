@@ -23,7 +23,7 @@ import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Represents a node in the tree of builds/projects.
+ * The owner/context of a Dependency Management instance.
  */
 public interface DomainObjectContext extends Describable {
 
