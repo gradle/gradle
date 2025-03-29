@@ -22,6 +22,7 @@ import spock.lang.Issue
 
 class BeforeResolveIntegrationTest extends AbstractDependencyResolutionTest {
     def "can use beforeResolve hook to add dependencies"() {
+        enableProblemsApiCheck()
         mavenRepo.module('org.test', 'dep1', '1.0').publish()
         mavenRepo.module('org.test', 'dep2', '1.0').publish()
         mavenRepo.module('org.test', 'dep3', '1.0').publish()
