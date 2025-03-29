@@ -57,6 +57,6 @@ class CommandLineOutputIntegrationTest extends AbstractIntegrationSpec implement
         succeeds("--version")
 
         then:
-        outputContains("Daemon JVM:    Compatible with Java 17, any vendor (from gradle/gradle-daemon-jvm.properties)")
+        outputContains("Daemon JVM:    Compatible with Java 17, any vendor, nativeImageCapable=false (from gradle/gradle-daemon-jvm.properties)")
     }
 }

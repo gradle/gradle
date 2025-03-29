@@ -131,7 +131,7 @@ public class DaemonParameters {
         JavaLanguageVersion requestedVersion = daemonJvmAccessor.getVersion();
         if (requestedVersion != null) {
             JvmVendorSpec requestedJavaVendor = daemonJvmAccessor.getVendor();
-            this.requestedJvmCriteria = new DaemonJvmCriteria.Spec(requestedVersion, requestedJavaVendor, JvmImplementation.VENDOR_SPECIFIC);
+            this.requestedJvmCriteria = new DaemonJvmCriteria.Spec(requestedVersion, requestedJavaVendor, JvmImplementation.VENDOR_SPECIFIC, daemonJvmAccessor.getNativeImageCapable());
             this.toolchainDownloadUrlProvider = new ToolchainDownloadUrlProvider(daemonJvmAccessor.getToolchainDownloadUrls());
         }
     }
