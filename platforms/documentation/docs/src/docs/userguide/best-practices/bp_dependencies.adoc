@@ -15,4 +15,36 @@
 [[best_practices_for_dependencies]]
 = Best Practices for Dependencies
 
-Add content here.
+[[set_up_repositories_in_settings]]
+== Set up your dependency repositories in `settings.gradle.kts`
+
+Declare your repositories for your plugins and dependencies in `settings.gradle.kts`
+
+=== Explanation
+
+Using `settings.gradle.kts` file allows for much clearer structure of what is used within the build and prevents project-level declarations as that often leads to harder to reason behaviors.
+
+Note that while https://github.com/gradle/gradle/issues/32443[`dependencyResolutionManagement.repositories` is an incubating API], it is the preferred way of declaring repositories.
+
+=== Example
+
+==== Don't Do This
+
+You could set up repositories in individual `build.gradle.kts` files with:
+
+====
+include::sample[dir="snippets/bestPractices/settingsRepositoriesDont/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/settingsRepositoriesDont/groovy",files="build.gradle[tags=avoid-this]"]
+====
+
+==== Do This Instead
+
+Instead, you should set them up in `settings.gradle.kts` like this:
+
+====
+include::sample[dir="snippets/bestPractices/settingsRepositoriesDo/kotlin",files="settings.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/settingsRepositoriesDo/groovy",files="settings.gradle[tags=do-this]"]
+====
+
+=== Tags
+`#repositories`,
