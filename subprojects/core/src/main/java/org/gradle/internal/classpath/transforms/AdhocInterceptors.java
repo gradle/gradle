@@ -18,9 +18,10 @@ package org.gradle.internal.classpath.transforms;
 
 import org.codehaus.groovy.runtime.ProcessGroovyMethods;
 import org.gradle.internal.classpath.Instrumented;
-import org.gradle.internal.instrumentation.api.jvmbytecode.DefaultBridgeMethodBuilder;
 import org.gradle.internal.instrumentation.api.jvmbytecode.BridgeMethodBuilder;
+import org.gradle.internal.instrumentation.api.jvmbytecode.DefaultBridgeMethodBuilder;
 import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor;
+import org.gradle.internal.instrumentation.api.jvmbytecode.ReplacementMethodBuilder;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorType;
 import org.gradle.model.internal.asm.MethodVisitorScope;
 import org.objectweb.asm.Opcodes;
@@ -130,6 +131,12 @@ public class AdhocInterceptors implements JvmBytecodeCallInterceptor {
     // ProcessGroovyMethods.execute(List, List, File) -> execute(List, List, File, String)
     private static final String RETURN_PROCESS_FROM_LIST_LIST_FILE = getMethodDescriptor(PROCESS_TYPE, LIST_TYPE, LIST_TYPE, FILE_TYPE);
     private static final String RETURN_PROCESS_FROM_LIST_LIST_FILE_STRING = getMethodDescriptor(PROCESS_TYPE, LIST_TYPE, LIST_TYPE, FILE_TYPE, STRING_TYPE);
+
+    @Nullable
+    @Override
+    public ReplacementMethodBuilder findReplacementMethod(String className, int access, String name, String descriptor, String signature, String[] exceptions, Supplier<MethodNode> asNode) {
+        return null;
+    }
 
     @Override
     public boolean visitMethodInsn(MethodVisitorScope mv, String className, int opcode, String owner, String name, String descriptor, boolean isInterface, Supplier<MethodNode> readMethodNode) {
