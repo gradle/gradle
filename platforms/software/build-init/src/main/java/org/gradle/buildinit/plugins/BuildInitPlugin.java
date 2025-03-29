@@ -51,6 +51,7 @@ public abstract class BuildInitPlugin implements Plugin<Project> {
                 initBuild.getInsecureProtocol().convention(InsecureProtocolOption.WARN);
                 initBuild.getAllowFileOverwrite().convention(false);
                 initBuild.getComments().convention(getCommentsProperty(project).orElse(true));
+                initBuild.getProjectDirectory().convention(project.getLayout().getProjectDirectory());
             });
         }
     }
