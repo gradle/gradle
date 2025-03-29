@@ -105,7 +105,11 @@ public class StateTrackingTestResultProcessor implements TestResultProcessor {
                     "Received a failure event for test with unknown id '%s'. Registered test ids: '%s'",
                     testId, executing.keySet()));
         }
-        testState.failures.add(testFailure);
+        if (testFailure.getDetails().isAssumptionFailure()) {
+            testState.assumptionFailure = testFailure;
+        } else {
+            testState.failures.add(testFailure);
+        }
     }
 
     @Override

@@ -45,4 +45,9 @@ public class TestCompleteEvent {
     public TestResult.ResultType getResultType() {
         return resultType;
     }
+
+    @Override
+    public String toString() {
+        return "complete(" + resultType + ")=" + endTime;
+    }
 }

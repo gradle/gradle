@@ -20,7 +20,6 @@ import org.gradle.api.GradleException
 import org.gradle.api.internal.tasks.testing.DefaultTestClassDescriptor
 import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo
 import org.gradle.api.internal.tasks.testing.DefaultTestDescriptor
-import org.gradle.api.internal.tasks.testing.DefaultTestFailure
 import org.gradle.api.internal.tasks.testing.DefaultTestMethodDescriptor
 import org.gradle.api.internal.tasks.testing.DefaultTestOutputEvent
 import org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor
@@ -188,7 +187,7 @@ class TestEventSerializerTest extends SerializerSpec {
         TestFailure failure = TestFailure.fromTestAssertionFailure(new RuntimeException("cause"), 'expectedValue', 'actualValue')
 
         when:
-        TestFailure result = serialize(failure, DefaultTestFailure)
+        TestFailure result = serialize(failure, TestFailure)
 
         then:
         result.rawFailure.message == 'cause'

@@ -20,6 +20,7 @@ import org.gradle.api.Incubating;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Describes a test result.
@@ -65,6 +66,16 @@ public interface TestResult {
      * @return The exceptions, if any, logged for this test. If none, an empty list is returned.
      */
     List<Throwable> getExceptions();
+
+    /**
+     * If the test failed with assumption violation exception, this will contain the exception.
+     *
+     * @return the exception, if any, logged for this test. If none, null is returned.
+     *
+     * @since 8.14
+     */
+    @Incubating
+    Optional<TestFailure> getAssumptionFailure();
 
     /**
      * Returns the time when this test started execution.
