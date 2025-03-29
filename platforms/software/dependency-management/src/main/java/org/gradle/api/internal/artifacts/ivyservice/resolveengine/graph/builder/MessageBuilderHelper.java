@@ -21,22 +21,22 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-abstract class MessageBuilderHelper {
+/* package */ abstract class MessageBuilderHelper {
+    public static final String PATH_SEPARATOR = " --> ";
 
-    static Collection<String> pathTo(EdgeState edge) {
-        return pathTo(edge, true);
-    }
+    private MessageBuilderHelper() { /* not instantiable */ }
 
-    static Collection<String> pathTo(EdgeState edge, boolean includeLast) {
+    /* package */ static List<String> pathTo(EdgeState edge, boolean includeLast) {
         List<List<EdgeState>> acc = new ArrayList<>(1);
         pathTo(edge, new ArrayList<>(), acc, new HashSet<>());
         List<String> result = new ArrayList<>(acc.size());
         for (List<EdgeState> path : acc) {
+            List<String> segmentedPathTo = segmentedPathTo(edge, includeLast, path);
+
             EdgeState target = Iterators.getLast(path.iterator());
             StringBuilder sb = new StringBuilder();
             if (target.getSelector().getDependencyMetadata().isConstraint()) {
@@ -44,32 +44,54 @@ abstract class MessageBuilderHelper {
             } else {
                 sb.append("Dependency path ");
             }
+
             boolean first = true;
-            String variantDetails = null;
-            for (EdgeState e : path) {
+            for (String segment : segmentedPathTo) {
                 if (!first) {
-                    sb.append(" --> ");
+                    sb.append(PATH_SEPARATOR);
                 }
                 first = false;
-                ModuleVersionIdentifier id = e.getFrom().getComponent().getModuleVersion();
-                sb.append('\'').append(id).append('\'');
-                if (variantDetails != null) {
-                    sb.append(variantDetails);
-                }
-                variantDetails = variantDetails(e);
+                sb.append(segment);
             }
-            if (includeLast) {
-                sb.append(" --> ");
-                SelectorState selector = edge.getSelector();
-                ModuleIdentifier moduleId = selector.getTargetModule().getId();
-                sb.append('\'').append(moduleId.getGroup()).append(':').append(moduleId.getName()).append('\'');
-                if (variantDetails != null) {
-                    sb.append(variantDetails);
-                }
-            }
+
             result.add(sb.toString());
         }
         return result;
+    }
+
+    /* package */ static List<List<String>> segmentedPathsTo(EdgeState edge, boolean includeLast) {
+        List<List<EdgeState>> acc = new ArrayList<>(1);
+        pathTo(edge, new ArrayList<>(), acc, new HashSet<>());
+        List<List<String>> result = new ArrayList<>(acc.size());
+        for (List<EdgeState> path : acc) {
+            List<String> currentPath = segmentedPathTo(edge, includeLast, path);
+            result.add(currentPath);
+        }
+        return result;
+    }
+
+    private static List<String> segmentedPathTo(EdgeState edge, boolean includeLast, List<EdgeState> path) {
+        List<String> currentPath = new ArrayList<>(path.size());
+        String variantDetails = null;
+        for (EdgeState e : path) {
+            ModuleVersionIdentifier id = e.getFrom().getComponent().getModuleVersion();
+            String currentSegment = "'" + id + "'";
+            if (variantDetails != null) {
+                currentSegment += variantDetails;
+            }
+            variantDetails = variantDetails(e);
+            currentPath.add(currentSegment);
+        }
+        if (includeLast) {
+            SelectorState selector = edge.getSelector();
+            ModuleIdentifier moduleId = selector.getTargetModule().getId();
+            String lastSegment = "'" + moduleId.getGroup()+ ":" + moduleId.getName() + "'";
+            if (variantDetails != null) {
+                lastSegment += variantDetails;
+            }
+            currentPath.add(lastSegment);
+        }
+        return currentPath;
     }
 
     @Nullable
@@ -81,7 +103,7 @@ abstract class MessageBuilderHelper {
         return null;
     }
 
-    static void pathTo(EdgeState component, List<EdgeState> currentPath, List<List<EdgeState>> accumulator, Set<NodeState> alreadySeen) {
+    /* package */ static void pathTo(EdgeState component, List<EdgeState> currentPath, List<List<EdgeState>> accumulator, Set<NodeState> alreadySeen) {
         if (alreadySeen.add(component.getFrom())) {
             currentPath.add(0, component);
             for (EdgeState dependent : component.getFrom().getIncomingEdges()) {
