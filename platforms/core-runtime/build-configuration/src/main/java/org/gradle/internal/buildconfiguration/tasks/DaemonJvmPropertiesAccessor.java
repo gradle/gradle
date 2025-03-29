@@ -60,6 +60,10 @@ public class DaemonJvmPropertiesAccessor {
         }
     }
 
+    public boolean getNativeImageCapable() {
+        return Boolean.parseBoolean(properties.get(DaemonJvmPropertiesDefaults.TOOLCHAIN_NATIVE_IMAGE_CAPABLE_PROPERTY));
+    }
+
     public Map<BuildPlatform, String> getToolchainDownloadUrls() {
         return properties.entrySet().stream()
             .filter(entry -> entry.getKey().startsWith(DaemonJvmPropertiesDefaults.TOOLCHAIN_URL_PROPERTY_PREFIX))
