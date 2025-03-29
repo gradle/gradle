@@ -16,9 +16,9 @@
 
 package org.gradle.internal.watch
 
-import org.gradle.testdistribution.LocalOnly
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.gradle.testdistribution.LocalOnly
 import org.junit.Rule
 
 @LocalOnly
@@ -59,7 +59,7 @@ class ChangesDuringTheBuildFileSystemWatchingIntegrationTest extends AbstractFil
                     flowScope.always(
                         VfsAction.class,
                         spec -> {
-                            spec.getParameters().getRootDir().set(projectDirAsResultOfBuild)
+                            spec.getParameters().getRootDir().fileProvider(projectDirAsResultOfBuild)
                             spec.getParameters().getVfsService().set(vfsService)
                         }
                     );
@@ -72,12 +72,12 @@ class ChangesDuringTheBuildFileSystemWatchingIntegrationTest extends AbstractFil
                     Property<VirtualFileSystem> getVfsService();
 
                     @Input
-                    Property<File> getRootDir();
+                    DirectoryProperty getRootDir();
                 }
 
                 @Override
                 public void execute(Parameters parameters) {
-                    def projectRoot = parameters.rootDir.get().absolutePath
+                    def projectRoot = parameters.rootDir.get().asFile.absolutePath
                     def vfs = parameters.vfsService.get()
                     int filesInVfs = 0
                     vfs.root.rootSnapshots().forEach { snapshot ->

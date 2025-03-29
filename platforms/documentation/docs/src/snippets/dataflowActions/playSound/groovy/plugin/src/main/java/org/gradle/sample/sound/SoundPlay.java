@@ -3,6 +3,7 @@ package org.gradle.sample.sound;
 import org.gradle.api.flow.FlowAction;
 import org.gradle.api.flow.FlowParameters;
 import org.gradle.api.provider.Property;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.services.ServiceReference;
 import org.gradle.api.tasks.Input;
 
@@ -14,11 +15,11 @@ public abstract class SoundPlay implements FlowAction<SoundPlay.Parameters> {
         Property<SoundService> getSoundService();
 
         @Input // <2>
-        Property<File> getMediaFile();
+        RegularFileProperty getMediaFile();
     }
 
     @Override
     public void execute(Parameters parameters) {
-        parameters.getSoundService().get().playSoundFile(parameters.getMediaFile().get());
+        parameters.getSoundService().get().playSoundFile(parameters.getMediaFile().get().getAsFile());
     }
 }
