@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
-import org.gradle.api.internal.artifacts.ForeignBuildIdentifier;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -32,7 +31,6 @@ import java.io.IOException;
 public class BuildIdentifierSerializer extends AbstractSerializer<BuildIdentifier> {
     private static final byte ROOT = 0;
     private static final byte LOCAL = 1;
-    private static final byte FOREIGN = 2;
 
     @Override
     public BuildIdentifier read(Decoder decoder) throws IOException {
@@ -42,8 +40,6 @@ public class BuildIdentifierSerializer extends AbstractSerializer<BuildIdentifie
                 return DefaultBuildIdentifier.ROOT;
             case LOCAL:
                 return new DefaultBuildIdentifier(Path.path(decoder.readString()));
-            case FOREIGN:
-                return new ForeignBuildIdentifier(Path.path(decoder.readString()));
             default:
                 throw new IllegalArgumentException("Unexpected build identifier type.");
         }
@@ -53,9 +49,6 @@ public class BuildIdentifierSerializer extends AbstractSerializer<BuildIdentifie
     public void write(Encoder encoder, BuildIdentifier value) throws IOException {
         if (value == DefaultBuildIdentifier.ROOT) {
             encoder.writeByte(ROOT);
-        } else if (value instanceof ForeignBuildIdentifier) {
-            encoder.writeByte(FOREIGN);
-            encoder.writeString(value.getBuildPath());
         } else {
             encoder.writeByte(LOCAL);
             encoder.writeString(value.getBuildPath());
