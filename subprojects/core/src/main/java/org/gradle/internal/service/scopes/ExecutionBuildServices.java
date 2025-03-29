@@ -173,7 +173,7 @@ public class ExecutionBuildServices implements ServiceRegistrationProvider {
 
         Step<IdentityContext,WorkspaceResult> immutablePipeline =
             new BuildCacheStoreStep<>(buildCacheController,
-            new AssignImmutableWorkspaceStep<>(deleter, fileSystemAccess, immutableWorkspaceMetadataStore, outputSnapshotter,
+            new AssignImmutableWorkspaceStep<>(deleter, fileSystemAccess, immutableWorkspaceMetadataStore, outputSnapshotter, new StringInterner(),
             new MarkSnapshottingInputsStartedStep<>(
             new CaptureNonIncrementalStateBeforeExecutionStep<>(buildOperationRunner, classLoaderHierarchyHasher,
             new ValidateStep<>(virtualFileSystem, validationWarningRecorder,

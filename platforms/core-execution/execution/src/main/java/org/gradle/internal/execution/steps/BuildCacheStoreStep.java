@@ -30,8 +30,6 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.time.Duration;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 public class BuildCacheStoreStep<C extends IdentityContext> implements Step<C, WorkspaceResult> {
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildCacheStoreStep.class);
 
@@ -46,8 +44,13 @@ public class BuildCacheStoreStep<C extends IdentityContext> implements Step<C, W
     @Override
     public WorkspaceResult execute(UnitOfWork work, C context) {
         WorkspaceResult result = delegate.execute(work, context);
-        if (result.getWorkspace() != null && result.getCachingState().whenEnabled().isPresent() && result.getCachingState().getCacheKeyCalculatedState().isPresent()) {
-            CacheableWork cacheableWork = new CacheableWork(context.getIdentity().getUniqueId(), checkNotNull(result.getWorkspace()), work);
+        if (result.getExecution().isSuccessful()
+            && result.getExecution().get().getOutcome() != ExecutionEngine.ExecutionOutcome.SHORT_CIRCUITED
+            && result.getExecution().get().getOutcome() != ExecutionEngine.ExecutionOutcome.UP_TO_DATE
+            && result.getExecution().get().canStoreOutputsInCache()
+            && result.getCachingState().whenEnabled().isPresent()
+            && result.getCachingState().getCacheKeyCalculatedState().isPresent()) {
+            CacheableWork cacheableWork = new CacheableWork(context.getIdentity().getUniqueId(), result.getWorkspace(), work);
             result.getCachingState().getCacheKeyCalculatedState().ifPresent(cacheKeyCalculatedState -> {
                 result.getExecution().ifSuccessfulOrElse(
                     executionResult -> storeInCacheUnlessDisabled(cacheableWork, cacheKeyCalculatedState.getKey(), result, executionResult),
@@ -59,10 +62,10 @@ public class BuildCacheStoreStep<C extends IdentityContext> implements Step<C, W
         return result;
     }
 
-    private void storeInCacheUnlessDisabled(CacheableWork cacheableWork, BuildCacheKey cacheKey, AfterExecutionResult result, ExecutionEngine.Execution executionResult) {
+    private void storeInCacheUnlessDisabled(CacheableWork cacheableWork, BuildCacheKey cacheKey, WorkspaceResult result, ExecutionEngine.Execution executionResult) {
         if (executionResult.canStoreOutputsInCache()) {
             result.getAfterExecutionOutputState()
-                .ifPresent(afterExecutionState -> store(cacheableWork, cacheKey, afterExecutionState.getOutputFilesProducedByWork(), afterExecutionState.getOriginMetadata().getExecutionTime()));
+                .ifPresent(afterExecutionState -> store(cacheableWork, cacheKey, result.getWorkspaceSnapshots(), afterExecutionState.getOriginMetadata().getExecutionTime()));
         } else {
             LOGGER.debug("Not storing result of {} in cache because storing was disabled for this execution", cacheableWork.getDisplayName());
         }
@@ -70,7 +73,7 @@ public class BuildCacheStoreStep<C extends IdentityContext> implements Step<C, W
 
     private void store(CacheableWork work, BuildCacheKey cacheKey, ImmutableSortedMap<String, FileSystemSnapshot> outputFilesProducedByWork, Duration executionTime) {
         try {
-            buildCache.store(cacheKey, work, outputFilesProducedByWork, executionTime);
+            buildCache.storeAsync(cacheKey, work, outputFilesProducedByWork, executionTime);
         } catch (Exception e) {
             LOGGER.warn("Failed to store result of {} in cache", work.getDisplayName(), e);
         }
