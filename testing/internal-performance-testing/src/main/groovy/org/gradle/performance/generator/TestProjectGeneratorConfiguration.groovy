@@ -23,6 +23,7 @@ import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.language.Language
 
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepositoryDefinition
+import static org.gradle.test.fixtures.dsl.GradleDsl.KOTLIN
 
 @CompileStatic
 class TestProjectGeneratorConfiguration {
@@ -127,7 +128,31 @@ class TestProjectGeneratorConfigurationBuilder {
         config.buildSrc = this.buildSrc
 
         config.plugins = this.language == Language.GROOVY ? ['groovy', 'java', 'eclipse', 'idea'] : ['java', 'eclipse', 'idea']
-        config.repositories = [mavenCentralRepositoryDefinition(this.dsl)]
+        def extraRepo;
+        if (this.dsl == KOTLIN) {
+            extraRepo = """
+                    maven {
+                        url = uri("https://packages.jetbrains.team/maven/p/kt/dev/")
+                        metadataSources {
+                            artifact()
+                        }
+                    }
+                """
+        } else {
+            extraRepo = """
+                    maven {
+                        url = "https://packages.jetbrains.team/maven/p/kt/dev/"
+                        metadataSources {
+                            artifact()
+                        }
+                    }
+                """
+        }
+        println "------------------------------ extraRepo = $extraRepo"
+        config.repositories = [
+            mavenCentralRepositoryDefinition(this.dsl),
+            extraRepo
+        ]
         config.externalApiDependencies = this.externalApiDependencies
         config.externalImplementationDependencies = [
             reflectasm: 'com.googlecode:reflectasm:1.01',

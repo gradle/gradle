@@ -47,7 +47,6 @@ import org.jetbrains.kotlin.config.AnalysisFlags
 import org.jetbrains.kotlin.config.ApiVersion
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
-import org.jetbrains.kotlin.config.JVMConfigurationKeys.IR
 import org.jetbrains.kotlin.config.JVMConfigurationKeys.JDK_HOME
 import org.jetbrains.kotlin.config.JVMConfigurationKeys.JVM_TARGET
 import org.jetbrains.kotlin.config.JVMConfigurationKeys.OUTPUT_DIRECTORY
@@ -449,7 +448,7 @@ fun compilerConfigurationFor(messageCollector: MessageCollector, compilerOptions
         put(CommonConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
         put(JVM_TARGET, compilerOptions.jvmTarget.toKotlinJvmTarget())
         put(JDK_HOME, File(System.getProperty("java.home")))
-        put(IR, true)
+        // put(IR, true) // TODO: is it ok to just remove this?
         put(SAM_CONVERSIONS, JvmClosureGenerationScheme.CLASS)
         addJvmSdkRoots(PathUtil.getJdkClassesRootsFromCurrentJre())
         put(CommonConfigurationKeys.LANGUAGE_VERSION_SETTINGS, gradleKotlinDslLanguageVersionSettingsFor(compilerOptions))
@@ -475,7 +474,7 @@ fun gradleKotlinDslLanguageVersionSettingsFor(compilerOptions: KotlinCompilerOpt
         AnalysisFlags.skipMetadataVersionCheck to compilerOptions.skipMetadataVersionCheck,
         AnalysisFlags.skipPrereleaseCheck to true,
         AnalysisFlags.allowUnstableDependencies to true,
-        JvmAnalysisFlags.jvmDefaultMode to JvmDefaultMode.ALL,
+        JvmAnalysisFlags.jvmDefaultMode to JvmDefaultMode.NO_COMPATIBILITY,
         JvmAnalysisFlags.javaTypeEnhancementState to JavaTypeEnhancementState(
             jsr305 = Jsr305Settings(globalLevel = ReportLevel.STRICT, migrationLevel = ReportLevel.STRICT),
             getReportLevelForAnnotation = { ReportLevel.STRICT }
