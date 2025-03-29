@@ -21,9 +21,7 @@ import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.classpath.TransformedClassPath
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.graph.WriteContext
-import org.gradle.internal.serialize.graph.readFile
 import org.gradle.internal.serialize.graph.writeCollection
-import org.gradle.internal.serialize.graph.writeFile
 
 
 internal

@@ -24,9 +24,7 @@ import org.gradle.internal.file.PathToFileResolver
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
-import org.gradle.internal.serialize.graph.readFile
 import org.gradle.internal.serialize.graph.readNonNull
-import org.gradle.internal.serialize.graph.writeFile
 
 
 class ConfigurableFileTreeCodec(

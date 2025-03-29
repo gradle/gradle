@@ -19,6 +19,7 @@ package org.gradle.internal.serialize;
 import org.jspecify.annotations.Nullable;
 
 import java.io.EOFException;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -143,6 +144,13 @@ public interface Decoder {
      * @throws EOFException when the end of the byte stream is reached before the byte array was fully read.
      */
     byte[] readBinary() throws EOFException, IOException;
+
+    /**
+     * Reads a file.
+     *
+     * @throws EOFException when the end of the byte stream is reached before the file can be fully read.
+     */
+    File readFile() throws EOFException, IOException;
 
     /**
      * Skips the given number of bytes. Can skip over any byte values that were written using one of the raw byte methods on {@link Encoder}.

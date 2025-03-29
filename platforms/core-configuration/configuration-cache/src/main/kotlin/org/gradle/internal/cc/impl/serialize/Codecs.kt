@@ -177,7 +177,7 @@ class Codecs(
     transformStepNodeFactory: TransformStepNodeFactory,
     val parallelStore: Boolean = true,
     val parallelLoad: Boolean = true,
-    problems: InternalProblems
+    problems: InternalProblems,
 ) {
     private
     val userTypesBindings: Bindings
