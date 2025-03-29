@@ -485,7 +485,7 @@ BUILD SUCCESSFUL"""
         when:
         fails "help", "--task", "bTask"
         then:
-        failure.assertHasCause("Task 'bTask' not found in root project '${testDirectory.getName()}'. Some candidates are: 'aTask', 'tasks'")
+        failureCauseContains("Task 'bTask' not found in root project '${testDirectory.getName()}'. Some candidates are: 'aTask', 'tasks'")
 
         when:
         run "help", "--task", "aTask"
@@ -495,7 +495,7 @@ BUILD SUCCESSFUL"""
         when:
         fails "help", "--task", "bTask"
         then:
-        failure.assertHasCause("Task 'bTask' not found in root project '${testDirectory.getName()}'. Some candidates are: 'aTask', 'tasks'")
+        failureCauseContains("Task 'bTask' not found in root project '${testDirectory.getName()}'. Some candidates are: 'aTask', 'tasks'")
 
         when:
         buildFile << """

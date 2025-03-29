@@ -110,13 +110,11 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
     @SuppressWarnings("Deprecated")
     private void handleDeprecatedJvmVendor() {
         if (jvmVendorDeprecated.isPresent()) {
-            String message = "Configuring 'jvmVendor' is no longer supported.";
-            throw problemsReporter.throwing(new IllegalStateException(message),
+            throw problemsReporter.throwing(new IllegalStateException("Configuring 'jvmVendor' is no longer supported."),
                 TASK_CONFIGURATION_PROBLEM_ID,
                 problemSpec -> {
                     problemSpec.documentedAt(Documentation.upgradeGuide(8, "deprecated_update_daemon_jvm").getUrl());
                     problemSpec.solution("Replace the usage of `UpdateDaemonJvm.jvmVendor` with 'vendor'");
-                    problemSpec.contextualLabel(message);
                 });
         }
     }

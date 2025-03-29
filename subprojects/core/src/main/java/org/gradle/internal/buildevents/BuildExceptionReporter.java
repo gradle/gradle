@@ -421,10 +421,14 @@ public class BuildExceptionReporter implements Action<Throwable> {
     private static String getMessage(Throwable throwable, ProblemLocator problemLocator) {
         try {
             String msg = throwable instanceof CompilationFailedIndicator ? ((CompilationFailedIndicator) throwable).getShortMessage() : throwable.getMessage();
-            StringBuilder builder = new StringBuilder(msg == null ? "" : msg);
+            StringBuilder builder = new StringBuilder();
             Collection<InternalProblem> problems = problemLocator.findAll(throwable);
             if (!problems.isEmpty()) {
-                builder.append(System.lineSeparator());
+                // Skip the exception message unless it is a compilation error
+                if (throwable instanceof CompilationFailedIndicator) {
+                    builder.append(msg == null ? "" : msg);
+                    builder.append(System.lineSeparator());
+                }
                 StringWriter problemWriter = new StringWriter();
                 new ProblemRenderer(problemWriter).render(new ArrayList<>(problems));
                 builder.append(problemWriter);
@@ -437,6 +441,8 @@ public class BuildExceptionReporter implements Action<Throwable> {
                         builder.append(diagnosticCounts);
                     }
                 }
+            } else {
+                builder.append(msg == null ? "" : msg);
             }
 
             String message = builder.toString();

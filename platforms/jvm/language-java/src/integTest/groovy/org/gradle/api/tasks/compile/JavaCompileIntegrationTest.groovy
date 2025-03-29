@@ -931,7 +931,8 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         fails 'compileJava'
 
         then:
-        failureHasCause("Cannot specify -sourcepath or --source-path via `CompileOptions.compilerArgs`. Use the `CompileOptions.sourcepath` property instead.")
+        failureHasCause("Java compilation initialization error")
+        failureCauseContains("Cannot specify -sourcepath or --source-path via `CompileOptions.compilerArgs`. Use the `CompileOptions.sourcepath` property instead.")
     }
 
     def "fails when processorpath is set on compilerArgs"() {
@@ -950,7 +951,8 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         fails 'compileJava'
 
         then:
-        failureHasCause("Cannot specify -processorpath or --processor-path via `CompileOptions.compilerArgs`. Use the `CompileOptions.annotationProcessorPath` property instead.")
+        failureHasCause("Java compilation initialization error")
+        failureCauseContains("Cannot specify -processorpath or --processor-path via `CompileOptions.compilerArgs`. Use the `CompileOptions.annotationProcessorPath` property instead.")
     }
 
     def "fails when a -J (compiler JVM) flag is set on compilerArgs"() {
@@ -969,7 +971,8 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         fails 'compileJava'
 
         then:
-        failureHasCause("Cannot specify -J flags via `CompileOptions.compilerArgs`. Use the `CompileOptions.forkOptions.jvmArgs` property instead.")
+        failureHasCause("Java compilation initialization error")
+        failureCauseContains("Cannot specify -J flags via `CompileOptions.compilerArgs`. Use the `CompileOptions.forkOptions.jvmArgs` property instead.")
     }
 
     @Requires([UnitTestPreconditions.Jdk8OrEarlier, IntegTestPreconditions.Java7HomeAvailable, IntegTestPreconditions.Java8HomeAvailable ])
