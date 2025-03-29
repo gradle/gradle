@@ -19,34 +19,39 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter
 import org.gradle.api.internal.artifacts.AnonymousModule
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
 import org.gradle.api.internal.artifacts.configurations.MutationValidator
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultDependencyMetadataFactory
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultExcludeRuleConverter
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultLocalVariantGraphResolveStateBuilder
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ExcludeRuleConverter
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ExternalModuleDependencyMetadataConverter
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalVariantGraphResolveStateBuilder
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ProjectDependencyMetadataConverter
 import org.gradle.api.internal.attributes.AttributeDesugaring
-import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory
-import org.gradle.internal.component.local.model.LocalVariantGraphResolveState
 import org.gradle.internal.component.model.ComponentIdGenerator
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
-import spock.lang.Specification
 
-class DefaultRootComponentMetadataBuilderTest extends Specification {
+class DefaultRootComponentMetadataBuilderTest extends AbstractProjectBuilderSpec {
 
     DependencyMetaDataProvider metaDataProvider = Mock(DependencyMetaDataProvider) {
         getModule() >> new AnonymousModule()
     }
     ImmutableModuleIdentifierFactory moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()
-    LocalVariantGraphResolveStateBuilder configurationStateBuilder = Mock(LocalVariantGraphResolveStateBuilder) {
-        createConsumableVariantState(_, _, _, _, _) >> { args ->
-            Mock(LocalVariantGraphResolveState)
-        }
-    }
-
-    def configurationsProvider = Stub(ConfigurationsProvider)
+    ExcludeRuleConverter excludeRuleConverter = new DefaultExcludeRuleConverter(new DefaultImmutableModuleIdentifierFactory())
+    LocalVariantGraphResolveStateBuilder configurationStateBuilder = new DefaultLocalVariantGraphResolveStateBuilder(
+        new ComponentIdGenerator(),
+        new DefaultDependencyMetadataFactory(
+            new ProjectDependencyMetadataConverter(excludeRuleConverter),
+            new ExternalModuleDependencyMetadataConverter(excludeRuleConverter)
+        ),
+        excludeRuleConverter
+    )
 
     def builderFactory = new DefaultRootComponentMetadataBuilder.Factory(
         moduleIdentifierFactory,
@@ -62,11 +67,16 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
         TestUtil.calculatedValueContainerFactory()
     )
 
-    def builder = builderFactory.create(StandaloneDomainObjectContext.ANONYMOUS, configurationsProvider, metaDataProvider, AttributeTestUtil.mutableSchema())
+    RootComponentMetadataBuilder builder
+
+    def setup() {
+        ConfigurationsProvider configurationsProvider = project.configurations as ConfigurationsProvider
+        builder = builderFactory.create(StandaloneDomainObjectContext.ANONYMOUS, configurationsProvider, metaDataProvider, AttributeTestUtil.mutableSchema())
+    }
 
     def "caches root component resolve state and metadata"() {
-        configurationsProvider.findByName('conf') >> resolvable()
-        configurationsProvider.findByName('conf-2') >> resolvable()
+        project.configurations.resolvable('conf')
+        project.configurations.resolvable('conf-2')
 
         def root = builder.toRootComponent('conf')
 
@@ -86,11 +96,11 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
     }
 
     def "reevaluates component metadata when #mutationType change"() {
-        configurationsProvider.findByName('root') >> resolvable()
-        configurationsProvider.findByName('conf') >> resolvable()
+        project.configurations.resolvable("root")
+        project.configurations.consumable("conf")
 
         def root = builder.toRootComponent('root')
-        def variant = root.rootComponent.getConfigurationLegacy('conf')
+        def variant = root.rootComponent.candidatesForGraphVariantSelection.getVariantByConfigurationName('conf')
 
         when:
         builder.validator.validateMutation(mutationType)
@@ -99,7 +109,7 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
         then:
         root.rootComponent.is(otherRoot.rootComponent)
         root.rootComponent.metadata.is(otherRoot.rootComponent.metadata)
-        !otherRoot.rootComponent.getConfigurationLegacy('conf').is(variant)
+        !otherRoot.rootComponent.candidatesForGraphVariantSelection.getVariantByConfigurationName('conf').is(variant)
 
         when:
 
@@ -115,11 +125,11 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
     }
 
     def "does not reevaluate component metadata when #mutationType change"() {
-        configurationsProvider.findByName('root') >> resolvable()
-        configurationsProvider.findByName('conf') >> resolvable()
+        project.configurations.resolvable("root")
+        project.configurations.consumable("conf")
 
         def root = builder.toRootComponent('root')
-        def variant = root.rootComponent.getConfigurationLegacy("conf")
+        def variant = root.rootComponent.candidatesForGraphVariantSelection.getVariantByConfigurationName("conf")
 
         when:
         builder.validator.validateMutation(mutationType)
@@ -128,16 +138,10 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
         then:
         root.rootComponent.is(otherRoot.rootComponent)
         root.rootComponent.metadata.is(otherRoot.rootComponent.metadata)
-        otherRoot.rootComponent.getConfigurationLegacy('conf').is(variant)
+        otherRoot.rootComponent.candidatesForGraphVariantSelection.getVariantByConfigurationName('conf').is(variant)
 
         where:
         mutationType << [MutationValidator.MutationType.STRATEGY]
     }
 
-    private ConfigurationInternal resolvable() {
-        Mock(ConfigurationInternal) {
-            isCanBeResolved() >> true
-            getAttributes() >> ImmutableAttributes.EMPTY
-        }
-    }
 }
