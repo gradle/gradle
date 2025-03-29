@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.configurations;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import groovy.lang.Closure;
 import org.apache.commons.lang.WordUtils;
 import org.gradle.api.Action;
@@ -504,18 +503,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             conf.defaultDependencyActions = ImmutableActionSet.empty();
             conf.withDependencyActions = ImmutableActionSet.empty();
         });
-    }
-
-    @Deprecated
-    @Override
-    public Set<Configuration> getAll() {
-        DeprecationLogger.deprecateMethod(Configuration.class, "getAll()")
-            .withAdvice("Use the configurations container to access the set of configurations instead.")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "deprecated_configuration_get_all")
-            .nagUser();
-
-        return ImmutableSet.copyOf(configurationsProvider.getAll());
     }
 
     private FileCollectionInternal getIntrinsicFiles() {

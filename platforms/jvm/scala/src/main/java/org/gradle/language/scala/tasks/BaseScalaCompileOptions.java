@@ -26,7 +26,6 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.api.tasks.scala.ScalaForkOptions;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.jspecify.annotations.Nullable;
 
@@ -248,22 +247,6 @@ public abstract class BaseScalaCompileOptions implements Serializable {
     }
 
     /**
-     * Options for running the Scala compiler in a separate process.
-     *
-     * @deprecated Setting a new instance of this property is unnecessary. This method will be removed in Gradle 9.0. Use {@link #forkOptions(Action)} instead.
-     */
-    @Deprecated
-    public void setForkOptions(ScalaForkOptions forkOptions) {
-        DeprecationLogger.deprecateMethod(BaseScalaCompileOptions.class, "setForkOptions(ScalaForkOptions)")
-            .replaceWith("forkOptions(Action)")
-            .withContext("Setting a new instance of forkOptions is unnecessary.")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "deprecated_nested_properties_setters")
-            .nagUser();
-        this.forkOptions = forkOptions;
-    }
-
-    /**
      * Configure options for running the Scala compiler in a separate process.
      *
      * @since 8.11
@@ -278,22 +261,6 @@ public abstract class BaseScalaCompileOptions implements Serializable {
     @Nested
     public IncrementalCompileOptions getIncrementalOptions() {
         return incrementalOptions;
-    }
-
-    /**
-     * Options for incremental compilation of Scala code.
-     *
-     * @deprecated Setting a new instance of this property is unnecessary. This method will be removed in Gradle 9.0. Use {@link #incrementalOptions(Action)} instead.
-     */
-    @Deprecated
-    public void setIncrementalOptions(IncrementalCompileOptions incrementalOptions) {
-        DeprecationLogger.deprecateMethod(BaseScalaCompileOptions.class, "setIncrementalOptions(IncrementalCompileOptions)")
-            .replaceWith("scalaDocOptions(Action)")
-            .withContext("Setting a new instance of scalaDocOptions is unnecessary.")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "deprecated_nested_properties_setters")
-            .nagUser();
-        this.incrementalOptions = incrementalOptions;
     }
 
     /**

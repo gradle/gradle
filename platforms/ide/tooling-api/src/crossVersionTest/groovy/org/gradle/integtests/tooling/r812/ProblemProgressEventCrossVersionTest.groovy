@@ -23,6 +23,7 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r85.CustomModel
+import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
@@ -65,15 +66,12 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
     @TargetGradleVersion(">=8.6")
     def "Failing executions produce problems"() {
         setup:
+        def nextMajor = Integer.parseInt(targetVersion.version.substring(0, targetVersion.version.indexOf("."))) + 1
         buildFile """
-            plugins {
-              id 'java-library'
-            }
-            repositories.jcenter()
+            ${DeprecationLogger.class.name}.deprecate("foo").willBeRemovedInGradle${nextMajor}().undocumented().nagUser()
             task bar {}
             task baz {}
         """
-
 
         when:
         def listener = new ProblemProgressListener()
@@ -91,9 +89,9 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         thrown(BuildException)
         listener.problems.size() == 2
         verifyAll(listener.problems[0]) {
-            definition.id.displayName.contains("The RepositoryHandler.jcenter() method has been deprecated.")
-            definition.id.group.displayName in ["Deprecation", "deprecation", "repository-jcenter"]
-            definition.id.group.name in ["deprecation", "repository-jcenter", "deprecation-logger"]
+            definition.id.displayName.contains("foo")
+            definition.id.group.displayName in ["Deprecation", "deprecation"]
+            definition.id.group.name == "deprecation"
             definition.severity == Severity.WARNING
             locations(it).find { l -> l instanceof LineInFileLocation && l.path == buildFileLocation(buildFile, targetVersion) }
         }
