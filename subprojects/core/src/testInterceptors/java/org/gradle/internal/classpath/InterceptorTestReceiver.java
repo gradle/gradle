@@ -16,7 +16,17 @@
 
 package org.gradle.internal.classpath;
 
+import org.gradle.api.provider.MapProperty;
+import org.gradle.util.TestUtil;
+
+import javax.inject.Inject;
+
 public class InterceptorTestReceiver {
+    private String testString = "testString";
+    public String intercepted = null;
+    private boolean testFlag = false;
+    private final MapProperty<String, String> richProperty = TestUtil.propertyFactory().mapProperty(String.class, String.class);
+
     public void test() {}
     public void test(InterceptorTestReceiver arg) {}
     public void testVararg(Object... arg) {}
@@ -25,7 +35,6 @@ public class InterceptorTestReceiver {
         intercepted = "callNotIntercepted()-not-intercepted";
     }
 
-    private String testString = "testString";
 
     public String getTestString() {
         return testString;
@@ -35,8 +44,6 @@ public class InterceptorTestReceiver {
         testString = newValue;
     }
 
-    private boolean testFlag = false;
-
     public boolean isTestFlag() {
         return testFlag;
     }
@@ -45,10 +52,28 @@ public class InterceptorTestReceiver {
         testFlag = newValue;
     }
 
-    public String intercepted = null;
-
     @Override
     public String toString() {
         return "InterceptorTestReceiver";
+    }
+
+    public MapProperty<String, String> getRichProperty() {
+        return richProperty;
+    }
+
+    /**
+     * A dummy class that has the same richProperty as InterceptorTestReceiver,
+     * so we can check that the original property is not intercepted
+     */
+    public abstract static class DummyObject {
+
+        public final InterceptorTestReceiver parent;
+
+        @Inject
+        public DummyObject(InterceptorTestReceiver parent) {
+            this.parent = parent;
+        }
+
+        public abstract MapProperty<String, String> getRichProperty();
     }
 }
