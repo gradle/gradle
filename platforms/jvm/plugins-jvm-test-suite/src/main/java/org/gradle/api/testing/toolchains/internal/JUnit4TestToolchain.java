@@ -43,7 +43,7 @@ abstract public class JUnit4TestToolchain implements JvmTestToolchain<JUnit4Tool
 
     @Override
     public TestFramework createTestFramework(Test task) {
-        return new JUnitTestFramework(task, (DefaultTestFilter) task.getFilter(), false);
+        return new JUnitTestFramework(task, (DefaultTestFilter) task.getFilter());
     }
 
     @Override

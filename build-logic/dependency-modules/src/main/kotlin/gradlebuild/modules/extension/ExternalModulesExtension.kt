@@ -114,6 +114,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val jspecify = "org.jspecify:jspecify"
     val julToSlf4j = "org.slf4j:jul-to-slf4j"
     val junit = "junit:junit"
+    val junitJupiter = "org.junit.jupiter:junit-jupiter"
     val junit5JupiterApi = "org.junit.jupiter:junit-jupiter-api"
     val junit5Vintage = "org.junit.vintage:junit-vintage-engine"
     val junitPlatform = "org.junit.platform:junit-platform-launcher"

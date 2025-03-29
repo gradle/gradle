@@ -73,9 +73,10 @@ class TestFailureSpecification extends ToolingApiSpecification {
         buildFile << """
              dependencies {
                 testImplementation(platform("org.junit:junit-bom:5.10.0"))
-                testImplementation("org.junit.jupiter:junit-jupiter-api")
-                testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+                testImplementation("org.junit.jupiter:junit-jupiter")
                 testImplementation("org.opentest4j:opentest4j:1.3.0")
+
+                testRuntimeOnly("org.junit.platform:junit-platform-launcher")
             }
 
             test {

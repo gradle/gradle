@@ -82,8 +82,8 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
         final WorkerTestClassProcessorFactory testInstanceFactory = testFramework.getProcessorFactory();
 
         ForkedTestClasspath classpath = testClasspathFactory.create(
-            testExecutionSpec.getClasspath(), testExecutionSpec.getModulePath(),
-            testFramework, testExecutionSpec.getTestIsModule()
+            testExecutionSpec.getClasspath(),
+            testExecutionSpec.getModulePath()
         );
 
         final Factory<TestClassProcessor> forkingProcessorFactory = new Factory<TestClassProcessor>() {
