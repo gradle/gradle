@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.transform
 
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
+import org.gradle.api.internal.artifacts.VariantTransformRegistry
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BrokenResolvedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant
@@ -32,14 +33,21 @@ import spock.lang.Specification
 
 class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
 
+    def registeredTransforms = Mock(RegisteredTransforms)
     def consumerProvidedVariantFinder = Mock(ConsumerProvidedVariantFinder)
     def attributeMatcher = Mock(AttributeMatcher)
     def consumerSchema = Mock(ImmutableAttributesSchema)
     def schemaServices = Mock(AttributeSchemaServices) {
         getMatcher(_, _) >> attributeMatcher
+        getTransformSelector(_) >> consumerProvidedVariantFinder
     }
     def attributesFactory = AttributeTestUtil.attributesFactory()
     def requestedAttributes = AttributeTestUtil.attributes(['artifactType': 'jar'])
+    def transformRegistry = Mock(VariantTransformRegistry) {
+        getRegistrations() >> registeredTransforms
+    }
+    def failureProcessor = DependencyManagementTestUtil.newFailureHandler()
+    def transformationChainSelector = new TransformationChainSelector(schemaServices, transformRegistry, failureProcessor)
 
     def variant = Mock(ResolvedVariant) {
         getAttributes() >> AttributeTestUtil.attributes(['artifactType': 'jar'])
@@ -53,8 +61,6 @@ class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
         getAttributes() >> AttributeTestUtil.attributes(['artifactType': 'foo'])
         asDescribable() >> Describables.of("mock another resolved variant")
     }
-
-    def failureProcessor = DependencyManagementTestUtil.newFailureHandler()
 
     def 'direct match on variant means no finder interaction'() {
         given:
@@ -106,7 +112,7 @@ class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
         result == transformed
 
         1 * attributeMatcher.matchMultipleCandidates(_, _) >> Collections.emptyList()
-        1 * consumerProvidedVariantFinder.findCandidateTransformationChains(variants, requestedAttributes) >> transformedVariants
+        1 * consumerProvidedVariantFinder.findCandidateTransformationChains(requestedAttributes, registeredTransforms, variants) >> transformedVariants
         1 * candidates.transformCandidate(variant, transformedVariants[0].getTransformedVariantDefinition()) >> transformed
         0 * attributeMatcher._
     }
@@ -126,7 +132,7 @@ class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
         result == transformed
 
         1 * attributeMatcher.matchMultipleCandidates(_, _) >> Collections.emptyList()
-        1 * consumerProvidedVariantFinder.findCandidateTransformationChains(variants, requestedAttributes) >> transformedVariants
+        1 * consumerProvidedVariantFinder.findCandidateTransformationChains(requestedAttributes, registeredTransforms, variants) >> transformedVariants
         1 * attributeMatcher.matchMultipleCandidates(_, _) >> [transformedVariants[resultNum]]
         1 * candidates.transformCandidate(variants[resultNum], transformedVariants[resultNum].getTransformedVariantDefinition()) >> transformed
 
@@ -148,17 +154,17 @@ class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
         result.failure instanceof ArtifactSelectionException
 
         1 * attributeMatcher.matchMultipleCandidates(_, _) >> Collections.emptyList()
-        1 * consumerProvidedVariantFinder.findCandidateTransformationChains(variants, requestedAttributes) >> transformedVariants
+        1 * consumerProvidedVariantFinder.findCandidateTransformationChains(requestedAttributes, registeredTransforms, variants) >> transformedVariants
         1 * attributeMatcher.matchMultipleCandidates(_, _) >> transformedVariants
     }
 
     private AttributeMatchingArtifactVariantSelector newSelector() {
         new AttributeMatchingArtifactVariantSelector(
             consumerSchema,
-            consumerProvidedVariantFinder,
             attributesFactory,
             schemaServices,
-            failureProcessor
+            failureProcessor,
+            transformationChainSelector
         )
     }
 
