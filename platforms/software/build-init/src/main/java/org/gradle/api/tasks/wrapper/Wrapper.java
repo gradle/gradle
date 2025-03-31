@@ -29,6 +29,7 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
+import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.api.tasks.wrapper.internal.DefaultWrapperVersionsResources;
 import org.gradle.api.tasks.wrapper.internal.WrapperDefaults;
 import org.gradle.api.tasks.wrapper.internal.WrapperGenerator;
@@ -48,6 +49,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -334,6 +337,15 @@ public abstract class Wrapper extends DefaultTask {
     @Option(option = "distribution-type", description = "The type of the Gradle distribution to be used by the wrapper.")
     public void setDistributionType(DistributionType distributionType) {
         this.distributionType = distributionType;
+    }
+
+    /**
+     * The list of available gradle distribution types.
+     */
+    @ToBeReplacedByLazyProperty(comment = "Not supported yet", issue = "https://github.com/gradle/gradle/issues/29341")
+    @OptionValues("distribution-type")
+    public List<DistributionType> getAvailableDistributionTypes() {
+        return Arrays.asList(DistributionType.values());
     }
 
     /**
