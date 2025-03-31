@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.deprecation.source;
+package org.gradle.api.problems.internal.deprecation.source;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.problems.deprecation.source.ReportSource;
 
 /**
  * If this class is used, it means that the deprecated item comes from Gradle itself.
@@ -25,7 +26,7 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public class GradleReportSource extends ReportSource {
-    static final ReportSource INSTANCE = new org.gradle.api.problems.deprecation.source.GradleReportSource();
+    static final ReportSource INSTANCE = new GradleReportSource();
 
     /**
      * Protected constructor to prevent direct instantiation.
@@ -35,22 +36,8 @@ public class GradleReportSource extends ReportSource {
     private GradleReportSource() {
     }
 
-    /**
-     * TODO documentation.
-     *
-     * @since 8.14
-     */
-    public String getId() {
-        return "gradle";
-    }
-
-    /**
-     * TODO documentation.
-     *
-     * @since 8.14
-     */
     @Override
-    public String getName() {
+    public String getId() {
         return "gradle";
     }
 }

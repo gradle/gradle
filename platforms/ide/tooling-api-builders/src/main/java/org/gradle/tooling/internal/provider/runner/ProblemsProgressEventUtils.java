@@ -218,10 +218,10 @@ public class ProblemsProgressEventUtils {
     private static InternalAdditionalData toDeprecationReporterData(org.gradle.api.problems.deprecation.DeprecationData data) {
         // Assemble the source data
         ImmutableMap.Builder<String, String> sourceBuilder = ImmutableMap.builder();
-        sourceBuilder.put("name", data.getReportSource().getName());
+        sourceBuilder.put("name", data.getReportSource().getId());
         // Put source-specific data into the source map
         if (data.getReportSource() instanceof PluginReportSource) {
-            sourceBuilder.put("id", ((PluginReportSource) data.getReportSource()).getId());
+            sourceBuilder.put("id", ((PluginReportSource) data.getReportSource()).getPluginId());
         }
         // Assemble the final additional data
         ImmutableMap.Builder<String, Object> builder = ImmutableMap.builder();

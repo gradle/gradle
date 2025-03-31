@@ -14,41 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.deprecation.source;
+@NonNullApi
+package org.gradle.api.problems.internal.deprecation.source;
 
-import org.gradle.api.Incubating;
-
-/**
- * TODO documentation.
- *
- * @since 8.14
- */
-@Incubating
-public class PluginReportSource extends ReportSource {
-
-    private final String pluginId;
-
-    /**
-     * TODO documentation.
-     *
-     * @since 8.14
-     */
-    public PluginReportSource(String pluginId) {
-        this.pluginId = pluginId;
-    }
-
-    @Override
-    public String getId() {
-        return "plugin";
-    }
-
-    /**
-     * TODO documentation.
-     *
-     * @since 8.14
-     */
-    public String getPluginId() {
-        return pluginId;
-    }
-
-}
+import org.gradle.api.NonNullApi;

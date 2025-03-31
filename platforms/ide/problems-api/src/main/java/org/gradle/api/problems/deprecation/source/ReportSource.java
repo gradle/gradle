@@ -34,14 +34,14 @@ public abstract class ReportSource {
     protected ReportSource() {}
 
     /**
-     * TODO documentation.
+     * An identifier unique to the report source type.
      *
      * @since 8.14
      */
-    public abstract String getName();
+    public abstract String getId();
 
     /**
-     * TODO documentation.
+     * Returns a report source marking a plugin as the source of the deprecation.
      *
      * @since 8.14
      */
@@ -49,12 +49,4 @@ public abstract class ReportSource {
         return new PluginReportSource(id);
     }
 
-    /**
-     * TODO documentation.
-     *
-     * @since 8.14
-     */
-    public static ReportSource gradle() {
-        return GradleReportSource.INSTANCE;
-    }
  }

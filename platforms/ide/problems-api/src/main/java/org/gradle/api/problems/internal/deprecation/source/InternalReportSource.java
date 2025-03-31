@@ -14,41 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.deprecation.source;
+package org.gradle.api.problems.internal.deprecation.source;
 
-import org.gradle.api.Incubating;
+import org.gradle.api.problems.deprecation.source.ReportSource;
 
-/**
- * TODO documentation.
- *
- * @since 8.14
- */
-@Incubating
-public class PluginReportSource extends ReportSource {
-
-    private final String pluginId;
+public abstract class InternalReportSource extends ReportSource {
 
     /**
-     * TODO documentation.
+     * Returns a report source marking Gradle itself as the source of the deprecation.
      *
      * @since 8.14
      */
-    public PluginReportSource(String pluginId) {
-        this.pluginId = pluginId;
-    }
-
-    @Override
-    public String getId() {
-        return "plugin";
-    }
-
-    /**
-     * TODO documentation.
-     *
-     * @since 8.14
-     */
-    public String getPluginId() {
-        return pluginId;
+    public static ReportSource gradle() {
+        return GradleReportSource.INSTANCE;
     }
 
 }

@@ -190,7 +190,6 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         buildFile """
             import org.gradle.api.problems.Severity
             import org.gradle.api.problems.AdditionalData
-            import org.gradle.api.problems.deprecation.source.ReportSource
 
             abstract class DeprecatingTask extends DefaultTask {
                 @Inject
@@ -235,9 +234,9 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         additionalData['reportSource'] == expectedSourceFields
 
         where:
-        reportSource                         | expectedSourceFields
-        "ReportSource.gradle()"              | ["name": "gradle"]
-        "ReportSource.plugin(\"plugin.id\")" | ["name": "plugin", "id": "plugin.id"]
+        reportSource                                                                        | expectedSourceFields
+        "org.gradle.api.problems.internal.deprecation.source.InternalReportSource.gradle()" | ["name": "gradle"]
+        "org.gradle.api.problems.deprecation.source.ReportSource.plugin(\"plugin.id\")"     | ["name": "plugin", "id": "plugin.id"]
     }
 
     class ProblemProgressListener implements ProgressListener {
