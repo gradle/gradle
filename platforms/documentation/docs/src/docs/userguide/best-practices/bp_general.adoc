@@ -65,10 +65,10 @@ Do not use APIs from a package where any segment of the package is `internal`, o
 === Explanation
 
 Using internal APIs is inherently risky and can cause significant problems during upgrades.
-Gradle and many plugins (such as Android Gradle Plugin and Kotlin Gradle Plugin) treat internal APIs, such as those within `internal` packages, as subject to unannounced breaking changes during any new Gradle release, even during minor releases.
-There have been numerous cases where even highly experienced plugin developers have been bitten by usage of such APIs leading to breakages for their users.
+Gradle and many plugins (such as Android Gradle Plugin and Kotlin Gradle Plugin) treat these internal APIs as subject to unannounced breaking changes during any new Gradle release, even during minor releases.
+There have been numerous cases where even highly experienced plugin developers have been bitten by their usage of such APIs leading to unexpected breakages for their users.
 
-If you require a specific functionality that is missing, it’s best to submit a feature request.
+If you require specific functionality that is missing, it’s best to submit a feature request.
 As a temporary workaround consider copying the necessary code into your own codebase and extending a Gradle public type with your own custom implementation using the copied code.
 
 === Example
