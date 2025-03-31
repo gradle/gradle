@@ -47,7 +47,7 @@ fun AnalysisSchema.resolve(
                     "Parsing error: " + failure.message
                 )
                 is UnsupportedConstruct -> println(
-                    failure.languageFeature.toString() + " in " + parsedTree.wrappedCode.slice(parsedTree.originalCodeOffset..parsedTree.originalCodeOffset + 100)
+                    failure.languageFeature.toString() + " in " + parsedTree.wrappedCode.slice(parsedTree.originalCodeOffset..parsedTree.originalCodeOffset + failure.potentialElementSource.indexRange.count())
                 )
                 is MultipleFailuresResult -> failure.failures.forEach { printFailures(it) }
             }
