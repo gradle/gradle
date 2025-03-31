@@ -58,16 +58,12 @@ public abstract class JavaTestFixturesPlugin implements Plugin<Project> {
     public void apply(Project project) {
 
         project.getPlugins().apply(JavaBasePlugin.class);
-        JavaPluginExtension extension = project.getExtensions().getByType(JavaPluginExtension.class);
-
-        SourceSet testFixturesSourceSet = extension.getSourceSets().maybeCreate(TEST_FIXTURES_FEATURE_NAME);
 
         JvmFeatureInternal feature = new DefaultJvmFeature(
             TEST_FIXTURES_FEATURE_NAME,
-            testFixturesSourceSet,
             Collections.singleton(new ProjectDerivedCapability((ProjectInternal) project, TEST_FIXTURES_FEATURE_NAME)),
             (ProjectInternal) project,
-            false
+            null
         );
 
         feature.withApi();

@@ -124,15 +124,11 @@ class DefaultJvmFeatureTest extends AbstractProjectBuilderSpec {
     def "can create multiple features in a project without adding them to a component"() {
         given:
         project.plugins.apply(JavaBasePlugin)
-        def ext = project.getExtensions().getByType(JavaPluginExtension)
-
-        SourceSet one = ext.getSourceSets().create("one")
-        SourceSet two = ext.getSourceSets().create("two")
 
         when:
         // The constructor and `with` methods have side effects, like creating domain objects in project-scope containers
-        def f1 = new DefaultJvmFeature("feature1", one, Collections.emptySet(), project, false)
-        def f2 = new DefaultJvmFeature("feature2", two, Collections.emptySet(), project, false)
+        def f1 = createFeature("feature1")
+        def f2 = createFeature("feature2")
 
         f1.withJavadocJar()
         f1.withSourcesJar()
@@ -148,14 +144,12 @@ class DefaultJvmFeatureTest extends AbstractProjectBuilderSpec {
         noExceptionThrown()
     }
 
-    private JvmFeatureInternal createFeature(String name, String sourceSetName = name) {
-        SourceSet sourceSet = project.getExtensions().getByType(JavaPluginExtension).getSourceSets().create(sourceSetName)
+    private JvmFeatureInternal createFeature(String name) {
         return new DefaultJvmFeature(
             name,
-            sourceSet,
             Collections.emptySet(),
             project,
-            false
+            null
         )
     }
 }

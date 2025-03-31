@@ -41,7 +41,6 @@ import org.gradle.api.publish.ivy.IvyPublication;
 import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.publish.plugins.PublishingPlugin;
 import org.gradle.api.tasks.SourceSet;
-import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.bundling.Jar;
@@ -253,10 +252,8 @@ public abstract class JavaPlugin implements Plugin<Project> {
         project.getPluginManager().apply(JavaBasePlugin.class);
         project.getPluginManager().apply("org.gradle.jvm-test-suite"); // TODO: change to reference plugin class by name after project dependency cycles untangled; this will affect ApplyPluginBuildOperationIntegrationTest (will have to remove id)
 
-        SourceSetContainer sourceSets = project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets();
-
         project.getComponents().registerBinding(JvmSoftwareComponentInternal.class, DefaultJvmSoftwareComponent.class);
-        JvmSoftwareComponentInternal javaComponent = createJavaComponent(projectInternal, sourceSets);
+        JvmSoftwareComponentInternal javaComponent = createJavaComponent(projectInternal);
 
         configurePublishing(project.getPlugins(), project.getExtensions(), javaComponent.getMainFeature().getSourceSet());
 
@@ -274,15 +271,12 @@ public abstract class JavaPlugin implements Plugin<Project> {
         configureBuild(project);
     }
 
-    private static JvmFeatureInternal createMainFeature(ProjectInternal project, SourceSetContainer sourceSets) {
-        SourceSet sourceSet = sourceSets.create(SourceSet.MAIN_SOURCE_SET_NAME);
-
+    private static JvmFeatureInternal createMainFeature(ProjectInternal project) {
         JvmFeatureInternal feature = new DefaultJvmFeature(
             JvmConstants.JAVA_MAIN_FEATURE_NAME,
-            sourceSet,
             Collections.emptySet(),
             project,
-            false
+            null
         );
 
         // Create a source directories variant for the feature
@@ -291,10 +285,10 @@ public abstract class JavaPlugin implements Plugin<Project> {
         return feature;
     }
 
-    private static JvmSoftwareComponentInternal createJavaComponent(ProjectInternal project, SourceSetContainer sourceSets) {
+    private static JvmSoftwareComponentInternal createJavaComponent(ProjectInternal project) {
         return project.getComponents().register(JvmConstants.JAVA_MAIN_COMPONENT_NAME, JvmSoftwareComponentInternal.class, component -> {
             // Create the main feature
-            JvmFeatureInternal mainFeature = createMainFeature(project, sourceSets);
+            JvmFeatureInternal mainFeature = createMainFeature(project);
             component.getFeatures().add(mainFeature);
 
             // TODO: This process of manually adding variants to the component should be handled automatically when adding the feature to the component.
