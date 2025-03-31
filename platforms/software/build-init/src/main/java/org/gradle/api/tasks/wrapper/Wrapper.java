@@ -329,9 +329,13 @@ public abstract class Wrapper extends DefaultTask {
     /**
      * The list of available gradle distribution types.
      */
-    @ToBeReplacedByLazyProperty(comment = "Not supported yet", issue = "https://github.com/gradle/gradle/issues/29341")
+    @Deprecated
     @OptionValues("distribution-type")
     public List<DistributionType> getAvailableDistributionTypes() {
+        DeprecationLogger.deprecateMethod(Wrapper.class, "getAvailableDistributionTypes")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecated_wrapper_get_available_distribution_types")
+            .nagUser();
         return Arrays.asList(DistributionType.values());
     }
 
