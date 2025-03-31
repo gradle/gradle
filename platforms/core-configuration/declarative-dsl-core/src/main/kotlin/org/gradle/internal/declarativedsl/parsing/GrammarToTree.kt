@@ -696,7 +696,31 @@ class GrammarToTree(
                                 }
                             }
 
-                            IDENTIFIER -> tree.unsupported(node, operation!!, UnsupportedLanguageFeature.InfixFunctionCall)
+                            IDENTIFIER -> {
+                                val infixFunctionName = checkNotNull(operation)
+                                if (infixFunctionName.asText != "to") {
+                                    tree.unsupported(node, infixFunctionName, UnsupportedLanguageFeature.InfixFunctionCall)
+                                } else run {
+                                    val receiver = checkForFailure(expression(tree, leftArg!!))
+                                    val argument = checkForFailure(expression(tree, rightArg!!))
+                                    elementIfNoFailures {
+                                        val args = listOf(leftArg to checked(receiver), rightArg to checked(argument))
+                                            .map { (ast, parsed) -> ast to FunctionArgument.Positional(parsed, parsed.sourceData) }
+
+                                        args.find { (_, parsed) -> parsed.expr is FunctionCall && parsed.expr.isInfix }
+                                            ?.let { (ast, _) -> tree.unsupported(node, checkNotNull(ast), UnsupportedLanguageFeature.InfixFunctionCallChain) }
+                                            ?: Element(
+                                                FunctionCall(
+                                                    receiver = null,
+                                                    infixFunctionName.asText,
+                                                    args.map { (_, parsed) -> parsed },
+                                                    isInfix = true,
+                                                    tree.sourceData(node)
+                                                )
+                                            )
+                                    }
+                                }
+                            }
 
                             else -> tree.unsupported(node, operation!!, UnsupportedLanguageFeature.UnsupportedOperationInBinaryExpression)
                         }
