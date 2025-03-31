@@ -28,14 +28,14 @@ abstract class CheckResult implements FlowAction<Parameters> {
         @Input
         Property<BuildWorkResult> getBuildResult()
         @Input
-        DirectoryProperty getBuildDirectory()
+        Property<File> getBuildDirectory()
     }
 
     @Override
     void execute(Parameters parameters) throws Exception {
         BuildWorkResult result = parameters.getBuildResult().get()
         if(result.failure.isPresent()) {
-            File buildDir = parameters.getBuildDirectory().get().getAsFile()
+            File buildDir = parameters.getBuildDirectory().get()
             buildDir.mkdirs()
             def failure = result.failure.get()
             def unexpectedFailure = (failure instanceof org.gradle.execution.MultipleBuildFailures && failure.causes.every { cause ->
@@ -57,6 +57,6 @@ FlowScope flowScope = gradle.services.get(FlowScope)
 flowScope.always(CheckResult) {
     parameters {
         buildResult = flowProviders.buildWorkResult
-        buildDirectory = project.layout.buildDirectory
+        buildDirectory = project.layout.buildDirectory.asFile
     }
 }

@@ -59,7 +59,7 @@ class ChangesDuringTheBuildFileSystemWatchingIntegrationTest extends AbstractFil
                     flowScope.always(
                         VfsAction.class,
                         spec -> {
-                            spec.getParameters().getRootDir().fileProvider(projectDirAsResultOfBuild)
+                            spec.getParameters().getRootDir().set(projectDirAsResultOfBuild)
                             spec.getParameters().getVfsService().set(vfsService)
                         }
                     );
@@ -72,12 +72,12 @@ class ChangesDuringTheBuildFileSystemWatchingIntegrationTest extends AbstractFil
                     Property<VirtualFileSystem> getVfsService();
 
                     @Input
-                    DirectoryProperty getRootDir();
+                    Property<File> getRootDir();
                 }
 
                 @Override
                 public void execute(Parameters parameters) {
-                    def projectRoot = parameters.rootDir.get().asFile.absolutePath
+                    def projectRoot = parameters.rootDir.get().absolutePath
                     def vfs = parameters.vfsService.get()
                     int filesInVfs = 0
                     vfs.root.rootSnapshots().forEach { snapshot ->
