@@ -18,6 +18,7 @@ package org.gradle.testing.jacoco.plugins.fixtures
 
 import org.gradle.api.JavaVersion
 import org.gradle.testing.jacoco.plugins.JacocoPlugin
+import org.junit.Assume
 
 final class JacocoCoverage {
 
@@ -46,6 +47,10 @@ final class JacocoCoverage {
             }
         }
         return filter(JacocoVersion.SUPPORTS_JDK_8)
+    }
+
+    static void assumeDefaultJacocoWorksOnCurrentJdk() {
+        Assume.assumeTrue(supportedVersionsByJdk.contains(JacocoPlugin.DEFAULT_JACOCO_VERSION))
     }
 
     private static List<String> filter(JacocoVersion threshold) {
