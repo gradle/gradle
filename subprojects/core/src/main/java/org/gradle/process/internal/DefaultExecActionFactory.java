@@ -216,6 +216,14 @@ public class DefaultExecActionFactory implements ExecFactory {
         return execAction.execute();
     }
 
+    @Nonnull
+    @Override
+    public org.gradle.process.ExecHandle execAsync(Action<? super ExecSpec> action) {
+        ExecAction execAction = newDecoratedExecAction();
+        action.execute(execAction);
+        return execAction.executeAsync();
+    }
+
     @Override
     public Builder forContext() {
         return new BuilderImpl(executor, temporaryFileProvider)
