@@ -22,7 +22,10 @@ Declare your repositories for your plugins and dependencies in `settings.gradle.
 
 === Explanation
 
-Using `settings.gradle.kts` file allows for much clearer structure of what is used within the build and prevents project-level declarations as that often leads to harder to reason behaviors.
+Using `settings.gradle.kts` file to declare repositories has several benefits:
+ - Avoids repetition. Declarations in a single place apply to all projects, rather than having to repeat it in each project's `build.gradle.kts`.
+ - Makes it easier to debug issues. Ensures every project dependency resolution uses the same repositories in a consistent order.
+ - Better aligns with the conceptual model of the build structure. Repositories are not part of project definition, they are part of global build logic, so settings in a more appropriate place for them.
 
 Note that while https://github.com/gradle/gradle/issues/32443[`dependencyResolutionManagement.repositories` is an incubating API], it is the preferred way of declaring repositories.
 
