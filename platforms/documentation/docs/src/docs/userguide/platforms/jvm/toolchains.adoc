@@ -33,6 +33,23 @@ You can also control the JVM used to run Gradle itself using the <<gradle_daemon
 [[sec:consuming]]
 == Toolchains for projects
 
+Gradle provides multiple ways to configure the Java version used for compiling and running your project.
+
+The five primary mechanisms are:
+
+1. *<<#sec:java-toolchains,Java toolchains>>* (Recommended)
+2. *<<#sec:source-target-toolchain,Source and Target compatibility>>*
+3. *<<#sec:flag-toolchain,The `--release` flag>>*
+4. *<<#sec:java-home-toolchain,Environment variables (`JAVA_HOME`)>>*
+5. *<<#sec:ide-settings-toolchain,IDE settings>>*
+
+These settings are **not mutually exclusive**, and advanced users may need to combine them in specific scenarios.
+
+[[sec:java-toolchains]]
+=== 1. Java toolchains
+
+Using Java toolchains allows Gradle to automatically download and manage the required JDK version for your build. It ensures that the correct Java version is used for both compilation and execution.
+
 You can define what toolchain to use for a project by stating the Java language version in the `java` extension block:
 
 ====
@@ -56,7 +73,7 @@ For the Scala plugin, compilation and Scaladoc generation are supported.
 ====
 
 [[sec:vendors]]
-=== Selecting toolchains by vendor
+==== Selecting toolchains by vendor
 
 In case your build has specific requirements from the used JRE/JDK, you may want to define the vendor for the toolchain as well.
 link:{javadocPath}/org/gradle/jvm/toolchain/JvmVendorSpec.html[`JvmVendorSpec`] has a list of well-known JVM vendors recognized by Gradle.
@@ -79,7 +96,7 @@ include::sample[dir="snippets/java/toolchain-filters/groovy/",files="build.gradl
 ====
 
 [[sec:native_image]]
-=== Selecting toolchains that support GraalVM native image
+==== Selecting toolchains that support GraalVM native image
 
 If your project needs a toolchain with https://www.graalvm.org/latest/reference-manual/native-image/[GraalVM Native Image capability], you can configure the spec to request it:
 
@@ -91,7 +108,7 @@ include::sample[dir="snippets/java/toolchain-filters/groovy/",files="build.gradl
 Leaving that value unconfigured or set to `false` will not restrict the toolchain selection based on the Native Image capability.
 That means that a Native Image capable JDK can be selected if it matches the other criteria.
 
-=== Selecting toolchains by virtual machine implementation
+==== Selecting toolchains by virtual machine implementation
 
 If your project requires a specific implementation, you can filter based on the implementation as well.
 Currently available implementations to choose from are:
@@ -112,7 +129,7 @@ include::sample[dir="snippets/java/toolchain-filters/groovy/",files="build.gradl
 NOTE: The Java major version, the vendor (if specified) and implementation (if specified) will be tracked as an input for compilation and test execution.
 
 [[sec:configuring_toolchain_specifications]]
-=== Configuring toolchain specifications
+==== Configuring toolchain specifications
 
 Gradle allows configuring multiple properties that affect the selection of a toolchain, such as language version or vendor.
 Even though these properties can be configured independently, the configuration must follow certain rules in order to form a _valid_ specification.
@@ -128,6 +145,139 @@ A specification without a language version, in most cases, would be treated as a
 
 Usage of _invalid_ instances of `JavaToolchainSpec` results in a build error since Gradle 8.0.
 
+[[sec:source-target-toolchain]]
+=== 2. Source and Target compatibility
+
+Setting `sourceCompatibility` and `targetCompatibility` tells the Java compiler to produce bytecode compatible with a specific Java version but does *not* enforce which JDK Gradle itself runs with:
+
+[source,kotlin]
+----
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+----
+
+This does *not* guarantee the correct JDK is used and may cause issues when APIs have been backported to older Java versions.
+
+You should only use this method in cases where you need backward compatibility **but cannot use toolchains**.
+
+[[sec:flag-toolchain]]
+=== 3. The `--release` flag
+
+For strict cross-compilation, the `--release` flag is recommended instead of `sourceCompatibility` and `targetCompatibility`:
+
+[source,kotlin]
+----
+tasks.withType<JavaCompile> {
+    options.release.set(8)
+}
+----
+
+This flag prevents accidental use of newer APIs that are not available in the specified version.
+However, it does not control which JDK is used—only how the compiler treats source code.
+
+This method can be combined with toolchains **if you need both a specific JDK and strict cross-compilation**.
+
+[[sec:java-home-toolchain]]
+=== 4. Environment variables (`JAVA_HOME`)
+
+Instead of using Gradle toolchains, you can manually specify a JDK globally using the `JAVA_HOME` environment variable:
+
+[source,bash]
+----
+export JAVA_HOME=/path/to/java17
+----
+
+This approach ensures that all Java-based tools (Gradle, Maven, etc.) use the same JDK version.
+It enforces a system-wide JDK version and is great for legacy projects that do not support toolchains.
+
+However, it applies the Java version at a global scope, so it is not possible to specify different JDKs per project.
+
+[[sec:ide-settings-toolchain]]
+=== 5. IDE settings
+
+Most modern IDEs allow you to specify the Java version for Gradle independently.
+This can be useful if you want Gradle to match the JDK used in your development environment.
+
+==== IntelliJ IDEA
+
+To configure the Gradle JVM:
+1. Open *Settings (Preferences)* > *Build, Execution, Deployment* > *Gradle*.
+2. Set *Gradle JVM* to the desired JDK.
+
+==== Eclipse
+
+To configure the Gradle JVM:
+1. Open *Preferences* > *Gradle* > *Gradle JDK*.
+2. Select the appropriate JDK.
+
+=== Combining toolchains
+
+In some cases, you may want to:
+
+- Use a **specific JDK version** for compilation (`toolchains`).
+- Ensure that the compiled bytecode is **compatible with an older Java version** (`--release` or `targetCompatibility`).
+
+For example, to compile with Java 17 but produce Java 11 bytecode:
+
+[source,kotlin]
+----
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
+
+tasks.withType<JavaCompile> {
+    options.release.set(11) // Ensures bytecode and API compliance with Java 11
+}
+----
+
+=== Comparison Table
+
+|===
+| Method | Ensures Correct JDK? | Auto Downloads JDK? | Prevents Accidental API Use? | Can Be Combined?
+
+| Java toolchains
+| ✅ Yes
+| ✅ Yes
+| ❌ No
+| ✅ Yes (with `--release`)
+
+| Source & Target compatibility
+| ❌ No
+| ❌ No
+| ❌ No
+| ✅ Yes (but not recommended)
+
+| `--release` flag
+| ❌ No
+| ❌ No
+| ✅ Yes
+| ✅ Yes (with toolchains)
+
+| Environment variables (`JAVA_HOME`)
+| ✅ Yes (but only globally)
+| ❌ No
+| ❌ No
+| ❌ No
+
+| IDE settings
+| ✅ Yes (inside the IDE)
+| ❌ No
+| ❌ No
+| ❌ No
+|===
+
+Recommendation:
+
+- *For most users:* Use Java toolchains (`toolchain.languageVersion`).
+- *For strict compatibility enforcement:* Use the `--release` flag.
+- *For advanced cases:* Combine toolchains + `--release`.
+- *Avoid* `sourceCompatibility` and `targetCompatibility` unless necessary.
+- *Use `JAVA_HOME`* only if you need to enforce a system-wide JDK version.
+- *Use IDE settings* if you want Gradle to match your IDE's JDK version.
 
 == Toolchains for tasks
 
