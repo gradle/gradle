@@ -76,7 +76,8 @@ class FunctionCallResolverImpl(
         functionCall: FunctionCall,
         expectedType: ExpectedTypeData
     ): TypedOrigin? {
-        return doFunctionCallResolution(context, DefaultFunctionLookupStrategy, defaultArgumentResolutionStrategy, functionCall, expectedType)
+        val lookupStrategy = if (functionCall.isInfix) InfixFunctionLookupStrategy else DefaultFunctionLookupStrategy
+        return doFunctionCallResolution(context, lookupStrategy, defaultArgumentResolutionStrategy, functionCall, expectedType)
     }
 
     override fun doResolveAugmentation(
@@ -97,6 +98,7 @@ class FunctionCallResolverImpl(
                 null,
                 augmentationOperatorKind.operatorToken, // name is irrelevant here
                 listOf(lhsArg, rhsArg),
+                isInfix = false,
                 assignment.sourceData
             ),
             ExpectedTypeData.ExpectedByProperty(augmentedProperty.property.valueType)
@@ -237,6 +239,24 @@ class FunctionCallResolverImpl(
         receiver: Lazy<TypedOrigin?>,
         call: FunctionCall
     ): FunctionResolutionAndBinding? = lookup(context, receiver, call, ArgumentData.NoResolvedArguments, emptyMap()).singleOrNull()
+
+    private object InfixFunctionLookupStrategy : LookupStrategy {
+        override fun lookup(
+            context: AnalysisContextView,
+            receiver: Lazy<TypedOrigin?>,
+            call: FunctionCall,
+            args: ArgumentData,
+            typeSubstitution: Map<TypeVariableUsage, DataType>
+        ): List<FunctionResolutionAndBinding> {
+            check(call.isInfix) { "this lookup strategy is only suitable for infix function calls" }
+            check(receiver.value == null) { "a receiver is not expected for infix function calls, they are two-argument calls in DCL" }
+
+            val name = call.name
+            val importedFqName = context.imports[name] ?: return emptyList()
+            return context.chooseMatchingOverloads(null, listOfNotNull(context.schema.infixFunctionsByFqName[importedFqName]), call.args, args, typeSubstitution)
+        }
+
+    }
 
     private object DefaultFunctionLookupStrategy : LookupStrategy {
         override fun lookup(
@@ -442,11 +462,9 @@ class FunctionCallResolverImpl(
     }
 
     private fun AnalysisContext.doCheckParameterSemantics(functionOrigin: ObjectOrigin.FunctionInvocationOrigin, functionCall: FunctionCall): Boolean =
-        if (functionOrigin.function.semantics is FunctionSemantics.AccessAndConfigure) {
-            functionOrigin.parameterBindings.bindingMap.all { (param, arg) ->
-                checkIdentityKeyParameterSemantics(functionCall, param, arg.objectOrigin)
-            }
-        } else true
+        functionOrigin.parameterBindings.bindingMap.all { (param, arg) ->
+            checkIdentityKeyParameterSemantics(functionCall, param, arg.objectOrigin)
+        }
 
     private
     fun AnalysisContext.doAnalyzeAndCheckConfiguringSemantics(
@@ -533,7 +551,7 @@ class FunctionCallResolverImpl(
     }
 
     private fun AnalysisContext.checkIdentityKeyParameterSemantics(functionCall: FunctionCall, parameter: DataParameter, argumentOrigin: ObjectOrigin): Boolean =
-        if (argumentOrigin !is ObjectOrigin.ConstantOrigin) {
+        if (parameter.semantics is ParameterSemantics.IdentityKey && argumentOrigin !is ObjectOrigin.ConstantOrigin) {
             errorCollector.collect(ResolutionError(functionCall, ErrorReason.OpaqueArgumentForIdentityParameter(functionCall, parameter, argumentOrigin)))
             false
         } else true
