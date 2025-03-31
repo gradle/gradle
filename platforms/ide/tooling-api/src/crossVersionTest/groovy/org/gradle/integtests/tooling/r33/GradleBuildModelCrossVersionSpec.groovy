@@ -77,7 +77,7 @@ class GradleBuildModelCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @TargetGradleVersion(">=3.1 <3.3")
-    def "No included builds for old Gradle versions"() {
+    def "no included builds for old Gradle versions"() {
         singleProjectBuildInRootFolder("root") {
             settingsFile << """
                 rootProject.name = 'root'
@@ -92,7 +92,7 @@ class GradleBuildModelCrossVersionSpec extends ToolingApiSpecification {
         model.includedBuilds.empty
     }
 
-    def "No included builds for single root project"() {
+    def "no included builds for single root project"() {
         singleProjectBuildInRootFolder("root")
         when:
         GradleBuild model = loadToolingModel(GradleBuild)

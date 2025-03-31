@@ -195,7 +195,7 @@ class JvmArgumentPassingCrossVersionTest extends ToolingApiSpecification {
     }
 
     @Issue("https://youtrack.jetbrains.com/issue/IDEA-364072")
-    def "Can configure debug mode in gradle.properties"() {
+    def "can configure debug mode in gradle.properties"() {
         given:
         Assume.assumeTrue(debugPortIsFree())
         requireIsolatedUserHome()

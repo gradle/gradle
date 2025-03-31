@@ -215,7 +215,7 @@ class AbstractLineChoppingStyledTextOutputTest extends Specification {
         result.toString() == "{eol}"
     }
 
-    def "Carriage return isn't detected as new line [#type]"() {
+    def "carriage return isn't detected as new line [#type]"() {
         System.setProperty("line.separator", eol)
         def output = output()
 
