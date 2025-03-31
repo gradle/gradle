@@ -368,7 +368,7 @@ class GrammarToTree(
                         propertyAccess(tree, node, checked(receiver!!), checked(referenceSelector!!), referenceSourceData!!)
                     } else {
                         val functionCall = checked(functionCallSelector!!)
-                        Element(FunctionCall(checked(receiver!!), functionCall.name, functionCall.args, functionCall.sourceData))
+                        Element(FunctionCall(checked(receiver!!), functionCall.name, functionCall.args, isInfix = false, functionCall.sourceData))
                     }
                 }
             }
@@ -477,7 +477,7 @@ class GrammarToTree(
 
                 val arguments = valueArguments.flatMap { valueArguments(tree, it) }.map { checkForFailure(it) }
                 elementIfNoFailures {
-                    Element(FunctionCall(null, name!!, arguments.map(::checked), tree.sourceData(node)))
+                    Element(FunctionCall(null, name!!, arguments.map(::checked), isInfix = false, tree.sourceData(node)))
                 }
             }
         }

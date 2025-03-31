@@ -72,8 +72,18 @@ data class NamedReference(val receiver: Expr?, val name: String, override val so
 }
 
 
-data class FunctionCall(val receiver: Expr?, val name: String, val args: List<FunctionArgument>, override val sourceData: SourceData) : Expr {
-    override fun toString() = "$name(${args.joinToString()})"
+data class FunctionCall(
+    val receiver: Expr?,
+    val name: String,
+    val args: List<FunctionArgument>,
+    val isInfix: Boolean,
+    override val sourceData: SourceData
+) : Expr {
+    override fun toString() = if (isInfix) {
+        "${args.getOrNull(0)} $name ${args.getOrNull(1)}"
+    } else {
+        "$name(${args.joinToString()})"
+    }
 }
 
 
