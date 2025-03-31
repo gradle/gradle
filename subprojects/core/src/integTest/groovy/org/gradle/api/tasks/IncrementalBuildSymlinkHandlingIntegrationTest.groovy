@@ -19,12 +19,16 @@ package org.gradle.api.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 
-@Requires(UnitTestPreconditions.Symlinks)
+@Requires(value = [
+    UnitTestPreconditions.Symlinks,
+    IntegTestPreconditions.NotEmbeddedExecutor,
+], reason = "requires isolated daemons for symlink data cleanup between builds")
 class IncrementalBuildSymlinkHandlingIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
     def setup() {
         expectReindentedValidationMessage()

@@ -24,6 +24,7 @@ import spock.lang.Issue
 
 import static org.gradle.api.JavaVersion.VERSION_1_8
 
+@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "explicitly requests a daemon")
 class JavaExecJavaVersionIntegrationSpec extends AbstractIntegrationSpec {
 
     def setup() {

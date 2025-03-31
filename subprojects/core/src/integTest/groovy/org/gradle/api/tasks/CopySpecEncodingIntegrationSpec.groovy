@@ -18,10 +18,13 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
 @DoesNotSupportNonAsciiPaths(reason = "Uses non-Unicode default charset")
 class CopySpecEncodingIntegrationSpec extends AbstractIntegrationSpec {
 
+    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "requires explicit charset")
     def "copy task uses platform charset to filter text files by default"() {
         given:
         file('files').createDir()
@@ -93,6 +96,7 @@ class CopySpecEncodingIntegrationSpec extends AbstractIntegrationSpec {
         file('dest/accents.c').getText('ISO-8859-1') == 'áëü 1'
     }
 
+    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "requires explicit charset")
     def "copy action uses platform charset to filter text files by default"() {
         given:
         file('files').createDir()

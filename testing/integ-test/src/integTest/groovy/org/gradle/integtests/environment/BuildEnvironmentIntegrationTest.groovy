@@ -155,7 +155,10 @@ assert classesDir.directory
         outputContains("prop2=other-value")
     }
 
-    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    @Requires(value = [
+        IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable,
+        IntegTestPreconditions.NotEmbeddedExecutor,
+    ], reason = "must run with specific JDK different from the current test JDK")
     def "java home from environment should be used to run build"() {
         def alternateJdk = AvailableJavaHomes.differentJdk
 

@@ -162,6 +162,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         """
     }
 
+    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "explicitly requests daemon")
     def "url connection caching is not disabled by default"() {
 
         given:
@@ -330,7 +331,11 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         noExceptionThrown()
     }
 
-    @Requires([IntegTestPreconditions.Java8HomeAvailable, IntegTestPreconditions.Java11HomeAvailable])
+    @Requires(value = [
+        IntegTestPreconditions.Java8HomeAvailable,
+        IntegTestPreconditions.Java11HomeAvailable,
+        IntegTestPreconditions.NotEmbeddedExecutor,
+    ], reason = "must run with specific predictable JDK versions")
     def "proper version is selected for multi-release jar"() {
         given:
         createDir("mrjar") {

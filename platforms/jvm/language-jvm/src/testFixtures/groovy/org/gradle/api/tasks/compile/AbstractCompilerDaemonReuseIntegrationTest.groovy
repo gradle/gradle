@@ -25,6 +25,7 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.junit.Assume
 
+@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "explicitly requiring a daemon")
 abstract class AbstractCompilerDaemonReuseIntegrationTest extends AbstractIntegrationSpec {
     def compilerDaemonIdentityFileName = "build/compilerId"
     def compilerDaemonIdentityFile = file(compilerDaemonIdentityFileName)
