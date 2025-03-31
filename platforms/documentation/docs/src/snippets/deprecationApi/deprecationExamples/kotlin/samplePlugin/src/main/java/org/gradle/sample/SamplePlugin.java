@@ -34,8 +34,8 @@ public abstract class SamplePlugin implements Plugin<Project> {
             ReportSource.plugin("org.gradle.sample.plugin"),
             "org.gradle.sample.plugin",
             spec -> spec
-                .removedInVersion("2.0.0")
-                .replacedBy("org.gradle.sample.newer-plugin")
+                .willBeRemovedInVersion("2.0.0")
+                .shouldBeReplacedBy("org.gradle.sample.newer-plugin")
                 .details("""
                         We decided to rename the plugin to better reflect its purpose.
                         You can find the new plugin at https://plugins.gradle.org/org.gradle.sample.newer-plugin

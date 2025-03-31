@@ -33,7 +33,7 @@ public class SampleExtension {
             ReportSource.plugin("org.gradle.sample.plugin"),
             "The extension 'org.gradle.sample.SampleExtension' is deprecated.",
             spec -> spec
-                .removedInVersion("3.0.0")
+                .willBeRemovedInVersion("3.0.0")
                 .details("The extension is no longer supported")
         );
     }
@@ -48,8 +48,8 @@ public class SampleExtension {
             SampleExtension.class,
             "getMessage()",
             spec -> spec
-                .removedInVersion("2.0.0")
-                .replacedBy("A new object `message { }`, which is a better representation of the message")
+                .willBeRemovedInVersion("2.0.0")
+                .shouldBeReplacedBy("A new object `message { }`, which is a better representation of the message")
         );
         this.message = message;
     }
