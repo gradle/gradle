@@ -28,8 +28,6 @@ The plugins API allows Gradle to better manage the loading of plugins and it is 
 It allows Gradle to optimize the loading and reuse of plugin classes and helps inform tools about the potential properties and values in extensions the plugins will add to the build script.
 It is constrained to be idempotent (produce the same result every time) and side effect-free (safe for Gradle to execute at any time).
 
-It is also likely that the `plugins` block will be the only way to apply plugins in the future.
-
 === Example
 
 ==== Don't Do This
