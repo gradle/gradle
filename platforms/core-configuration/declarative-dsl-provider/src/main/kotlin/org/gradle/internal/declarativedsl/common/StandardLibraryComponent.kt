@@ -196,5 +196,9 @@ fun builtinListAugmentation(lhs: Any, rhs: List<*>): Any =
 fun builtinMapAugmentation(lhs: Any, rhs: Map<*, *>): Any =
     when (lhs) {
         is Map<*, *> -> lhs + rhs
+        is MapProperty<*, *> -> {
+            Cast.uncheckedNonnullCast<MapProperty<Any, Any>>(lhs).putAll(Cast.uncheckedNonnullCast<Map<Any, Any>>(rhs))
+            skipSetterSpecialValue
+        }
         else -> error("Unexpected augmented map property value: $lhs")
     }
