@@ -33,7 +33,7 @@ class DefaultTestResultTest extends Specification {
 
         when:
         def assumptionFailureException = new AssumptionViolatedException("")
-        state.assumptionFailure = DefaultTestFailure.fromTestAssumptionFailure(assumptionFailureException, [])
+        state.assumptionFailure = DefaultTestFailure.fromTestAssumptionFailure(assumptionFailureException)
         def result = new DefaultTestResult(state)
 
         then:

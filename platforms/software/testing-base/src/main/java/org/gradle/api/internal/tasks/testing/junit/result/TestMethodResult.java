@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.testing.junit.result;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableFailure;
 import org.gradle.api.tasks.testing.TestResult;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -92,6 +93,7 @@ public class TestMethodResult {
         return failures;
     }
 
+    @Nullable
     public SerializableFailure getAssumptionFailure() {
         return assumptionFailure;
     }

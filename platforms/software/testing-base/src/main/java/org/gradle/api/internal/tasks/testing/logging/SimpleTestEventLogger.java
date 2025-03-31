@@ -77,7 +77,7 @@ public class SimpleTestEventLogger implements TestListenerInternal {
                             output.append("    Expected: ").withStyle(StyledTextOutput.Style.Failure).println(details.getExpected());
                             output.append("    Actual: ").withStyle(StyledTextOutput.Style.Success).println(details.getActual());
                         } else if (details.isAssertionFailure()) {
-                            // test assertion (should be most common)
+                            // test assertion
                             output.append("    ").withStyle(StyledTextOutput.Style.Failure).println(details.getMessage());
                         } else {
                             // test framework failure?

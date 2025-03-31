@@ -52,7 +52,7 @@ class TestReportDataCollectorSpec extends Specification {
         def result2 = new DefaultTestResult(FAILURE, 250, 300, 1, 0, 1, asList(TestFailure.fromTestFrameworkFailure(new RuntimeException("Boo!"))), null)
 
         def test3 = new DecoratingTestDescriptor(new DefaultTestDescriptor("1.1.3", "FooTest", "testMethod3"), clazz)
-        def result3 = new DefaultTestResult(SKIPPED, 350, 400, 1, 0, 0, [], DefaultTestFailure.fromTestAssumptionFailure(new AssumptionViolatedException("Assumption violeted!"), []))
+        def result3 = new DefaultTestResult(SKIPPED, 350, 400, 1, 0, 0, [], DefaultTestFailure.fromTestAssumptionFailure(new AssumptionViolatedException("Assumption violeted!")))
 
         when:
         //simulating TestNG, where we don't receive beforeSuite for classes
@@ -155,7 +155,7 @@ class TestReportDataCollectorSpec extends Specification {
 
     def "collects assumption failure for test"() {
         def test = new DefaultTestDescriptor("1.1.1", "FooTest", "testMethod")
-        def assumptionFailure = DefaultTestFailure.fromTestAssumptionFailure(new AssumptionViolatedException("assumption"), [])
+        def assumptionFailure = DefaultTestFailure.fromTestAssumptionFailure(new AssumptionViolatedException("assumption"))
         def result = new DefaultTestResult(SKIPPED, 0, 0, 1, 0, 0, [], assumptionFailure)
 
         when:

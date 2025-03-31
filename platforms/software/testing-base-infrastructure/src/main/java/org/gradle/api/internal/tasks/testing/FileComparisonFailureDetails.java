@@ -19,40 +19,19 @@ package org.gradle.api.internal.tasks.testing;
 import javax.annotation.Nullable;
 
 @org.gradle.api.NonNullApi
-public class FileComparisonFailureDetails extends DefaultTestFailureDetails {
-    private final String expected;
-    private final String actual;
+public class FileComparisonFailureDetails extends AssertionFailureDetails {
     private final byte[] expectedContent;
     private final byte[] actualContent;
 
     public FileComparisonFailureDetails(String message, String className, String stacktrace, String expected, String actual, byte[] expectedContent, byte[] actualContent) {
-        super(message, className, stacktrace);
-        this.expected = expected;
-        this.actual = actual;
+        super(message, className, stacktrace, expected, actual);
         this.expectedContent = expectedContent;
         this.actualContent = actualContent;
     }
 
     @Override
-    public boolean isAssertionFailure() {
-        return true;
-    }
-
-    @Override
     public boolean isFileComparisonFailure() {
         return true;
-    }
-
-    @Nullable
-    @Override
-    public String getExpected() {
-        return expected;
-    }
-
-    @Nullable
-    @Override
-    public String getActual() {
-        return actual;
     }
 
     @Nullable

@@ -92,7 +92,7 @@ class StateTrackingTestResultProcessorTest extends Specification {
 
     void createsAResultForATestWithAssumptionFailure() {
         given:
-        def failure = DefaultTestFailure.fromTestAssumptionFailure(new AssumptionViolatedException(""), [])
+        def failure = DefaultTestFailure.fromTestAssumptionFailure(new AssumptionViolatedException(""))
         def test = new DefaultTestDescriptor("15", "Foo", "bar");
         def startEvent = new TestStartEvent(100L)
         def completeEvent = new TestCompleteEvent(200L, ResultType.SKIPPED)

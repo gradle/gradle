@@ -33,7 +33,7 @@ class TestClassResultSpec extends Specification {
         result.add(new TestMethodResult(2, "fail").completed(new DefaultTestResult(TestResult.ResultType.FAILURE, 250, 300, 1, 0, 1, [new RuntimeException("bar")], null)))
         result.add(new TestMethodResult(3, "fail2").completed(new DefaultTestResult(TestResult.ResultType.FAILURE, 300, 450, 1, 0, 1, [new RuntimeException("foo")], null)))
         result.add(new TestMethodResult(4, "skip1").completed(new DefaultTestResult(TestResult.ResultType.SKIPPED, 500, 550, 1, 0, 0, [], null)))
-        result.add(new TestMethodResult(5, "skip2").completed(new DefaultTestResult(TestResult.ResultType.SKIPPED, 600, 650, 1, 0, 0, [], DefaultTestFailure.fromTestAssumptionFailure(new AssumptionViolatedException(""), []))))
+        result.add(new TestMethodResult(5, "skip2").completed(new DefaultTestResult(TestResult.ResultType.SKIPPED, 600, 650, 1, 0, 0, [], DefaultTestFailure.fromTestAssumptionFailure(new AssumptionViolatedException("")))))
         then:
         result.failuresCount == 2
         result.testsCount == 5

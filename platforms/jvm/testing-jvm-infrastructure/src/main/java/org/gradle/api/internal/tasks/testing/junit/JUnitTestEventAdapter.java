@@ -40,7 +40,6 @@ import org.junit.runner.notification.RunListener;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -142,7 +141,7 @@ public class JUnitTestEventAdapter extends RunListener {
     }
 
     private void reportAssumptionFailure(Object descriptorId, Throwable throwable) {
-        TestFailure assumptionFailure = DefaultTestFailure.fromTestAssumptionFailure(throwable, Collections.<TestFailure>emptyList());
+        TestFailure assumptionFailure = DefaultTestFailure.fromTestAssumptionFailure(throwable);
         resultProcessor.failure(descriptorId, assumptionFailure);
     }
 
