@@ -67,6 +67,14 @@ publishing {
     }
 }
 
+configurations {
+    gradleApiElements {
+        outgoing {
+            capability("$group:${moduleIdentity.baseName.get()}-internal:$version")
+        }
+    }
+}
+
 val testRepoElements = configurations.consumable("testRepoElements") {
     outgoing.artifact(testRepoLocation) {
         builtBy( "publishMavenPublicationToTestRepository")

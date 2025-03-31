@@ -77,7 +77,6 @@ val gradleApiElements = configurations.consumable("gradleApiElements") {
     extendsFrom(externalApi.get())
     outgoing.artifact(task)
     configureAsApiElements(objects)
-    // TODO capabilities
 }
 
 open class SoftwareComponentFactoryProvider @Inject constructor(val factory: SoftwareComponentFactory)
