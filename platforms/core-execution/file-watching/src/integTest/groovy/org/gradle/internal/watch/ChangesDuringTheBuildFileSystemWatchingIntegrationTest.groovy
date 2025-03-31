@@ -16,9 +16,9 @@
 
 package org.gradle.internal.watch
 
-import org.gradle.testdistribution.LocalOnly
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.gradle.testdistribution.LocalOnly
 import org.junit.Rule
 
 @LocalOnly
