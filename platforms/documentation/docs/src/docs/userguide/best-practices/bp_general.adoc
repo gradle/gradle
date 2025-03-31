@@ -80,12 +80,16 @@ include::sample[dir="snippets/bestPractices/avoidInternal/kotlin",files="build.g
 include::sample[dir="snippets/bestPractices/avoidInternal/groovy",files="build.gradle[tags=avoid-this]"]
 ====
 
+<1> Casting to `AttributeContainerInternal` and using `toMap()` should be avoided as it relies on an internal API.
+
 ==== Do This Instead
 
 ====
 include::sample[dir="snippets/bestPractices/avoidInternal/kotlin",files="build.gradle.kts[tags=do-this]"]
 include::sample[dir="snippets/bestPractices/avoidInternal/groovy",files="build.gradle[tags=do-this]"]
 ====
+
+<2> Implementing your own version of `toMap()` that only uses public APIs is a lot more robust.
 
 === Tags
 `#upgrades`

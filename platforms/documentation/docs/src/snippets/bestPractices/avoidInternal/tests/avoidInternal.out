@@ -1,7 +1,11 @@
 
 > Configure project :
+Bad map
 org.gradle.usage -> java-runtime
+org.gradle.category -> library
+Good map
 org.gradle.usage -> java-runtime
+org.gradle.category -> library
 
 > Task :projects
 
