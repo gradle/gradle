@@ -273,9 +273,13 @@ class DataSchemaBuilder(
         val host = Host()
         val preIndex = createPreIndex(host, types)
 
-        val dataTypes = preIndex.types.filter { it.typeParameters.none() }.map { createDataType(host, it, preIndex) }
+        val dataTypes = preIndex.types.filter { it.typeParameters.none() }.map {
+            createDataType(host, it, preIndex)
+        }
 
-        val extFunctions = externalFunctions.mapNotNull { functionExtractor.topLevelFunction(host, it, preIndex) }.associateBy { it.fqName }
+        val (infixExternalFunctions, regularExternalFunctions) = externalFunctions.partition { it.isInfix }
+        val extFunctions = regularExternalFunctions.mapNotNull { functionExtractor.topLevelFunction(host, it, preIndex) }.associateBy { it.fqName }
+        val infixFunctions = infixExternalFunctions.mapNotNull { functionExtractor.topLevelFunction(host, it, preIndex) }.associateBy { it.fqName }
         val extObjects = externalObjects.map { (key, value) ->
             host.withTag(SchemaBuildingTags.externalObject(key)) {
                 key to DefaultExternalObjectProviderKey(host.containerTypeRef(value::class))
@@ -290,6 +294,7 @@ class DataSchemaBuilder(
             host.typeSignatures,
             host.typeInstances,
             extFunctions,
+            infixFunctions,
             extObjects,
             defaultImports.toSet(),
             augmentationsProvider.augmentations(host)
