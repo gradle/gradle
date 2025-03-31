@@ -44,7 +44,7 @@ class DefaultTestResultTest extends Specification {
         result.testCount == state.testCount
         result.successfulTestCount == state.successfulCount
         result.failedTestCount == state.failedCount
-        result.assumptionFailure.get() == state.assumptionFailure
+        result.assumptionFailure == state.assumptionFailure
     }
 
     def "return null for unset assumption failure"() {
@@ -56,6 +56,6 @@ class DefaultTestResultTest extends Specification {
         def result = new DefaultTestResult(state)
 
         then:
-        !result.assumptionFailure.isPresent()
+        !result.assumptionFailure
     }
 }

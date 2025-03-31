@@ -20,6 +20,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.tasks.testing.TestDescriptor;
+import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestListener;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestOutputListener;
@@ -83,9 +84,10 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
 
                 TestMethodResult methodResult = new TestMethodResult(internalIdCounter++, suite.getName());
 
-                result.getAssumptionFailure().ifPresent(assumptionFailure -> {
+                if (result.getAssumptionFailure() != null) {
+                    TestFailure assumptionFailure = result.getAssumptionFailure();
                     methodResult.setAssumptionFailure(assumptionFailure.getDetails().getMessage(), assumptionFailure.getDetails().getStacktrace(), assumptionFailure.getDetails().getClassName());
-                });
+                }
 
                 methodResult.completed(result);
                 classResult.add(methodResult);
@@ -109,9 +111,10 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
             methodResult.addFailure(failureMessage(throwable), stackTrace(throwable), exceptionClassName(throwable));
         }
 
-        result.getAssumptionFailure().ifPresent(assumptionFailure -> {
+        if (result.getAssumptionFailure() != null) {
+            TestFailure assumptionFailure = result.getAssumptionFailure();
             methodResult.setAssumptionFailure(assumptionFailure.getDetails().getMessage(), assumptionFailure.getDetails().getStacktrace(), assumptionFailure.getDetails().getClassName());
-        });
+        }
 
         TestClassResult classResult = results.get(className);
         if (classResult == null) {

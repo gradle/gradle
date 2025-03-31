@@ -105,7 +105,7 @@ class StateTrackingTestResultProcessorTest extends Specification {
         then:
         1 * listener.started(_, _)
         1 * listener.completed({ it.descriptor == test },
-            { it.successfulTestCount == 0 && it.testCount == 1 && it.failedTestCount == 0 && it.skippedTestCount == 1 && it.assumptionFailure.get().is(failure) },
+            { it.successfulTestCount == 0 && it.testCount == 1 && it.failedTestCount == 0 && it.skippedTestCount == 1 && it.assumptionFailure.is(failure) },
             completeEvent
         )
         0 * _
