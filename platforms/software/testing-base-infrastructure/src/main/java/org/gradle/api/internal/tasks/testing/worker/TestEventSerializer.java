@@ -227,11 +227,12 @@ public class TestEventSerializer {
                 decoder.readBytes(actualContent);
             }
 
-            if (isAssertionFailure) {
-                TestFailureDetails details = new AssertionFailureDetails(message, className, stacktrace, expected, actual);
-                return new DefaultTestFailure(rawFailure, details, causes);
-            } else if (isFileComparisonFailure) {
+            // Order is important here because a file comparison is _also_ an assertion failure
+            if (isFileComparisonFailure) {
                 TestFailureDetails details = new FileComparisonFailureDetails(message, className, stacktrace, expected, actual, expectedContent, actualContent);
+                return new DefaultTestFailure(rawFailure, details, causes);
+            } else if (isAssertionFailure) {
+                TestFailureDetails details = new AssertionFailureDetails(message, className, stacktrace, expected, actual);
                 return new DefaultTestFailure(rawFailure, details, causes);
             } else if (isAssumptionFailure) {
                 TestFailureDetails details = new AssumptionFailureDetails(message, className, stacktrace);

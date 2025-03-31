@@ -34,6 +34,11 @@ public class FileComparisonFailureDetails extends DefaultTestFailureDetails {
     }
 
     @Override
+    public boolean isAssertionFailure() {
+        return true;
+    }
+
+    @Override
     public boolean isFileComparisonFailure() {
         return true;
     }
