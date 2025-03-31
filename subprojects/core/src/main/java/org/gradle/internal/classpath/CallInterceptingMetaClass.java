@@ -448,7 +448,11 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
         }
 
         private void setOriginalProperty(Object object, Object newValue) {
-            DynamicObjectUtil.asDynamicObject(object).trySetPropertyWithoutInstrumentation(name, newValue);
+            if (DynamicObjectUtil.isDynamicObject(object)) {
+                DynamicObjectUtil.asDynamicObject(object).trySetPropertyWithoutInstrumentation(name, newValue);
+            } else {
+                original.setProperty(object, newValue);
+            }
         }
     }
 
