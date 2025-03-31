@@ -206,9 +206,13 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
     }
 
     private boolean isForkRequired() {
-        if (isDaemonExplicitlyRequired() || !getJavaHomeLocation().equals(Jvm.current().getJavaHome())) {
+        if (isDaemonExplicitlyRequired()) {
             return true;
         }
+        if (!getJavaHomeLocation().equals(Jvm.current().getJavaHome())) {
+            throw new RuntimeException("This test requires a Java version different from the used version, please annotate the test with '@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = \"explain why!\")' to disable embedded execution.");
+        }
+
         File daemonJvmProperties = new File(getWorkingDir(), "gradle/gradle-daemon-jvm.properties");
         if (daemonJvmProperties.isFile()) {
             Properties properties = GUtil.loadProperties(daemonJvmProperties);
