@@ -30,6 +30,7 @@ import org.gradle.internal.code.UserCodeSource;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.problems.Location;
 import org.gradle.problems.ProblemDiagnostics;
+import org.gradle.problems.buildtree.ProblemStream;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 
 import javax.annotation.Nonnull;
@@ -43,7 +44,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     private ProblemId id;
     private String contextualLabel;
     private Severity severity;
-    private final List<ProblemLocation> locations = new ArrayList<ProblemLocation>();
+    private final List<ProblemLocation> originLocations = new ArrayList<ProblemLocation>();
     private final List<ProblemLocation> contextLocations = new ArrayList<ProblemLocation>();
     private String details;
     private DocLink docLink;
@@ -52,6 +53,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     private AdditionalData additionalData;
     private boolean collectStackLocation = false;
     private ProblemDiagnostics diagnostics;
+    private boolean stackAsOriginLocation;
 
     public DefaultProblemBuilder(
         ProblemsInfrastructure infrastructure
@@ -70,7 +72,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         this.contextualLabel = problem.getContextualLabel();
         this.solutions = new ArrayList<String>(problem.getSolutions());
         this.severity = problem.getDefinition().getSeverity();
-        this.locations.addAll(problem.getOriginLocations());
+        this.originLocations.addAll(problem.getOriginLocations());
         this.contextLocations.addAll(problem.getContextualLocations());
         this.details = problem.getDetails();
         this.docLink = problem.getDefinition().getDocumentationLink();
@@ -95,7 +97,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
 
         ProblemDiagnostics diagnostics = determineDiagnostics();
         if (diagnostics != null) {
-            addLocationsFromDiagnostics(collectStackLocation ? this.locations : this.contextLocations, diagnostics);
+            addLocationsFromDiagnostics(stackAsOriginLocation ? this.originLocations : this.contextLocations, diagnostics);
         }
 
         ProblemDefinition problemDefinition = new DefaultProblemDefinition(getId(), getSeverity(), docLink);
@@ -103,7 +105,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
             problemDefinition,
             contextualLabel,
             solutions,
-            locations,
+            originLocations,
             contextLocations,
             details,
             exception,
@@ -116,10 +118,19 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         if (diagnostics != null) {
             return diagnostics;
         }
-        if(!collectStackLocation || problemsInfrastructure.getProblemStream() == null) {
+        ProblemStream problemStream = problemsInfrastructure.getProblemStream();
+        if (problemStream == null || (!collectStackLocation && areLocationsProvided())) {
             return null;
         }
-        return problemsInfrastructure.getProblemStream().forCurrentCaller(exceptionForStackLocation());
+        return problemStream.forCurrentCaller(exceptionForStackLocation(this.severity == Severity.ERROR));
+    }
+
+    private boolean areLocationsProvided() {
+        return !(contextLocations.isEmpty() && originLocations.isEmpty());
+    }
+
+    private Throwable exceptionForStackLocation(boolean overruleStacktraceLimit) {
+        return getException() == null && overruleStacktraceLimit ? new RuntimeException() : getException();
     }
 
     private void addLocationsFromDiagnostics(List<ProblemLocation> locations, ProblemDiagnostics diagnostics) {
@@ -179,10 +190,6 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         );
     }
 
-    private Throwable exceptionForStackLocation() {
-        return getException() == null && collectStackLocation ? new RuntimeException() : getException();
-    }
-
     protected Severity getSeverity() {
         if (this.severity == null) {
             return Severity.WARNING;
@@ -226,7 +233,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
 
     @Nonnull
     private DefaultProblemBuilder addFileLocation(FileLocation from) {
-        return addFileLocationTo(this.locations, from);
+        return addFileLocationTo(this.originLocations, from);
     }
 
     @Nonnull
@@ -265,6 +272,12 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     @Override
     public InternalProblemSpec diagnostics(ProblemDiagnostics diagnostics) {
         this.diagnostics = diagnostics;
+        return this;
+    }
+
+    @Override
+    public InternalProblemSpec stackAsOriginLocation() {
+        this.stackAsOriginLocation = true;
         return this;
     }
 

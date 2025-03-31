@@ -202,6 +202,7 @@ class ConfigurationCacheProblems(
                 message,
                 configCacheValidation
             )
+            stackLocation()
             contextualLabel(message)
             documentOfProblem(problem)
             locationOfProblem(problem)

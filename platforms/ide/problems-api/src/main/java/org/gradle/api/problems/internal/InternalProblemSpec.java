@@ -128,4 +128,6 @@ public interface InternalProblemSpec extends ProblemSpec {
      * We pass this in when we already have a diagnostics object, for example for deprecation warnings.
      */
     InternalProblemSpec diagnostics(ProblemDiagnostics diagnostics);
+
+    InternalProblemSpec stackAsOriginLocation();
 }

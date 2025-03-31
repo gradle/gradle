@@ -16,7 +16,7 @@
 
 package org.gradle.workers.internal
 
-import com.google.common.collect.Iterables
+
 import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.TaskLocation
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
@@ -163,39 +163,33 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
             operationId == Long.parseLong(buildOperationIdFile.text)
             exception.message == "Exception message"
             exception.stacktrace.contains("Caused by: java.lang.Exception: Wrapped cause")
-            contextualLocations.size() == 1
-            (contextualLocations[0] as TaskLocation).buildTreePath == ":reportProblem"
-        }
-
-        def problem = Iterables.getOnlyElement(filteredProblemDetails(buildOperationsFixture))
-        with(problem) {
-            with(definition) {
-                name == 'type'
-                displayName == 'label'
-                with(group) {
-                    displayName == 'Generic'
-                    name == 'generic'
-                    parent == null
-                }
-                documentationLink == null
-            }
-            severity == Severity.WARNING.name()
+            definition.id.name == 'type'
+            definition.id.displayName == 'label'
+            definition.id.group.displayName == 'Generic'
+            definition.id.group.name == 'generic'
+            definition.id.group.parent == null
+            definition.documentationLink == null
+            definition.severity == Severity.WARNING
             contextualLabel == null
             solutions == []
             details == null
-            contextualLocations.empty
             if (isolationMode == "'${WorkerExecutorFixture.IsolationMode.PROCESS_ISOLATION.method}'") {
-                // TODO: Should have the stack location for all isolation modes
-                assert originLocations.empty
+                // TODO: Should have the stack location for all isolation modesf
+                assert contextualLocations.size() == 1
             } else {
-                assert originLocations.size() == 1
-                with(originLocations[0]) {
+                assert contextualLocations.size() == 2
+                with(contextualLocations[0]) {
                     // TODO: Should have the file location for all isolation modes
                     fileLocation == null
                     stackTrace.find { it.className == 'org.gradle.test.ProblemWorkerTask' && it.methodName == 'execute' && it.fileName == 'ProblemWorkerTask.java' }
                 }
+                with(contextualLocations[1] as TaskLocation) {
+                    buildTreePath == ":reportProblem"
+                    operationId == Long.parseLong(buildOperationIdFile.text)
+                    exception.message == "Exception message"
+                    exception.stacktrace.contains("Caused by: java.lang.Exception: Wrapped cause")
+                }
             }
-            failure != null
         }
 
         where:

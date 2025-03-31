@@ -36,7 +36,8 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
         given:
         withReportProblemTask """
             ${problemIdScript()}
-            problems.getReporter().report(problemId) {}
+            problems.getReporter().report(problemId) {
+            }
         """
 
         when:
@@ -77,6 +78,7 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
             ${problemIdScript()}
             problems.getReporter().report(problemId) {
                 it.stackLocation()
+                  .stackAsOriginLocation()
             }
         """
 
@@ -129,18 +131,19 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
             ${ProblemId.name} problemId = ${ProblemId.name}.create("type", "label", problemGroup)
             problems.getReporter().report(problemId) {
                 it.contextualLabel("contextual label")
-                it.documentedAt("https://example.org/doc")
-                it.fileLocation("${TextUtil.escapeString(location0)}")
-                it.lineInFileLocation("${TextUtil.escapeString(location1)}", 25)
-                it.lineInFileLocation("${TextUtil.escapeString(location2)}", 35, 4)
-                it.lineInFileLocation("${TextUtil.escapeString(location3)}", 45, 7, 10)
-                it.offsetInFileLocation("${TextUtil.escapeString(location4)}", 55, 20)
-                it.stackLocation()
-                it.details("problem details")
-                it.solution("solution 1")
-                it.solution("solution 2")
-                it.severity(Severity.ERROR)
-                it.withException(new IllegalArgumentException("problem exception"))
+                .documentedAt("https://example.org/doc")
+                .fileLocation("${TextUtil.escapeString(location0)}")
+                .lineInFileLocation("${TextUtil.escapeString(location1)}", 25)
+                .lineInFileLocation("${TextUtil.escapeString(location2)}", 35, 4)
+                .lineInFileLocation("${TextUtil.escapeString(location3)}", 45, 7, 10)
+                .offsetInFileLocation("${TextUtil.escapeString(location4)}", 55, 20)
+                .stackLocation()
+                .stackAsOriginLocation()
+                .details("problem details")
+                .solution("solution 1")
+                .solution("solution 2")
+                .severity(Severity.ERROR)
+                .withException(new IllegalArgumentException("problem exception"))
             }
         """
 
@@ -222,6 +225,7 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
                 file('sub1').file('build.gradle') << getProblemReportingScript("""
                     ${problemIdScript()}
                     problems.getReporter().report(problemId) {
+                        it.stackLocation()
                     }
                 """)
             }

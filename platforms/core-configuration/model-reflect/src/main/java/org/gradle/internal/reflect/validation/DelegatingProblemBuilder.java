@@ -152,4 +152,9 @@ class DelegatingProblemBuilder implements InternalProblemBuilder {
         }
         return newDelegate;
     }
+
+    @Override
+    public InternalProblemSpec stackAsOriginLocation() {
+        return delegate.stackAsOriginLocation();
+    }
 }
