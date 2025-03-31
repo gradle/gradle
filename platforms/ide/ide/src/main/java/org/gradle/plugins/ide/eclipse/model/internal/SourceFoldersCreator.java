@@ -57,9 +57,9 @@ public class SourceFoldersCreator {
 
         List<SourceFolder> sourceFolders = configureProjectRelativeFolders(classpath.getSourceSets(),
             classpath.getTestSourceSets().getOrElse(emptySet()),
-            input-> classpath.getProject().relativePath(input),
+            input-> PathUtil.normalizePath(classpath.getProject().relativePath(input)),
             classpath.getDefaultOutputDir(),
-            classpath.getBaseSourceOutputDir().map(dir -> classpath.getProject().relativePath(dir)).getOrElse("bin"));
+            classpath.getBaseSourceOutputDir().get().getAsFile());
 
         return collectRegularAndExternalSourceFolders(sourceFolders,
             (sourceFoldersLeft, sourceFoldersRight) -> ImmutableList.<SourceFolder>builder()
@@ -90,12 +90,15 @@ public class SourceFoldersCreator {
         return collector.apply(regularSourceFolders, dedupedExternalSourceFolders);
     }
 
-    private List<SourceFolder> configureProjectRelativeFolders(Iterable<SourceSet> sourceSets, Collection<SourceSet> testSourceSets,
-                                                               Function<File, String> provideRelativePath, File defaultOutputDir, String baseSourceOutputDir) {
-        String defaultOutputPath = PathUtil.normalizePath(provideRelativePath.apply(defaultOutputDir));
+    private List<SourceFolder> configureProjectRelativeFolders(Iterable<SourceSet> sourceSets,
+                                                               Collection<SourceSet> testSourceSets,
+                                                               Function<File, String> provideRelativePath,
+                                                               File defaultOutputDir,
+                                                               File baseSourceOutputDir) {
+        String defaultOutputPath = provideRelativePath.apply(defaultOutputDir);
         ImmutableList.Builder<SourceFolder> entries = ImmutableList.builder();
         List<SourceSet> sortedSourceSets = sortSourceSetsAsPerUsualConvention(sourceSets);
-        Map<SourceSet, String> sourceSetOutputPaths = collectSourceSetOutputPaths(sortedSourceSets, defaultOutputPath, baseSourceOutputDir);
+        Map<SourceSet, String> sourceSetOutputPaths = collectSourceSetOutputPaths(sortedSourceSets, defaultOutputPath, provideRelativePath.apply(baseSourceOutputDir));
         Multimap<SourceSet, SourceSet> sourceSetUsages = getSourceSetUsages(sortedSourceSets);
         for (SourceSet sourceSet : sortedSourceSets) {
             List<DirectoryTree> sortedSourceDirs = sortSourceDirsAsPerUsualConvention(sourceSet.getAllSource().getSrcDirTrees());
