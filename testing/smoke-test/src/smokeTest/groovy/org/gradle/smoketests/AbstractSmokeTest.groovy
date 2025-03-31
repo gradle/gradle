@@ -113,7 +113,7 @@ abstract class AbstractSmokeTest extends Specification {
         static gradleVersions = "0.52.0"
 
         // https://plugins.gradle.org/plugin/org.gradle.playframework
-        static playframework = "0.13" // Can't upgrade to 0.14 as it breaks CC compat - see https://github.com/gradle/playframework/issues/184
+        static playframework = "0.15"
 
         // https://plugins.gradle.org/plugin/net.ltgt.errorprone
         static errorProne = "4.1.0"
