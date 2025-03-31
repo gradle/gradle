@@ -69,6 +69,7 @@ interface DeclarativeDocument : DocumentNodeContainer {
 
         interface ValueFactoryNode : ValueNode {
             val factoryName: String
+            val isInfix: Boolean
             val values: List<ValueNode> // TODO: restrict to a single value? or even a single literal?
         }
     }

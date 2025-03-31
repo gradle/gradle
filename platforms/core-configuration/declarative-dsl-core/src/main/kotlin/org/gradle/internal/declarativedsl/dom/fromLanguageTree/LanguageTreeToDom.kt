@@ -199,7 +199,7 @@ class LanguageTreeToDomContext {
             errors += values.filterIsInstance<ExprConversion.Failed>().flatMap { it.errors }
             if (errors.isEmpty()) {
                 checkNotNull(name)
-                ExprConversion.Converted(DefaultValueFactoryNode(name, expr.sourceData, values.map { (it as ExprConversion.Converted).valueNode }))
+                ExprConversion.Converted(DefaultValueFactoryNode(name, expr.sourceData, expr.isInfix, values.map { (it as ExprConversion.Converted).valueNode }))
             } else {
                 ExprConversion.Failed(errors)
             }
