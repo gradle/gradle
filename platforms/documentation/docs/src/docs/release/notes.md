@@ -231,6 +231,10 @@ See [the documentation](userguide/toolchains.html#sec:native_image) for details.
 
 Note that this feature is available as well for [the daemon toolchain](userguide/gradle_daemon.html#sec:native_image).
 
+### Support for details of assumption violations in JUnit4
+
+TBD
+
 ### Configuration Cache improvements
 
 #### Integrity Check mode
