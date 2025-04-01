@@ -391,7 +391,7 @@ dependencies {
         }
     }
 
-    def "consuming non-consumable project configuration when substituted as a transitive dependency is deprecated"() {
+    def "consuming non-consumable project configuration when substituted as a transitive dependency fails"() {
         file("included/settings.gradle") << """
             rootProject.name = "transitive"
         """
@@ -440,8 +440,11 @@ dependencies {
             }
         """
 
-        expect:
-        executer.expectDocumentedDeprecationWarning("Consuming non-consumable variants from from an ivy component. This behavior has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#consuming_non_consumable_variants_from_ivy_component")
-        succeeds("resolve")
+        when:
+        fails("resolve")
+
+        then:
+        failure.assertHasCause("Could not resolve org:transitive:1.0")
+        failure.assertHasErrorOutput("No variants exist.")
     }
 }
