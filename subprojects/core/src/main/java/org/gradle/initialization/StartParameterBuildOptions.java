@@ -17,6 +17,7 @@
 package org.gradle.initialization;
 
 import com.google.common.base.Splitter;
+import org.gradle.api.Incubating;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.verification.DependencyVerificationMode;
 import org.gradle.api.internal.StartParameterInternal;
@@ -82,7 +83,8 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         new ConfigurationCacheEntriesPerKeyOption(),
         new IsolatedProjectsOption(),
         new ProblemReportGenerationOption(),
-        new PropertyUpgradeReportOption()
+        new PropertyUpgradeReportOption(),
+        new TaskGraphOption()
     );
 
     @Override
@@ -678,6 +680,21 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
             settings.enableProblemReportGeneration(value);
+        }
+    }
+
+    @Incubating
+    public static class TaskGraphOption extends EnabledOnlyBooleanBuildOption<StartParameterInternal> {
+
+        public static final String LONG_OPTION = "task-graph";
+
+        public TaskGraphOption() {
+            super(null, CommandLineOptionConfiguration.create(LONG_OPTION, "TBD")); //TODO
+        }
+
+        @Override
+        public void applyTo(StartParameterInternal settings, Origin origin) {
+            settings.setTaskGraph(true);
         }
     }
 }
