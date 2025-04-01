@@ -81,6 +81,7 @@ import java.lang.annotation.Target;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
@@ -1191,6 +1192,15 @@ public class AsmBackedClassGeneratorTest {
         }));
         assertEquals("[1]", bean.getProp2().get());
         assertEquals("[2]", bean.getProp2().get());
+    }
+
+    @Test
+    public void generatesMethodWithRetrievableSignature() throws Exception {
+        InterfaceWithTypeParameter<?> genericInterface = newInstance(InterfaceWithTypeParameter.class);
+        assertTrue(genericInterface instanceof GeneratedSubclass);
+        Method genericMethod = genericInterface.getClass().getDeclaredMethod("getThing");
+        Type returnType = genericMethod.getGenericReturnType();
+        assertTrue(returnType instanceof TypeVariable<?>);
     }
 
     public static class Bean {
