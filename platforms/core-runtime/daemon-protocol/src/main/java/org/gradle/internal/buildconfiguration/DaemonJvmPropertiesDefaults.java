@@ -24,4 +24,5 @@ public class DaemonJvmPropertiesDefaults {
     public static final String TOOLCHAIN_IMPLEMENTATION_PROPERTY = "toolchainImplementation";
     public static final String TOOLCHAIN_URL_PROPERTY_PREFIX = "toolchainUrl";
     public static final String TOOLCHAIN_URL_PROPERTY_FORMAT = TOOLCHAIN_URL_PROPERTY_PREFIX + ".%s.%s";
+    public static final String TOOLCHAIN_NATIVE_IMAGE_CAPABLE_PROPERTY = "toolchainNativeImageCapable";
 }

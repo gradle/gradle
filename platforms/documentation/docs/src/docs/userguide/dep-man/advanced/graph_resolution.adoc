@@ -88,7 +88,7 @@ Here’s a condensed sample of the *metadata* for link:https://repo1.maven.org/m
 }
 ----
 
-Some items in the file should be familiar to you such as "files", "dependencies", "components", "modulee" and "version".
+Some items in the file should be familiar to you such as "files", "dependencies", "components", "module" and "version".
 Let's focus on the *variants* provided in the *metadata*.
 
 == Variants

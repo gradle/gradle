@@ -33,6 +33,7 @@ class PromotionProject(
         } else {
             buildType(PublishReleaseCandidate(branch))
             buildType(PublishFinalRelease(branch))
+            buildType(MergeReleaseIntoMaster)
         }
 
         if (branch.isRelease || branch.isExperimental) {

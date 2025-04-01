@@ -52,8 +52,8 @@ import org.gradle.api.resources.internal.ReadableResourceInternal;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.api.tasks.util.internal.PatternSetFactory;
 import org.gradle.internal.Cast;
-import org.gradle.internal.Factory;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -79,7 +79,7 @@ public class DefaultFileOperations implements FileOperations {
     private final Deleter deleter;
     private final ResourceHandler resourceHandler;
     private final FileHasher fileHasher;
-    private final Factory<PatternSet> patternSetFactory;
+    private final PatternSetFactory patternSetFactory;
     private final FileCopier fileCopier;
     private final FileSystem fileSystem;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
@@ -98,7 +98,7 @@ public class DefaultFileOperations implements FileOperations {
         FileCollectionFactory fileCollectionFactory,
         PropertyFactory propertyFactory,
         FileSystem fileSystem,
-        Factory<PatternSet> patternSetFactory,
+        PatternSetFactory patternSetFactory,
         Deleter deleter,
         DocumentationRegistry documentationRegistry,
         TaskDependencyFactory taskDependencyFactory,
@@ -160,7 +160,7 @@ public class DefaultFileOperations implements FileOperations {
 
     @Override
     public PatternSet patternSet() {
-        return patternSetFactory.create();
+        return patternSetFactory.createPatternSet();
     }
 
     @Override
@@ -317,7 +317,7 @@ public class DefaultFileOperations implements FileOperations {
         DirectoryFileTreeFactory directoryFileTreeFactory = services.get(DirectoryFileTreeFactory.class);
         FileHasher fileHasher = services.get(FileHasher.class);
         ApiTextResourceAdapter.Factory textResourceAdapterFactory = services.get(ApiTextResourceAdapter.Factory.class);
-        Factory<PatternSet> patternSetFactory = services.getFactory(PatternSet.class);
+        PatternSetFactory patternSetFactory = services.get(PatternSetFactory.class);
         Deleter deleter = services.get(Deleter.class);
         DocumentationRegistry documentationRegistry = services.get(DocumentationRegistry.class);
         ProviderFactory providers = services.get(ProviderFactory.class);

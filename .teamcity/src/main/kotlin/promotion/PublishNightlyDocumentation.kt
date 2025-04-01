@@ -19,7 +19,6 @@ package promotion
 import common.VersionedSettingsBranch
 import jetbrains.buildServer.configs.kotlin.triggers.schedule
 import model.StageName
-import vcsroots.gradlePromotionBranches
 
 class PublishNightlyDocumentation(
     branch: VersionedSettingsBranch,
@@ -27,7 +26,6 @@ class PublishNightlyDocumentation(
         promotedBranch = branch.branchName,
         promoteTask = "publishBranchDocs",
         triggerName = StageName.PULL_REQUEST_FEEDBACK.uuid,
-        vcsRootId = gradlePromotionBranches,
     ) {
     init {
         id("Promotion_NightlyDocumentation")

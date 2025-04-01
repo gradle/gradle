@@ -36,7 +36,7 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
 
         def kotlinVersionNumber = VersionNumber.parse(kotlinVersion)
         replaceVariablesInBuildFile(kotlinVersion: kotlinVersion)
-        replaceCssSupportBlocksInBuildFile(kotlinVersionNumber)
+        replaceCssSupportBlocksInBuildFile()
 
         when:
         def result = kgpRunner(false, kotlinVersionNumber, ':tasks')
@@ -60,7 +60,7 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
 
         def kotlinVersionNumber = VersionNumber.parse(kotlinVersion)
         replaceVariablesInBuildFile(kotlinVersion: kotlinVersion)
-        replaceCssSupportBlocksInBuildFile(kotlinVersionNumber)
+        replaceCssSupportBlocksInBuildFile()
 
         when:
         def result = kgpRunner(false, kotlinVersionNumber, ':allTests', '-s')
@@ -171,8 +171,7 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         result.output.contains("other-jvm.jar")
 
         where:
-        // withJava is incompatible pre 1.6.20 since it attempts to set the `archiveName` convention property on the Jar task.
-        kotlinVersion << TestedVersions.kotlin.versions.findAll { VersionNumber.parse(it) > VersionNumber.parse("1.6.10") }
+        kotlinVersion << TestedVersions.kotlin.versions
     }
 
     @Override
@@ -182,23 +181,16 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         ]
     }
 
-    private void replaceCssSupportBlocksInBuildFile(VersionNumber kotlinVersionNumber) {
+    private void replaceCssSupportBlocksInBuildFile() {
         Map<String, String> replacementMap = [:]
-        if (kotlinVersionNumber >= VersionNumber.parse('1.8.0')) {
-            replacementMap['enableCssSupportNew'] = """
-            commonWebpackConfig {
-                cssSupport {
-                    enabled.set(true)
-                }
+        replacementMap['enableCssSupportNew'] = """
+        commonWebpackConfig {
+            cssSupport {
+                enabled.set(true)
             }
-            """
-            replacementMap['enableCssSupportOld'] = ''
-        } else {
-            replacementMap['enableCssSupportOld'] = """
-                    webpackConfig.cssSupport.enabled = true
-            """
-            replacementMap['enableCssSupportNew'] = ''
         }
+        """
+        replacementMap['enableCssSupportOld'] = ''
 
         replaceVariablesInBuildFile(replacementMap)
     }

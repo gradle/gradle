@@ -12,6 +12,7 @@ import org.gradle.declarative.dsl.schema.ExternalObjectProviderKey
 import org.gradle.declarative.dsl.schema.FunctionSemantics
 import org.gradle.declarative.dsl.schema.SchemaFunction
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
+import org.gradle.internal.declarativedsl.language.AugmentationOperatorKind
 import org.gradle.internal.declarativedsl.language.FunctionCall
 import org.gradle.internal.declarativedsl.language.LanguageTreeElement
 import org.gradle.internal.declarativedsl.language.Literal
@@ -41,6 +42,7 @@ data class AssignmentRecord(
 sealed interface AssignmentMethod {
     data object Property : AssignmentMethod
     data object AsConstructed : AssignmentMethod
+    data object Augmentation : AssignmentMethod
     data class BuilderFunction(val function: DataBuilderFunction) : AssignmentMethod
 }
 
@@ -144,7 +146,7 @@ sealed interface ObjectOrigin {
         override val originElement: FunctionCall,
         override val invocationId: OperationId
     ) : FunctionInvocationOrigin {
-        override val receiver: ObjectOrigin?
+        override val receiver: Nothing?
             get() = null
 
         override fun toString(): String = functionInvocationString(function, null, invocationId, parameterBindings)
@@ -238,6 +240,16 @@ sealed interface ObjectOrigin {
             result = 31 * result + property.hashCode()
             return result
         }
+    }
+
+    data class AugmentationOrigin(
+        val augmentedProperty: PropertyReference,
+        val augmentationOperand: ObjectOrigin,
+        val assignmentAugmentationKind: AugmentationOperatorKind,
+        val augmentationResult: ObjectOrigin,
+        override val originElement: LanguageTreeElement
+    ) : ObjectOrigin, DelegatingObjectOrigin {
+        override val delegate: ObjectOrigin = augmentationResult
     }
 
     data class GroupedVarargValue(

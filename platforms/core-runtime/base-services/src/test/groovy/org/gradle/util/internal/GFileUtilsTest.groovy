@@ -19,8 +19,8 @@ package org.gradle.util.internal
 import org.gradle.api.UncheckedIOException
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import spock.lang.Specification
 import org.junit.Rule
+import spock.lang.Specification
 
 import java.nio.file.FileSystem
 import java.nio.file.FileSystemException
@@ -36,21 +36,6 @@ class GFileUtilsTest extends Specification {
 
     @Rule
     TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider(getClass())
-
-    def "can read the file's tail"() {
-        def f = temp.file("foo.txt") << """
-one
-two
-three
-"""
-        when:
-        def out = org.gradle.util.GFileUtils.tail(f, 2)
-
-        then:
-        out == """two
-three
-"""
-    }
 
     def "mkdirs succeeds if directory already exists"() {
         def dir = temp.createDir("foo")

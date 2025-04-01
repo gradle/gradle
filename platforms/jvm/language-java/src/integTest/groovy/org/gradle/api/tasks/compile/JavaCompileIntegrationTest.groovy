@@ -1275,34 +1275,4 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         !file("build/classes/java-custom-path/main/com/example/SourcePathTest.class").exists()
     }
 
-    def "Map-accepting methods are deprecated"() {
-        buildFile << """
-            plugins {
-                id("java-library")
-            }
-
-            tasks.compileJava {
-                options.define(encoding: 'UTF-8')
-                options.fork(memoryMaximumSize: '1G')
-                options.debug(debugLevel: 'lines')
-                options.forkOptions.define([:])
-                options.debugOptions.define([:])
-
-                // Ensure replacement compiles successfully
-                options.encoding = 'UTF-8'
-                options.fork = true
-                options.forkOptions.memoryMaximumSize = '1G'
-                options.debug = true
-                options.debugOptions.debugLevel = 'lines'
-            }
-        """
-
-        expect:
-        executer.expectDocumentedDeprecationWarning("The AbstractOptions.define(Map) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_abstract_options")
-        executer.expectDocumentedDeprecationWarning("The CompileOptions.fork(Map) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Set properties directly on the 'forkOptions' property instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_abstract_options")
-        executer.expectDocumentedDeprecationWarning("The CompileOptions.debug(Map) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Set properties directly on the 'debugOptions' property instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_abstract_options")
-        executer.expectDocumentedDeprecationWarning("The AbstractOptions.define(Map) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_abstract_options")
-        executer.expectDocumentedDeprecationWarning("The AbstractOptions.define(Map) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_abstract_options")
-        succeeds("compileJava")
-    }
 }

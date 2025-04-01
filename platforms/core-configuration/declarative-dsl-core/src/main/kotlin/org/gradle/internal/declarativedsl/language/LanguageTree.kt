@@ -37,6 +37,10 @@ sealed interface BlockElement : LanguageTreeElement
 
 
 sealed interface DataStatement : LanguageTreeElement, BlockElement
+sealed interface AssignmentLikeStatement : DataStatement {
+    val lhs: NamedReference
+    val rhs: Expr
+}
 
 
 data class ErroneousStatement(val failingResult: FailingResult) : BlockElement {
@@ -73,8 +77,17 @@ data class FunctionCall(val receiver: Expr?, val name: String, val args: List<Fu
 }
 
 
-data class Assignment(val lhs: NamedReference, val rhs: Expr, override val sourceData: SourceData) : DataStatement
+data class Assignment(override val lhs: NamedReference, override val rhs: Expr, override val sourceData: SourceData) : AssignmentLikeStatement
 
+data class AugmentingAssignment(override val lhs: NamedReference, override val rhs: Expr, val augmentationKind: AugmentationOperatorKind, override val sourceData: SourceData) : AssignmentLikeStatement
+
+sealed interface AugmentationOperatorKind {
+    val operatorToken: String
+
+    data object PlusAssign : AugmentationOperatorKind {
+        override val operatorToken: String = "+="
+    }
+}
 
 data class LocalValue(val name: String, val rhs: Expr, override val sourceData: SourceData) : DataStatement
 

@@ -41,18 +41,6 @@ class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
         succeeds "compileJava"
     }
 
-    def "emits useful deprecations"() {
-        given:
-        applyPlugin()
-        buildFile << """
-            extensions.create("onlyForTesting", GradlePluginDevelopmentExtension, project, sourceSets.main, new SourceSet[] { sourceSets.test })
-        """
-
-        executer.expectDocumentedDeprecationWarning("The GradlePluginDevelopmentExtension.<init>(Project, SourceSet, SourceSet[]) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Do not create this object directly. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_plugin_development_methods")
-        expect:
-        succeeds "help"
-    }
-
     def "jar produces usable plugin jar"() {
         given:
         buildFile()

@@ -22,6 +22,7 @@ val antVersion = "1.10.15"
 val asmVersion = "9.7.1"
 val awsS3Version = "1.12.780"
 val bouncycastleVersion = "1.78.1"
+val hamcrestVersion = "3.0"
 val jacksonVersion = "2.16.1"
 val jaxbVersion = "3.0.0"
 val junit5Version = "5.8.2"
@@ -74,11 +75,11 @@ dependencies {
         api(libs.errorProneAnnotations) { version { strictly("2.36.0") } } // don't forget to upgrade errorprone in gradlebuild.code-quality.gradle.kts
         api(libs.fastutil)              { version { strictly("8.5.2") }}
         api(libs.gradleFileEvents)      { version { strictly("0.2.7") }}
-        api(libs.gradleProfiler)        { version { strictly("0.21.0-alpha-4") }}
+        api(libs.gradleProfiler)        { version { strictly("0.23.0-alpha-1") }}
         api(libs.develocityTestAnnotation) { version { strictly("2.0.1") }}
         api(libs.gcs)                   { version { strictly("v1-rev20220705-1.32.1") }}
         api(libs.googleApiClient)       { version { strictly("1.34.0"); because("our GCS version requires 1.34.0") }}
-        api(libs.guava)                 { version { strictly("32.1.2-jre"); because("our Google API Client version requires at least 31.1-jre")  }}
+        api(libs.guava)                 { version { strictly("33.4.6-jre"); because("our Google API Client version requires at least 31.1-jre, 33.4.5 removes usage of Unsafe")  }}
         api(libs.googleHttpClientGson)  { version { strictly("1.42.2"); because("our Google API Client version requires 1.42.2")  }}
         api(libs.googleHttpClientApacheV2) { version { strictly("1.42.2"); because("our Google API Client version requires 1.42.2")  }}
         api(libs.googleHttpClient)      { version { strictly("1.42.2"); because("our Google API Client version requires 1.42.2") }}
@@ -98,7 +99,8 @@ dependencies {
         api(libs.groovyXml)             { version { strictly(libs.groovyVersion) }}
         api(libs.gson)                  { version { strictly("2.10") }}
         api(libs.h2Database)            { version { strictly("2.2.220") }}
-        api(libs.hamcrestCore)          { version { strictly("1.3"); because("2.x changes the API") }}
+        api(libs.hamcrest)              { version { strictly(hamcrestVersion) }}
+        api("org.hamcrest:hamcrest-core") { version { strictly(hamcrestVersion) }}
         api(libs.hikariCP)              { version { strictly("4.0.3"); because("5.x requires Java 11+") }}
         api(libs.httpcore)              { version { strictly("4.4.14") }}
         api(libs.inject)                { version { strictly("1") }}

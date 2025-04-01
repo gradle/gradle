@@ -42,4 +42,6 @@ dependencies {
     implementation(projects.serialization)
 
     implementation(libs.jspecify)
+
+    testImplementation(projects.serviceRegistryImpl)
 }

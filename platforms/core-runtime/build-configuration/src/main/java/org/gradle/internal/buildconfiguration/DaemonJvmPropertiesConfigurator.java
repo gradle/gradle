@@ -60,18 +60,24 @@ public class DaemonJvmPropertiesConfigurator implements ProjectConfigureAction {
                 task.setDescription("Generates or updates the Gradle Daemon JVM criteria.");
                 task.getPropertiesFile().convention(project.getLayout().getProjectDirectory().file(DaemonJvmPropertiesDefaults.DAEMON_JVM_PROPERTIES_FILE));
                 task.getLanguageVersion().convention(JavaLanguageVersion.of(Jvm.current().getJavaVersionMajor()));
+                task.getNativeImageCapable().convention(false);
                 task.getToolchainPlatforms().convention(
                     Stream.of(Architecture.X86_64, Architecture.AARCH64).flatMap(arch ->
                             Stream.of(OperatingSystem.values()).map(os -> BuildPlatformFactory.of(arch, os)))
                         .collect(Collectors.toSet()));
                 task.getToolchainDownloadUrls().convention(task.getToolchainPlatforms()
-                    .zip(task.getLanguageVersion().zip(task.getVendor().orElse(DefaultJvmVendorSpec.any()), Pair::of),
-                        (platforms, versionVendor) -> {
-                            JvmVendorSpec vendor = versionVendor.getRight();
+                    .zip(task.getLanguageVersion()
+                            .zip(task.getVendor().orElse(DefaultJvmVendorSpec.any()), Pair::of)
+                            .zip(task.getNativeImageCapable(), Pair::of),
+                        (platforms, versionVendorNative) -> {
+                            JvmVendorSpec vendor = versionVendorNative.getLeft().getRight();
                             JavaToolchainSpec toolchainSpec = project.getObjects().newInstance(DefaultToolchainSpec.class);
-                            toolchainSpec.getLanguageVersion().set(versionVendor.getLeft());
+                            toolchainSpec.getLanguageVersion().set(versionVendorNative.getLeft().getLeft());
                             if (!vendor.equals(DefaultJvmVendorSpec.any())) {
                                 toolchainSpec.getVendor().set(vendor);
+                            }
+                            if (versionVendorNative.getRight()) {
+                                toolchainSpec.getNativeImageCapable().set(true);
                             }
                             if (platforms.isEmpty()) {
                                 return emptyMap();

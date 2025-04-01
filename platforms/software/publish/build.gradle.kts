@@ -24,7 +24,6 @@ dependencies {
     api(projects.serviceProvider)
     api(projects.stdlibJavaExtensions)
 
-    api(libs.groovy)
     api(libs.inject)
     api(libs.jspecify)
 

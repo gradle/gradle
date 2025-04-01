@@ -23,8 +23,7 @@ import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternFilterable;
-import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.internal.Factory;
+import org.gradle.api.tasks.util.internal.PatternSetFactory;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.work.DisableCachingByDefault;
 import org.jspecify.annotations.NullMarked;
@@ -42,11 +41,11 @@ public abstract class SourceTask extends ConventionTask implements PatternFilter
     private final PatternFilterable patternSet;
 
     public SourceTask() {
-        patternSet = getPatternSetFactory().create();
+        patternSet = getPatternSetFactory().createPatternSet();
     }
 
     @Inject
-    protected Factory<PatternSet> getPatternSetFactory() {
+    protected PatternSetFactory getPatternSetFactory() {
         throw new UnsupportedOperationException();
     }
 

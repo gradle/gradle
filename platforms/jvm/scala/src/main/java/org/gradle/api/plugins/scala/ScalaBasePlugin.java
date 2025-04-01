@@ -223,7 +223,7 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
 
             project.getConfigurations().getByName(sourceSet.getImplementationConfigurationName()).getDependencies().addLater(createScalaDependency(scalaPluginExtension));
 
-            Configuration incrementalAnalysis = createIncrementalAnalysisConfigurationFor(project.getConfigurations(), incrementalAnalysisCategory, incrementalAnalysisUsage, sourceSet);
+            FileCollection incrementalAnalysis = createIncrementalAnalysisConfigurationFor(project.getConfigurations(), incrementalAnalysisCategory, incrementalAnalysisUsage, sourceSet);
 
             createScalaCompileTask(project, sourceSet, scalaSource, incrementalAnalysis);
         });
@@ -324,18 +324,18 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
         return scalaSourceSet.getScala();
     }
 
-    private static Configuration createIncrementalAnalysisConfigurationFor(RoleBasedConfigurationContainerInternal configurations, Category incrementalAnalysisCategory, Usage incrementalAnalysisUsage, SourceSet sourceSet) {
-        Configuration classpath = configurations.getByName(sourceSet.getImplementationConfigurationName());
-        @SuppressWarnings("deprecation") Configuration incrementalAnalysis = configurations.migratingUnlocked("incrementalScalaAnalysisFor" + sourceSet.getName(), ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE);
-        incrementalAnalysis.setVisible(false);
-        incrementalAnalysis.setDescription("Incremental compilation analysis files for " + ((DefaultSourceSet) sourceSet).getDisplayName());
-        incrementalAnalysis.extendsFrom(classpath);
-        incrementalAnalysis.getAttributes().attribute(USAGE_ATTRIBUTE, incrementalAnalysisUsage);
-        incrementalAnalysis.getAttributes().attribute(CATEGORY_ATTRIBUTE, incrementalAnalysisCategory);
-        return incrementalAnalysis;
+    private static FileCollection createIncrementalAnalysisConfigurationFor(RoleBasedConfigurationContainerInternal configurations, Category incrementalAnalysisCategory, Usage incrementalAnalysisUsage, SourceSet sourceSet) {
+        Configuration classpath = configurations.getByName(sourceSet.getCompileClasspathConfigurationName());
+        return classpath.getIncoming().artifactView(viewConfiguration -> {
+            viewConfiguration.withVariantReselection();
+            viewConfiguration.lenient(true);
+            viewConfiguration.componentFilter(spec(element -> element instanceof ProjectComponentIdentifier));
+            viewConfiguration.getAttributes().attribute(USAGE_ATTRIBUTE, incrementalAnalysisUsage);
+            viewConfiguration.getAttributes().attribute(CATEGORY_ATTRIBUTE, incrementalAnalysisCategory);
+        }).getFiles();
     }
 
-    private void createScalaCompileTask(final Project project, final SourceSet sourceSet, ScalaSourceDirectorySet scalaSource, final Configuration incrementalAnalysis) {
+    private void createScalaCompileTask(final Project project, final SourceSet sourceSet, ScalaSourceDirectorySet scalaSource, final FileCollection incrementalAnalysis) {
         final TaskProvider<ScalaCompile> compileTask = project.getTasks().register(sourceSet.getCompileTaskName("scala"), ScalaCompile.class, scalaCompile -> {
             JvmPluginsHelper.compileAgainstJavaOutputs(scalaCompile, sourceSet, objectFactory);
             JvmPluginsHelper.configureAnnotationProcessorPath(sourceSet, scalaSource, scalaCompile.getOptions(), project);
@@ -350,7 +350,7 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
         project.getTasks().named(sourceSet.getClassesTaskName(), task -> task.dependsOn(compileTask));
     }
 
-    private void configureIncrementalAnalysis(Project project, SourceSet sourceSet, Configuration incrementalAnalysis, ScalaCompile scalaCompile) {
+    private void configureIncrementalAnalysis(Project project, SourceSet sourceSet, FileCollection incrementalAnalysis, ScalaCompile scalaCompile) {
         scalaCompile.getAnalysisMappingFile().set(project.getLayout().getBuildDirectory().file("tmp/scala/compilerAnalysis/" + scalaCompile.getName() + ".mapping"));
 
         // cannot compute at task execution time because we need association with source set
@@ -367,15 +367,7 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
         if (jarTask != null) {
             incrementalOptions.getPublishedCode().set(jarTask.getArchiveFile());
         }
-        scalaCompile.getAnalysisFiles().from(incrementalAnalysis.getIncoming().artifactView(viewConfiguration -> {
-            viewConfiguration.lenient(true);
-            viewConfiguration.componentFilter(spec(element -> element instanceof ProjectComponentIdentifier));
-        }).getFiles());
-
-        // See https://github.com/gradle/gradle/issues/14434.  We do this so that the incrementalScalaAnalysisForXXX configuration
-        // is resolved during task graph calculation.  It is not an input, but if we leave it to be resolved during task execution,
-        // it can potentially block trying to resolve project dependencies.
-        scalaCompile.dependsOn(scalaCompile.getAnalysisFiles());
+        scalaCompile.getAnalysisFiles().from(incrementalAnalysis);
     }
 
     private static void configureCompileDefaults(

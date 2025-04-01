@@ -20,7 +20,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import groovy.lang.Closure;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.WordUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
@@ -656,7 +655,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     }
 
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-    private static Boolean isFullyResoled(Optional<ResolverResults> currentState) {
+    private static Boolean isFullyResolved(Optional<ResolverResults> currentState) {
         return currentState.map(ResolverResults::isFullyResolved).orElse(false);
     }
 
@@ -690,6 +689,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 taskDependencyFactory,
                 calculatedValueContainerFactory,
                 attributesFactory,
+                attributeDesugaring,
                 instantiator
             );
         }
@@ -722,7 +722,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         maybeEmitResolutionDeprecation();
 
         Optional<ResolverResults> currentState = currentResolveState.get();
-        if (isFullyResoled(currentState)) {
+        if (isFullyResolved(currentState)) {
             return currentState.get();
         }
 
@@ -738,7 +738,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     private ResolverResults resolveExclusivelyIfRequired() {
         return currentResolveState.update(currentState -> {
-            if (isFullyResoled(currentState)) {
+            if (isFullyResolved(currentState)) {
                 return currentState;
             }
 
@@ -906,7 +906,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
                 CalculatedValue<ResolverResults> futureCompleteResults = calculatedValueContainerFactory.create(Describables.of("Full results for", getName()), context -> {
                     Optional<ResolverResults> currentState = currentResolveState.get();
-                    if (!isFullyResoled(currentState)) {
+                    if (!isFullyResolved(currentState)) {
                         // Do not validate that the current thread holds the project lock.
                         // TODO: Should instead assert that the results are available and fail if not.
                         return resolveExclusivelyIfRequired();
@@ -1070,17 +1070,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         parsedExcludeRules = null;
         excludeRules.add(excludeRuleArgs);
         return this;
-    }
-
-    @Deprecated
-    @Override
-    public String getUploadTaskName() {
-        DeprecationLogger.deprecateMethod(Configuration.class, "getUploadTaskName()")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(7, "upload_task_deprecation")
-            .nagUser();
-
-        return "upload" + StringUtils.capitalize(getName());
     }
 
     @Override
@@ -1389,7 +1378,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             return;
         }
 
-        if (isFullyResoled(currentResolveState.get())) {
+        if (isFullyResolved(currentResolveState.get())) {
             throw new InvalidUserDataException(String.format("Cannot change %s of parent of %s after it has been resolved", type, getDisplayName()));
         }
     }
@@ -1401,7 +1390,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             return;
         }
 
-        if (isFullyResoled(currentResolveState.get())) {
+        if (isFullyResolved(currentResolveState.get())) {
             // The public result for the configuration has been calculated.
             // It is an error to change anything that would change the dependencies or artifacts
             throw new InvalidUserDataException(String.format("Cannot change %s of dependency %s after it has been resolved.", type, getDisplayName()));

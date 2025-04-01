@@ -37,14 +37,15 @@ class DaemonJvmPropertiesModifierTest extends Specification {
         given:
         def propertiesModifier = new DaemonJvmPropertiesModifier()
         when:
-        propertiesModifier.updateJvmCriteria(daemonJvmPropertiesFile, JavaLanguageVersion.of(11), "IBM",
-            [(createBuildPlatform(Architecture.AARCH64, OperatingSystem.LINUX)): new URI("https://server/whatever1"),
-             (createBuildPlatform(Architecture.X86_64, OperatingSystem.MAC_OS)): new URI("https://server/whatever2"),
-             (createBuildPlatform(Architecture.X86_64, OperatingSystem.WINDOWS)): new URI("https://server/whatever3")])
+        propertiesModifier.updateJvmCriteria(daemonJvmPropertiesFile, JavaLanguageVersion.of(11), "IBM", true,
+                [(createBuildPlatform(Architecture.AARCH64, OperatingSystem.LINUX)): new URI("https://server/whatever1"),
+                 (createBuildPlatform(Architecture.X86_64, OperatingSystem.MAC_OS)): new URI("https://server/whatever2"),
+                 (createBuildPlatform(Architecture.X86_64, OperatingSystem.WINDOWS)): new URI("https://server/whatever3")])
         then:
         def props = daemonJvmPropertiesFile.properties
         props[DaemonJvmPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY] == "11"
         props[DaemonJvmPropertiesDefaults.TOOLCHAIN_VENDOR_PROPERTY] == "IBM"
+        props[DaemonJvmPropertiesDefaults.TOOLCHAIN_NATIVE_IMAGE_CAPABLE_PROPERTY] == "true"
         props[String.format(DaemonJvmPropertiesDefaults.TOOLCHAIN_URL_PROPERTY_FORMAT, OperatingSystem.LINUX, Architecture.AARCH64)] == "https://server/whatever1"
         props[String.format(DaemonJvmPropertiesDefaults.TOOLCHAIN_URL_PROPERTY_FORMAT, OperatingSystem.MAC_OS, Architecture.X86_64)] == "https://server/whatever2"
         props[String.format(DaemonJvmPropertiesDefaults.TOOLCHAIN_URL_PROPERTY_FORMAT, OperatingSystem.WINDOWS, Architecture.X86_64)] == "https://server/whatever3"
@@ -55,18 +56,19 @@ class DaemonJvmPropertiesModifierTest extends Specification {
         given:
         def propertiesModifier = new DaemonJvmPropertiesModifier()
         when:
-        propertiesModifier.updateJvmCriteria(daemonJvmPropertiesFile, JavaLanguageVersion.of(11), null, [:])
+        propertiesModifier.updateJvmCriteria(daemonJvmPropertiesFile, JavaLanguageVersion.of(11), null, false, [:])
         then:
         def props = daemonJvmPropertiesFile.properties
         props[DaemonJvmPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY] == "11"
         props[DaemonJvmPropertiesDefaults.TOOLCHAIN_VENDOR_PROPERTY] == null
+        props[DaemonJvmPropertiesDefaults.TOOLCHAIN_NATIVE_IMAGE_CAPABLE_PROPERTY] == null
     }
 
     def "writes only java version when no other properties are given"() {
         given:
         def propertiesModifier = new DaemonJvmPropertiesModifier()
         when:
-        propertiesModifier.updateJvmCriteria(daemonJvmPropertiesFile, JavaLanguageVersion.of(11), null, [:])
+        propertiesModifier.updateJvmCriteria(daemonJvmPropertiesFile, JavaLanguageVersion.of(11), null, false, [:])
         then:
         def props = daemonJvmPropertiesFile.properties
         props[DaemonJvmPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY] == "11"
@@ -82,7 +84,7 @@ class DaemonJvmPropertiesModifierTest extends Specification {
             ${DaemonJvmPropertiesDefaults.TOOLCHAIN_IMPLEMENTATION_PROPERTY}=vendor-specific
         """
         when:
-        propertiesModifier.updateJvmCriteria(daemonJvmPropertiesFile, JavaLanguageVersion.of(15), null, [:])
+        propertiesModifier.updateJvmCriteria(daemonJvmPropertiesFile, JavaLanguageVersion.of(15), null, false, [:])
         then:
         def props = daemonJvmPropertiesFile.properties
         props[DaemonJvmPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY] == "15"
@@ -99,7 +101,7 @@ class DaemonJvmPropertiesModifierTest extends Specification {
             ${DaemonJvmPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY}=15
         """
         when:
-        propertiesModifier.updateJvmCriteria(daemonJvmPropertiesFile, JavaLanguageVersion.of(11), "IBM", [:])
+        propertiesModifier.updateJvmCriteria(daemonJvmPropertiesFile, JavaLanguageVersion.of(11), "IBM", false, [:])
         then:
         def props = daemonJvmPropertiesFile.properties
         props.size() == 2

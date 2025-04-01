@@ -21,7 +21,7 @@ import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.DeepThought
@@ -38,6 +38,7 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
+import org.gradle.util.internal.VersionNumber
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.equalTo
@@ -214,9 +215,8 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
         reason = "Class path isolation, tested here, is not correct in embedded mode"
     )
     fun `can compile against a different (but compatible) version of the Kotlin compiler`() {
-
-        val differentKotlinVersion = "1.6.0"
-        val expectedKotlinCompilerVersionString = "1.6.0"
+        val differentKotlinVersion = KotlinGradlePluginVersions().latestsStable.last { VersionNumber.parse(it) < VersionNumber.parse(embeddedKotlinVersion) }
+        val expectedKotlinCompilerVersionString = differentKotlinVersion
 
         assertNotEquals(embeddedKotlinVersion, differentKotlinVersion)
 
@@ -250,33 +250,6 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
             }
             """
         )
-
-        executer.expectDocumentedDeprecationWarning(
-            "The org.gradle.api.plugins.JavaPluginConvention type has been deprecated. " +
-                "This is scheduled to be removed in Gradle 9.0. " +
-                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#java_convention_deprecation"
-        )
-        executer.expectDocumentedDeprecationWarning(
-            "The org.gradle.util.WrapUtil type has been deprecated. " +
-                "This is scheduled to be removed in Gradle 9.0. " +
-                "Consult the upgrading guide for further information: " +
-                "https://docs.gradle.org/current/userguide/upgrading_version_8.html#org_gradle_util_reports_deprecations_80"
-        )
-        executer.expectDocumentedDeprecationWarning(
-            "The org.gradle.api.plugins.Convention type has been deprecated. " +
-                "This is scheduled to be removed in Gradle 9.0. " +
-                "Consult the upgrading guide for further information: " +
-                "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions"
-        )
-        if (GradleContextualExecuter.isConfigCache()) {
-            executer.expectDocumentedDeprecationWarning(
-                "The Provider.forUseAtConfigurationTime method has been deprecated. " +
-                    "This is scheduled to be removed in Gradle 9.0. " +
-                    "Simply remove the call. " +
-                    "Consult the upgrading guide for further information: " +
-                    "https://docs.gradle.org/current/userguide/upgrading_version_7.html#for_use_at_configuration_time_deprecation"
-            )
-        }
 
         assertThat(
             build("print-kotlin-version").output,

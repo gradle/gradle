@@ -160,7 +160,7 @@ public final class DefaultImmutableAttributesContainer extends AbstractAttribute
      * that method, where when asked for a {@code <T>} we must return one.
      * <p>
      * One interesting potential complication is caused by different classloaders
-     * loading the same type when an typed attribute is put into a container vs. when it is retrieved.
+     * loading the same type when a typed attribute is put into a container vs. when it is retrieved.
      * <p>
      * When a request for a key with type X1
      * is being made in a container holding an attribute with type X2, where X1 and X2 are

@@ -87,6 +87,13 @@ We don't expect too many occurrences given the similar nullability semantics.
 Note that plugins using JSR-305 annotations on their types will continue to work as they did with previous Gradle versions.
 In other words, it is still supported to use `javax.annotations` for nullability on your plugin types such as tasks or extensions.
 
+==== Scala plugins no longer create unresolvable configurations
+
+The Scala plugins used configurations named `incrementalScalaAnalysisFor` to resolve incremental analysis information from other projects.
+Due to the way the configurations were created, they were unresolvable and produced errors in the `dependencies` report.
+
+These configurations are no longer created or used.
+
 ==== Gradle no longer implicitly builds certain artifacts when running assemble
 In previous versions of Gradle, the `assemble` task would implicitly build artifacts of any configuration where the `visible` flag was not set to `false`.  This behavior has been removed in Gradle 9.0.  If you have a custom configuration whose artifacts should be built when running `assemble`, you should add a dependency from the artifact to the `assemble` task.
 
@@ -203,6 +210,11 @@ In previous versions of Gradle, special handling would apply when the `ear`, `wa
 The `Settings.getDefaults()` incubating method introduced in 8.10 has been removed.
 Use`Settings.defaults(Action<SharedModelDefaults>)` method, taking a lambda, instead.
 The change is driven by the need to interpret such default values in the scope of individual projects and not at Settings level.
+
+==== Upgrade to Guava 33.4.6
+
+Guava was updated from 32.1.2 to 33.4.6, which deprecates some core features like `Charsets`.
+See https://github.com/google/guava/releases for details.
 
 === Deprecations
 

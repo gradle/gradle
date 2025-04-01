@@ -16,7 +16,6 @@
 
 package org.gradle.internal.service.scopes;
 
-import org.gradle.api.AntBuilder;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.initialization.SharedModelDefaults;
@@ -49,6 +48,7 @@ import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.plugins.PluginTarget;
 import org.gradle.api.internal.plugins.PluginTargetType;
 import org.gradle.api.internal.plugins.RuleBasedPluginTarget;
+import org.gradle.api.internal.project.AntBuilderFactory;
 import org.gradle.api.internal.project.CrossProjectConfigurator;
 import org.gradle.api.internal.project.CrossProjectModelAccess;
 import org.gradle.api.internal.project.DefaultAntBuilderFactory;
@@ -73,17 +73,17 @@ import org.gradle.api.internal.tasks.TaskStatistics;
 import org.gradle.api.internal.tasks.properties.TaskScheme;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.internal.InternalProblems;
-import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.api.tasks.util.internal.PatternSetFactory;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.configuration.project.DefaultProjectConfigurationActionContainer;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.initialization.layout.BuildLayout;
-import org.gradle.internal.Factory;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.jvm.JavaModuleDetector;
+import org.gradle.internal.logging.LoggingManagerFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationRunner;
@@ -124,7 +124,7 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
     public static CloseableServiceRegistry create(
         ServiceRegistry buildServices,
         ProjectInternal project,
-        Factory<LoggingManagerInternal> loggingManagerInternalFactory
+        LoggingManagerFactory loggingManagerInternalFactory
     ) {
         return ServiceRegistryBuilder.builder()
             .scopeStrictly(Scope.Project.class)
@@ -136,10 +136,10 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
     }
 
     private final ProjectInternal project;
-    private final Factory<LoggingManagerInternal> loggingManagerInternalFactory;
+    private final LoggingManagerFactory loggingManagerInternalFactory;
 
 
-    public ProjectScopeServices(ProjectInternal project, Factory<LoggingManagerInternal> loggingManagerInternalFactory) {
+    public ProjectScopeServices(ProjectInternal project, LoggingManagerFactory loggingManagerInternalFactory) {
         this.project = project;
         this.loggingManagerInternalFactory = loggingManagerInternalFactory;
     }
@@ -176,7 +176,7 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
 
     @Provides
     protected LoggingManagerInternal createLoggingManager() {
-        return loggingManagerInternalFactory.create();
+        return loggingManagerInternalFactory.createLoggingManager();
     }
 
     @Provides
@@ -213,7 +213,7 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected Factory<AntBuilder> createAntBuilderFactory() {
+    protected AntBuilderFactory createAntBuilderFactory() {
         return new DefaultAntBuilderFactory(project, new DefaultAntLoggingAdapterFactory());
     }
 
@@ -393,8 +393,10 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides({ProjectLayout.class, TaskFileVarFactory.class})
-    DefaultProjectLayout createProjectLayout(BuildLayout buildLayout, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, TaskDependencyFactory taskDependencyFactory,
-                                             FilePropertyFactory filePropertyFactory, Factory<PatternSet> patternSetFactory, PropertyHost propertyHost, FileFactory fileFactory) {
+    DefaultProjectLayout createProjectLayout(
+        BuildLayout buildLayout, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, TaskDependencyFactory taskDependencyFactory,
+        FilePropertyFactory filePropertyFactory, PatternSetFactory patternSetFactory, PropertyHost propertyHost, FileFactory fileFactory
+    ) {
         File settingsDir = buildLayout.getSettingsDir();
         File projectDir = project.getProjectDir();
         return new DefaultProjectLayout(settingsDir, projectDir, fileResolver, taskDependencyFactory, patternSetFactory, propertyHost, fileCollectionFactory, filePropertyFactory, fileFactory);

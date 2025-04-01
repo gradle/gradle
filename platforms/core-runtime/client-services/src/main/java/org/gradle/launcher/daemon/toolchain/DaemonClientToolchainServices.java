@@ -19,6 +19,7 @@ package org.gradle.launcher.daemon.toolchain;
 import net.rubygrapefruit.platform.SystemInfo;
 import net.rubygrapefruit.platform.WindowsRegistry;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.file.BaseDirFileResolver;
 import org.gradle.api.internal.file.DefaultFileOperations;
 import org.gradle.api.internal.file.DefaultFilePropertyFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -37,6 +38,7 @@ import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.scopes.ScopedCacheBuilderFactory;
+import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.file.Deleter;
@@ -113,7 +115,6 @@ public class DaemonClientToolchainServices implements ServiceRegistrationProvide
         FileLockManager fileLockManager,
         ClientExecHandleBuilderFactory execHandleFactory,
         GradleUserHomeTemporaryFileProvider gradleUserHomeTemporaryFileProvider,
-        FileResolver fileResolver,
         PropertyHost propertyHost,
         FileCollectionFactory fileCollectionFactory,
         DirectoryFileTreeFactory directoryFileTreeFactory,
@@ -135,6 +136,8 @@ public class DaemonClientToolchainServices implements ServiceRegistrationProvide
             installationSuppliers.add(new OsXInstallationSupplier(os, new DefaultOsXJavaHomeCommand(execHandleFactory)));
             installationSuppliers.add(new WindowsInstallationSupplier(windowsRegistry, os));
 
+            BuildLayoutParameters buildLayoutParameters = new BuildLayoutParameters();
+            FileResolver fileResolver = new BaseDirFileResolver(buildLayoutParameters.getCurrentDir());
             CurrentBuildPlatform currentBuildPlatform = new CurrentBuildPlatform(systemInfo, os);
             DefaultFilePropertyFactory filePropertyFactory = new DefaultFilePropertyFactory(propertyHost, fileResolver, fileCollectionFactory);
             DecompressionCoordinator decompressionCoordinator = new DefaultDecompressionCoordinator(scopedCacheBuilderFactory);

@@ -36,7 +36,8 @@ class ImportTest {
                 emptyMap(),
                 emptyMap(),
                 emptyMap(),
-                emptySet()
+                emptySet(),
+                emptyMap()
             ),
             emptyMap(),
             errorCollector,

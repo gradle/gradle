@@ -317,7 +317,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
             fqid == 'compilation:java:compiler-warn-redundant-cast'
             contextualLabel == 'redundant cast to java.lang.String'
             solutions.empty
-            verifyAll(getSingleLocation(ReceivedProblem.ReceivedFileLocation)) {
+            verifyAll(getSingleOriginLocation(FileLocation)) {
                 it.path == fooFileLocation.absolutePath
             }
             details == """\

@@ -22,8 +22,8 @@ import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
 import org.gradle.api.tasks.util.PatternFilterable
 import org.gradle.api.tasks.util.PatternSet
+import org.gradle.api.tasks.util.internal.PatternSetFactory
 import org.gradle.internal.Actions
-import org.gradle.internal.Factory
 import org.gradle.util.TestUtil
 import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
@@ -34,7 +34,7 @@ import java.util.function.Consumer
 class CompositeFileTreeTest extends Specification {
     private final FileTreeInternal source1 = Mock()
     private final FileTreeInternal source2 = Mock()
-    private final Factory<PatternSet> patternSetFactory = Mock()
+    private final PatternSetFactory patternSetFactory = Mock()
     private final CompositeFileTree tree = new CompositeFileTree(TestFiles.taskDependencyFactory(), patternSetFactory) {
         @Override
         String getDisplayName() {
@@ -62,7 +62,7 @@ class CompositeFileTreeTest extends Specification {
         sourceCollections == [filtered1, filtered2]
 
         and:
-        1 * patternSetFactory.create() >> patterns
+        1 * patternSetFactory.createPatternSet() >> patterns
         1 * source1.matching(patterns) >> filtered1
         1 * source2.matching(patterns) >> filtered2
     }
@@ -86,7 +86,7 @@ class CompositeFileTreeTest extends Specification {
         sourceCollections == [filtered1, filtered2]
 
         and:
-        1 * patternSetFactory.create() >> patterns
+        1 * patternSetFactory.createPatternSet() >> patterns
         1 * action.execute(patterns)
         1 * source1.matching(patterns) >> filtered1
         1 * source2.matching(patterns) >> filtered2

@@ -15,16 +15,14 @@
  */
 package org.gradle.api.internal.project;
 
-import org.gradle.api.AntBuilder;
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.ant.AntLoggingAdapter;
 import org.gradle.api.internal.project.ant.AntLoggingAdapterFactory;
-import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.CompositeStoppable;
 
 import java.io.Closeable;
 
-public class DefaultAntBuilderFactory implements Factory<AntBuilder>, Closeable {
+public class DefaultAntBuilderFactory implements AntBuilderFactory, Closeable {
     private final Project project;
     private final AntLoggingAdapterFactory loggingAdapterFactory;
     private final CompositeStoppable stoppable = new CompositeStoppable();
@@ -35,7 +33,7 @@ public class DefaultAntBuilderFactory implements Factory<AntBuilder>, Closeable 
     }
 
     @Override
-    public DefaultAntBuilder create() {
+    public DefaultAntBuilder createAntBuilder() {
         AntLoggingAdapter loggingAdapter = loggingAdapterFactory.create();
         DefaultAntBuilder antBuilder = new DefaultAntBuilder(project, loggingAdapter);
         antBuilder.getProject().setBaseDir(project.getProjectDir());

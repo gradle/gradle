@@ -77,8 +77,7 @@ class AnalysisAndConversionStepRunner(
                 val evaluationSchema = step.evaluationSchemaForStep
                 val context = ReflectionContext(
                     SchemaTypeRefContext(evaluationSchema.analysisSchema),
-                    analysisResult.stepResult.resolutionResult,
-                    analysisResult.stepResult.assignmentTrace
+                    analysisResult.stepResult.propertyLinkTrace.resolvedPropertyLinksResolutionResult,
                 )
                 val topLevelObjectReflection = reflect(analysisResult.stepResult.resolutionResult.topLevelReceiver, context)
 

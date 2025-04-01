@@ -343,17 +343,6 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
     ResolvedConfiguration getResolvedConfiguration();
 
     /**
-     * Returns a string. The returned value should not be interpreted as a task name,
-     * as no task with this name is created by default.
-     *
-     * @return A string.
-     *
-     * @deprecated This method will be removed in Gradle 9.0
-     */
-    @Deprecated
-    String getUploadTaskName();
-
-    /**
      * Returns a {@code TaskDependency} object containing all required dependencies to build the local dependencies
      * (e.g. project dependencies) belonging to this configuration or to one of its super configurations.
      *

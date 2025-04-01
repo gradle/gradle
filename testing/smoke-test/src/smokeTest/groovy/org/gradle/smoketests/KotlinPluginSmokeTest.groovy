@@ -16,6 +16,7 @@
 
 package org.gradle.smoketests
 
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.VersionNumber
@@ -161,10 +162,15 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
 
         then:
         result.task(':compileJava').outcome == SUCCESS
-        if (VersionNumber.parse(kotlinVersion).baseVersion < VersionNumber.parse("1.9.25")) {
-            result.tasks.collect { it.path } == [':compileGroovy', ':compileKotlin', ':compileJava']
+
+        // With config cache enabled, for some reason, the `checkKotlinGradlePluginConfigurationErrors`
+        // task may appear out of order in the task list
+        def tasks = result.tasks.collect { it.path }
+        if (GradleContextualExecuter.isConfigCache()) {
+            assert tasks.contains(":checkKotlinGradlePluginConfigurationErrors")
+            assert tasks.findAll { it != ":checkKotlinGradlePluginConfigurationErrors" } == [':compileGroovy', ':compileKotlin', ':compileJava']
         } else {
-            result.tasks.collect { it.path } == [':checkKotlinGradlePluginConfigurationErrors', ':compileGroovy', ':compileKotlin', ':compileJava']
+            assert tasks == [':checkKotlinGradlePluginConfigurationErrors', ':compileGroovy', ':compileKotlin', ':compileJava']
         }
 
         where:

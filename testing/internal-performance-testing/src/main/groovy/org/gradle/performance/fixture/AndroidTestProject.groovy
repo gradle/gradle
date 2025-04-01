@@ -98,6 +98,10 @@ class AndroidTestProject implements TestProject {
         }
     }
 
+    static String configureBuildToolsForAgpVersion(CrossVersionPerformanceTestRunner runner, String agpVersion) {
+        runner.args.add("-DbuildToolsVersion=${AGP_VERSIONS.getBuildToolsVersionFor(agpVersion)}")
+    }
+
     static class JavaVersionMutator implements BuildMutator {
         private final File buildJavaHome
         private final JavaVersion javaVersion
@@ -112,8 +116,14 @@ class AndroidTestProject implements TestProject {
         @Override
         void beforeScenario(ScenarioContext context) {
             def gradleProps = new File(invocation.projectDir, "gradle.properties")
-            gradleProps << "\norg.gradle.java.home=${buildJavaHome.absolutePath.replace("\\", "/")}\n"
-            gradleProps << "\nsystemProp.javaVersion=${javaVersion.majorVersion}\n"
+            gradleProps << """
+
+org.gradle.java.home=${buildJavaHome.absolutePath.replace("\\", "/")}
+systemProp.javaVersion=${javaVersion.majorVersion}
+org.gradle.java.installations.paths=${AvailableJavaHomes.getAvailableJvms().collect { it.javaHome.absolutePath }.join(",")}
+org.gradle.java.installations.auto-detect=false
+org.gradle.java.installations.auto-download=false
+"""
         }
     }
 

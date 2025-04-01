@@ -113,11 +113,13 @@ public interface DaemonJvmCriteria {
         private final JavaLanguageVersion javaVersion;
         private final JvmVendorSpec vendorSpec;
         private final JvmImplementation jvmImplementation;
+        private final boolean nativeImageCapable;
 
-        public Spec(JavaLanguageVersion javaVersion, JvmVendorSpec vendorSpec, JvmImplementation jvmImplementation) {
+        public Spec(JavaLanguageVersion javaVersion, JvmVendorSpec vendorSpec, JvmImplementation jvmImplementation, boolean nativeImageCapable) {
             this.javaVersion = javaVersion;
             this.vendorSpec = vendorSpec;
             this.jvmImplementation = jvmImplementation;
+            this.nativeImageCapable = nativeImageCapable;
         }
 
         public JavaLanguageVersion getJavaVersion() {
@@ -151,7 +153,11 @@ public interface DaemonJvmCriteria {
 
         @Override
         public String toString() {
-            return String.format("Compatible with Java %s, %s (from %s)", getJavaVersion(), getVendorSpec(), DaemonJvmPropertiesDefaults.DAEMON_JVM_PROPERTIES_FILE);
+            return String.format("Compatible with Java %s, %s, nativeImageCapable=%s (from %s)", getJavaVersion(), getVendorSpec(), isNativeImageCapable(), DaemonJvmPropertiesDefaults.DAEMON_JVM_PROPERTIES_FILE);
+        }
+
+        public boolean isNativeImageCapable() {
+            return nativeImageCapable;
         }
     }
 }

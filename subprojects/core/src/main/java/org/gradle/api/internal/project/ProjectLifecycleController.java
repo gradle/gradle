@@ -19,9 +19,8 @@ package org.gradle.api.internal.project;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.internal.DisplayName;
-import org.gradle.internal.Factory;
 import org.gradle.internal.build.BuildState;
-import org.gradle.internal.logging.LoggingManagerInternal;
+import org.gradle.internal.logging.LoggingManagerFactory;
 import org.gradle.internal.model.StateTransitionController;
 import org.gradle.internal.model.StateTransitionControllerFactory;
 import org.gradle.internal.service.CloseableServiceRegistry;
@@ -72,7 +71,7 @@ public class ProjectLifecycleController implements Closeable {
             ProjectState parent = owner.getBuildParent();
             ProjectInternal parentModel = parent == null ? null : parent.getMutableModel();
             ServiceRegistryFactory serviceRegistryFactory = domainObject -> {
-                final Factory<LoggingManagerInternal> loggingManagerFactory = buildServices.getFactory(LoggingManagerInternal.class);
+                LoggingManagerFactory loggingManagerFactory = buildServices.get(LoggingManagerFactory.class);
                 projectScopeServices = ProjectScopeServices.create(buildServices, (ProjectInternal) domainObject, loggingManagerFactory);
                 return projectScopeServices;
             };

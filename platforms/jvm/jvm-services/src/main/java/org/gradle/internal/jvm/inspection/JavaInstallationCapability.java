@@ -41,7 +41,11 @@ public enum JavaInstallationCapability {
     /**
      * The installation uses the J9 virtual machine. This is only present for IBM J9 JVMs.
      */
-    J9_VIRTUAL_MACHINE;
+    J9_VIRTUAL_MACHINE,
+    /**
+     * The installation provides the `native-image` binary. This is present for Graal VM compatible installations.
+     */
+    NATIVE_IMAGE;
 
     /**
      * All capabilities needed by our uses of a JDK. When something "is JDK", it has all of these.
@@ -58,6 +62,8 @@ public enum JavaInstallationCapability {
                 return "executable 'jar'";
             case J9_VIRTUAL_MACHINE:
                 return "J9 virtual machine";
+            case NATIVE_IMAGE:
+                return "executable 'native-image'";
             default:
                 throw new IllegalStateException("Unknown capability: " + this);
         }

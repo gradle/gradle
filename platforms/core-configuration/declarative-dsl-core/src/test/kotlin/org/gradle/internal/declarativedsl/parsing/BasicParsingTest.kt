@@ -189,6 +189,25 @@ class BasicParsingTest {
     }
 
     @Test
+    fun `parses an augmenting assignment with += operator`() {
+        val results = ParseTestUtil.parse(
+            """
+            a += 1
+            """.trimIndent()
+        )
+
+        val expected = """
+            AugmentingAssignment [indexes: 0..6, line/column: 1/1..1/7, file: test] (
+                lhs = NamedReference [indexes: 0..1, line/column: 1/1..1/2, file: test] (
+                    name = a
+                )
+                rhs = IntLiteral [indexes: 5..6, line/column: 1/6..1/7, file: test] (1)
+                operator = +=)
+            """.trimIndent()
+        results.assert(expected)
+    }
+
+    @Test
     fun `parses assigning 'this' keyword`() {
         val results = ParseTestUtil.parse(
             """

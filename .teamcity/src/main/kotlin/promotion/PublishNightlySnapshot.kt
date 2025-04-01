@@ -19,7 +19,8 @@ package promotion
 import common.VersionedSettingsBranch
 import jetbrains.buildServer.configs.kotlin.triggers.ScheduleTrigger
 import jetbrains.buildServer.configs.kotlin.triggers.schedule
-import vcsroots.gradlePromotionBranches
+
+const val NIGHTLY_SNAPSHOT_BUILD_ID = "Promotion_Nightly"
 
 class PublishNightlySnapshot(
     branch: VersionedSettingsBranch,
@@ -28,12 +29,12 @@ class PublishNightlySnapshot(
         prepTask = branch.prepNightlyTaskName(),
         promoteTask = branch.promoteNightlyTaskName(),
         triggerName = "ReadyforNightly",
-        vcsRootId = gradlePromotionBranches,
     ) {
     init {
-        id("Promotion_Nightly")
+        id(NIGHTLY_SNAPSHOT_BUILD_ID)
         name = "Nightly Snapshot"
-        description = "Promotes the latest successful changes on '${branch.branchName}' from Ready for Nightly as a new nightly snapshot"
+        description =
+            "Promotes the latest successful changes on '${branch.branchName}' from Ready for Nightly as a new nightly snapshot"
 
         triggers {
             branch.nightlyPromotionTriggerHour?.let { triggerHour ->
@@ -56,8 +57,7 @@ class PublishNightlySnapshot(
                     // https://www.jetbrains.com/help/teamcity/2022.04/configuring-schedule-triggers.html#general-syntax-1
                     // We want it to be triggered only when there're pending changes in the specific vcs root, i.e. GradleMaster/GradleRelease
                     triggerRules = "+:root=${VersionedSettingsBranch.fromDslContext().vcsRootId()}:."
-                    // The promotion itself will be triggered on gradle-promote's master branch
-                    branchFilter = "+:master"
+                    branchFilter = "+:<default>"
                 }
             }
         }

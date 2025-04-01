@@ -286,6 +286,6 @@ The output is available within `build/javadoc`.
 
 ## Building all the docs
 
-There is a convenience task to build all of the documentation:
+There is a convenience task to build all the documentation:
 
     ./gradlew :docs:docs

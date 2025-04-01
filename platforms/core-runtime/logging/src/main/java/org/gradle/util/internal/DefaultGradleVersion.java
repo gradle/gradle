@@ -19,7 +19,6 @@ package org.gradle.util.internal;
 
 import org.gradle.api.GradleException;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.util.GradleVersion;
 
 import java.io.InputStream;
@@ -184,22 +183,8 @@ public final class DefaultGradleVersion extends GradleVersion {
         return version;
     }
 
-    @Override
-    @Deprecated
-    public String getBuildTime() {
-        logMethodDeprecation("getBuildTime()");
-        return getBuildTimestamp();
-    }
-
     public String getBuildTimestamp() {
         return buildTime;
-    }
-
-    @Override
-    @Deprecated
-    public String getRevision() {
-        logMethodDeprecation("getRevision()");
-        return getGitRevision();
     }
 
     public String getGitRevision() {
@@ -217,13 +202,6 @@ public final class DefaultGradleVersion extends GradleVersion {
             return this;
         }
         return version(versionPart);
-    }
-
-    @Override
-    @Deprecated
-    public GradleVersion getNextMajor() {
-        logMethodDeprecation("getNextMajor()");
-        return getNextMajorVersion();
     }
 
     public DefaultGradleVersion getNextMajorVersion() {
@@ -297,20 +275,6 @@ public final class DefaultGradleVersion extends GradleVersion {
     @Override
     public int hashCode() {
         return version.hashCode();
-    }
-
-    @Override
-    @Deprecated
-    public boolean isValid() {
-        logMethodDeprecation("isValid()");
-        return versionPart != null;
-    }
-
-    private static void logMethodDeprecation(String method) {
-        DeprecationLogger.deprecateMethod(GradleVersion.class, method)
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(7, "org_gradle_util_reports_deprecations")
-            .nagUser();
     }
 
     static final class Stage implements Comparable<Stage> {

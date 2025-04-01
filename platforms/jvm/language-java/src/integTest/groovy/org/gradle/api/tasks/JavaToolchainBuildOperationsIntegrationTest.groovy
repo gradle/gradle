@@ -463,7 +463,6 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
 
         where:
         kotlinPlugin | _
-        "1.9"        | _
         "2.0"        | _
         "latest"     | _
 

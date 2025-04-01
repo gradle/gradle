@@ -21,13 +21,17 @@ import org.gradle.declarative.dsl.schema.FunctionSemantics
 import org.gradle.internal.declarativedsl.analysis.ExpectedTypeData.ExpectedByProperty
 import org.gradle.internal.declarativedsl.analysis.ExpectedTypeData.NoExpectedType
 import org.gradle.internal.declarativedsl.language.Assignment
+import org.gradle.internal.declarativedsl.language.AugmentingAssignment
+import org.gradle.internal.declarativedsl.language.DataStatement
 import org.gradle.internal.declarativedsl.language.Expr
 import org.gradle.internal.declarativedsl.language.FunctionCall
 import org.gradle.internal.declarativedsl.language.LocalValue
+import org.gradle.internal.declarativedsl.language.NamedReference
 
 
 interface StatementResolver {
     fun doResolveAssignment(context: AnalysisContext, assignment: Assignment): AssignmentRecord?
+    fun doResolveAugmentingAssignment(context: AnalysisContext, assignment: AugmentingAssignment): AssignmentRecord?
     fun doResolveLocalValue(context: AnalysisContext, localValue: LocalValue)
     fun doResolveExpressionStatement(context: AnalysisContext, expr: Expr)
 }
@@ -35,11 +39,39 @@ interface StatementResolver {
 
 class StatementResolverImpl(
     private val namedReferenceResolver: NamedReferenceResolver,
+    private val functionCallResolver: FunctionCallResolver,
     private val expressionResolver: ExpressionResolver,
     private val errorCollector: ErrorCollector
 ) : StatementResolver {
 
-    override fun doResolveAssignment(context: AnalysisContext, assignment: Assignment): AssignmentRecord? = context.doAnalyzeAssignment(assignment)
+    override fun doResolveAssignment(context: AnalysisContext, assignment: Assignment): AssignmentRecord? =
+        context.doAnalyzeAssignmentLikeStatement(assignment, assignment.lhs, assignment.rhs) { lhsResolution: PropertyReferenceResolution, rhsResolution: TypedOrigin ->
+            context.recordAssignment(lhsResolution, rhsResolution, AssignmentMethod.Property, assignment)
+        }
+
+    override fun doResolveAugmentingAssignment(
+        context: AnalysisContext,
+        assignment: AugmentingAssignment
+    ): AssignmentRecord? = context.doAnalyzeAssignmentLikeStatement(assignment, assignment.lhs, assignment.rhs) { lhsResolution: PropertyReferenceResolution, rhsResolution: TypedOrigin ->
+        val augmentedProperty = ObjectOrigin.PropertyReference(lhsResolution.receiverObject, lhsResolution.property, assignment.lhs)
+        val augmentationCallResult = functionCallResolver.doResolveAugmentation(
+            augmentedProperty, rhsResolution, context, assignment.augmentationKind, assignment
+        )
+        if (augmentationCallResult != null) {
+            val augmentedOrigin = ObjectOrigin.AugmentationOrigin(
+                augmentedProperty = augmentedProperty,
+                augmentationOperand = rhsResolution.objectOrigin,
+                assignment.augmentationKind,
+                augmentationCallResult.objectOrigin,
+                assignment
+            )
+            context.recordAugmentingAssignment(lhsResolution, augmentedOrigin, assignment)
+        } else {
+            val propertyType = context.resolveRef(lhsResolution.property.valueType)
+            errorCollector.collect(ResolutionError(assignment, ErrorReason.AugmentingAssignmentNotResolved(propertyType)))
+            null
+        }
+    }
 
     override fun doResolveLocalValue(context: AnalysisContext, localValue: LocalValue) = context.doAnalyzeLocal(localValue)
 
@@ -57,41 +89,45 @@ class StatementResolverImpl(
         }
     }
 
-    private
-    fun AnalysisContext.doAnalyzeAssignment(assignment: Assignment): AssignmentRecord? {
-        val lhsResolution = namedReferenceResolver.doResolveNamedReferenceToAssignable(this, assignment.lhs)
+    private fun AnalysisContext.doAnalyzeAssignmentLikeStatement(
+        statement: DataStatement,
+        lhs: NamedReference,
+        rhs: Expr,
+        doRecordAssignment: (PropertyReferenceResolution, TypedOrigin) -> AssignmentRecord?
+    ): AssignmentRecord? {
+        val lhsResolution = namedReferenceResolver.doResolveNamedReferenceToAssignable(this, lhs)
 
         return if (lhsResolution == null) {
-            errorCollector.collect(ResolutionError(assignment.lhs, ErrorReason.UnresolvedReference(assignment.lhs)))
-            errorCollector.collect(ResolutionError(assignment, ErrorReason.UnresolvedAssignmentLhs))
+            errorCollector.collect(ResolutionError(lhs, ErrorReason.UnresolvedReference(lhs)))
+            errorCollector.collect(ResolutionError(statement, ErrorReason.UnresolvedAssignmentLhs))
             null
         } else {
             var hasErrors = false
             if (lhsResolution.property.isReadOnly) {
-                errorCollector.collect(ResolutionError(assignment, ErrorReason.ReadOnlyPropertyAssignment(lhsResolution.property)))
+                errorCollector.collect(ResolutionError(statement, ErrorReason.ReadOnlyPropertyAssignment(lhsResolution.property)))
                 hasErrors = true
             }
-            val rhsResolution = expressionResolver.doResolveExpression(this, assignment.rhs, ExpectedByProperty(lhsResolution.property.valueType))
+            val rhsResolution = expressionResolver.doResolveExpression(this, rhs, ExpectedByProperty(lhsResolution.property.valueType))
             if (rhsResolution == null) {
-                errorCollector.collect(ResolutionError(assignment, ErrorReason.UnresolvedAssignmentRhs))
+                errorCollector.collect(ResolutionError(statement, ErrorReason.UnresolvedAssignmentRhs))
                 null
             } else {
                 val rhsType = rhsResolution.inferredType
                 val lhsExpectedType = resolveRef(lhsResolution.property.valueType)
                 if (rhsType is DataType.UnitType) {
-                    errorCollector.collect(ResolutionError(assignment, ErrorReason.UnitAssignment))
+                    errorCollector.collect(ResolutionError(statement, ErrorReason.UnitAssignment))
                     hasErrors = true
                 }
                 val typeSubstitution = computeGenericTypeSubstitution(lhsExpectedType.ref, rhsType.ref) ?: emptyMap()
                 if (!checkIsAssignable(rhsType, lhsExpectedType, typeSubstitution)) {
                     errorCollector.collect(
-                        ResolutionError(assignment, ErrorReason.AssignmentTypeMismatch(lhsExpectedType, rhsType))
+                        ResolutionError(statement, ErrorReason.AssignmentTypeMismatch(lhsExpectedType, rhsType))
                     )
                     hasErrors = true
                 }
 
                 if (!hasErrors) {
-                    recordAssignment(lhsResolution, rhsResolution, AssignmentMethod.Property, assignment)
+                    doRecordAssignment(lhsResolution, rhsResolution)
                 } else null
             }
         }

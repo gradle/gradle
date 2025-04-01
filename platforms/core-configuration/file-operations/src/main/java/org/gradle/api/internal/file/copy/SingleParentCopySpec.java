@@ -18,8 +18,7 @@ package org.gradle.api.internal.file.copy;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.provider.PropertyFactory;
-import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.internal.Factory;
+import org.gradle.api.tasks.util.internal.PatternSetFactory;
 import org.gradle.internal.reflect.Instantiator;
 
 public class SingleParentCopySpec extends DefaultCopySpec {
@@ -28,7 +27,7 @@ public class SingleParentCopySpec extends DefaultCopySpec {
 
     private final PropertyFactory propertyFactory;
 
-    public SingleParentCopySpec(FileCollectionFactory fileCollectionFactory, PropertyFactory propertyFactory, Instantiator instantiator, Factory<PatternSet> patternSetFactory, CopySpecResolver parentResolver) {
+    public SingleParentCopySpec(FileCollectionFactory fileCollectionFactory, PropertyFactory propertyFactory, Instantiator instantiator, PatternSetFactory patternSetFactory, CopySpecResolver parentResolver) {
         super(fileCollectionFactory, propertyFactory, instantiator, patternSetFactory);
         this.parentResolver = parentResolver;
         this.propertyFactory = propertyFactory;

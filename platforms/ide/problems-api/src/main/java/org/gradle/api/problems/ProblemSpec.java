@@ -132,6 +132,25 @@ public interface ProblemSpec {
      * @param type The type of the additional data.
      * This can be any type that implements {@link AdditionalData} including {@code abstract} classes and interfaces.
      * This type will be instantiated and provided as an argument for the {@code Action} passed as the second argument.
+     * <p>
+     * The type can have the following properties:
+     * <ul>
+     *     <li>getters and setters for collections, simple types and other types that itself follow these restrictions
+     *         <ul>
+     *            <li>simple types: {@link String}, {@link Integer}, {@link Boolean}, etc.</li>
+     *            <li>collections: {@link java.util.List}, {@link java.util.Set}, {@link java.util.Map}</li>
+     *            <li>primitives: {@code int}, {@code boolean}, etc.</li>
+     *         </ul>
+     *     </li>
+     *     <li>Provider API types
+     *       <ul>
+     *           <li>{@link org.gradle.api.provider.Property}</li>
+     *           <li>{@link org.gradle.api.provider.ListProperty}</li>
+     *           <li>{@link org.gradle.api.provider.SetProperty}</li>
+     *           <li>{@link org.gradle.api.provider.MapProperty}</li>
+     *       </ul>
+     *     </li>
+     * </ul>
      *
      * @param config The configuration action for the additional data.
      *

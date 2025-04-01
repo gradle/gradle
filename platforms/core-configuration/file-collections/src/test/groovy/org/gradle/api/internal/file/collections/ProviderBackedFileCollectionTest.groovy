@@ -23,7 +23,7 @@ import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.internal.provider.ProviderResolutionStrategy
 import org.gradle.api.internal.provider.ValueSupplier
 import org.gradle.api.tasks.TaskDependency
-import org.gradle.internal.Factory
+import org.gradle.api.tasks.util.internal.PatternSetFactory
 import org.gradle.internal.file.PathToFileResolver
 import spock.lang.Specification
 
@@ -31,8 +31,7 @@ class ProviderBackedFileCollectionTest extends Specification {
     def provider = Mock(ProviderInternal)
     def resolver = Mock(PathToFileResolver)
     def taskDependencyFactory = TestFiles.taskDependencyFactory()
-    def patternSetFactory = Mock(Factory)
-    def fileCollection = new ProviderBackedFileCollection(provider, resolver, taskDependencyFactory, patternSetFactory, ProviderResolutionStrategy.REQUIRE_PRESENT)
+    def fileCollection = new ProviderBackedFileCollection(provider, resolver, taskDependencyFactory, Stub(PatternSetFactory), ProviderResolutionStrategy.REQUIRE_PRESENT)
 
     def "resolves task dependencies for provider with known producer"() {
         def task = Stub(Task)

@@ -20,7 +20,6 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.resources.TextResource;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.typeconversion.NotationConvertResult;
 import org.gradle.internal.typeconversion.NotationConverter;
@@ -33,11 +32,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class FileNotationConverter implements NotationConverter<Object, File> {
-    private static final Pattern ENCODED_URI = Pattern.compile("%([0-9a-fA-F]{2})");
 
     public static NotationParser<Object, File> parser() {
         return NotationParserBuilder
@@ -95,47 +91,20 @@ public class FileNotationConverter implements NotationConverter<Object, File> {
         }
         if (notation instanceof CharSequence) {
             String notationString = notation.toString();
-            if (notationString.startsWith("file:")) {
-                try {
-                    URI uri = new URI(notationString);
-                    try {
-                        result.converted(new File(uri));
-                        return;
-                    } catch (IllegalArgumentException ignored) {
-                        // Bad file URI, use old logic
-                    }
-                } catch (URISyntaxException ignored) {
-                    // Unparsable, use old logic
+            try {
+                if (notationString.startsWith("file:")) {
+                    result.converted(new File(new URI(notationString)));
+                } else {
+                    result.converted(new File(notationString));
                 }
-                // Fallback if relative or unparsable
-                result.converted(new File(fallbackUrlDecode(notationString)));
-                return;
+            } catch (Exception ex) {
+                throw new InvalidUserDataException(String.format("Cannot convert URI '%s' to a file.", notationString), ex);
             }
-            result.converted(new File(notationString));
+            return;
         }
         if (notation instanceof TextResource) {
             // TODO: This eagerly resolves a TextResource into a File, ignoring dependencies
             result.converted(((TextResource) notation).asFile());
         }
-    }
-
-    /**
-     * Lenient legacy behavior to fall back to when URI cannot be normally parsed.
-     */
-    private static String fallbackUrlDecode(String fullPath) {
-        DeprecationLogger.deprecateBehaviour("Passing invalid URIs to URI or File converting methods.")
-            .withAdvice("Use a valid URL or a file path instead of '" + fullPath + "'.")
-            .willBecomeAnErrorInGradle9()
-            .withUpgradeGuideSection(8, "deprecated_invalid_url_decoding")
-            .nagUser();
-        String path = fullPath.substring(5);
-        StringBuffer builder = new StringBuffer();
-        Matcher matcher = ENCODED_URI.matcher(path);
-        while (matcher.find()) {
-            String val = matcher.group(1);
-            matcher.appendReplacement(builder, String.valueOf((char) Integer.parseInt(val, 16)));
-        }
-        matcher.appendTail(builder);
-        return builder.toString();
     }
 }

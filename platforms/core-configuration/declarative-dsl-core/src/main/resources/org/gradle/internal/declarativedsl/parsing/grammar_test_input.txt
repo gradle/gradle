@@ -10,6 +10,7 @@ rootProject.name = "something"
 block {
     a = 1
     b = 2
+    c += 3
 }
 block("param") {
     a = 1

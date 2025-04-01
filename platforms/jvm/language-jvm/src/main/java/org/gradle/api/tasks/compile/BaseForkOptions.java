@@ -22,6 +22,7 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.jspecify.annotations.Nullable;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -31,8 +32,7 @@ import java.util.stream.Collectors;
  * Fork options for compilation. Only take effect if {@code fork}
  * is {@code true}.
  */
-@SuppressWarnings("deprecation")
-public class BaseForkOptions extends AbstractOptions {
+public class BaseForkOptions implements Serializable {
     private static final long serialVersionUID = 0;
 
     private String memoryInitialSize;

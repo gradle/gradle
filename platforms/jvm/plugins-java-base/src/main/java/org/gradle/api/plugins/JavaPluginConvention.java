@@ -22,6 +22,7 @@ import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.java.archives.Manifest;
+import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSetContainer;
 
 import java.io.File;
@@ -150,7 +151,7 @@ public abstract class JavaPluginConvention {
     public abstract void setTestResultsDirName(String testResultsDirName);
 
     /**
-     * The name of the test reports directory. Can be a name or a path relative to {@link org.gradle.api.reporting.ReportingExtension#getBaseDir}.
+     * The name of the test reports directory. Can be a name or a path relative to {@link ReportingExtension#getBaseDirectory()}.
      */
     public abstract String getTestReportDirName();
 

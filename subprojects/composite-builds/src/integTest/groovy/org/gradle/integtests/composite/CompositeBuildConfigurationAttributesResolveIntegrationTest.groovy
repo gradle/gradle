@@ -478,6 +478,25 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
         type         | freeValue                      | paidValue
         'SomeEnum'   | 'SomeEnum.free'                | 'SomeEnum.paid'
         'Thing'      | 'objects.named(Thing, "free")' | 'objects.named(Thing, "paid")'
+
+        /*
+          Note that OtherThing represents IMPROPER usage.  Named implementations should only be created by
+          Gradle, NOT by calling their constructor directly.  They shouldn't contain fields,
+          and should be abstract classes.
+
+          If you do try to create this instance via Gradle (as with Thing above), you will get the following error:
+
+           >  Could not create an instance of type OtherThing.
+             > Type OtherThing is not a valid Named implementation class:
+               - Field name is not valid: A Named implementation class must not define any instance fields.
+
+           Ideally, Gradle would verify that Named implementations are implemented correctly and/or
+           were created by Gradle as managed types (perhaps when used to create an Attribute) and would
+           fail-fast at that point.
+
+           So this test is left to document existing behavior, and to serve as a canary, but should not be used as a model for
+           how to use Named implementations.  If this test case causes problems later, it should just be removed.
+         */
         'OtherThing' | 'new OtherThing(name: "free")' | 'new OtherThing(name: "paid")'
     }
 
