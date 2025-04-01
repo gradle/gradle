@@ -70,19 +70,19 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         when:
         configurationCacheFails "help", "--task", "bTask"
         then:
-        failure.assertHasCause("Task 'bTask' not found in root project")
+        failureCauseContains("Task 'bTask' not found in root project")
         configurationCache.assertStateStored()
 
         when:
         configurationCacheFails "help", "--task", "cTask"
         then:
-        failure.assertHasCause("Task 'cTask' not found in root project")
+        failureCauseContains("Task 'cTask' not found in root project")
         configurationCache.assertStateStored()
 
         when:
         configurationCacheFails "help", "--task", "bTask"
         then:
-        failure.assertHasCause("Task 'bTask' not found in root project")
+        failureCauseContains("Task 'bTask' not found in root project")
         configurationCache.assertStateLoaded()
 
         when:
@@ -94,7 +94,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         when:
         configurationCacheFails "help", "--task", "cTask"
         then:
-        failure.assertHasCause("Task 'cTask' not found in root project")
+        failureCauseContains("Task 'cTask' not found in root project")
         configurationCache.assertStateLoaded()
 
         when:
