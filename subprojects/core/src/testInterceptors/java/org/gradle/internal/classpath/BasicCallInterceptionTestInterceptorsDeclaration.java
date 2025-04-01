@@ -139,18 +139,20 @@ public class BasicCallInterceptionTestInterceptorsDeclaration {
     @InterceptGroovyCalls
     @CallableKind.GroovyPropertyGetter
     public static String intercept_richProperty(
-        @ParameterKind.Receiver InterceptorTestReceiver.DummyObject self
+        @ParameterKind.Receiver InterceptorTestReceiver.ControllingObject self
     ) {
-        throw new RuntimeException("Should not be called");
+        self.intercepted = "getRichProperty()";
+        return "richProperty";
     }
 
     @SuppressWarnings("unused")
     @InterceptGroovyCalls
     @CallableKind.GroovyPropertySetter
     public static void intercept_richProperty(
-        @ParameterKind.Receiver InterceptorTestReceiver.DummyObject self,
+        @ParameterKind.Receiver InterceptorTestReceiver.ControllingObject self,
         Map<String, String> newValue
     ) {
-        throw new RuntimeException("Should not be called");
+        self.intercepted = "setRichProperty(Map<String, String>)";
+        self.getRichProperty().set(newValue);
     }
 }

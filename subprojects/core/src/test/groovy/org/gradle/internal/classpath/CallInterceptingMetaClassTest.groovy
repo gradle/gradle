@@ -42,9 +42,9 @@ class CallInterceptingMetaClassTest extends Specification {
     def interceptorTestReceiverClassLock = new ClassBasedLock(InterceptorTestReceiver)
 
     def callTracker = new DefaultInstrumentedGroovyCallsTracker()
+    def interceptors = callInterceptors.getCallInterceptors(ALL)
 
     def setup() {
-        def interceptors = callInterceptors.getCallInterceptors(ALL)
         originalMetaClass = setupMetaClass(InterceptorTestReceiver, interceptorTestReceiverClassLock, interceptors, callTracker)
         instance = new InterceptorTestReceiver()
     }
@@ -304,27 +304,50 @@ class CallInterceptingMetaClassTest extends Specification {
     def 'set meta property use Provider API coercion for DynamicObject when a property is not intercepted but a property with the same name in another type is intercepted'() {
         given:
         def propertyName = "richProperty"
-        def decoratedClass = TestUtil.newInstance(InterceptorTestReceiver).class
-        def classBasedLock = new ClassBasedLock(decoratedClass)
-        def originalMetaClass = setupMetaClass(decoratedClass, classBasedLock, callInterceptors.getCallInterceptors(ALL), callTracker)
-        // Create a new instance so it has a new meta class
-        def instance = TestUtil.newInstance(InterceptorTestReceiver)
         MetaProperty property = null
+
+        // Unintercepted class with "richProperty"
+        def uninterceptedClass = TestUtil.newInstance(InterceptorTestReceiver).class
+        def uninterceptedClassBasedLock = new ClassBasedLock(uninterceptedClass)
+        def uninterceptedOriginalMetaClass = setupMetaClass(uninterceptedClass, uninterceptedClassBasedLock, interceptors, callTracker)
+        // Create a new instance so it has a new meta class
+        def uninterceptedInstance = TestUtil.newInstance(InterceptorTestReceiver)
+
+        // Intercepted class with "richProperty"
+        def interceptedDecoratedClass = TestUtil.newInstance(InterceptorTestReceiver.ControllingObject).class
+        def interceptedClassBasedLock = new ClassBasedLock(interceptedDecoratedClass)
+        def interceptedOriginalMetaClass = setupMetaClass(interceptedDecoratedClass, interceptedClassBasedLock, interceptors, callTracker)
+        // Create a new instance so it has a new meta class
+        def interceptedInstance = TestUtil.newInstance(InterceptorTestReceiver.ControllingObject)
+
 
         when:
         withEntryPoint(SET_PROPERTY, propertyName) {
-            property = instance.metaClass.getMetaProperty(propertyName)
-            property.setProperty(instance, ["a": "b"])
+            property = uninterceptedInstance.metaClass.getMetaProperty(propertyName)
+            property.setProperty(uninterceptedInstance, ["a": "b"])
         }
 
         then:
-        instance.intercepted == null
+        uninterceptedInstance.intercepted == null
         property != null
         property instanceof CallInterceptingMetaClass.DefaultInterceptedMetaProperty
-        instance.richProperty.get() == ["a": "b"]
+        uninterceptedInstance.richProperty.get() == ["a": "b"]
+
+        when:
+        withEntryPoint(SET_PROPERTY, propertyName) {
+            property = interceptedInstance.metaClass.getMetaProperty(propertyName)
+            property.setProperty(interceptedInstance, ["a": "b"])
+        }
+
+        then:
+        interceptedInstance.intercepted == "setRichProperty(Map<String, String>)"
+        property != null
+        property instanceof CallInterceptingMetaClass.DefaultInterceptedMetaProperty
+        interceptedInstance.richProperty.get() == ["a": "b"]
 
         cleanup:
-        cleanupMetaClass(instance.getClass(), classBasedLock, originalMetaClass)
+        cleanupMetaClass(uninterceptedInstance.getClass(), uninterceptedClassBasedLock, uninterceptedOriginalMetaClass)
+        cleanupMetaClass(interceptedInstance.getClass(), interceptedClassBasedLock, interceptedOriginalMetaClass)
     }
 
     def 'intercepts getMetaProperty for matching properties'() {
