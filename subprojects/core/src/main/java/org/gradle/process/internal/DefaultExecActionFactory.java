@@ -216,7 +216,6 @@ public class DefaultExecActionFactory implements ExecFactory {
         return execAction.execute();
     }
 
-    @Nonnull
     @Override
     public org.gradle.process.ExecHandle execAsync(Action<? super ExecSpec> action) {
         ExecAction execAction = newDecoratedExecAction();
