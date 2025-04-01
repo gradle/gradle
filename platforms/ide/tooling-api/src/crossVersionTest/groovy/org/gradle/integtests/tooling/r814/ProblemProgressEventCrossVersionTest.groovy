@@ -235,8 +235,8 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
         where:
         reportSource                                                                        | expectedSourceFields
-        "org.gradle.api.problems.internal.deprecation.source.InternalReportSource.gradle()" | ["name": "gradle"]
-        "org.gradle.api.problems.deprecation.source.ReportSource.plugin(\"plugin.id\")"     | ["name": "plugin", "id": "plugin.id"]
+        "org.gradle.api.problems.internal.deprecation.source.InternalReportSource.gradle()" | ["id": "gradle"]
+        "org.gradle.api.problems.deprecation.source.ReportSource.plugin(\"plugin.id\")"     | ["id": "plugin", "pluginId": "plugin.id"]
     }
 
     class ProblemProgressListener implements ProgressListener {
