@@ -16,17 +16,18 @@
 
 package org.gradle.internal.jacoco.rules
 
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class JacocoLimitImplTest extends Specification {
 
-    JacocoLimitImpl limit = new JacocoLimitImpl()
+    JacocoLimitImpl limit = TestUtil.newInstance(JacocoLimitImpl)
 
     def "provides expected default field values"() {
         expect:
-        limit.counter == 'INSTRUCTION'
-        limit.value == 'COVEREDRATIO'
-        !limit.minimum
-        !limit.maximum
+        limit.counter.get() == 'INSTRUCTION'
+        limit.value.get() == 'COVEREDRATIO'
+        !limit.minimum.isPresent()
+        !limit.maximum.isPresent()
     }
 }
