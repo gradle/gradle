@@ -30,6 +30,7 @@ import java.util.List;
 
 public abstract class JacocoViolationRuleImpl implements JacocoViolationRule {
 
+    private final ObjectFactory objectFactory;
     private final ListProperty<JacocoLimit> limits;
 
     @Inject
@@ -37,6 +38,7 @@ public abstract class JacocoViolationRuleImpl implements JacocoViolationRule {
         getEnabled().convention(true);
         getElement().convention("BUNDLE");
         getIncludes().convention(ImmutableList.of("*"));
+        this.objectFactory = objectFactory;
         this.limits = objectFactory.listProperty(JacocoLimit.class);
     }
 
@@ -60,7 +62,7 @@ public abstract class JacocoViolationRuleImpl implements JacocoViolationRule {
 
     @Override
     public JacocoLimit limit(Action<? super JacocoLimit> configureAction) {
-        JacocoLimit limit = new JacocoLimitImpl();
+        JacocoLimit limit = objectFactory.newInstance(JacocoLimitImpl.class);
         configureAction.execute(limit);
         limits.add(limit);
         return limit;
