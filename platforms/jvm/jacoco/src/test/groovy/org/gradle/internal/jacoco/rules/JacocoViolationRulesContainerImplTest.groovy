@@ -19,6 +19,7 @@ package org.gradle.internal.jacoco.rules
 import org.gradle.api.Action
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.testing.jacoco.tasks.rules.JacocoViolationRule
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class JacocoViolationRulesContainerImplTest extends Specification {
@@ -47,7 +48,7 @@ class JacocoViolationRulesContainerImplTest extends Specification {
         })
 
         then:
-        1 * instantiator.newInstance(JacocoViolationRuleImpl.class) >> new JacocoViolationRuleImpl()
+        1 * instantiator.newInstance(JacocoViolationRuleImpl.class) >> TestUtil.newInstance(JacocoViolationRuleImpl)
         violationRulesContainer.rules.size() == 1
         violationRulesContainer.rules[0] == rule
 
@@ -65,14 +66,14 @@ class JacocoViolationRulesContainerImplTest extends Specification {
         })
 
         then:
-        1 * instantiator.newInstance(JacocoViolationRuleImpl.class) >> new JacocoViolationRuleImpl()
+        1 * instantiator.newInstance(JacocoViolationRuleImpl.class) >> TestUtil.newInstance(JacocoViolationRuleImpl)
         violationRulesContainer.rules.size() == 2
         violationRulesContainer.rules[1] == rule
     }
 
     def "returned rules are unmodifiable"() {
         when:
-        violationRulesContainer.rules << new JacocoViolationRuleImpl()
+        violationRulesContainer.rules << Mock(JacocoViolationRuleImpl)
 
         then:
         thrown(UnsupportedOperationException)
