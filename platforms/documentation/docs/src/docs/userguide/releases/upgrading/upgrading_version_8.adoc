@@ -86,6 +86,13 @@ The extension should only be created by the Gradle Plugin Development plugin. Th
 
 These methods will be removed in Gradle 9.0.
 
+[[deprecated_collection_methods_warn]]
+=== Deprecated collections in `org.gradle.plugins.ide.idea.model.IdeaModule` now warn
+The `testResourcesDirs` and `testSourcesDirs` fields, and their getters and setters were `@Deprecated` in Gradle 7.6.
+However, due to existing widespread usage, deprecation warnings were not yet emitted.
+
+Gradle now warns upon usage of these deprecated methods that they will be removed in Gradle 9.0.
+
 [[changes_8.13]]
 == Upgrading from 8.12 and earlier
 
