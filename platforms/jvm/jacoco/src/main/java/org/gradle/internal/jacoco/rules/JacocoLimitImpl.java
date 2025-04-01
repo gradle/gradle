@@ -18,7 +18,10 @@ package org.gradle.internal.jacoco.rules;
 
 import org.gradle.api.provider.Property;
 import org.gradle.testing.jacoco.tasks.rules.JacocoLimit;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 
 public abstract class JacocoLimitImpl implements JacocoLimit {
@@ -40,35 +43,47 @@ public abstract class JacocoLimitImpl implements JacocoLimit {
     @Override
     public abstract Property<BigDecimal> getMaximum();
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
+    @NullMarked
+    public static class SerializableJacocoLimit implements Serializable {
+        private final String counter;
+        private final String value;
+        @Nullable
+        private final BigDecimal minimum;
+        @Nullable
+        private final BigDecimal maximum;
+
+        public SerializableJacocoLimit(String counter, String value, @Nullable BigDecimal minimum, @Nullable BigDecimal maximum) {
+            this.counter = counter;
+            this.value = value;
+            this.minimum = minimum;
+            this.maximum = maximum;
         }
 
-        JacocoLimitImpl that = (JacocoLimitImpl) o;
+        public String getCounter() {
+            return counter;
+        }
 
-        if (getCounter().get().equals(that.getCounter().get())) {
-            return false;
+        public String getValue() {
+            return value;
         }
-        if (getValue().get().equals(that.getValue().get())) {
-            return false;
-        }
-        if (getMinimum().isPresent() ? !getMinimum().equals(that.getMinimum().getOrNull()) : !that.getMinimum().isPresent()) {
-            return false;
-        }
-        return getMaximum().isPresent() ? !getMaximum().equals(that.getMaximum().getOrNull()) : !that.getMaximum().isPresent();
-    }
 
-    @Override
-    public int hashCode() {
-        int result = getCounter().get().hashCode();
-        result = 31 * result + getValue().get().hashCode();
-        result = 31 * result + (getMinimum().isPresent() ? getMinimum().get().hashCode() : 0);
-        result = 31 * result + (getMaximum().isPresent() ? getMaximum().get().hashCode() : 0);
-        return result;
+        @Nullable
+        public BigDecimal getMinimum() {
+            return minimum;
+        }
+
+        @Nullable
+        public BigDecimal getMaximum() {
+            return maximum;
+        }
+
+        public static SerializableJacocoLimit of(JacocoLimit jacocoLimit) {
+            return new SerializableJacocoLimit(
+                jacocoLimit.getCounter().get(),
+                jacocoLimit.getValue().get(),
+                jacocoLimit.getMinimum().getOrNull(),
+                jacocoLimit.getMaximum().getOrNull()
+            );
+        }
     }
 }

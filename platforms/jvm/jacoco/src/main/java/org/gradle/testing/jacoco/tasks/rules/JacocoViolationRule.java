@@ -23,9 +23,9 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Nested;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -33,7 +33,7 @@ import java.util.List;
  *
  * @since 3.4
  */
-public interface JacocoViolationRule extends Serializable {
+public interface JacocoViolationRule {
 
     /**
      * Indicates if the rule should be used when checking generated coverage metrics. Defaults to true.
@@ -77,7 +77,7 @@ public interface JacocoViolationRule extends Serializable {
     /**
      * Gets all limits defined for this rule. Defaults to an empty list.
      */
-    @Input
+    @Nested
     @ReplacesEagerProperty
     Provider<List<JacocoLimit>> getLimits();
 

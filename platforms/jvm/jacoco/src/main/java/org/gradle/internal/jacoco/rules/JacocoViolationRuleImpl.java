@@ -23,10 +23,13 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.jacoco.rules.JacocoLimitImpl.SerializableJacocoLimit;
 import org.gradle.testing.jacoco.tasks.rules.JacocoLimit;
 import org.gradle.testing.jacoco.tasks.rules.JacocoViolationRule;
+import org.jspecify.annotations.NullMarked;
 
 import javax.inject.Inject;
+import java.io.Serializable;
 import java.util.List;
 
 public abstract class JacocoViolationRuleImpl implements JacocoViolationRule {
@@ -69,39 +72,56 @@ public abstract class JacocoViolationRuleImpl implements JacocoViolationRule {
         return limit;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
+    @NullMarked
+    public static class SerializableJacocoViolationRule implements Serializable {
+        private final boolean isEnabled;
+        private final String element;
+        private final List<String> includes;
+        private final List<String> excludes;
+        private final List<SerializableJacocoLimit> limits;
+
+        public SerializableJacocoViolationRule(
+            boolean isEnabled,
+            String element,
+            List<String> includes,
+            List<String> excludes,
+            List<SerializableJacocoLimit> limits
+        ) {
+            this.isEnabled = isEnabled;
+            this.element = element;
+            this.includes = includes;
+            this.excludes = excludes;
+            this.limits = limits;
         }
 
-        JacocoViolationRuleImpl that = (JacocoViolationRuleImpl) o;
+        public boolean isEnabled() {
+            return isEnabled;
+        }
 
-        if (getEnabled().get().equals(that.getEnabled().get())) {
-            return false;
+        public String getElement() {
+            return element;
         }
-        if (getElement().get().equals(that.getElement().get())) {
-            return false;
-        }
-        if (getIncludes().get().equals(that.getIncludes().get())) {
-            return false;
-        }
-        if (getExcludes().get().equals(that.getExcludes().get())) {
-            return false;
-        }
-        return getLimits().get().equals(that.getLimits().get());
-    }
 
-    @Override
-    public int hashCode() {
-        int result = getEnabled().get() ? 1 : 0;
-        result = 31 * result + getElement().get().hashCode();
-        result = 31 * result + getIncludes().get().hashCode();
-        result = 31 * result + getExcludes().get().hashCode();
-        result = 31 * result + getLimits().get().hashCode();
-        return result;
+        public List<String> getIncludes() {
+            return includes;
+        }
+
+        public List<String> getExcludes() {
+            return excludes;
+        }
+
+        public List<SerializableJacocoLimit> getLimits() {
+            return limits;
+        }
+
+        public static SerializableJacocoViolationRule of(JacocoViolationRule rule) {
+            return new SerializableJacocoViolationRule(
+                rule.getEnabled().get(),
+                rule.getElement().get(),
+                rule.getIncludes().get(),
+                rule.getExcludes().get(),
+                rule.getLimits().get().stream().map(SerializableJacocoLimit::of).collect(ImmutableList.toImmutableList())
+            );
+        }
     }
 }

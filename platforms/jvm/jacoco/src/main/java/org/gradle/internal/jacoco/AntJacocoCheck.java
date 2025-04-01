@@ -23,8 +23,8 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.project.antbuilder.AntBuilderDelegate;
 import org.gradle.internal.Cast;
-import org.gradle.testing.jacoco.tasks.rules.JacocoLimit;
-import org.gradle.testing.jacoco.tasks.rules.JacocoViolationRule;
+import org.gradle.internal.jacoco.rules.JacocoLimitImpl.SerializableJacocoLimit;
+import org.gradle.internal.jacoco.rules.JacocoViolationRuleImpl.SerializableJacocoViolationRule;
 import org.gradle.util.internal.GFileUtils;
 import org.jspecify.annotations.Nullable;
 
@@ -87,8 +87,8 @@ public class AntJacocoCheck implements Action<AntBuilderDelegate> {
                         }
                     }});
 
-                    Set<JacocoViolationRule> rules = params.getRules().get().stream()
-                        .filter(rule -> rule.getEnabled().get())
+                    Set<SerializableJacocoViolationRule> rules = params.getRules().get().stream()
+                        .filter(SerializableJacocoViolationRule::isEnabled)
                         .collect(Collectors.toSet());
                     if (!rules.isEmpty()) {
                         Map<String, Object> checkArgs = ImmutableMap.<String, Object>of(
@@ -98,16 +98,16 @@ public class AntJacocoCheck implements Action<AntBuilderDelegate> {
                         antBuilder.invokeMethod("check", new Object[] {checkArgs, new Closure<Object>(this, this) {
                             @SuppressWarnings("UnusedDeclaration")
                             public Object doCall(Object ignore) {
-                                for (final JacocoViolationRule rule : rules) {
+                                for (final SerializableJacocoViolationRule rule : rules) {
                                     Map<String, Object> ruleArgs = ImmutableMap.<String, Object>of(
-                                        "element", rule.getElement().get(),
-                                        "includes", Joiner.on(':').join(rule.getIncludes().get()),
-                                        "excludes", Joiner.on(':').join(rule.getExcludes().get())
+                                        "element", rule.getElement(),
+                                        "includes", Joiner.on(':').join(rule.getIncludes()),
+                                        "excludes", Joiner.on(':').join(rule.getExcludes())
                                     );
                                     antBuilder.invokeMethod("rule", new Object[] {ruleArgs, new Closure<Object>(this, this) {
                                         @SuppressWarnings("UnusedDeclaration")
                                         public Object doCall(Object ignore) {
-                                            for (JacocoLimit limit : rule.getLimits().get()) {
+                                            for (SerializableJacocoLimit limit : rule.getLimits()) {
                                                 Map<String, Object> limitArgs = new HashMap<String, Object>();
                                                 limitArgs.put("counter", limit.getCounter());
                                                 limitArgs.put("value", limit.getValue());
