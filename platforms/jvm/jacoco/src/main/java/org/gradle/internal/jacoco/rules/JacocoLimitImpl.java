@@ -39,37 +39,4 @@ public abstract class JacocoLimitImpl implements JacocoLimit {
 
     @Override
     public abstract Property<BigDecimal> getMaximum();
-
-    @Override
-    @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        JacocoLimitImpl that = (JacocoLimitImpl) o;
-
-        if (getCounter().get().equals(that.getCounter().get())) {
-            return false;
-        }
-        if (getValue().get().equals(that.getValue().get())) {
-            return false;
-        }
-        if (getMinimum().isPresent() ? !getMinimum().equals(that.getMinimum().getOrNull()) : !that.getMinimum().isPresent()) {
-            return false;
-        }
-        return getMaximum().isPresent() ? !getMaximum().equals(that.getMaximum().getOrNull()) : !that.getMaximum().isPresent();
-    }
-
-    @Override
-    public int hashCode() {
-        int result = getCounter().get().hashCode();
-        result = 31 * result + getValue().get().hashCode();
-        result = 31 * result + (getMinimum().isPresent() ? getMinimum().get().hashCode() : 0);
-        result = 31 * result + (getMaximum().isPresent() ? getMaximum().get().hashCode() : 0);
-        return result;
-    }
 }

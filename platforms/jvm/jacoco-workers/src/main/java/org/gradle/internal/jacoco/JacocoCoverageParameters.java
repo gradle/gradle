@@ -21,7 +21,6 @@ import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.plugins.internal.ant.AntWorkParameters;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
-import org.gradle.testing.jacoco.tasks.rules.JacocoViolationRule;
 
 public interface JacocoCoverageParameters extends AntWorkParameters {
     Property<String> getProjectName();
@@ -33,7 +32,7 @@ public interface JacocoCoverageParameters extends AntWorkParameters {
 
     Property<Boolean> getFailOnViolation();
 
-    SetProperty<JacocoViolationRule> getRules();
+    SetProperty<SerializableJacocoViolationRule> getRules();
 
     RegularFileProperty getDummyOutputFile();
 }
