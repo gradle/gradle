@@ -99,7 +99,7 @@ configurations {
 }
 ```
 
-### Expanded support for Arbitrary Data in the Problems API
+#### Expanded support for Arbitrary Data in the Problems API
 
 In Gradle 8.13, we introduced support for `additional data` in the public [Problems API](https://github.com/gradle/gradle/pull/32664/javadoc/org/gradle/api/problems/package-summary.html), allowing users to attach extra context to reported problems—albeit with some limitations.
 
