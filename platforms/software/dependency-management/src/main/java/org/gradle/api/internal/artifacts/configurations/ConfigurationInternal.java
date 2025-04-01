@@ -34,15 +34,11 @@ import java.util.Set;
 
 public interface ConfigurationInternal extends DeprecatableConfiguration, Configuration {
 
+    // This type is referenced by Nebula:
+    // https://github.com/nebula-plugins/gradle-resolution-rules-plugin/blob/db24ee7e0b5c5c6f6327cdfd377e90e505bb1fd2/src/main/kotlin/nebula/plugin/resolutionrules/configurations.kt#L59
     enum InternalState {
         UNRESOLVED,
-        BUILD_DEPENDENCIES_RESOLVED,
-        GRAPH_RESOLVED,
-
-        // This state should be removed, but it is referenced by nebula gradle-resolution-rules-plugin.
-        // https://github.com/nebula-plugins/gradle-resolution-rules-plugin/blob/623bbbcd4f187101bc233e46c4d9ec960c02e1a7/src/main/kotlin/nebula/plugin/resolutionrules/configurations.kt#L62
-        @Deprecated
-        ARTIFACTS_RESOLVED
+        OBSERVED
     }
 
     String getDisplayName();
@@ -70,18 +66,7 @@ public interface ConfigurationInternal extends DeprecatableConfiguration, Config
      */
     void markAsObserved(String reason);
 
-    /**
-     * Legacy observation mechanism, will be removed in Gradle 9.0.
-     * <p>
-     * Prefer {@link #markAsObserved(String)}
-     */
-    void markAsObserved(InternalState requestedState);
-
     DomainObjectContext getDomainObjectContext();
-
-    void addMutationValidator(MutationValidator validator);
-
-    void removeMutationValidator(MutationValidator validator);
 
     /**
      * Visits the variants of this configuration.

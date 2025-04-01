@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 
 import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
-import org.gradle.api.internal.artifacts.configurations.MutationValidator;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.component.local.model.LocalVariantGraphResolveState;
 
@@ -40,11 +39,6 @@ public interface RootComponentMetadataBuilder {
      * Get the identity of the component built by this builder.
      */
     DependencyMetaDataProvider getComponentIdentity();
-
-    /**
-     * Should be notified when the configuration container that this builder uses is modified.
-     */
-    MutationValidator getValidator();
 
     interface RootComponentState {
 

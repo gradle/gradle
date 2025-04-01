@@ -91,8 +91,6 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         this.resolutionStrategyFactory = resolutionStrategyFactory;
 
         this.rootComponentMetadataBuilder = rootComponentMetadataBuilderFactory.create(owner, this, rootComponentIdentity, schema);
-        this.getEventRegister().registerLazyAddAction(x -> rootComponentMetadataBuilder.getValidator().validateMutation(MutationValidator.MutationType.HIERARCHY));
-        this.whenObjectRemoved(x -> rootComponentMetadataBuilder.getValidator().validateMutation(MutationValidator.MutationType.HIERARCHY));
     }
 
     @Override

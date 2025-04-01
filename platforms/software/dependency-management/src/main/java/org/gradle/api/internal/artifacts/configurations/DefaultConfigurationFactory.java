@@ -129,7 +129,7 @@ public class DefaultConfigurationFactory {
     ) {
         ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners =
             listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
-        DefaultLegacyConfiguration instance = instantiator.newInstance(
+        return instantiator.newInstance(
             DefaultLegacyConfiguration.class,
             domainObjectContext,
             name,
@@ -157,8 +157,6 @@ public class DefaultConfigurationFactory {
             problemsService,
             documentationRegistry
         );
-        instance.addMutationValidator(rootComponentMetadataBuilder.getValidator());
-        return instance;
     }
 
     /**
@@ -172,7 +170,7 @@ public class DefaultConfigurationFactory {
     ) {
         ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners =
             listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
-        DefaultResolvableConfiguration instance = instantiator.newInstance(
+        return instantiator.newInstance(
             DefaultResolvableConfiguration.class,
             domainObjectContext,
             name,
@@ -199,8 +197,6 @@ public class DefaultConfigurationFactory {
             problemsService,
             documentationRegistry
         );
-        instance.addMutationValidator(rootComponentMetadataBuilder.getValidator());
-        return instance;
     }
 
     /**
@@ -214,7 +210,7 @@ public class DefaultConfigurationFactory {
     ) {
         ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners =
             listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
-        DefaultConsumableConfiguration instance = instantiator.newInstance(
+        return instantiator.newInstance(
             DefaultConsumableConfiguration.class,
             domainObjectContext,
             name,
@@ -241,8 +237,6 @@ public class DefaultConfigurationFactory {
             problemsService,
             documentationRegistry
         );
-        instance.addMutationValidator(rootComponentMetadataBuilder.getValidator());
-        return instance;
     }
 
     /**
@@ -256,7 +250,7 @@ public class DefaultConfigurationFactory {
     ) {
         ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners =
             listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
-        DefaultDependencyScopeConfiguration instance = instantiator.newInstance(
+        return instantiator.newInstance(
             DefaultDependencyScopeConfiguration.class,
             domainObjectContext,
             name,
@@ -283,8 +277,6 @@ public class DefaultConfigurationFactory {
             problemsService,
             documentationRegistry
         );
-        instance.addMutationValidator(rootComponentMetadataBuilder.getValidator());
-        return instance;
     }
 
     public InternalProblems getProblems() {
