@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors
 
 import com.google.common.collect.ImmutableSet
-import org.gradle.api.artifacts.ClientModule
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
@@ -88,11 +87,6 @@ class TestProjectSelectorState implements ResolvableSelectorState {
 
     @Override
     IvyArtifactName getFirstDependencyArtifact() {
-        return null
-    }
-
-    @Override
-    ClientModule getClientModule() {
         return null
     }
 

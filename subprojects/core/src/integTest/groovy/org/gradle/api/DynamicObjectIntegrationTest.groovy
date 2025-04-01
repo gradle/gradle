@@ -205,9 +205,6 @@ assert 'overridden value' == global
                 test('::name:') {
                     ext.custom = 'value';
                 }
-                test(module('::other')) {
-                    ext.custom = 'value';
-                }
                 test(project(':')) {
                     ext.custom = 'value';
                 }
@@ -242,7 +239,6 @@ assert 'overridden value' == global
 
 
         expect:
-        executer.expectDocumentedDeprecationWarning("Declaring client module dependencies has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use component metadata rules instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#declaring_client_module_dependencies")
         succeeds("defaultTask")
     }
 
@@ -270,9 +266,6 @@ assert 'overridden value' == global
                 test('::name:') {
                     convention.plugins.custom = new Extension()
                 }
-                test(module('::other')) {
-                    convention.plugins.custom = new Extension()
-                }
                 test(project(':')) {
                     convention.plugins.custom = new Extension()
                 }
@@ -296,10 +289,9 @@ assert 'overridden value' == global
             }
 '''
 
-        expectConventionTypeDeprecationWarnings(9)
+        expectConventionTypeDeprecationWarnings(8)
 
         expect:
-        executer.expectDocumentedDeprecationWarning("Declaring client module dependencies has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use component metadata rules instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#declaring_client_module_dependencies")
         succeeds("defaultTask")
     }
 
@@ -327,9 +319,6 @@ assert 'overridden value' == global
                 test('::name:') {
                     extensions.test = new Extension()
                 }
-                test(module('::other')) {
-                    extensions.test = new Extension()
-                }
                 test(project(':')) {
                     extensions.test = new Extension()
                 }
@@ -355,7 +344,6 @@ assert 'overridden value' == global
 
 
         expect:
-        executer.expectDocumentedDeprecationWarning("Declaring client module dependencies has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use component metadata rules instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#declaring_client_module_dependencies")
         succeeds("defaultTask")
     }
 

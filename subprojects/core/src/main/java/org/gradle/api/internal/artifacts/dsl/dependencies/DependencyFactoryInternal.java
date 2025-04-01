@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
-import groovy.lang.Closure;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.dsl.DependencyFactory;
@@ -46,7 +45,6 @@ public interface DependencyFactoryInternal extends DependencyFactory {
     }
 
     Dependency createDependency(Object dependencyNotation);
-    @Deprecated
-    org.gradle.api.artifacts.ClientModule createModule(Object dependencyNotation, Closure configureClosure);
+
     ProjectDependency createProjectDependencyFromMap(ProjectFinder projectFinder, Map<? extends String, ? extends Object> map);
 }

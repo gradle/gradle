@@ -260,23 +260,6 @@ import java.util.Map;
  *   testImplementation gradleTestKit()
  * }
  * </pre>
- *
- * <h3>Client module dependencies</h3>
- *
- * <strong>Client module dependencies are deprecated and will be removed in Gradle 9.0.
- * Please use component metadata rules instead.</strong>
- *
- * <p>To add a client module to a configuration you can use the notation:</p>
- *
- * <pre>
- * <i>configurationName</i> module(<i>moduleNotation</i>) {
- *     <i>module dependencies</i>
- * }
- * </pre>
- *
- * The module notation is the same as the dependency notations described above, except that the classifier property is
- * not available. Client modules are represented using a {@link org.gradle.api.artifacts.ClientModule}.
- *
  */
 @ServiceScope(Scope.Project.class)
 public interface DependencyHandler extends ExtensionAware {
@@ -362,30 +345,6 @@ public interface DependencyHandler extends ExtensionAware {
      * @return The dependency.
      */
     Dependency create(Object dependencyNotation, Closure configureClosure);
-
-    /**
-     * Creates a dependency on a client module.
-     *
-     * @param notation The module notation, in one of the notations described above.
-     * @return The dependency.
-     *
-     * @deprecated Please use component metadata rules instead. This method will be removed in Gradle 9.0.
-     */
-    @Deprecated
-    Dependency module(Object notation);
-
-    /**
-     * Creates a dependency on a client module. The dependency is configured using the given closure before it is
-     * returned.
-     *
-     * @param notation The module notation, in one of the notations described above.
-     * @param configureClosure The closure to use to configure the dependency.
-     * @return The dependency.
-     *
-     * @deprecated Please use component metadata rules instead. This method will be removed in Gradle 9.0.
-     */
-    @Deprecated
-    Dependency module(Object notation, Closure configureClosure);
 
     /**
      * Creates a dependency on a project.

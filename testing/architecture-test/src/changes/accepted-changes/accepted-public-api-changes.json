@@ -1,6 +1,46 @@
 {
     "acceptedApiChanges": [
         {
+            "type": "org.gradle.api.artifacts.ClientModule",
+            "member": "Class org.gradle.api.artifacts.ClientModule",
+            "acceptation": "Removed deprecated class",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.ClientModule",
+            "member": "Method org.gradle.api.artifacts.ClientModule.addDependency(org.gradle.api.artifacts.ModuleDependency)",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.ClientModule",
+            "member": "Method org.gradle.api.artifacts.ClientModule.copy()",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.ClientModule",
+            "member": "Method org.gradle.api.artifacts.ClientModule.getDependencies()",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.ClientModule",
+            "member": "Method org.gradle.api.artifacts.ClientModule.getId()",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.artifacts.Configuration",
             "member": "Method org.gradle.api.artifacts.Configuration.getUploadTaskName()",
             "acceptation": "Removed deprecated method",
@@ -12,6 +52,22 @@
             "type": "org.gradle.api.artifacts.component.ProjectComponentSelector",
             "member": "Method org.gradle.api.artifacts.component.ProjectComponentSelector.getBuildName()",
             "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.dsl.DependencyHandler",
+            "member": "Method org.gradle.api.artifacts.dsl.DependencyHandler.module(java.lang.Object)",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.dsl.DependencyHandler",
+            "member": "Method org.gradle.api.artifacts.dsl.DependencyHandler.module(java.lang.Object,groovy.lang.Closure)",
+            "acceptation": "Remove deprecated method",
             "changes": [
                 "Method has been removed"
             ]
@@ -414,6 +470,119 @@
             "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
             "changes": [
                 "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ClientModuleScope",
+            "member": "Class org.gradle.kotlin.dsl.ClientModuleScope",
+            "acceptation": "Remove deprecated class",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ClientModuleScope",
+            "member": "Constructor org.gradle.kotlin.dsl.ClientModuleScope(org.gradle.api.artifacts.dsl.DependencyHandler,org.gradle.api.artifacts.ClientModule)",
+            "acceptation": "Remove deprecated class",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ClientModuleScope",
+            "member": "Method org.gradle.kotlin.dsl.ClientModuleScope.dependencies(java.lang.Object[])",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ClientModuleScope",
+            "member": "Method org.gradle.kotlin.dsl.ClientModuleScope.dependency(java.lang.Object)",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ClientModuleScope",
+            "member": "Method org.gradle.kotlin.dsl.ClientModuleScope.dependency(java.lang.String,kotlin.jvm.functions.Function1)",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ClientModuleScope",
+            "member": "Method org.gradle.kotlin.dsl.ClientModuleScope.getClientModule()",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ClientModuleScope",
+            "member": "Method org.gradle.kotlin.dsl.ClientModuleScope.module$default(org.gradle.kotlin.dsl.ClientModuleScope,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,kotlin.jvm.functions.Function1,int,java.lang.Object)",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ClientModuleScope",
+            "member": "Method org.gradle.kotlin.dsl.ClientModuleScope.module(java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,kotlin.jvm.functions.Function1)",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.DependencyHandlerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.DependencyHandlerExtensionsKt.module$default(org.gradle.api.artifacts.dsl.DependencyHandler,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,int,java.lang.Object)",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.DependencyHandlerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.DependencyHandlerExtensionsKt.module$default(org.gradle.api.artifacts.dsl.DependencyHandler,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,kotlin.jvm.functions.Function1,int,java.lang.Object)",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.DependencyHandlerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.DependencyHandlerExtensionsKt.module(org.gradle.api.artifacts.dsl.DependencyHandler,java.lang.Object,kotlin.jvm.functions.Function1)",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.DependencyHandlerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.DependencyHandlerExtensionsKt.module(org.gradle.api.artifacts.dsl.DependencyHandler,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String)",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.DependencyHandlerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.DependencyHandlerExtensionsKt.module(org.gradle.api.artifacts.dsl.DependencyHandler,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,kotlin.jvm.functions.Function1)",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.DependencyHandlerScope",
+            "member": "Class org.gradle.kotlin.dsl.DependencyHandlerScope",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "org.gradle.kotlin.dsl.support.delegates.DependencyHandlerDelegate.module(java.lang.Object)",
+                "org.gradle.kotlin.dsl.support.delegates.DependencyHandlerDelegate.module(java.lang.Object,groovy.lang.Closure)"
             ]
         },
         {

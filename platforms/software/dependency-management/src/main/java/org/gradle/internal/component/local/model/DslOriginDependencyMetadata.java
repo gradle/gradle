@@ -27,7 +27,6 @@ public interface DslOriginDependencyMetadata extends DependencyMetadata {
     /**
      * Provide access to the source `Dependency` instance for this `DependencyMetadata`.
      * This is used for:
-     * - Accessing the `ClientModule` instance for a 'client module' dependency.
      * - Binding the source dependency to the first-order resolved components in `ResolvedConfiguration`.
      *
      * The goal is to eventually replace these uses, and remove this type.
