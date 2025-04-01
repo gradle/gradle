@@ -223,7 +223,11 @@ class PublicApiIntegrationTest extends AbstractIntegrationSpec implements JavaTo
             }
 
             dependencies {
-                implementation("org.gradle.experimental:gradle-public-api:${apiJarVersion}")
+                compileOnly("org.gradle.experimental:gradle-public-api:${apiJarVersion}") {
+                    capabilities {
+                        requireCapability("org.gradle.experimental:gradle-public-api-internal")
+                    }
+                }
             }
 
             testing {
