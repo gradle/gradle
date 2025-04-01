@@ -81,7 +81,8 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         new ConfigurationCacheEntriesPerKeyOption(),
         new IsolatedProjectsOption(),
         new ProblemReportGenerationOption(),
-        new PropertyUpgradeReportOption()
+        new PropertyUpgradeReportOption(),
+        new TaskTreeOption()
     );
 
     @Override
@@ -677,6 +678,17 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
             settings.enableProblemReportGeneration(value);
+        }
+    }
+
+    public static class TaskTreeOption extends EnabledOnlyBooleanBuildOption<StartParameterInternal> {
+        public TaskTreeOption() {
+            super(null, CommandLineOptionConfiguration.create("task-tree", "TBD")); //TODO
+        }
+
+        @Override
+        public void applyTo(StartParameterInternal settings, Origin origin) {
+            settings.setTaskTree(true);
         }
     }
 }

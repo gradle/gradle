@@ -226,7 +226,7 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
         @Override
         public ExecutionResult<Void> runWork() {
             assertIsOwner();
-            expectInState(State.ReadyToRun);
+            expectInState(State.ReadyToRun); //TODO Here
             state = State.Running;
             try {
                 return controllers.execute();

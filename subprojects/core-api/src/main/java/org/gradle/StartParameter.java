@@ -84,6 +84,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     private List<File> initScripts = new ArrayList<>();
     private boolean dryRun;
     private boolean rerunTasks;
+    private boolean taskTree;
     private boolean profile;
     private boolean continueOnFailure;
     private boolean offline;
@@ -256,6 +257,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         p.continueOnFailure = continueOnFailure;
         p.offline = offline;
         p.rerunTasks = rerunTasks;
+        p.taskTree = taskTree;
         p.refreshDependencies = refreshDependencies;
         p.setParallelProjectExecutionEnabled(isParallelProjectExecutionEnabled());
         p.buildCacheEnabled = buildCacheEnabled;
@@ -693,6 +695,14 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         this.rerunTasks = rerunTasks;
     }
 
+    public boolean isTaskTree() {
+        return taskTree;
+    }
+
+    public void setTaskTree(boolean taskTree) {
+        this.taskTree = taskTree;
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -788,6 +798,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
             + ", initScripts=" + initScripts
             + ", dryRun=" + dryRun
             + ", rerunTasks=" + rerunTasks
+            + ", taskTree=" + taskTree
             + ", profile=" + profile
             + ", continueOnFailure=" + continueOnFailure
             + ", offline=" + offline

@@ -39,6 +39,7 @@ import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.buildtree.BuildTreeWorkExecutor;
 import org.gradle.internal.buildtree.DefaultBuildTreeFinishExecutor;
 import org.gradle.internal.buildtree.DefaultBuildTreeWorkExecutor;
+import org.gradle.internal.buildtree.TaskTreePrintingBuildTreeWorkExecutor;
 import org.gradle.internal.composite.IncludedBuildInternal;
 import org.gradle.internal.composite.IncludedRootBuild;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -71,7 +72,12 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
             BuildOperationRunner buildOperationRunner = buildScopeServices.get(BuildOperationRunner.class);
             BuildStateRegistry buildStateRegistry = buildScopeServices.get(BuildStateRegistry.class);
             BuildTreeLifecycleControllerFactory buildTreeLifecycleControllerFactory = buildScopeServices.get(BuildTreeLifecycleControllerFactory.class);
-            BuildTreeWorkExecutor workExecutor = new BuildOperationFiringBuildTreeWorkExecutor(new DefaultBuildTreeWorkExecutor(), buildOperationRunner);
+
+            BuildTreeWorkExecutor buildTreeWorkExecutor = new DefaultBuildTreeWorkExecutor();
+            if (getStartParameter().isTaskTree()) {
+                buildTreeWorkExecutor = new TaskTreePrintingBuildTreeWorkExecutor();
+            }
+            BuildTreeWorkExecutor workExecutor = new BuildOperationFiringBuildTreeWorkExecutor(buildTreeWorkExecutor, buildOperationRunner);
             BuildTreeFinishExecutor finishExecutor = new OperationFiringBuildTreeFinishExecutor(buildOperationRunner,
                 new DefaultBuildTreeFinishExecutor(buildStateRegistry, exceptionAnalyser, buildLifecycleController));
             this.buildTreeLifecycleController = buildTreeLifecycleControllerFactory.createRootBuildController(buildLifecycleController, workExecutor, finishExecutor);
