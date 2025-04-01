@@ -2,12 +2,12 @@
 <meta property="og:type"  content="article" />
 <meta property="og:title" content="Gradle @version@ Release Notes" />
 <meta property="og:site_name" content="Gradle Release Notes">
-<meta property="og:description" content="TO DO">
+<meta property="og:description" content="Gradle now supports Java 24, improves build performance with lazy configuration and configuration cache diagnostics, and expands the Problems API with support for structured data and GraalVM Native Image toolchain selection.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@gradle">
 <meta name="twitter:creator" content="@gradle">
 <meta name="twitter:title" content="Gradle @version@ Release Notes">
-<meta name="twitter:description" content="TO DO">
+<meta name="twitter:description" content="Gradle now supports Java 24, improves build performance with lazy configuration and configuration cache diagnostics, and expands the Problems API with support for structured data and GraalVM Native Image toolchain selection.">
 <meta name="twitter:image" content="https://gradle.org/images/releases/gradle-@version@.png">
 
 We are excited to announce Gradle @version@ (released [@releaseDate@](https://gradle.org/releases/)).
@@ -35,7 +35,7 @@ Be sure to check out the [public roadmap](https://roadmap.gradle.org) for insigh
 
 Switch your build to use Gradle @version@ by updating the [Wrapper](userguide/gradle_wrapper.html) in your project:
 
-```
+```text
 ./gradlew wrapper --gradle-version=@version@ && ./gradlew wrapper
 ```
 

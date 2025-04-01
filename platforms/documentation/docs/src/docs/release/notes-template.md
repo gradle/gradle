@@ -29,7 +29,7 @@ Be sure to check out the [public roadmap](https://roadmap.gradle.org) for insigh
 
 Switch your build to use Gradle @version@ by updating the [wrapper](userguide/gradle_wrapper.html) in your project:
 
-```
+```text
 ./gradlew wrapper --gradle-version=@version@ && ./gradlew wrapper
 ```
 
