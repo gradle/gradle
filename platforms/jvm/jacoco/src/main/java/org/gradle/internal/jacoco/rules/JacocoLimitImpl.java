@@ -16,56 +16,29 @@
 
 package org.gradle.internal.jacoco.rules;
 
+import org.gradle.api.provider.Property;
 import org.gradle.testing.jacoco.tasks.rules.JacocoLimit;
 
 import java.math.BigDecimal;
 
-public class JacocoLimitImpl implements JacocoLimit {
+public abstract class JacocoLimitImpl implements JacocoLimit {
 
-    private String counter = "INSTRUCTION";
-    private String value = "COVEREDRATIO";
-    private BigDecimal minimum;
-    private BigDecimal maximum;
-
-    @Override
-    public String getCounter() {
-        return counter;
+    public JacocoLimitImpl() {
+        getCounter().convention("INSTRUCTION");
+        getValue().convention("COVEREDRATIO");
     }
 
     @Override
-    public void setCounter(String counter) {
-        this.counter = counter;
-    }
+    public abstract Property<String> getCounter();
 
     @Override
-    public String getValue() {
-        return value;
-    }
+    public abstract Property<String> getValue();
 
     @Override
-    public void setValue(String value) {
-        this.value = value;
-    }
+    public abstract Property<BigDecimal> getMinimum();
 
     @Override
-    public BigDecimal getMinimum() {
-        return minimum;
-    }
-
-    @Override
-    public void setMinimum(BigDecimal minimum) {
-        this.minimum = minimum;
-    }
-
-    @Override
-    public BigDecimal getMaximum() {
-        return maximum;
-    }
-
-    @Override
-    public void setMaximum(BigDecimal maximum) {
-        this.maximum = maximum;
-    }
+    public abstract Property<BigDecimal> getMaximum();
 
     @Override
     public boolean equals(Object o) {
@@ -78,24 +51,24 @@ public class JacocoLimitImpl implements JacocoLimit {
 
         JacocoLimitImpl that = (JacocoLimitImpl) o;
 
-        if (counter != that.counter) {
+        if (getCounter().get().equals(that.getCounter().get())) {
             return false;
         }
-        if (value != that.value) {
+        if (getValue().get().equals(that.getValue().get())) {
             return false;
         }
-        if (minimum != null ? !minimum.equals(that.minimum) : that.minimum != null) {
+        if (getMinimum().isPresent() ? !getMinimum().equals(that.getMinimum().getOrNull()) : !that.getMinimum().isPresent()) {
             return false;
         }
-        return maximum != null ? maximum.equals(that.maximum) : that.maximum == null;
+        return getMaximum().isPresent() ? !getMaximum().equals(that.getMaximum().getOrNull()) : !that.getMaximum().isPresent();
     }
 
     @Override
     public int hashCode() {
-        int result = counter != null ? counter.hashCode() : 0;
-        result = 31 * result + (value != null ? value.hashCode() : 0);
-        result = 31 * result + (minimum != null ? minimum.hashCode() : 0);
-        result = 31 * result + (maximum != null ? maximum.hashCode() : 0);
+        int result = getCounter().get().hashCode();
+        result = 31 * result + getValue().get().hashCode();
+        result = 31 * result + (getMinimum().isPresent() ? getMinimum().get().hashCode() : 0);
+        result = 31 * result + (getMaximum().isPresent() ? getMaximum().get().hashCode() : 0);
         return result;
     }
 }

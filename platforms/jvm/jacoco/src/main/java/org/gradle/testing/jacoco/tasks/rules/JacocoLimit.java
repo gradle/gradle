@@ -16,10 +16,10 @@
 
 package org.gradle.testing.jacoco.tasks.rules;
 
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
-import org.jspecify.annotations.Nullable;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -37,15 +37,8 @@ public interface JacocoLimit extends Serializable {
      * Valid values are INSTRUCTION, LINE, BRANCH, COMPLEXITY, METHOD and CLASS. Defaults to INSTRUCTION.
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    String getCounter();
-
-    /**
-     * Sets the counter that applies to the limit.
-     *
-     * @param counter Counter
-     */
-    void setCounter(String counter);
+    @ReplacesEagerProperty
+    Property<String> getCounter();
 
     /**
      * The value that applies to the limit as defined by
@@ -53,45 +46,22 @@ public interface JacocoLimit extends Serializable {
      * Valid values are TOTALCOUNT, MISSEDCOUNT, COVEREDCOUNT, MISSEDRATIO and COVEREDRATIO. Defaults to COVEREDRATIO.
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    String getValue();
-
-    /**
-     * Sets the value that applies to the limit.
-     *
-     * @param value Value
-     */
-    void setValue(String value);
+    @ReplacesEagerProperty
+    Property<String> getValue();
 
     /**
      * Gets the minimum expected value for limit. Default to null.
      */
-    @Nullable
     @Optional
     @Input
-    @ToBeReplacedByLazyProperty
-    BigDecimal getMinimum();
-
-    /**
-     * Sets the minimum expected value for limit.
-     *
-     * @param minimum Minimum
-     */
-    void setMinimum(@Nullable BigDecimal minimum);
+    @ReplacesEagerProperty
+    Property<BigDecimal> getMinimum();
 
     /**
      * Gets the maximum expected value for limit. Default to null.
      */
-    @Nullable
     @Optional
     @Input
-    @ToBeReplacedByLazyProperty
-    BigDecimal getMaximum();
-
-    /**
-     * Sets the maximum expected value for limit.
-     *
-     * @param maximum Maximum
-     */
-    void setMaximum(@Nullable BigDecimal maximum);
+    @ReplacesEagerProperty
+    Property<BigDecimal> getMaximum();
 }
