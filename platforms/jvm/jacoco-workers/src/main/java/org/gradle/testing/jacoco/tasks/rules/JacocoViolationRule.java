@@ -17,8 +17,13 @@
 package org.gradle.testing.jacoco.tasks.rules;
 
 import org.gradle.api.Action;
+import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
+import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.api.tasks.Internal;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
 import java.io.Serializable;
 import java.util.List;
@@ -30,21 +35,19 @@ import java.util.List;
  */
 public interface JacocoViolationRule extends Serializable {
 
-    void setEnabled(boolean enabled);
-
     /**
      * Indicates if the rule should be used when checking generated coverage metrics. Defaults to true.
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    boolean isEnabled();
+    @ReplacesEagerProperty(originalType = boolean.class)
+    Property<Boolean> getEnabled();
 
-    /**
-     * Sets element for the rule.
-     *
-     * @param element Element
-     */
-    void setElement(String element);
+    @Internal
+    @Deprecated
+    default Property<Boolean> getIsEnabled() {
+        ProviderApiDeprecationLogger.logDeprecation(JacocoViolationRule.class, "getIsEnabled()", "getEnabled()");
+        return getEnabled();
+    }
 
     /**
      * Gets the element for the rule as defined by
@@ -52,45 +55,31 @@ public interface JacocoViolationRule extends Serializable {
      * Valid scope values are BUNDLE, PACKAGE, CLASS, SOURCEFILE and METHOD. Defaults to BUNDLE.
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    String getElement();
-
-    /**
-     * Sets list of elements that should be included in check.
-     *
-     * @param includes Inclusions
-     */
-    void setIncludes(List<String> includes);
+    @ReplacesEagerProperty
+    Property<String> getElement();
 
     /**
      * List of elements that should be included in check. Names can use wildcards (* and ?).
      * If left empty, all elements will be included. Defaults to [*].
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    List<String> getIncludes();
-
-    /**
-     * Sets list of elements that should be excluded from check.
-     *
-     * @param excludes Exclusions
-     */
-    void setExcludes(List<String> excludes);
+    @ReplacesEagerProperty
+    ListProperty<String> getIncludes();
 
     /**
      * List of elements that should be excluded from check. Names can use wildcards (* and ?).
      * If left empty, no elements will be excluded. Defaults to an empty list.
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    List<String> getExcludes();
+    @ReplacesEagerProperty
+    ListProperty<String> getExcludes();
 
     /**
      * Gets all limits defined for this rule. Defaults to an empty list.
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    List<JacocoLimit> getLimits();
+    @ReplacesEagerProperty
+    Provider<List<JacocoLimit>> getLimits();
 
     /**
      * Adds a limit for this rule. Any number of limits can be added.
