@@ -25,8 +25,6 @@ import javax.annotation.Nullable;
 
 /**
  * Additional data shipped with a deprecation.
- * <p>
- * This data is accessible, after reporting the deprecation, to consumers of problem events.
  *
  * @since 8.14
  */
