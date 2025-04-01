@@ -17,8 +17,12 @@
 package org.gradle.testing.jacoco.tasks.rules;
 
 import org.gradle.api.Action;
+import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.api.tasks.Internal;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
 import java.util.List;
 
@@ -30,28 +34,26 @@ import java.util.List;
 public interface JacocoViolationRulesContainer {
 
     /**
-     * Indicates whether build should fail in case of rule violation.
-     *
-     * @param ignore Only render violation but do not fail build
-     * @since 3.4
-     */
-    void setFailOnViolation(boolean ignore);
-
-    /**
      * Specifies whether build should fail in case of rule violations. Defaults to true.
-     * @since 3.4
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    boolean isFailOnViolation();
+    @ReplacesEagerProperty(originalType = boolean.class)
+    Property<Boolean> getFailOnViolation();
+
+    @Internal
+    @Deprecated
+    default Property<Boolean> getIsFailOnViolation() {
+        ProviderApiDeprecationLogger.logDeprecation(JacocoViolationRulesContainer.class, "getIsFailOnViolation()", "getFailOnViolation()");
+        return getFailOnViolation();
+    }
 
     /**
      * Gets all violation rules. Defaults to an empty list.
      * @since 3.4
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    List<JacocoViolationRule> getRules();
+    @ReplacesEagerProperty
+    Provider<List<JacocoViolationRule>> getRules();
 
     /**
      * Adds a violation rule. Any number of rules can be added.
