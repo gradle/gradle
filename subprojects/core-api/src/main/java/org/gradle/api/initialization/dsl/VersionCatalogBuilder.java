@@ -15,7 +15,6 @@
  */
 package org.gradle.api.initialization.dsl;
 
-import org.apache.groovy.lang.annotation.Incubating;
 import org.gradle.api.Action;
 import org.gradle.api.Named;
 import org.gradle.api.artifacts.MutableVersionConstraint;
