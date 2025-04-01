@@ -41,29 +41,6 @@ public interface VersionCatalogBuilder extends Named {
     Property<String> getDescription();
 
     /**
-     * Configures the model by reading it from a version catalog by default.
-     * A version catalog is a component published using the `version-catalog` plugin or
-     * a local TOML file.
-     *
-     * <p>
-     * This function can be called only once, further calls will result in a void return.
-     * The passed notation should conform these constraints:
-     * <ul>
-     *     <li>If a file notation is passed, it should be a single file.</li>
-     *     <li>If it's a resolvable dependency, it should resolve to a single file.</li>
-     * </ul>
-     *
-     * <p>
-     * If the notation doesn't conform these constraints, an exception will be thrown at configuration time.
-     *
-     * @param dependencyNotation any notation supported by {@link org.gradle.api.artifacts.dsl.DependencyHandler}
-     *
-     * @since 8.12
-     */
-    @Incubating
-    void fromDefault(Object dependencyNotation);
-
-    /**
      * Configures the model by reading it from a version catalog.
      * A version catalog is a component published using the `version-catalog` plugin or
      * a local TOML file.
