@@ -112,4 +112,19 @@ public final class MapPropertyExtensions {
         self.putAll(provider);
         return self;
     }
+
+    /**
+     * Creates a stand-in of {@link MapProperty} to be used as a left-hand side operand of {@code +=}.
+     * <p>
+     * The AST transformer knows the name of this method.
+     *
+     * @param lhs the property
+     * @param <K> the type of map keys, to help the static type checker
+     * @param <V> the type of map values, to help the static type checker
+     * @return the stand-in object to call {@code plus} on
+     * @see org.gradle.api.internal.groovy.support.CompoundAssignmentTransformer
+     */
+    public static <K, V> MapPropertyCompoundAssignmentStandIn<K, V> forCompoundAssignment(MapProperty<K, V> lhs) {
+        return ((DefaultMapProperty<K, V>) lhs).forCompoundAssignment();
+    }
 }
