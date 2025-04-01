@@ -22,6 +22,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Nested;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
 import java.util.List;
@@ -50,7 +51,7 @@ public interface JacocoViolationRulesContainer {
     /**
      * Gets all violation rules. Defaults to an empty list.
      */
-    @Input
+    @Nested
     @ReplacesEagerProperty
     Provider<List<JacocoViolationRule>> getRules();
 
