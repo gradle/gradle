@@ -19,7 +19,7 @@ package org.gradle.api.problems.deprecation.source;
 import org.gradle.api.Incubating;
 
 /**
- * TODO documentation.
+ * Structural information about the source of a deprecation.
  *
  * @since 8.14
  */
@@ -49,4 +49,4 @@ public abstract class ReportSource {
         return new PluginReportSource(id);
     }
 
- }
+}

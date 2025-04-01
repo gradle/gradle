@@ -19,7 +19,7 @@ package org.gradle.api.problems.deprecation.source;
 import org.gradle.api.Incubating;
 
 /**
- * TODO documentation.
+ * If this class is used, it means that the deprecated item comes from a certain plugin.
  *
  * @since 8.14
  */
@@ -29,11 +29,11 @@ public class PluginReportSource extends ReportSource {
     private final String pluginId;
 
     /**
-     * TODO documentation.
+     * Protected constructor to prevent direct instantiation.
      *
-     * @since 8.14
+     * @param pluginId the plugin ID where the deprecated item comes from
      */
-    public PluginReportSource(String pluginId) {
+    PluginReportSource(String pluginId) {
         this.pluginId = pluginId;
     }
 
@@ -43,7 +43,7 @@ public class PluginReportSource extends ReportSource {
     }
 
     /**
-     * TODO documentation.
+     * Returns the plugin ID where the deprecated item comes from.
      *
      * @since 8.14
      */
