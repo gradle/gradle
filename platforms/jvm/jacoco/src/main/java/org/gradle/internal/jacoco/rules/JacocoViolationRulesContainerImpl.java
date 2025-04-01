@@ -17,42 +17,41 @@
 package org.gradle.internal.jacoco.rules;
 
 import org.gradle.api.Action;
-import org.gradle.internal.reflect.Instantiator;
+import org.gradle.api.internal.lambdas.SerializableLambdas;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.testing.jacoco.tasks.rules.JacocoViolationRule;
 import org.gradle.testing.jacoco.tasks.rules.JacocoViolationRulesContainer;
 
-import java.util.ArrayList;
-import java.util.Collections;
+import javax.inject.Inject;
 import java.util.List;
 
-public class JacocoViolationRulesContainerImpl implements JacocoViolationRulesContainer {
+public abstract class JacocoViolationRulesContainerImpl implements JacocoViolationRulesContainer {
 
-    private final Instantiator instantiator;
-    private boolean failOnViolation = true;
-    private final List<JacocoViolationRule> rules = new ArrayList<JacocoViolationRule>();
+    private final ObjectFactory objectFactory;
+    private final ListProperty<JacocoViolationRule> rules;
 
-    public JacocoViolationRulesContainerImpl(Instantiator instantiator) {
-        this.instantiator = instantiator;
+    @Inject
+    public JacocoViolationRulesContainerImpl(ObjectFactory objectFactory) {
+        this.objectFactory = objectFactory;
+        this.rules = objectFactory.listProperty(JacocoViolationRule.class);
+        getFailOnViolation().convention(true);
     }
 
     @Override
-    public void setFailOnViolation(boolean failOnViolation) {
-        this.failOnViolation = failOnViolation;
-    }
+    public abstract Property<Boolean> getFailOnViolation();
 
     @Override
-    public boolean isFailOnViolation() {
-        return failOnViolation;
-    }
-
-    @Override
-    public List<JacocoViolationRule> getRules() {
-        return Collections.unmodifiableList(rules);
+    public Provider<List<JacocoViolationRule>> getRules() {
+        // Make it read-only
+        return rules.map(SerializableLambdas.transformer(__ -> __));
     }
 
     @Override
     public JacocoViolationRule rule(Action<? super JacocoViolationRule> configureAction) {
-        JacocoViolationRule validationRule = instantiator.newInstance(JacocoViolationRuleImpl.class);
+        JacocoViolationRule validationRule = objectFactory.newInstance(JacocoViolationRuleImpl.class);
         configureAction.execute(validationRule);
         rules.add(validationRule);
         return validationRule;

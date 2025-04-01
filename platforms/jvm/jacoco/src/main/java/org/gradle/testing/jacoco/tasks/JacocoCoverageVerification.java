@@ -92,7 +92,7 @@ public abstract class JacocoCoverageVerification extends JacocoReportBase {
             parameters.getAllClassesDirs().convention(getAllClassDirs());
             parameters.getExecutionData().convention(getExecutionData());
 
-            parameters.getFailOnViolation().convention(getViolationRules().isFailOnViolation());
+            parameters.getFailOnViolation().convention(getViolationRules().getFailOnViolation());
             parameters.getRules().convention(getViolationRules().getRules());
 
             parameters.getDummyOutputFile().fileValue(getDummyOutputFile());
