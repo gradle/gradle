@@ -43,6 +43,7 @@ dependencies {
     testImplementation(projects.baseServicesGroovy)
     testImplementation(libs.jsoup)
     testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.jacoco))
 
     testRuntimeOnly(projects.distributionsCore) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
