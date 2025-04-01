@@ -71,7 +71,7 @@ class JacocoViolationRuleImplTest extends Specification {
 
     def "returned limits are unmodifiable"() {
         when:
-        rule.limits << new JacocoLimitImpl()
+        rule.limits << TestUtil.newInstance(JacocoLimitImpl)
 
         then:
         thrown(MissingMethodException)
