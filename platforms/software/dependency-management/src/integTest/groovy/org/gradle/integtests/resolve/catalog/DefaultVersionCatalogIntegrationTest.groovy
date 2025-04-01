@@ -26,88 +26,156 @@ class DefaultVersionCatalogIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     final MavenHttpPluginRepository pluginPortal = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
 
-    def "can apply a plugin declared in a catalog using from"() {
-        String message = "Problem: In version catalog libs, you can only call the 'from' method a single time."
-        String filePath = "gradle/amal.libs.versions.toml"
+    private String versionCatalogSampleText = """[versions]
+            swaggerCoreVersion = "2.2.25"
+            springDocVersion = "1.8.0"
+            classGraphVersion = "4.8.112"
 
-        versionCatalogFile << """versions]
-swaggerCoreVersion = "2.2.25"
-springDocVersion = "1.8.0"
-classGraphVersion = "4.8.112"
+            [libraries]
+            swaggercore = {group="io.swagger.core.v3", name="swagger-core", version.ref = "swaggerCoreVersion"}
+            swaggerannotations = {group="io.swagger.core.v3", name="swagger-annotations", version.ref = "swaggerCoreVersion"}
+            swaggerintegration = {group="io.swagger.core.v3", name="swagger-integration", version.ref = "swaggerCoreVersion"}
+            classgraph = {group="io.github.classgraph", name="classgraph", version.ref = "classGraphVersion"}
+            springdoc = {group="org.springdoc", name="springdoc-openapi-ui", version.ref = "springDocVersion"}"""
 
-[libraries]
-swaggercore = {group="io.swagger.core.v3", name="swagger-core", version.ref = "swaggerCoreVersion"}
-swaggerannotations = {group="io.swagger.core.v3", name="swagger-annotations", version.ref = "swaggerCoreVersion"}
-swaggerintegration = {group="io.swagger.core.v3", name="swagger-integration", version.ref = "swaggerCoreVersion"}
-classgraph = {group="io.github.classgraph", name="classgraph", version.ref = "classGraphVersion"}
-springdoc = {group="org.springdoc", name="springdoc-openapi-ui", version.ref = "springDocVersion"}"""
+    def "can apply a custom version catalog using from"() {
+        String message = "BUILD SUCCESSFUL"
+        String filePath = "gradle/custom.libs.versions.toml"
+
+        versionCatalogFile << versionCatalogSampleText
 
 
         def file = file(filePath)
 
-        file.text = """[versions]
-swaggerCoreVersion = "2.2.25"
-springDocVersion = "1.8.0"
-classGraphVersion = "4.8.112"
-
-[libraries]
-swaggercore = {group="io.swagger.core.v3", name="swagger-core", version.ref = "swaggerCoreVersion"}
-swaggerannotations = {group="io.swagger.core.v3", name="swagger-annotations", version.ref = "swaggerCoreVersion"}
-swaggerintegration = {group="io.swagger.core.v3", name="swagger-integration", version.ref = "swaggerCoreVersion"}
-classgraph = {group="io.github.classgraph", name="classgraph", version.ref = "classGraphVersion"}
-springdoc = {group="org.springdoc", name="springdoc-openapi-ui", version.ref = "springDocVersion"}
-"""
+        file.text = versionCatalogSampleText
 
         // We use the Groovy DSL for settings because that's not what we want to
         // test and the setup would be more complicated with Kotlin
         settingsKotlinFile << """
-rootProject.name = "learn"
+            rootProject.name = "learn"
 
-dependencyResolutionManagement {
-    versionCatalogs {
-        create("libs") {
-            from(files("gradle/amal.libs.versions.toml"))
-        }
-    }
-}"""
-        buildKotlinFile << """
-plugins {
-\tjava
-}
-
-group = "com.amal"
-version = "0.0.1-SNAPSHOT"
-
-java {
-\ttoolchain {
-\t\tlanguageVersion = JavaLanguageVersion.of(17)
-\t}
-}
-
-configurations {
-\tcompileOnly {
-\t\textendsFrom(configurations.annotationProcessor.get())
-\t}
-}
-
-repositories {
-\tmavenCentral()
-}
-
-
-tasks.withType<Test> {
-\tuseJUnitPlatform()
-}
-
-"""
-
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    create("libs") {
+                        from(files("gradle/custom.libs.versions.toml"))
+                    }
+                }
+            }"""
         when:
         def result = succeeds "build"
 
         then:
         def receivedResults = result.getOutput() // Capture the failure details
         verifyAll {
-            receivedResults.contains("BUILD SUCCESSFUL")
+            receivedResults.contains(message)
+        }
+    }
+
+    def "fails when calling from on default version catalog explicitly"() {
+        String message = "In version catalog libs, you can only import default catalog `gradle/libs.versions.toml` once."
+        String filePath = "gradle/libs.versions.toml"
+
+        versionCatalogFile << versionCatalogSampleText
+
+        def file = file(filePath)
+
+        file.text = versionCatalogSampleText
+
+        // We use the Groovy DSL for settings because that's not what we want to
+        // test and the setup would be more complicated with Kotlin
+        settingsKotlinFile << """
+            rootProject.name = "learn"
+
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    create("libs") {
+                        from(files("gradle/libs.versions.toml"))
+                    }
+                }
+            }"""
+
+        when:
+        def result = fails "build"
+
+        then:
+        def receivedResults = result.getError() // Capture the failure details
+        verifyAll {
+            receivedResults.contains(message)
+        }
+    }
+
+    def "fails when calling from twice on the same custom catalog file"() {
+        String message = "In version catalog custom, you can only call the 'from' method a single time."
+        def customToml = file("gradle/custom.versions.toml")
+        customToml.text = """
+        [versions]
+        someVersion = "1.0.0"
+
+        [libraries]
+        someLib = { group = "com.example", name = "lib", version.ref = "someVersion" }
+        """
+
+            settingsKotlinFile << """
+        rootProject.name = "learn"
+
+        dependencyResolutionManagement {
+            versionCatalogs {
+                create("custom") {
+                    from(files("gradle/custom.versions.toml"))
+                    from(files("gradle/custom.versions.toml")) // Second call should fail
+                }
+            }
+        }
+        """
+        when:
+        def result = fails "build"
+
+        then:
+        def receivedResults = result.getError() // Capture the failure details
+        verifyAll {
+            receivedResults.contains(message)
+        }
+    }
+
+    def "fails when calling from twice on the different custom catalog file"() {
+        String message = "In version catalog custom, you can only call the 'from' method a single time."
+        def customToml1 = file("gradle/custom1.versions.toml")
+        customToml1.text = """
+        [versions]
+        someVersion = "1.0.0"
+
+        [libraries]
+        someLib = { group = "com.example", name = "lib", version.ref = "someVersion" }
+        """
+
+        def customToml2 = file("gradle/custom2.versions.toml")
+        customToml2.text = """
+        [versions]
+        someVersion = "1.0.0"
+
+        [libraries]
+        someLib = { group = "com.example", name = "lib", version.ref = "someVersion" }
+        """
+
+        settingsKotlinFile << """
+        rootProject.name = "learn"
+
+        dependencyResolutionManagement {
+            versionCatalogs {
+                create("custom") {
+                    from(files("gradle/custom1.versions.toml"))
+                    from(files("gradle/custom2.versions.toml")) // Second call should fail
+                }
+            }
+        }
+        """
+        when:
+        def result = fails "build"
+
+        then:
+        def receivedResults = result.getError() // Capture the failure details
+        verifyAll {
+            receivedResults.contains(message)
         }
     }
 }
