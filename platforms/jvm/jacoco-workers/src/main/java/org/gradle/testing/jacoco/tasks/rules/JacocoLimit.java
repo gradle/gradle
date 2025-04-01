@@ -21,7 +21,6 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
-import java.io.Serializable;
 import java.math.BigDecimal;
 
 /**
@@ -29,7 +28,7 @@ import java.math.BigDecimal;
  *
  * @since 3.4
  */
-public interface JacocoLimit extends Serializable {
+public interface JacocoLimit {
 
     /**
      * The counter that applies to the limit as defined by
