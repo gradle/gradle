@@ -17,20 +17,18 @@
 package org.gradle.internal.jacoco.rules
 
 import org.gradle.api.Action
-import org.gradle.internal.reflect.Instantiator
 import org.gradle.testing.jacoco.tasks.rules.JacocoViolationRule
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class JacocoViolationRulesContainerImplTest extends Specification {
 
-    Instantiator instantiator = Mock(Instantiator)
-    JacocoViolationRulesContainerImpl violationRulesContainer = new JacocoViolationRulesContainerImpl(instantiator)
+    JacocoViolationRulesContainerImpl violationRulesContainer = TestUtil.newInstance(JacocoViolationRulesContainerImpl)
 
     def "provides expected default field values"() {
         expect:
-        violationRulesContainer.failOnViolation
-        violationRulesContainer.rules.empty
+        violationRulesContainer.failOnViolation.get()
+        violationRulesContainer.rules.get().empty
     }
 
     def "can add rules"() {
@@ -48,9 +46,8 @@ class JacocoViolationRulesContainerImplTest extends Specification {
         })
 
         then:
-        1 * instantiator.newInstance(JacocoViolationRuleImpl.class) >> TestUtil.newInstance(JacocoViolationRuleImpl)
-        violationRulesContainer.rules.size() == 1
-        violationRulesContainer.rules[0] == rule
+        violationRulesContainer.rules.get().size() == 1
+        violationRulesContainer.rules.get()[0] == rule
 
         when:
         rule = violationRulesContainer.rule(new Action<JacocoViolationRule>() {
@@ -66,9 +63,8 @@ class JacocoViolationRulesContainerImplTest extends Specification {
         })
 
         then:
-        1 * instantiator.newInstance(JacocoViolationRuleImpl.class) >> TestUtil.newInstance(JacocoViolationRuleImpl)
-        violationRulesContainer.rules.size() == 2
-        violationRulesContainer.rules[1] == rule
+        violationRulesContainer.rules.get().size() == 2
+        violationRulesContainer.rules.get()[1] == rule
     }
 
     def "returned rules are unmodifiable"() {
@@ -76,6 +72,6 @@ class JacocoViolationRulesContainerImplTest extends Specification {
         violationRulesContainer.rules << Mock(JacocoViolationRuleImpl)
 
         then:
-        thrown(UnsupportedOperationException)
+        thrown(MissingMethodException)
     }
 }

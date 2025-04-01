@@ -18,6 +18,7 @@ package org.gradle.internal.jacoco.rules;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
+import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
@@ -57,7 +58,7 @@ public abstract class JacocoViolationRuleImpl implements JacocoViolationRule {
     @Override
     public Provider<List<JacocoLimit>> getLimits() {
         // Make it read-only
-        return limits.map(__ -> __);
+        return limits.map(SerializableLambdas.transformer(__ -> __));
     }
 
     @Override
