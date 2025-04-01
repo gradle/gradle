@@ -203,8 +203,12 @@ interface SomeDataView {
 
 These view types provide a safe, structured way to consume custom data in IDEs or other TAPI-based tooling.
 
+#### Support for details of assumption violations in JUnit4
+
+TBD
+
 <a name="configuration-cache"></a>
-### Configuration cache improvements
+### Configuration Cache improvements
 
 The [configuration cache](userguide/configuration_cache.html) improves build time by caching the result of the configuration phase and reusing it for subsequent builds.
 This feature can significantly improve build performance.
