@@ -136,9 +136,9 @@ As such, each major Gradle release causes:
 
 == Public Gradle APIs
 
-Gradle provides several public APIs that allow developers to interact with various build system components.
+Gradle provides many public APIs that allow developers to interact with various build system components.
 
-Any package or class name containing `internal` is, by definition, not part of the public Gradle API and should not be relied upon for stable usage.
+Any class name containing `Internal`, or that is located in a package containing the segment `.internal.` is by definition not part of the public Gradle API and should not be relied upon for stable usage.
 
 The following table summarizes public Gradle APIs and their common use cases.
 This is *not* an exhaustive list:
