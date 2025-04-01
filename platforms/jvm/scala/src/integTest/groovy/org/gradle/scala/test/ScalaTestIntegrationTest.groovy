@@ -17,14 +17,17 @@ package org.gradle.scala.test
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.ZincScalaCompileFixture
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.ZincScalaCompileFixture
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Rule
 
 class ScalaTestIntegrationTest extends AbstractIntegrationSpec {
     @Rule TestResources resources = new TestResources(temporaryFolder)
     @Rule public final ZincScalaCompileFixture zincScalaCompileFixture = new ZincScalaCompileFixture(executer, temporaryFolder)
 
+    @Requires(value = UnitTestPreconditions.Jdk23OrEarlier, reason = "2.11.12 is required for ScalaTest 2.x, which is not compatible with running on JDK 24.")
     def executesTestsWithMultiLineDescriptions() {
         file("build.gradle") << """
 apply plugin: 'scala'

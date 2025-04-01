@@ -18,13 +18,19 @@ package org.gradle.scala.scaladoc
 
 import org.gradle.api.plugins.scala.ScalaPlugin
 import org.gradle.integtests.fixtures.AbstractTaskRelocationIntegrationTest
+import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.scala.ScalaCompilationFixture
 
 import java.nio.file.Files
 
 class ScalaDocRelocationIntegrationTest extends AbstractTaskRelocationIntegrationTest {
 
-    private classes = new ScalaCompilationFixture(testDirectory)
+    private ScalaCompilationFixture classes
+
+    @Override
+    def setup() {
+        classes = new ScalaCompilationFixture(testDirectory)
+    }
 
     @Override
     protected String getTaskName() {
@@ -33,7 +39,7 @@ class ScalaDocRelocationIntegrationTest extends AbstractTaskRelocationIntegratio
 
     @Override
     protected void setupProjectInOriginalLocation() {
-        classes.scalaVersion = '2.12.18'
+        classes.scalaVersion = ScalaCoverage.latestSupportedScala2Version
         executer.beforeExecute {
             // Scaladoc leaks file handles if this is not activated: https://github.com/scala/scala/pull/5592
             // This requires Scala 2.12.2
