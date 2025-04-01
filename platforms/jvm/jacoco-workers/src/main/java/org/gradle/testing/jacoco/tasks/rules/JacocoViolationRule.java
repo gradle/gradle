@@ -17,8 +17,13 @@
 package org.gradle.testing.jacoco.tasks.rules;
 
 import org.gradle.api.Action;
+import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
+import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.api.tasks.Internal;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
 import java.io.Serializable;
 import java.util.List;
@@ -31,27 +36,18 @@ import java.util.List;
 public interface JacocoViolationRule extends Serializable {
 
     /**
-     * Sets the enabled.
-     *
-     * @since 3.4
-     */
-    void setEnabled(boolean enabled);
-
-    /**
      * Indicates if the rule should be used when checking generated coverage metrics. Defaults to true.
-     * @since 3.4
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    boolean isEnabled();
+    @ReplacesEagerProperty(originalType = boolean.class)
+    Property<Boolean> getEnabled();
 
-    /**
-     * Sets element for the rule.
-     *
-     * @param element Element
-     * @since 3.4
-     */
-    void setElement(String element);
+    @Internal
+    @Deprecated
+    default Property<Boolean> getIsEnabled() {
+        ProviderApiDeprecationLogger.logDeprecation(JacocoViolationRule.class, "getIsEnabled()", "getEnabled()");
+        return getEnabled();
+    }
 
     /**
      * Gets the element for the rule as defined by
@@ -60,16 +56,8 @@ public interface JacocoViolationRule extends Serializable {
      * @since 3.4
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    String getElement();
-
-    /**
-     * Sets list of elements that should be included in check.
-     *
-     * @param includes Inclusions
-     * @since 3.4
-     */
-    void setIncludes(List<String> includes);
+    @ReplacesEagerProperty
+    Property<String> getElement();
 
     /**
      * List of elements that should be included in check. Names can use wildcards (* and ?).
@@ -77,16 +65,8 @@ public interface JacocoViolationRule extends Serializable {
      * @since 3.4
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    List<String> getIncludes();
-
-    /**
-     * Sets list of elements that should be excluded from check.
-     *
-     * @param excludes Exclusions
-     * @since 3.4
-     */
-    void setExcludes(List<String> excludes);
+    @ReplacesEagerProperty
+    ListProperty<String> getIncludes();
 
     /**
      * List of elements that should be excluded from check. Names can use wildcards (* and ?).
@@ -94,16 +74,16 @@ public interface JacocoViolationRule extends Serializable {
      * @since 3.4
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    List<String> getExcludes();
+    @ReplacesEagerProperty
+    ListProperty<String> getExcludes();
 
     /**
      * Gets all limits defined for this rule. Defaults to an empty list.
      * @since 3.4
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    List<JacocoLimit> getLimits();
+    @ReplacesEagerProperty
+    Provider<List<JacocoLimit>> getLimits();
 
     /**
      * Adds a limit for this rule. Any number of limits can be added.

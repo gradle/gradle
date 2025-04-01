@@ -18,18 +18,19 @@ package org.gradle.internal.jacoco.rules
 
 import org.gradle.api.Action
 import org.gradle.testing.jacoco.tasks.rules.JacocoLimit
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class JacocoViolationRuleImplTest extends Specification {
 
-    JacocoViolationRuleImpl rule = new JacocoViolationRuleImpl()
+    JacocoViolationRuleImpl rule = TestUtil.newInstance(JacocoViolationRuleImpl)
 
     def "provides expected default field values"() {
         expect:
-        rule.enabled
-        rule.element == 'BUNDLE'
-        rule.includes == ['*']
-        rule.excludes == []
+        rule.enabled.get()
+        rule.element.get() == 'BUNDLE'
+        rule.includes.get() == ['*']
+        rule.excludes.get() == []
     }
 
     def "can add limits"() {
@@ -47,8 +48,8 @@ class JacocoViolationRuleImplTest extends Specification {
         })
 
         then:
-        rule.limits.size() == 1
-        rule.limits[0] == limit
+        rule.limits.get().size() == 1
+        rule.limits.get()[0] == limit
 
         when:
         limit = rule.limit(new Action<JacocoLimit>() {
@@ -64,27 +65,15 @@ class JacocoViolationRuleImplTest extends Specification {
         })
 
         then:
-        rule.limits.size() == 2
-        rule.limits[1] == limit
+        rule.limits.get().size() == 2
+        rule.limits.get()[1] == limit
     }
 
-    def "returned includes, excludes and limits are unmodifiable"() {
-        when:
-        rule.includes << ['*']
-
-        then:
-        thrown(UnsupportedOperationException)
-
-        when:
-        rule.excludes << ['*']
-
-        then:
-        thrown(UnsupportedOperationException)
-
+    def "returned limits are unmodifiable"() {
         when:
         rule.limits << new JacocoLimitImpl()
 
         then:
-        thrown(UnsupportedOperationException)
+        thrown(MissingMethodException)
     }
 }
