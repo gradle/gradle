@@ -49,6 +49,7 @@ class FlowParametersInstantiator(
     fun <P : FlowParameters> newInstance(parametersType: Class<P>, configure: (P) -> Unit): P {
         return instantiator.newInstance(parametersType).also {
             configure(it)
+            // TODO(mlopatkin) this doesn't prevent late binding to a task output (e.g. there can be a Property in the chain that is set later).
             validate(parametersType, it)
         }
     }
