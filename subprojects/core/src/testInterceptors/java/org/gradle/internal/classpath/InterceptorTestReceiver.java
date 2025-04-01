@@ -19,8 +19,6 @@ package org.gradle.internal.classpath;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.util.TestUtil;
 
-import javax.inject.Inject;
-
 public class InterceptorTestReceiver {
     private String testString = "testString";
     public String intercepted = null;
@@ -62,17 +60,12 @@ public class InterceptorTestReceiver {
     }
 
     /**
-     * A dummy class that has the same richProperty as InterceptorTestReceiver,
-     * so we can check that the original property is not intercepted
+     * A controlling object class that has the same richProperty as InterceptorTestReceiver,
+     * so we can check that the original property with the same name is not intercepted, but this one is.
      */
-    public abstract static class DummyObject {
+    public abstract static class ControllingObject {
 
-        public final InterceptorTestReceiver parent;
-
-        @Inject
-        public DummyObject(InterceptorTestReceiver parent) {
-            this.parent = parent;
-        }
+        public String intercepted = null;
 
         public abstract MapProperty<String, String> getRichProperty();
     }
