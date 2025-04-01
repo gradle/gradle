@@ -17,13 +17,14 @@
 package org.gradle.testing.jacoco.tasks;
 
 import org.gradle.api.Action;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.jacoco.AntJacocoCheck;
+import org.gradle.internal.jacoco.SerializableJacocoViolationRule;
 import org.gradle.internal.jacoco.rules.JacocoViolationRulesContainerImpl;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.testing.jacoco.tasks.rules.JacocoViolationRulesContainer;
 import org.gradle.workers.WorkQueue;
 import org.gradle.workers.WorkerExecutor;
@@ -31,6 +32,7 @@ import org.gradle.workers.WorkerExecutor;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
+import java.util.stream.Collectors;
 
 /**
  * Task for verifying code coverage metrics. Fails the task if violations are detected based on specified rules.
@@ -52,8 +54,8 @@ public abstract class JacocoCoverageVerification extends JacocoReportBase {
     @SuppressWarnings("this-escape")
     public JacocoCoverageVerification() {
         super();
-        Instantiator instantiator = getInstantiator();
-        violationRules = instantiator.newInstance(JacocoViolationRulesContainerImpl.class, instantiator);
+        ObjectFactory objectFactory = getProject().getObjects();
+        violationRules = objectFactory.newInstance(JacocoViolationRulesContainerImpl.class);
     }
 
     /**
@@ -107,7 +109,11 @@ public abstract class JacocoCoverageVerification extends JacocoReportBase {
             parameters.getExecutionData().convention(getExecutionData());
 
             parameters.getFailOnViolation().convention(getViolationRules().getFailOnViolation());
-            parameters.getRules().convention(getViolationRules().getRules());
+            parameters.getRules().convention(
+                getViolationRules().getRules().get().stream()
+                    .map(SerializableJacocoViolationRule::of)
+                    .collect(Collectors.toSet())
+            );
 
             parameters.getDummyOutputFile().fileValue(getDummyOutputFile());
         });

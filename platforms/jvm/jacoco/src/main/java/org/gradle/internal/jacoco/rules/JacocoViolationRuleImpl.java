@@ -68,41 +68,4 @@ public abstract class JacocoViolationRuleImpl implements JacocoViolationRule {
         limits.add(limit);
         return limit;
     }
-
-    @Override
-    @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        JacocoViolationRuleImpl that = (JacocoViolationRuleImpl) o;
-
-        if (getEnabled().get().equals(that.getEnabled().get())) {
-            return false;
-        }
-        if (getElement().get().equals(that.getElement().get())) {
-            return false;
-        }
-        if (getIncludes().get().equals(that.getIncludes().get())) {
-            return false;
-        }
-        if (getExcludes().get().equals(that.getExcludes().get())) {
-            return false;
-        }
-        return getLimits().get().equals(that.getLimits().get());
-    }
-
-    @Override
-    public int hashCode() {
-        int result = getEnabled().get() ? 1 : 0;
-        result = 31 * result + getElement().get().hashCode();
-        result = 31 * result + getIncludes().get().hashCode();
-        result = 31 * result + getExcludes().get().hashCode();
-        result = 31 * result + getLimits().get().hashCode();
-        return result;
-    }
 }
