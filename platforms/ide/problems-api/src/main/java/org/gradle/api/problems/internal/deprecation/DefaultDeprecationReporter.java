@@ -76,6 +76,4 @@ public class DefaultDeprecationReporter implements DeprecationReporter {
         reporter.report(deprecationProblem);
         return deprecationProblem;
     }
-
-    // TODO (donat) cover indirectDeprecation: by default all deprecations are direct and so they should have stackLocation. The API should have an indirect() call on the spec to disable that.
 }
