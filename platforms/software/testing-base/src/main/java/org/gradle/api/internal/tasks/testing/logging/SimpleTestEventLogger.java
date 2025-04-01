@@ -72,13 +72,13 @@ public class SimpleTestEventLogger implements TestListenerInternal {
                 for (TestFailure failure : result.getFailures()) {
                     TestFailureDetails details = failure.getDetails();
                     if (!TextUtil.isBlank(details.getMessage())) {
-                        if (details.isAssertionFailure()) {
-                            // test assertion (should be most common)
-                            output.append("    ").withStyle(StyledTextOutput.Style.Failure).println(details.getMessage());
-                        } else if (details.isFileComparisonFailure()) {
+                        if (details.isFileComparisonFailure()) {
                             // comparison failure
                             output.append("    Expected: ").withStyle(StyledTextOutput.Style.Failure).println(details.getExpected());
                             output.append("    Actual: ").withStyle(StyledTextOutput.Style.Success).println(details.getActual());
+                        } else if (details.isAssertionFailure()) {
+                            // test assertion
+                            output.append("    ").withStyle(StyledTextOutput.Style.Failure).println(details.getMessage());
                         } else {
                             // test framework failure?
                             output.append("    ").withStyle(StyledTextOutput.Style.Identifier).append(details.getClassName());
