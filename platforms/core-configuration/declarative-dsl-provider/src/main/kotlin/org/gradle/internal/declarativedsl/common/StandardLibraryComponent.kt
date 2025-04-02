@@ -27,8 +27,10 @@ import org.gradle.internal.declarativedsl.analysis.DefaultAssignmentAugmentation
 import org.gradle.internal.declarativedsl.analysis.DefaultDataParameter
 import org.gradle.internal.declarativedsl.analysis.DefaultDataTopLevelFunction
 import org.gradle.internal.declarativedsl.analysis.DefaultFqName
+import org.gradle.internal.declarativedsl.analysis.DefaultVarargParameter
 import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsInternal
 import org.gradle.internal.declarativedsl.analysis.ParameterSemanticsInternal
+import org.gradle.internal.declarativedsl.common.StandardLibraryComponent.topLevelFunctionDiscovery
 import org.gradle.internal.declarativedsl.evaluationSchema.AnalysisSchemaComponent
 import org.gradle.internal.declarativedsl.evaluationSchema.FixedTypeDiscovery
 import org.gradle.internal.declarativedsl.evaluationSchema.ObjectConversionComponent
@@ -47,6 +49,7 @@ import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingHost
 import org.gradle.internal.declarativedsl.schemaBuilder.TopLevelFunctionDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.inContextOfModelMember
+import org.gradle.internal.declarativedsl.schemaBuilder.parameterTypeToRefOrError
 import kotlin.reflect.KFunction
 import kotlin.reflect.full.createType
 import kotlin.reflect.jvm.javaMethod
@@ -69,14 +72,13 @@ object StandardLibraryComponent : AnalysisSchemaComponent, ObjectConversionCompo
 
             private val kotlinCollectionsListOf =
                 Class.forName("kotlin.collections.CollectionsKt").methods.single { it.name == "listOf" && it.parameters.singleOrNull()?.isVarArgs == true }.kotlinFunction!!
-
-            private val kotlinCollectionsMapOf =
-                Class.forName("kotlin.collections.MapsKt").methods.single { it.name == "mapOf" && it.parameters.singleOrNull()?.isVarArgs == true }.kotlinFunction!!
-
         }
     )
 
     private val kotlinTo: KFunction<Pair<Any, Any>> = ::to
+
+    private val kotlinCollectionsMapOf =
+        Class.forName("kotlin.collections.MapsKt").methods.single { it.name == "mapOf" && it.parameters.singleOrNull()?.isVarArgs == true }.kotlinFunction!!
 
     override fun functionExtractors(): List<FunctionExtractor> = listOf(
         /**
@@ -88,23 +90,42 @@ object StandardLibraryComponent : AnalysisSchemaComponent, ObjectConversionCompo
                 host: SchemaBuildingHost,
                 function: KFunction<*>,
                 preIndex: DataSchemaBuilder.PreIndex
-            ): DataTopLevelFunction? = if (function == kotlinTo) host.inContextOfModelMember(kotlinTo) {
-                val typeA = host.modelTypeRef(kotlinTo.typeParameters.first().createType())
-                val typeB = host.modelTypeRef(kotlinTo.parameters.single().type)
-                val returnType = host.modelTypeRef(kotlinTo.returnType)
+            ): DataTopLevelFunction? = when (function) {
+                kotlinTo -> host.inContextOfModelMember(kotlinTo) {
+                    val typeA = host.modelTypeRef(kotlinTo.typeParameters.first().createType())
+                    val typeB = host.modelTypeRef(kotlinTo.parameters.single().type)
+                    val returnType = host.modelTypeRef(kotlinTo.returnType)
 
-                DefaultDataTopLevelFunction(
-                    packageName = "kotlin",
-                    /** use the [org.gradle.internal.declarativedsl.intrinsics.to] intrinsic bridge as the runtime invocation target */
-                    ownerJvmTypeName = gradleRuntimeIntrinsicsKClass.java.name,
-                    simpleName = "to",
-                    listOf(
-                        DefaultDataParameter("first", typeA, false, ParameterSemanticsInternal.DefaultIdentityKey(null)), // import the receiver parameter as a data parameter
-                        DefaultDataParameter("second", typeB, false, ParameterSemanticsInternal.DefaultUnknown)
-                    ),
-                    FunctionSemanticsInternal.DefaultPure(returnType)
-                )
-            } else null
+                    DefaultDataTopLevelFunction(
+                        packageName = "kotlin",
+                        /** use the [org.gradle.internal.declarativedsl.intrinsics.to] intrinsic bridge as the runtime invocation target */
+                        ownerJvmTypeName = gradleRuntimeIntrinsicsKClass.java.name,
+                        simpleName = "to",
+                        listOf(
+                            DefaultDataParameter("first", typeA, false, ParameterSemanticsInternal.DefaultIdentityKey(null)), // import the receiver parameter as a data parameter
+                            DefaultDataParameter("second", typeB, false, ParameterSemanticsInternal.DefaultUnknown)
+                        ),
+                        FunctionSemanticsInternal.DefaultPure(returnType)
+                    )
+                }
+
+                kotlinCollectionsMapOf -> host.inContextOfModelMember(kotlinCollectionsMapOf) {
+                    val returnType = host.modelTypeRef(kotlinCollectionsMapOf.returnType)
+
+                    DefaultDataTopLevelFunction(
+                        packageName = "kotlin.collections",
+                        /** We use the [org.gradle.internal.declarativedsl.intrinsics.mapOf] bridge as the runtime invocation target. */
+                        ownerJvmTypeName = gradleRuntimeIntrinsicsKClass.java.name,
+                        simpleName = "mapOf",
+                        listOf(
+                            DefaultVarargParameter("pairs", kotlinCollectionsMapOf.parameters.last().parameterTypeToRefOrError(host), isDefault = false, ParameterSemanticsInternal.DefaultUnknown)
+                        ),
+                        FunctionSemanticsInternal.DefaultPure(returnType)
+                    )
+                }
+
+                else -> null
+            }
         }
     )
 

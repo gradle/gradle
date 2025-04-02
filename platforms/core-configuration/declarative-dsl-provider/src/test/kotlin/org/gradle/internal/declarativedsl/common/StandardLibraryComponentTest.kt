@@ -17,13 +17,20 @@
 package org.gradle.internal.declarativedsl.common
 
 import org.gradle.declarative.dsl.model.annotations.Restricted
+import org.gradle.declarative.dsl.schema.FqName
+import org.gradle.internal.declarativedsl.analysis.DefaultFqName
 import org.gradle.internal.declarativedsl.analysis.ErrorReason
 import org.gradle.internal.declarativedsl.analysis.analyzeEverything
 import org.gradle.internal.declarativedsl.demo.resolve
+import org.gradle.internal.declarativedsl.evaluationSchema.AnalysisSchemaComponent
 import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationAndConversionSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.interpretWithConversion
+import org.gradle.internal.declarativedsl.schemaBuilder.DefaultImportsProvider
+import org.gradle.internal.declarativedsl.schemaBuilder.TopLevelFunctionDiscovery
 import org.junit.Assert
 import org.junit.Test
+import kotlin.reflect.KFunction
+import kotlin.reflect.jvm.javaMethod
 
 class StandardLibraryComponentTest {
     @Test
@@ -84,36 +91,50 @@ class StandardLibraryComponentTest {
 
     val schema = buildEvaluationAndConversionSchema(TopLevel::class, analyzeEverything) {
         gradleDslGeneralSchema()
-    }
 
-    class TopLevel {
-        @get:Restricted
-        var myStrIntMap: Map<String, Int> = mapOf()
+        /**
+         * The DCL schema building facilities limit the [Map] value construction to [mapOf], but we also want to test that the rest of the pipeline can
+         * handle not just [mapOf] literals but other ways to create a map. For that, import [minusOneToSub] into the schema not by annotating it as
+         * a member but in a similar way to how [mapOf] itself is registered in the schema: as a top-level function (which plugin authors cannot contribute).
+         */
+        registerAnalysisSchemaComponent(object : AnalysisSchemaComponent {
+            override fun topLevelFunctionDiscovery(): List<TopLevelFunctionDiscovery> = listOf(object : TopLevelFunctionDiscovery {
+                override fun discoverTopLevelFunctions(): List<KFunction<*>> = listOf(::minusOneToSub)
+            })
 
-        @get:Restricted
-        var myIntSuperMap: Map<Int, Super> = mapOf()
-
-        @Restricted
-        fun opaqueString() = String()
-
-        @Restricted
-        fun sup() = Super()
-
-        @Restricted
-        fun sub() = Sub()
-
-        @Suppress("unused")
-        @Restricted
-        fun minusOneToSub() = mapOf(-1 to sub())
-    }
-
-    open class Super {
-        override fun equals(other: Any?): Boolean = other != null && other::class == Super::class
-        override fun hashCode(): Int = this::class.hashCode()
-    }
-
-    class Sub: Super() {
-        override fun equals(other: Any?): Boolean = other != null && other::class == Sub::class
-        override fun hashCode(): Int = this::class.hashCode()
+            override fun defaultImportsProvider(): List<DefaultImportsProvider> = listOf(object : DefaultImportsProvider {
+                override fun defaultImports(): List<FqName> = listOf(DefaultFqName.parse(::minusOneToSub.run { "${javaMethod!!.declaringClass.`package`.name}.$name" }))
+            })
+        })
     }
 }
+
+internal class TopLevel {
+    @get:Restricted
+    var myStrIntMap: Map<String, Int> = mapOf()
+
+    @get:Restricted
+    var myIntSuperMap: Map<Int, Super> = mapOf()
+
+    @Restricted
+    fun opaqueString() = String()
+
+    @Restricted
+    fun sup() = Super()
+
+    @Restricted
+    fun sub() = Sub()
+}
+
+open class Super {
+    override fun equals(other: Any?): Boolean = other != null && other::class == Super::class
+    override fun hashCode(): Int = this::class.hashCode()
+}
+
+class Sub : Super() {
+    override fun equals(other: Any?): Boolean = other != null && other::class == Sub::class
+    override fun hashCode(): Int = this::class.hashCode()
+}
+
+@Suppress("unused")
+fun minusOneToSub() = mapOf(-1 to Sub())
