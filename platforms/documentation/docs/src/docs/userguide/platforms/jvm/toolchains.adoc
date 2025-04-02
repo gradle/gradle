@@ -38,7 +38,7 @@ Gradle provides multiple ways to configure the Java version used for compiling a
 The five primary mechanisms are:
 
 1. *<<#sec:java-toolchains,Java toolchains>>*
-2. *<<#sec:flag-toolchain,The `--release` flag>>*
+2. *<<#sec:release-flag-toolchain,The `--release` flag>>*
 3. *<<#sec:source-target-toolchain,Source and Target compatibility>>*
 4. *<<#sec:java-home-toolchain,Environment variables (`JAVA_HOME`)>>*
 5. *<<#sec:ide-settings-toolchain,IDE settings>>*
@@ -58,7 +58,7 @@ include::sample[dir="snippets/java/toolchain-basic/groovy",files="build.gradle[t
 The `java` block is flexible and supports additional configuration options.
 You can learn more in <<sec:using-java-toolchains>>.
 
-[[sec:flag-toolchain]]
+[[sec:release-flag-toolchain]]
 === 2. The `--release` flag
 
 For strict cross-compilation, the `--release` flag is recommended instead of `sourceCompatibility` and `targetCompatibility`:
@@ -143,8 +143,14 @@ It is more reliable to use <<sec:java-toolchains,toolchains>>, which allow setti
 [[sec:ide-settings-toolchain]]
 === 5. IDE settings
 
-Most modern IDEs allow you to specify the Java version for Gradle independently.
-This can be useful if you want Gradle to match the JDK used in your development environment.
+Most modern IDEs allow you to configure the JVM used to run Gradle when working with a project.
+This setting affects how Gradle itself is executed inside the IDE, but not how your code is compiled—unless the build does not explicitly specify a toolchain.
+
+If your build does not define a Java toolchain, Gradle may fall back to using the Java version defined by the IDE settings. This can lead to unintended and non-reproducible behavior, especially if different team members use different IDE configurations.
+
+You should change the IDE's Gradle JVM setting to align with the JVM used on the command line (`JAVA_HOME` or the system’s default Java installation) —ensuring consistent behavior across environments (e.g., when running tests or tasks from the IDE vs the terminal).
+
+You should also change the IDE's Gradle JVM setting if the IDE emits a warning/error when the JVM is not set or does not match with `JAVA_HOME`.
 
 ==== IntelliJ IDEA
 
@@ -159,6 +165,9 @@ To configure the Gradle JVM:
 
 1. Open *Preferences* > *Gradle* > *Gradle JDK*.
 2. Select the appropriate JDK.
+
+NOTE: Some IDEs also allow you to configure the <<gradle_daemon.adoc#gradle_daemon,Gradle Daemon>> JVM in the same settings screen.
+Be careful not to confuse it with the toolchain or project JVM—*make sure you're selecting the correct one.*
 
 === Combining toolchains
 
@@ -176,7 +185,7 @@ For example, to compile with Java 17 but produce Java 11 bytecode:
 ----
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
+        languageVersion = JavaLanguageVersion.of(17)
     }
 }
 
@@ -239,7 +248,7 @@ Recommendation:
 - *For strict compatibility enforcement:* Use the `--release` flag.
 - *For advanced cases:* Combine toolchains and `--release`.
 - *Avoid* `sourceCompatibility` and `targetCompatibility` unless necessary.
-- *Use `JAVA_HOME`* only if you need to enforce a system-wide JDK version.
+- *Use `JAVA_HOME`* only if you need a default system-wide JDK version.
 - *Use IDE settings* if you want Gradle to match your IDE's JDK version.
 
 == Toolchains for tasks
