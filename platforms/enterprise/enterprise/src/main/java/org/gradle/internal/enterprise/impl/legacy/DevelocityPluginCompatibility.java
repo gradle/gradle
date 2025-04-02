@@ -24,7 +24,7 @@ import org.gradle.util.internal.VersionNumber;
  */
 public class DevelocityPluginCompatibility {
 
-    // Gradle versions 9+ are not compatible Gradle Enterprise plugin < 3.13.1
+    // Gradle versions 9+ are not compatible with Gradle Enterprise plugin < 3.13.1
     @VisibleForTesting
     public static final String MINIMUM_SUPPORTED_PLUGIN_VERSION = "3.13.1";
     @VisibleForTesting
