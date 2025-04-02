@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.impl.isolation
+package org.gradle.internal.isolate.graph
 
 import org.gradle.api.IsolatedAction
 import org.gradle.internal.cc.base.exceptions.ConfigurationCacheError
@@ -51,7 +51,6 @@ import java.util.IdentityHashMap
  *
  * @param G type of the root object stored in [graph]
  */
-internal
 class SerializedIsolatedActionGraph<G>(
     /**
      * The serialized graph.
@@ -74,7 +73,6 @@ interface IsolationCodecsProvider {
 }
 
 
-internal
 class IsolatedActionSerializer(
     private val owner: IsolateOwner,
     private val beanStateWriterLookup: BeanStateWriterLookup,
@@ -122,7 +120,6 @@ class IsolatedActionSerializer(
 }
 
 
-internal
 class IsolatedActionDeserializer(
     private val owner: IsolateOwner,
     private val beanStateReaderLookup: BeanStateReaderLookup,

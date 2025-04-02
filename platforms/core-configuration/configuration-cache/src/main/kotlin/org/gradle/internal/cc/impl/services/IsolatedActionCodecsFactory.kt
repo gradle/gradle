@@ -22,7 +22,7 @@ import org.gradle.api.internal.file.FilePropertyFactory
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory.ValueSourceProvider
 import org.gradle.api.internal.provider.PropertyFactory
 import org.gradle.api.services.internal.BuildServiceProvider
-import org.gradle.internal.cc.impl.isolation.IsolationCodecsProvider
+import org.gradle.internal.isolate.graph.IsolationCodecsProvider
 import org.gradle.internal.serialize.codecs.core.DirectoryCodec
 import org.gradle.internal.serialize.codecs.core.DirectoryPropertyCodec
 import org.gradle.internal.serialize.codecs.core.FixedValueReplacingProviderCodec

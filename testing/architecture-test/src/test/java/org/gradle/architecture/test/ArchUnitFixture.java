@@ -87,6 +87,7 @@ public interface ArchUnitFixture {
         "org.gradle.internal.serialize.beans..",
         "org.gradle.internal.serialize.codecs..",
         "org.gradle.internal.serialize.graph..",
+        "org.gradle.internal.isolate.graph..",
         "org.gradle.kotlin..",
         "org.gradle.internal.declarativedsl..",
         "org.gradle.declarative.dsl..",
