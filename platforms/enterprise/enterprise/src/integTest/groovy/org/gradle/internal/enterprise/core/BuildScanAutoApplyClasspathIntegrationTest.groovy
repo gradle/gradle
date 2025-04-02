@@ -23,7 +23,7 @@ import org.gradle.internal.enterprise.DevelocityPluginCheckInFixture
 import org.gradle.internal.enterprise.GradleEnterprisePluginCheckInFixture
 import org.junit.Assume
 
-import static org.gradle.internal.enterprise.impl.legacy.DevelocityPluginCompatibility.MINIMUM_SUPPORTED_PLUGIN_VERSION
+import static org.gradle.internal.enterprise.impl.legacy.DevelocityPluginCompatibility.MINIMUM_SUPPORTED_PLUGIN_VERSION_NUMBER
 
 abstract class BuildScanAutoApplyClasspathIntegrationTest extends AbstractIntegrationSpec {
 
@@ -82,8 +82,8 @@ abstract class BuildScanAutoApplyClasspathIntegrationTest extends AbstractIntegr
         autoAppliedPluginFixture.publishDummyPlugin(executer)
 
         transitivePluginFixture.publishDummyPlugin(executer)
-        transitivePluginFixture.runtimeVersion = MINIMUM_SUPPORTED_PLUGIN_VERSION
-        transitivePluginFixture.artifactVersion = MINIMUM_SUPPORTED_PLUGIN_VERSION
+        transitivePluginFixture.runtimeVersion = MINIMUM_SUPPORTED_PLUGIN_VERSION_NUMBER
+        transitivePluginFixture.artifactVersion = MINIMUM_SUPPORTED_PLUGIN_VERSION_NUMBER
 
         file("build-src/my-plugin/build.gradle") << """
             plugins {

@@ -25,7 +25,7 @@ import org.gradle.util.internal.VersionNumber
 import spock.lang.Issue
 
 import static org.gradle.initialization.StartParameterBuildOptions.BuildScanOption
-import static org.gradle.internal.enterprise.impl.legacy.DevelocityPluginCompatibility.MINIMUM_SUPPORTED_PLUGIN_VERSION_DISPLAY
+import static org.gradle.internal.enterprise.impl.legacy.DevelocityPluginCompatibility.MINIMUM_SUPPORTED_PLUGIN_VERSION
 
 class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
 
@@ -124,7 +124,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         sequence | version
-        "older"  | MINIMUM_SUPPORTED_PLUGIN_VERSION_DISPLAY
+        "older"  | MINIMUM_SUPPORTED_PLUGIN_VERSION
         "same"   | PLUGIN_AUTO_APPLY_VERSION
         "newer"  | PLUGIN_NEWER_VERSION
     }
@@ -153,7 +153,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         sequence | version
-        "older"  | MINIMUM_SUPPORTED_PLUGIN_VERSION_DISPLAY
+        "older"  | MINIMUM_SUPPORTED_PLUGIN_VERSION
         "same"   | PLUGIN_AUTO_APPLY_VERSION
         "newer"  | PLUGIN_NEWER_VERSION
     }
@@ -186,7 +186,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         sequence | version
-        "older"  | MINIMUM_SUPPORTED_PLUGIN_VERSION_DISPLAY
+        "older"  | MINIMUM_SUPPORTED_PLUGIN_VERSION
         "same"   | PLUGIN_AUTO_APPLY_VERSION
         "newer"  | PLUGIN_NEWER_VERSION
     }
