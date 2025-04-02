@@ -102,6 +102,7 @@ import org.gradle.internal.serialize.codecs.core.UnsupportedFingerprintFlowProvi
 import org.gradle.internal.serialize.codecs.core.ValueSourceProviderCodec
 import org.gradle.internal.serialize.codecs.core.WorkNodeActionCodec
 import org.gradle.internal.serialize.codecs.core.WorkNodeCodec
+import org.gradle.internal.serialize.codecs.core.baseTypes
 import org.gradle.internal.serialize.codecs.core.defaultCodecForProviderWithChangingValue
 import org.gradle.internal.serialize.codecs.core.groovyCodecs
 import org.gradle.internal.serialize.codecs.core.jos.ExternalizableCodec
