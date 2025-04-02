@@ -53,6 +53,7 @@ dependencies {
     implementation(projects.files)
     implementation(projects.flowServices)
     implementation(projects.functional)
+    implementation(projects.graphIsolation)
     implementation(projects.hashing)
     implementation(projects.inputTracking)
     implementation(projects.instrumentationAgentServices)

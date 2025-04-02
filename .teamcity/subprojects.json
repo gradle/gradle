@@ -588,6 +588,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "graph-isolation",
+    "path": "platforms/core-configuration/graph-isolation",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "graph-serialization",
     "path": "platforms/core-configuration/graph-serialization",
     "unitTests": false,

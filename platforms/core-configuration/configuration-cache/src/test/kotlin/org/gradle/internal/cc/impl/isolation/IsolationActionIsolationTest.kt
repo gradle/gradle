@@ -29,6 +29,9 @@ import org.gradle.internal.cc.base.serialize.IsolateOwners
 import org.gradle.internal.serialize.beans.services.DefaultBeanStateWriterLookup
 import org.gradle.internal.cc.impl.services.IsolatedActionCodecsFactory
 import org.gradle.internal.Cast.uncheckedNonnullCast
+import org.gradle.internal.isolate.graph.IsolatedActionDeserializer
+import org.gradle.internal.isolate.graph.IsolatedActionSerializer
+import org.gradle.internal.isolate.graph.SerializedIsolatedActionGraph
 import org.gradle.internal.isolation.IsolatedActionsForTesting.isolatedActionLambdaWith
 import org.gradle.internal.serialize.codecs.core.jos.JavaSerializationEncodingLookup
 import org.gradle.util.TestUtil

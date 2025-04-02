@@ -23,11 +23,11 @@ import org.gradle.api.ProjectState
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.invocation.Gradle
 import org.gradle.internal.cc.base.serialize.IsolateOwners
-import org.gradle.internal.cc.impl.isolation.IsolatedActionDeserializer
-import org.gradle.internal.cc.impl.isolation.IsolatedActionSerializer
-import org.gradle.internal.cc.impl.isolation.SerializedIsolatedActionGraph
 import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.extensions.stdlib.uncheckedCast
+import org.gradle.internal.isolate.graph.IsolatedActionDeserializer
+import org.gradle.internal.isolate.graph.IsolatedActionSerializer
+import org.gradle.internal.isolate.graph.SerializedIsolatedActionGraph
 import org.gradle.internal.serialize.graph.IsolateOwner
 import org.gradle.internal.serialize.graph.serviceOf
 import org.gradle.invocation.GradleLifecycleActionExecutor
