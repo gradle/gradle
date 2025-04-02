@@ -85,7 +85,7 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         task instanceof Ear
-        task.destinationDirectory.get() == project.libsDirectory.get()
+        task.destinationDirectory.get() == project.base.libsDirectory.get()
 
         when:
         task = project.tasks[BasePlugin.ASSEMBLE_TASK_NAME]
@@ -105,7 +105,7 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
         then:
         task instanceof Ear
         task dependsOn(JvmConstants.CLASSES_TASK_NAME, JvmConstants.COMPILE_JAVA_TASK_NAME)
-        task.destinationDirectory.get() == project.libsDirectory.get()
+        task.destinationDirectory.get() == project.base.libsDirectory.get()
 
         when:
         task = project.tasks[BasePlugin.ASSEMBLE_TASK_NAME]
@@ -142,7 +142,7 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
         def task = project.task(type: Ear, 'customEar')
 
         then:
-        task.destinationDirectory.get() == project.libsDirectory.get()
+        task.destinationDirectory.get() == project.base.libsDirectory.get()
     }
 
     def "works with java base plugin applied before ear plugin"() {
@@ -154,7 +154,7 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
         def task = project.task(type: Ear, 'customEar')
 
         then:
-        task.destinationDirectory.get() == project.libsDirectory.get()
+        task.destinationDirectory.get() == project.base.libsDirectory.get()
     }
 
     def "applies mappings to archive tasks for java project"() {
@@ -166,7 +166,7 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
         def task = project.task(type: Ear, 'customEar')
 
         then:
-        task.destinationDirectory.get() == project.libsDirectory.get()
+        task.destinationDirectory.get() == project.base.libsDirectory.get()
         task dependsOn(hasItems(JvmConstants.CLASSES_TASK_NAME, JvmConstants.COMPILE_JAVA_TASK_NAME))
     }
 

@@ -20,7 +20,6 @@ dependencies {
     api(projects.modelCore)
 
     api(libs.guava)
-    api(libs.inject)
     api(libs.jspecify)
     api(libs.jsr305)
 
