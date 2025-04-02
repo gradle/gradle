@@ -16,18 +16,10 @@
 
 package org.gradle.kotlin.dsl.plugins.dsl
 
-import org.gradle.api.Project
-import org.gradle.kotlin.dsl.*
-
 
 /**
  * Options for the `kotlin-dsl` plugin.
  *
  * @see KotlinDslPlugin
  */
-abstract class KotlinDslPluginOptions internal constructor() // TODO: needs to go?
-
-
-internal
-fun Project.kotlinDslPluginOptions(action: KotlinDslPluginOptions.() -> Unit) =
-    extensions.getByType<KotlinDslPluginOptions>().apply(action)
+abstract class KotlinDslPluginOptions internal constructor()

@@ -50,21 +50,19 @@ abstract class KotlinDslCompilerPlugins : Plugin<Project> {
             assignment.annotation(SupportsKotlinAssignmentOverloading::class.qualifiedName!!)
         }
 
-        kotlinDslPluginOptions {
-            tasks.withType<KotlinCompile>().configureEach { kotlinCompile ->
-                kotlinCompile.compilerOptions {
-                    apiVersion.set(KotlinVersion.KOTLIN_1_8)
-                    languageVersion.set(KotlinVersion.KOTLIN_1_8)
-                    freeCompilerArgs.addAll(KotlinDslPluginSupport.kotlinCompilerArgs)
-                }
-                kotlinCompile.setWarningRewriter(ExperimentalCompilerWarningSilencer(listOf(
-                    "-XXLanguage:+DisableCompatibilityModeForNewInference",
-                    "-XXLanguage:-TypeEnhancementImprovementsInStrictMode",
-                )))
-                // Set this back to a warning for now, as this plugin is frequently used without toolchains specifying a JVM target, and it causes errors when using newer JDKs.
-                // This can be removed when https://youtrack.jetbrains.com/issue/KT-66919 is fixed.
-                kotlinCompile.jvmTargetValidationMode.set(JvmTargetValidationMode.WARNING)
+        tasks.withType<KotlinCompile>().configureEach { kotlinCompile ->
+            kotlinCompile.compilerOptions {
+                apiVersion.set(KotlinVersion.KOTLIN_1_8)
+                languageVersion.set(KotlinVersion.KOTLIN_1_8)
+                freeCompilerArgs.addAll(KotlinDslPluginSupport.kotlinCompilerArgs)
             }
+            kotlinCompile.setWarningRewriter(ExperimentalCompilerWarningSilencer(listOf(
+                "-XXLanguage:+DisableCompatibilityModeForNewInference",
+                "-XXLanguage:-TypeEnhancementImprovementsInStrictMode",
+            )))
+            // Set this back to a warning for now, as this plugin is frequently used without toolchains specifying a JVM target, and it causes errors when using newer JDKs.
+            // This can be removed when https://youtrack.jetbrains.com/issue/KT-66919 is fixed.
+            kotlinCompile.jvmTargetValidationMode.set(JvmTargetValidationMode.WARNING)
         }
     }
 
