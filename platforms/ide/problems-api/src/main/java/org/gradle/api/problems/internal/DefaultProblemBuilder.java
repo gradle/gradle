@@ -53,7 +53,6 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     private AdditionalData additionalData;
     private boolean collectStackLocation = false;
     private ProblemDiagnostics diagnostics;
-    private boolean stackAsOriginLocation;
 
     public DefaultProblemBuilder(
         ProblemsInfrastructure infrastructure
@@ -97,7 +96,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
 
         ProblemDiagnostics diagnostics = determineDiagnostics();
         if (diagnostics != null) {
-            addLocationsFromDiagnostics(stackAsOriginLocation ? this.originLocations : this.contextLocations, diagnostics);
+            addLocationsFromDiagnostics(collectStackLocation ? this.originLocations : this.contextLocations, diagnostics);
         }
 
         ProblemDefinition problemDefinition = new DefaultProblemDefinition(getId(), getSeverity(), docLink);
@@ -272,12 +271,6 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     @Override
     public InternalProblemSpec diagnostics(ProblemDiagnostics diagnostics) {
         this.diagnostics = diagnostics;
-        return this;
-    }
-
-    @Override
-    public InternalProblemSpec stackAsOriginLocation() {
-        this.stackAsOriginLocation = true;
         return this;
     }
 

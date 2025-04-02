@@ -78,7 +78,6 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
             ${problemIdScript()}
             problems.getReporter().report(problemId) {
                 it.stackLocation()
-                  .stackAsOriginLocation()
             }
         """
 
@@ -138,7 +137,6 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
                 .lineInFileLocation("${TextUtil.escapeString(location3)}", 45, 7, 10)
                 .offsetInFileLocation("${TextUtil.escapeString(location4)}", 55, 20)
                 .stackLocation()
-                .stackAsOriginLocation()
                 .details("problem details")
                 .solution("solution 1")
                 .solution("solution 2")

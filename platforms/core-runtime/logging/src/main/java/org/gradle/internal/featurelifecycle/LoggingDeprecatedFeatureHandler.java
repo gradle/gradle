@@ -114,8 +114,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
                     .severity(WARNING);
 
                 if (usage.getType() == DeprecatedFeatureUsage.Type.USER_CODE_DIRECT) {
-                    builder.stackAsOriginLocation()
-                        .stackLocation();
+                    builder.stackLocation();
                 }
                 addSolution(usage.getAdvice(), problemSpec);
                 addSolution(usage.getContextualAdvice(), problemSpec);
