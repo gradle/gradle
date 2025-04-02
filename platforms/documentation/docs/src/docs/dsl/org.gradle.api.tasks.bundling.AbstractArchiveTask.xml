@@ -22,7 +22,7 @@
             </tr>
             <tr>
                 <td>archiveBaseName</td>
-                <td><literal>project.archivesBaseName</literal></td>
+                <td><literal>project.base.archivesBaseName</literal></td>
             </tr>
             <tr>
                 <td>archiveVersion</td>
