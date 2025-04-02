@@ -20,13 +20,11 @@ import org.gradle.api.HasImplicitReceiver
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.SupportsKotlinAssignmentOverloading
-import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.logging.slf4j.ContextAwareTaskLogger
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.provider.KotlinDslPluginSupport
 import org.jetbrains.kotlin.assignment.plugin.gradle.AssignmentExtension
 import org.jetbrains.kotlin.assignment.plugin.gradle.AssignmentSubplugin
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import org.jetbrains.kotlin.gradle.dsl.jvm.JvmTargetValidationMode
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -55,12 +53,6 @@ abstract class KotlinDslCompilerPlugins : Plugin<Project> {
         kotlinDslPluginOptions {
             tasks.withType<KotlinCompile>().configureEach { kotlinCompile ->
                 kotlinCompile.compilerOptions {
-                    DeprecationLogger.whileDisabled {
-                        @Suppress("DEPRECATION")
-                        if (this@kotlinDslPluginOptions.jvmTarget.isPresent) {
-                            jvmTarget.set(this@kotlinDslPluginOptions.jvmTarget.map { JvmTarget.fromTarget(it) })
-                        }
-                    }
                     apiVersion.set(KotlinVersion.KOTLIN_1_8)
                     languageVersion.set(KotlinVersion.KOTLIN_1_8)
                     freeCompilerArgs.addAll(KotlinDslPluginSupport.kotlinCompilerArgs)
