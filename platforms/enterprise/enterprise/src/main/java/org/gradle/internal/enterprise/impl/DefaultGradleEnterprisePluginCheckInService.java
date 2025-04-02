@@ -16,6 +16,7 @@
 
 package org.gradle.internal.enterprise.impl;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.enterprise.GradleEnterprisePluginCheckInResult;
 import org.gradle.internal.enterprise.GradleEnterprisePluginCheckInService;
@@ -52,7 +53,9 @@ public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterp
     }
 
     // Used just for testing
+    @VisibleForTesting
     public static final String UNSUPPORTED_TOGGLE = "org.gradle.internal.unsupported-enterprise-plugin";
+    @VisibleForTesting
     public static final String UNSUPPORTED_TOGGLE_MESSAGE = "Enterprise plugin unsupported due to secret toggle";
 
     private static final String DISABLE_TEST_ACCELERATION_PROPERTY = "gradle.internal.testacceleration.disableImplicitApplication";
