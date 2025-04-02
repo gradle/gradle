@@ -24,7 +24,6 @@ import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
-import org.gradle.internal.component.model.GraphVariantSelectionResult;
 import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.VariantGraphResolveState;
@@ -65,7 +64,7 @@ public class IvyDependencyMetadata extends ExternalModuleDependencyMetadata {
     }
 
     @Override
-    protected GraphVariantSelectionResult selectLegacyConfigurations(
+    public List<? extends VariantGraphResolveState> selectLegacyVariants(
         GraphVariantSelector variantSelector,
         ImmutableAttributes consumerAttributes,
         ComponentGraphResolveState targetComponentState,
@@ -81,7 +80,7 @@ public class IvyDependencyMetadata extends ExternalModuleDependencyMetadata {
         // We have already verified that the target component does not support attribute matching,
         // so if it is not an ivy component, use the standard legacy selection mechanism.
         VariantGraphResolveState selected = variantSelector.selectLegacyVariant(consumerAttributes, targetComponentState, consumerSchema, variantSelector.getFailureHandler());
-        return new GraphVariantSelectionResult(Collections.singletonList(selected), false);
+        return Collections.singletonList(selected);
     }
 
     @Override
