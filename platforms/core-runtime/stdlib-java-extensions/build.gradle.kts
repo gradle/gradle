@@ -15,3 +15,7 @@ dependencies {
     api(libs.jsr305)
     api(libs.jspecify)
 }
+
+errorprone {
+    nullawayEnabled = true
+}

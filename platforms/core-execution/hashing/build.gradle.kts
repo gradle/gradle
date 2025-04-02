@@ -14,3 +14,4 @@ dependencies {
 
     implementation(libs.guava)
 }
+errorprone.nullawayEnabled = true
