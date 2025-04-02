@@ -21,6 +21,8 @@ import org.hamcrest.Matcher
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 
+import java.util.function.Consumer
+
 import static org.gradle.integtests.fixtures.DefaultTestExecutionResult.testCase
 import static org.hamcrest.CoreMatchers.hasItems
 import static org.hamcrest.CoreMatchers.not
@@ -224,6 +226,22 @@ class HtmlTestExecutionResult implements TestExecutionResult {
         @Override
         TestClassExecutionResult assertTestSkipped(String name, String displayName) {
             assert testsSkipped.contains(testCase(name, displayName))
+            return this
+        }
+
+        @Override
+        TestClassExecutionResult assertTestSkipped(String name, Consumer<SkippedExecutionResult> assertions) {
+            TestCase testCase = testsSkipped.find { it == testCase(name) }
+            String possibleText = testCase.getMessages().first()
+            final SkippedExecutionResult skippedExecutionResult
+            if (possibleText) {
+                String[] stacktraceMessage = possibleText.readLines().first().split(":", 2)
+                skippedExecutionResult = new SkippedExecutionResult(stacktraceMessage[1].trim(), stacktraceMessage[0], possibleText)
+            } else {
+                // no details about this skipped execution
+                skippedExecutionResult = new SkippedExecutionResult()
+            }
+            assertions.accept(skippedExecutionResult)
             return this
         }
 
