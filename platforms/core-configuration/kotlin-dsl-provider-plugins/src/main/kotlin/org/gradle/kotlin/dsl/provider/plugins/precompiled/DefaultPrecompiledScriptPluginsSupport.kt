@@ -19,7 +19,6 @@ package org.gradle.kotlin.dsl.provider.plugins.precompiled
 import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.Transformer
 import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileCollection
@@ -55,7 +54,6 @@ import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.GenerateExternal
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.GeneratePrecompiledScriptPluginAccessors
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.GenerateScriptPluginAdapters
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.HashedProjectSchema
-import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.STRICT_MODE_SYSTEM_PROPERTY_NAME
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.resolverEnvironmentStringFor
 import org.gradle.kotlin.dsl.support.ImplicitImports
 import org.gradle.kotlin.dsl.support.expectedKotlinDslPluginsVersion
@@ -232,13 +230,6 @@ fun Project.enableScriptCompilationOf(
                 sourceCodeOutputDir.set(it)
                 metadataOutputDir.set(accessorsMetadata)
                 compiledPluginsBlocksDir.set(compiledPluginsBlocks)
-                @Suppress("DEPRECATION")
-                strict.set(
-                    providers
-                        .systemProperty(STRICT_MODE_SYSTEM_PROPERTY_NAME)
-                        .map(strictModeSystemPropertyNameMapper)
-                        .orElse(true)
-                )
                 plugins.value(scriptPlugins)
             }
 
@@ -330,17 +321,6 @@ private fun Project.registerCompilePluginsBlocksTask(
             task.outputDir.set(outputDir)
         }
     }
-
-
-private
-val strictModeSystemPropertyNameMapper: Transformer<Boolean, String> = Transformer { prop ->
-    DeprecationLogger.deprecateSystemProperty(STRICT_MODE_SYSTEM_PROPERTY_NAME)
-        .willBeRemovedInGradle9()
-        .withUpgradeGuideSection(7, "strict-kotlin-dsl-precompiled-scripts-accessors-by-default")
-        .nagUser()
-    if (prop.isBlank()) true
-    else java.lang.Boolean.parseBoolean(prop)
-}
 
 
 private
