@@ -16,11 +16,13 @@
 
 package org.gradle.internal.scan.eob;
 
+import org.gradle.internal.scan.UsedByScanPlugin;
 import org.jspecify.annotations.Nullable;
 
 /**
  * Used by the scan plugin to register a listener to be notified about the build finishing.
  */
+@UsedByScanPlugin("until 3.4")
 public interface BuildScanEndOfBuildNotifier {
 
     interface BuildResult {
