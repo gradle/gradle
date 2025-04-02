@@ -56,7 +56,6 @@ class ProjectDependencyMetadataConverterTest extends AbstractDependencyDescripto
         !dependencyMetaData.changing
         !dependencyMetaData.force
         dependencyMetaData.selector == new DefaultProjectComponentSelector(new ProjectIdentity(DefaultBuildIdentifier.ROOT, Path.ROOT, Path.ROOT, "root"), ImmutableAttributes.EMPTY, ImmutableSet.of())
-        projectDependency == dependencyMetaData.source
 
         where:
         withArtifacts << [true, false]

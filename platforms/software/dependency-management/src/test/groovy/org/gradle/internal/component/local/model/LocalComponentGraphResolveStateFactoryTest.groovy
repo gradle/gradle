@@ -17,9 +17,7 @@
 package org.gradle.internal.component.local.model
 
 import org.gradle.api.artifacts.ConfigurationVariant
-import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencyConstraint
-import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.PublishArtifact
@@ -282,29 +280,6 @@ class LocalComponentGraphResolveStateFactoryTest extends AbstractProjectBuilderS
         config2.prepareForArtifactResolution().artifactVariants.find { it.name == "conf2-variant2" }.artifacts.size() == 2
     }
 
-    def "dependency is attached to configuration and its children"() {
-        def dependency1 = Mock(ExternalModuleDependency)
-        def dependency2 = Mock(ExternalModuleDependency)
-        def dependency3 = Mock(ExternalModuleDependency)
-
-        when:
-        def conf1 = dependencyScope("conf1")
-        def conf2 = dependencyScope("conf2")
-        def conf3 = dependencyScope("conf3", [conf1, conf2])
-        consumable("child1", [conf3])
-        consumable("child2", [conf1])
-        consumable("other")
-
-        conf1.getDependencies().add(dependency1)
-        conf2.getDependencies().add(dependency2)
-        conf3.getDependencies().add(dependency3)
-
-        then:
-        state.candidatesForGraphVariantSelection.getVariantByConfigurationName("child1").dependencies*.source == [dependency1, dependency2, dependency3]
-        state.candidatesForGraphVariantSelection.getVariantByConfigurationName("child2").dependencies*.source == [dependency1]
-        state.candidatesForGraphVariantSelection.getVariantByConfigurationName("other").dependencies.isEmpty()
-    }
-
     def "builds and caches exclude rules for a configuration"() {
         given:
         def conf = dependencyScope("conf")
@@ -342,14 +317,14 @@ class LocalComponentGraphResolveStateFactoryTest extends AbstractProjectBuilderS
         configuration.artifacts.add(publishArtifact)
     }
 
-    LocalOriginDependencyMetadata dependencyMetadata(Dependency dependency) {
-        return new DslOriginDependencyMetadataWrapper(Mock(LocalOriginDependencyMetadata), dependency)
+    LocalOriginDependencyMetadata mockDependencyMetadata() {
+        Mock(LocalOriginDependencyMetadata)
     }
 
     class TestDependencyMetadataFactory implements DependencyMetadataFactory {
         @Override
         LocalOriginDependencyMetadata createDependencyMetadata(ModuleDependency dependency) {
-            return dependencyMetadata(dependency)
+            return mockDependencyMetadata()
         }
 
         @Override

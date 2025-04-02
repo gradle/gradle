@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
 import org.gradle.api.Action
-import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ComponentSelector
@@ -57,7 +56,6 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentIdenti
 import org.gradle.internal.component.external.model.ImmutableCapabilities
 import org.gradle.internal.component.local.model.DefaultLocalVariantGraphResolveMetadata
 import org.gradle.internal.component.local.model.DefaultLocalVariantGraphResolveState
-import org.gradle.internal.component.local.model.DslOriginDependencyMetadataWrapper
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveMetadata
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState
@@ -1183,19 +1181,24 @@ class DependencyGraphBuilderTest extends Specification {
         ModuleVersionIdentifier dependencyId = args.revision ? newId(DefaultModuleIdentifier.newId(to.group, to.name), args.revision) : to
         boolean transitive = args.transitive == null || args.transitive
         boolean force = args.force
-        boolean optional = args.optional ?: false
         ComponentSelector componentSelector = newSelector(DefaultModuleIdentifier.newId(dependencyId.group, dependencyId.name), new DefaultMutableVersionConstraint(dependencyId.version))
         List<ExcludeMetadata> excludeRules = []
         if (args.exclude) {
             ComponentGraphResolveState excluded = args.exclude.component
             excludeRules << new DefaultExclude(moduleIdentifierFactory.module(excluded.metadata.moduleVersionId.group, excluded.metadata.moduleVersionId.name))
         }
-        def dependencyMetaData = new LocalComponentDependencyMetadata(componentSelector,
-            "default", [] as List<IvyArtifactName>,
-            excludeRules, force, false, transitive, false, false, null)
-        dependencyMetaData = new DslOriginDependencyMetadataWrapper(dependencyMetaData, Stub(ModuleDependency) {
-            getAttributes() >> ImmutableAttributes.EMPTY
-        })
+        def dependencyMetaData = new LocalComponentDependencyMetadata(
+            componentSelector,
+            "default",
+            [] as List<IvyArtifactName>,
+            excludeRules,
+            force,
+            false,
+            transitive,
+            false,
+            false,
+            null
+        )
         from.variant.dependencies.add(dependencyMetaData)
         return componentSelector
     }
