@@ -60,7 +60,7 @@ tasks.jacocoTestCoverageVerification {
         }
 
         rule {
-            isEnabled = false
+            enabled = false
             element = "CLASS"
             includes = listOf("org.gradle.*")
 
