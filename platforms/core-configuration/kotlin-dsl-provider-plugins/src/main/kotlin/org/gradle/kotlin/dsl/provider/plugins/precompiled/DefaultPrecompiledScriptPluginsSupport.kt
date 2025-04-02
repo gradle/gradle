@@ -36,7 +36,6 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
-import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.deprecation.Documentation
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter
 import org.gradle.jvm.toolchain.JavaToolchainService
@@ -356,9 +355,7 @@ fun configureKotlinCompilerArguments(
                     validateKotlinCompilerArguments()
                 }
             } else {
-                doFirst {
-                    configureKotlinCompilerArgumentsEagerly(resolverEnvironment)
-                }
+                configureKotlinCompilerArgumentsEagerly()
             }
         }
     }
@@ -404,23 +401,12 @@ fun Task.validateKotlinCompilerArguments() {
 
 
 private
-fun Task.configureKotlinCompilerArgumentsEagerly(resolverEnvironment: Provider<String>) {
-    DeprecationLogger.deprecateBehaviour("Using the `kotlin-dsl` plugin together with Kotlin Gradle Plugin < 1.8.0.")
-        .withAdvice(
-            "Please let Gradle control the version of `kotlin-dsl` by removing any explicit `kotlin-dsl` version constraints from your build logic. " +
-                "Or use version $expectedKotlinDslPluginsVersion which is the expected version for this Gradle release. " +
-                "If you explicitly declare which version of the Kotlin Gradle Plugin to use for your build logic, update it to >= 1.8.0."
-        )
-        .willBecomeAnErrorInGradle9()
-        .withUpgradeGuideSection(8, "kotlin_dsl_with_kgp_lt_1_8_0")
-        .nagUser()
-    withGroovyBuilder {
-        getProperty("kotlinOptions").withGroovyBuilder {
-            @Suppress("unchecked_cast")
-            val freeCompilerArgs: List<String> = getProperty("freeCompilerArgs") as List<String>
-            setProperty("freeCompilerArgs", freeCompilerArgs + scriptTemplatesArgs + resolverEnvironment.mappedToScriptResolverEnvironmentArg.get())
-        }
-    }
+fun configureKotlinCompilerArgumentsEagerly() {
+    throw PrecompiledScriptException("Using the `kotlin-dsl` plugin together with Kotlin Gradle Plugin < 1.8.0. " +
+        "Please let Gradle control the version of `kotlin-dsl` by removing any explicit `kotlin-dsl` version constraints from your build logic. " +
+        "Or use version $expectedKotlinDslPluginsVersion which is the expected version for this Gradle release. " +
+        "If you explicitly declare which version of the Kotlin Gradle Plugin to use for your build logic, update it to >= 1.8.0."
+    )
 }
 
 
