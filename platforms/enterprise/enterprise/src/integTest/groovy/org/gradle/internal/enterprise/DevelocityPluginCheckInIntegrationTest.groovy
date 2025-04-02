@@ -110,9 +110,9 @@ class DevelocityPluginCheckInIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         if (applied) {
-            output.contains("develocityPlugin.checkIn.unsupported.reasonMessage = Gradle Enterprise plugin 3.13.1 has been disabled as it is incompatible with Isolated Projects feature. Upgrade to Gradle Enterprise plugin 3.13.1 or newer to restore functionality.")
+            assert output.contains("develocityPlugin.checkIn.unsupported.reasonMessage = Gradle Enterprise plugin 3.13.1 has been disabled as it is incompatible with Isolated Projects feature. Upgrade to Gradle Enterprise plugin 3.13.1 or newer to restore functionality.")
         } else {
-            output.contains("develocityPlugin.checkIn.supported")
+            assert output.contains("develocityPlugin.checkIn.supported")
         }
 
         where:
