@@ -16,6 +16,7 @@
 
 package org.gradle.internal.enterprise.impl.legacy;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.util.internal.VersionNumber;
 
 /**
@@ -24,8 +25,15 @@ import org.gradle.util.internal.VersionNumber;
 public class DevelocityPluginCompatibility {
 
     // Gradle versions 9+ are not compatible Gradle Enterprise plugin < 3.13.1
+    @VisibleForTesting
     public static final String MINIMUM_SUPPORTED_PLUGIN_VERSION_DISPLAY = "3.13.1";
+    @VisibleForTesting
     public static final VersionNumber MINIMUM_SUPPORTED_PLUGIN_VERSION = VersionNumber.parse(MINIMUM_SUPPORTED_PLUGIN_VERSION_DISPLAY);
+
+    @VisibleForTesting
+    public static final String ISOLATED_PROJECTS_SUPPORTED_PLUGIN_VERSION = "3.15";
+    @VisibleForTesting
+    public static final VersionNumber ISOLATED_PROJECTS_SUPPORTED_PLUGIN_VERSION_NUMBER = VersionNumber.parse(ISOLATED_PROJECTS_SUPPORTED_PLUGIN_VERSION);
 
     public static boolean isUnsupportedPluginVersion(VersionNumber pluginBaseVersion) {
         return MINIMUM_SUPPORTED_PLUGIN_VERSION.compareTo(pluginBaseVersion) > 0;
@@ -39,4 +47,15 @@ public class DevelocityPluginCompatibility {
         );
     }
 
+    public static boolean isUnsupportedWithIsolatedProjects(VersionNumber pluginBaseVersion) {
+        return ISOLATED_PROJECTS_SUPPORTED_PLUGIN_VERSION_NUMBER.compareTo(pluginBaseVersion) > 0;
+    }
+
+    public static String getUnsupportedWithIsolatedProjectsMessage(String pluginVersion) {
+        return String.format(
+            "Gradle Enterprise plugin %s has been disabled as it is incompatible with Isolated Projects feature. Upgrade to Gradle Enterprise plugin %s or newer to restore functionality.",
+            pluginVersion,
+            ISOLATED_PROJECTS_SUPPORTED_PLUGIN_VERSION
+        );
+    }
 }

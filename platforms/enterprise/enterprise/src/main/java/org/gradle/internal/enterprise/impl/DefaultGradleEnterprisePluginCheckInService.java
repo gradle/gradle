@@ -29,7 +29,9 @@ import org.jspecify.annotations.Nullable;
 import java.util.function.Supplier;
 
 import static org.gradle.internal.enterprise.impl.legacy.DevelocityPluginCompatibility.getUnsupportedPluginMessage;
+import static org.gradle.internal.enterprise.impl.legacy.DevelocityPluginCompatibility.getUnsupportedWithIsolatedProjectsMessage;
 import static org.gradle.internal.enterprise.impl.legacy.DevelocityPluginCompatibility.isUnsupportedPluginVersion;
+import static org.gradle.internal.enterprise.impl.legacy.DevelocityPluginCompatibility.isUnsupportedWithIsolatedProjects;
 
 public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterprisePluginCheckInService {
 
@@ -51,9 +53,6 @@ public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterp
     public static final String UNSUPPORTED_TOGGLE = "org.gradle.internal.unsupported-enterprise-plugin";
     public static final String UNSUPPORTED_TOGGLE_MESSAGE = "Enterprise plugin unsupported due to secret toggle";
 
-    public static final VersionNumber MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_ISOLATED_PROJECTS = VersionNumber.version(3, 15);
-    public static final String UNSUPPORTED_PLUGIN_DUE_TO_ISOLATED_PROJECTS_MESSAGE = "Gradle Enterprise plugin has been disabled as it is incompatible with the isolated projects feature";
-
     private static final String DISABLE_TEST_ACCELERATION_PROPERTY = "gradle.internal.testacceleration.disableImplicitApplication";
 
     @Override
@@ -69,12 +68,12 @@ public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterp
             return checkInUnsupportedResult(getUnsupportedPluginMessage(pluginVersion));
         }
 
-        if (isUnsupportedWithIsolatedProjects(pluginBaseVersion)) {
+        if (isIsolatedProjectsEnabled && isUnsupportedWithIsolatedProjects(pluginBaseVersion)) {
             // Until GE plugin 3.14, Test Acceleration is applied even if the check-in returns an "unsupported" result.
             // We have to disable it explicitly, because it is not compatible with isolated projects.
             System.setProperty(DISABLE_TEST_ACCELERATION_PROPERTY, "true");
 
-            return checkInUnsupportedResult(UNSUPPORTED_PLUGIN_DUE_TO_ISOLATED_PROJECTS_MESSAGE);
+            return checkInUnsupportedResult(getUnsupportedWithIsolatedProjectsMessage(pluginVersion));
         }
 
         DefaultGradleEnterprisePluginAdapter adapter = pluginAdapterFactory.create(serviceFactory);
@@ -104,9 +103,4 @@ public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterp
             }
         };
     }
-
-    private boolean isUnsupportedWithIsolatedProjects(VersionNumber pluginBaseVersion) {
-        return isIsolatedProjectsEnabled && MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_ISOLATED_PROJECTS.compareTo(pluginBaseVersion) > 0;
-    }
-
 }
