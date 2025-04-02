@@ -43,7 +43,7 @@ import java.util.function.Consumer
 typealias TestableIsolatedAction<T> = IsolatedAction<in Consumer<T>>
 
 
-class IsolatedActionSerializerTest {
+class IsolationActionIsolationTest {
 
     @Test
     fun `can serialize Kotlin action`() {

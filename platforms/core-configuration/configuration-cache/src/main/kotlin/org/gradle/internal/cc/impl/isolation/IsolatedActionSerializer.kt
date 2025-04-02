@@ -20,7 +20,6 @@ import org.gradle.api.IsolatedAction
 import org.gradle.internal.cc.base.exceptions.ConfigurationCacheError
 import org.gradle.internal.cc.base.logger
 import org.gradle.internal.cc.base.problems.AbstractProblemsListener
-import org.gradle.internal.cc.impl.services.IsolatedActionCodecsFactory
 import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.extensions.stdlib.invert
 import org.gradle.internal.extensions.stdlib.uncheckedCast
@@ -31,6 +30,7 @@ import org.gradle.internal.serialize.graph.BeanStateWriterLookup
 import org.gradle.internal.serialize.graph.ClassDecoder
 import org.gradle.internal.serialize.graph.ClassEncoder
 import org.gradle.internal.serialize.graph.CloseableWriteContext
+import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.DefaultReadContext
 import org.gradle.internal.serialize.graph.DefaultWriteContext
 import org.gradle.internal.serialize.graph.IsolateOwner
@@ -69,11 +69,16 @@ class SerializedIsolatedActionGraph<G>(
 )
 
 
+interface IsolationCodecsProvider {
+    fun isolationCodecs(): Codec<Any?>
+}
+
+
 internal
 class IsolatedActionSerializer(
     private val owner: IsolateOwner,
     private val beanStateWriterLookup: BeanStateWriterLookup,
-    private val isolatedActionCodecs: IsolatedActionCodecsFactory
+    private val isolatedActionCodecs: IsolationCodecsProvider
 ) {
     fun <G : Any> serialize(action: G): SerializedIsolatedActionGraph<G> {
         val outputStream = ByteArrayOutputStream()
@@ -105,7 +110,7 @@ class IsolatedActionSerializer(
         outputStream: OutputStream,
         classEncoder: ClassEncoder,
     ): CloseableWriteContext = DefaultWriteContext(
-        codec = isolatedActionCodecs.isolatedActionCodecs(),
+        codec = isolatedActionCodecs.isolationCodecs(),
         encoder = KryoBackedEncoder(outputStream),
         beanStateWriterLookup = beanStateWriterLookup,
         isIntegrityCheckEnabled = false,
@@ -121,7 +126,7 @@ internal
 class IsolatedActionDeserializer(
     private val owner: IsolateOwner,
     private val beanStateReaderLookup: BeanStateReaderLookup,
-    private val isolatedActionCodecs: IsolatedActionCodecsFactory
+    private val isolatedActionCodecs: IsolationCodecsProvider
 ) {
     fun <G : Any> deserialize(action: SerializedIsolatedActionGraph<G>): G =
         readContextFor(action).useToRun {
@@ -136,7 +141,7 @@ class IsolatedActionDeserializer(
     fun readContextFor(
         action: SerializedIsolatedActionGraph<*>
     ) = DefaultReadContext(
-        codec = isolatedActionCodecs.isolatedActionCodecs(),
+        codec = isolatedActionCodecs.isolationCodecs(),
         decoder = KryoBackedDecoder(action.graph.inputStream()),
         beanStateReaderLookup = beanStateReaderLookup,
         isIntegrityCheckEnabled = false,
