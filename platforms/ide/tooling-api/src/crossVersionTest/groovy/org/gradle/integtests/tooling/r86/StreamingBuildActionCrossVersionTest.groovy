@@ -23,9 +23,9 @@ import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.tooling.BuildActionFailureException
 import org.gradle.tooling.GradleConnectionException
-import org.gradle.tooling.StreamedValueListener
 import org.gradle.tooling.IntermediateResultHandler
 import org.gradle.tooling.ResultHandler
+import org.gradle.tooling.StreamedValueListener
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.eclipse.EclipseProject
@@ -178,7 +178,7 @@ class StreamingBuildActionCrossVersionTest extends ToolingApiSpecification {
         assertHasConfigureSuccessfulLogging()
     }
 
-    @TargetGradleVersion(">=3.0 <8.6")
+    @TargetGradleVersion(">=4.0 <8.6")
     def "streaming fails when build action is running in a Gradle version that does not support streaming"() {
         when:
         def listener = { } as StreamedValueListener

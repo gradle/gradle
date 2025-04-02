@@ -91,7 +91,6 @@ class GradleBuildModelCrossVersionSpec extends ToolingApiSpecification {
         buildC.editableBuilds.empty
     }
 
-    @TargetGradleVersion(">=3.3")
     def "root build model exposes all builds that participate in the composite"() {
         given:
         singleProjectBuildInRootFolder("root") {

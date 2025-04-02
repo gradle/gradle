@@ -18,14 +18,12 @@ package org.gradle.integtests.tooling.r34
 
 import org.gradle.integtests.fixtures.executer.GradleBackedArtifactBuilder
 import org.gradle.integtests.fixtures.executer.NoDaemonGradleExecuter
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.ProjectConnection
 import spock.lang.Issue
 
-@TargetGradleVersion('>=3.4')
 class BuildActionCrossVersionSpec extends ToolingApiSpecification {
 
     @Issue("https://github.com/gradle/gradle/issues/1180")

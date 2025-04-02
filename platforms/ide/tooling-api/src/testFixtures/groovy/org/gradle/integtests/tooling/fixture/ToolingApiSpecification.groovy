@@ -71,8 +71,8 @@ import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
  */
 @ToolingApiTest
 @CleanupTestDirectory
-@ToolingApiVersion('>=7.0')
-@TargetGradleVersion('>=3.0')
+@ToolingApiVersion('>=8.0')
+@TargetGradleVersion('>=4.0')
 @Retry(condition = { onIssueWithReleasedGradleVersion(instance, failure) }, mode = SETUP_FEATURE_CLEANUP, count = 2)
 abstract class ToolingApiSpecification extends Specification implements KotlinDslTestProjectInitiation {
     /**
