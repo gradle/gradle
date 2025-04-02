@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 
 @FluidDependenciesResolveTest
 class FilteredConfigurationIntegrationTest extends AbstractDependencyResolutionTest {
+
     @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "can query files for filtered first level dependencies"() {
         mavenRepo.module("group", "test1", "1.0").publish()
@@ -52,12 +53,12 @@ class FilteredConfigurationIntegrationTest extends AbstractDependencyResolutionT
 
             task verify {
                 doLast {
-                    println "file-dependencies: " + configurations.compile.files { it instanceof FileCollectionDependency }.collect { it.name }
-                    println "external-dependencies: " + configurations.compile.files { it instanceof ExternalDependency }.collect { it.name }
-                    println "child1-dependencies: " + configurations.compile.files { it instanceof ProjectDependency && it.path == ':child1' }.collect { it.name }
+                    println "file-dependencies: " + configurations.compile.incoming.artifactView { componentFilter { !(it instanceof ModuleComponentIdentifier) && !(it instanceof ProjectComponentIdentifier) } }.files.collect { it.name }
+                    println "external-dependencies: " + configurations.compile.incoming.artifactView { componentFilter { it instanceof ModuleComponentIdentifier } }.files.collect { it.name }
+                    println "child1-dependencies: " + configurations.compile.incoming.artifactView { componentFilter { it instanceof ProjectComponentIdentifier && it.projectPath == ':child1' } }.files.collect { it.name }
 
-                    assert configurations.compile.resolvedConfiguration.files == configurations.compile.files
-                    assert configurations.compile.resolvedConfiguration.lenientConfiguration.files == configurations.compile.files
+                    assert configurations.compile.incoming.files.files == configurations.compile.files
+                    assert configurations.compile.incoming.artifactView {}.files.files == configurations.compile.files
                 }
             }
         """
@@ -87,17 +88,12 @@ class FilteredConfigurationIntegrationTest extends AbstractDependencyResolutionT
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("The Configuration.files(Closure) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration.getIncoming().artifactView(Action) with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
-        executer.expectDocumentedDeprecationWarning("The Configuration.files(Closure) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration.getIncoming().artifactView(Action) with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
-        executer.expectDocumentedDeprecationWarning("The Configuration.files(Closure) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration.getIncoming().artifactView(Action) with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
-        executer.expectDocumentedDeprecationWarning("The ResolvedConfiguration.getFiles() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration#getFiles instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_legacy_configuration_get_files")
-        executer.expectDocumentedDeprecationWarning("The LenientConfiguration.getFiles() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use a lenient ArtifactView instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_legacy_configuration_get_files")
         succeeds("verify")
 
         then:
-        outputContains("file-dependencies: [lib.jar]")
-        outputContains("external-dependencies: [test1-1.0.jar]")
-        outputContains("child1-dependencies: [child1.jar, child1-lib.jar, test2-1.0.jar]")
+        outputContains("file-dependencies: [lib.jar, child1-lib.jar]")
+        outputContains("external-dependencies: [test1-1.0.jar, test2-1.0.jar]")
+        outputContains("child1-dependencies: [child1.jar]")
     }
 
     @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
@@ -128,11 +124,11 @@ class FilteredConfigurationIntegrationTest extends AbstractDependencyResolutionT
 
             task verify {
                 doLast {
-                    println "external-dependencies: " + configurations.compile.files { it instanceof ExternalDependency }.collect { it.name }
-                    println "child1-dependencies: " + configurations.compile.files { it instanceof ProjectDependency && it.path == ':child1' }.collect { it.name }
+                    println "external-dependencies: " + configurations.compile.incoming.artifactView { componentFilter { it instanceof ModuleComponentIdentifier } }.files.collect { it.name }
+                    println "child1-dependencies: " + configurations.compile.incoming.artifactView { componentFilter { it instanceof ProjectComponentIdentifier && it.projectPath == ':child1' } }.files.collect { it.name }
 
-                    assert configurations.compile.resolvedConfiguration.files == configurations.compile.files
-                    assert configurations.compile.resolvedConfiguration.lenientConfiguration.files == configurations.compile.files
+                    assert configurations.compile.incoming.files.files == configurations.compile.files
+                    assert configurations.compile.incoming.artifactView {}.files.files == configurations.compile.files
                 }
             }
         """
@@ -153,15 +149,11 @@ class FilteredConfigurationIntegrationTest extends AbstractDependencyResolutionT
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("The Configuration.files(Closure) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration.getIncoming().artifactView(Action) with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
-        executer.expectDocumentedDeprecationWarning("The Configuration.files(Closure) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration.getIncoming().artifactView(Action) with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
-        executer.expectDocumentedDeprecationWarning("The ResolvedConfiguration.getFiles() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration#getFiles instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_legacy_configuration_get_files")
-        executer.expectDocumentedDeprecationWarning("The LenientConfiguration.getFiles() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use a lenient ArtifactView instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_legacy_configuration_get_files")
         succeeds("verify")
 
         then:
-        outputContains("external-dependencies: [test1-1.0.jar]")
-        outputContains("child1-dependencies: [child1.jar, child1-lib.jar, test2-1.0.jar, main.jar, lib.jar, test1-1.0.jar]")
+        outputContains("external-dependencies: [test1-1.0.jar, test2-1.0.jar]")
+        outputContains("child1-dependencies: [child1.jar]")
     }
 
     // Note: this captures existing behaviour (all files are built) rather than desired behaviour (only those files reachable from selected deps are built)
@@ -190,7 +182,7 @@ class FilteredConfigurationIntegrationTest extends AbstractDependencyResolutionT
             }
 
             task verify {
-                inputs.files configurations.compile.fileCollection { it instanceof ProjectDependency }
+                inputs.files configurations.compile.incoming.artifactView { componentFilter { it instanceof ProjectComponentIdentifier } }.files
             }
         """
 
@@ -214,7 +206,6 @@ class FilteredConfigurationIntegrationTest extends AbstractDependencyResolutionT
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("The Configuration.fileCollection(Closure) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration.getIncoming().artifactView(Action) with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
         succeeds("verify")
 
         then:

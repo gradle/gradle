@@ -51,8 +51,32 @@ public interface ArtifactView extends HasAttributes {
         /**
          * Specify a filter for the components that should be included in this view.
          * Only artifacts from components matching the supplied filter will be returned by {@link #getFiles()} or {@link #getArtifacts()}.
-         *
-         * This method cannot be called a multiple times for a view.
+         * This method cannot be called multiple times for a view.
+         * <p>
+         * A component filter can be used to select artifacts from components of a certain type:
+         * <pre>{@code
+         *      configuration.incoming.artifactView {
+         *          componentFilter { it instanceof ProjectComponentIdentifier }
+         *          // or
+         *          componentFilter { it instanceof ModuleComponentIdentifier }
+         *      }
+         * }</pre>
+         * <p>
+         * Alternatively, a component filter can be used to select artifacts from specific components:
+         * <pre>{@code
+         *      configuration.incoming.artifactView {
+         *          componentFilter {
+         *              it instanceof ProjectComponentIdentifier &&
+         *              it.projectPath == ":myProject"
+         *          }
+         *          // or
+         *          componentFilter {
+         *              it instanceof ModuleComponentIdentifier &&
+         *                  it.group == "com.example" &&
+         *                  it.module == "foo"
+         *          }
+         *      }
+         * }</pre>
          */
         ViewConfiguration componentFilter(Spec<? super ComponentIdentifier> componentFilter);
 

@@ -16,8 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.LenientConfiguration;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedArtifact;
@@ -43,17 +41,14 @@ import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.component.local.model.LocalVariantGraphResolveState;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.VariantGraphResolveState;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.model.CalculatedValue;
 
-import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -83,7 +78,7 @@ public class ShortCircuitingResolutionExecutor {
 
         VisitedGraphResults graphResults = emptyGraphResults(params);
         return DefaultResolverResults.buildDependenciesResolved(graphResults, EmptyResults.INSTANCE,
-            DefaultResolverResults.DefaultLegacyResolverResults.buildDependenciesResolved(EmptyResults.INSTANCE)
+            DefaultResolverResults.DefaultLegacyResolverResults.buildDependenciesResolved()
         );
     }
 
@@ -106,9 +101,7 @@ public class ShortCircuitingResolutionExecutor {
             graphResults, params.getResolutionHost(), EmptyResults.INSTANCE, new EmptyLenientConfiguration()
         );
         return DefaultResolverResults.graphResolved(graphResults, EmptyResults.INSTANCE,
-            DefaultResolverResults.DefaultLegacyResolverResults.graphResolved(
-                EmptyResults.INSTANCE, resolvedConfiguration
-            )
+            DefaultResolverResults.DefaultLegacyResolverResults.graphResolved(resolvedConfiguration)
         );
     }
 
@@ -156,7 +149,7 @@ public class ShortCircuitingResolutionExecutor {
         }
     }
 
-    public static class EmptyResults implements VisitedArtifactSet, SelectedArtifactSet, ResolverResults.LegacyResolverResults.LegacyVisitedArtifactSet, SelectedArtifactResults {
+    public static class EmptyResults implements VisitedArtifactSet, SelectedArtifactSet, SelectedArtifactResults {
 
         public static final EmptyResults INSTANCE = new EmptyResults();
 
@@ -166,12 +159,7 @@ public class ShortCircuitingResolutionExecutor {
         }
 
         @Override
-        public SelectedArtifactResults selectLegacy(ArtifactSelectionSpec spec, boolean lenient) {
-            return this;
-        }
-
-        @Override
-        public SelectedArtifactSet select(Spec<? super Dependency> dependencySpec) {
+        public SelectedArtifactResults selectLegacy(ArtifactSelectionSpec spec) {
             return this;
         }
 
@@ -205,24 +193,7 @@ public class ShortCircuitingResolutionExecutor {
         }
 
         @Override
-        public SelectedArtifactSet select(Spec<? super Dependency> dependencySpec) {
-            return EmptyResults.INSTANCE;
-        }
-
-        @Override
         public Set<ResolvedDependency> getFirstLevelModuleDependencies() {
-            return Collections.emptySet();
-        }
-
-        @Override
-        @Deprecated
-        public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) {
-            DeprecationLogger.deprecateMethod(LenientConfiguration.class, "getFirstLevelModuleDependencies(Spec)")
-                .withAdvice("Use getFirstLevelModuleDependencies() instead.")
-                .willBeRemovedInGradle9()
-                .withUpgradeGuideSection(8, "deprecate_filtered_configuration_file_and_filecollection_methods")
-                .nagUser();
-
             return Collections.emptySet();
         }
 
@@ -237,44 +208,9 @@ public class ShortCircuitingResolutionExecutor {
         }
 
         @Override
-        @Deprecated
-        public Set<File> getFiles() {
-            DeprecationLogger.deprecateMethod(LenientConfiguration.class, "getFiles()")
-                .withAdvice("Use a lenient ArtifactView instead.")
-                .willBeRemovedInGradle9()
-                .withUpgradeGuideSection(8, "deprecate_legacy_configuration_get_files")
-                .nagUser();
-
-            return Collections.emptySet();
-        }
-
-        @Override
-        @Deprecated
-        public Set<File> getFiles(Spec<? super Dependency> dependencySpec) {
-            DeprecationLogger.deprecateMethod(LenientConfiguration.class, "getFiles(Spec)")
-                .withAdvice("Use a lenient ArtifactView with a componentFilter instead.")
-                .willBeRemovedInGradle9()
-                .withUpgradeGuideSection(8, "deprecate_filtered_configuration_file_and_filecollection_methods")
-                .nagUser();
-
-            return Collections.emptySet();
-        }
-
-        @Override
         public Set<ResolvedArtifact> getArtifacts() {
             return Collections.emptySet();
         }
 
-        @Override
-        @Deprecated
-        public Set<ResolvedArtifact> getArtifacts(Spec<? super Dependency> dependencySpec) {
-            DeprecationLogger.deprecateMethod(LenientConfiguration.class, "getArtifacts(Spec)")
-                .withAdvice("Use a lenient ArtifactView with a componentFilter instead.")
-                .willBeRemovedInGradle9()
-                .withUpgradeGuideSection(8, "deprecate_filtered_configuration_file_and_filecollection_methods")
-                .nagUser();
-
-            return Collections.emptySet();
-        }
     }
 }
