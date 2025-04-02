@@ -74,7 +74,7 @@ public class HtmlTestReport {
                 for (TestMethodResult collectedResult : collectedResults) {
                     final TestResult testResult = model.addTest(classResult.getId(), classResult.getClassName(), classResult.getClassDisplayName(), collectedResult.getName(), collectedResult.getDisplayName(), collectedResult.getDuration());
                     if (collectedResult.getResultType() == SKIPPED) {
-                        testResult.setIgnored(collectedResult.getAssumptionFailure());
+                        testResult.markIgnored(collectedResult.getAssumptionFailure());
                     } else {
                         List<SerializableFailure> failures = collectedResult.getFailures();
                         for (SerializableFailure failure : failures) {

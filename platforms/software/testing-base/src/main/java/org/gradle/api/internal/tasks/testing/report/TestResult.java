@@ -17,6 +17,7 @@ package org.gradle.api.internal.tasks.testing.report;
 
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableFailure;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -93,10 +94,10 @@ public class TestResult extends TestResultModel implements Comparable<TestResult
         failures.add(failure);
     }
 
-    public void setIgnored(SerializableFailure assumptionFailure) {
+    public void markIgnored(@Nullable SerializableFailure assumptionFailure) {
         classResults.ignored(this);
         ignored = true;
-        if (assumptionFailure!=null) {
+        if (assumptionFailure != null) {
             failures.add(assumptionFailure);
         }
     }

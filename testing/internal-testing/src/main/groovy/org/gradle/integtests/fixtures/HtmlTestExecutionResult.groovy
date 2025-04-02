@@ -242,7 +242,7 @@ class HtmlTestExecutionResult implements TestExecutionResult {
                 skippedExecutionResult = new SkippedExecutionResult(stacktraceMessage[1].trim(), stacktraceMessage[0], possibleText)
             } else {
                 // no messages for this skipped execution
-                skippedExecutionResult = new SkippedExecutionResult()
+                skippedExecutionResult = new SkippedExecutionResult("", "", "")
             }
             assertions.accept(skippedExecutionResult)
             return this

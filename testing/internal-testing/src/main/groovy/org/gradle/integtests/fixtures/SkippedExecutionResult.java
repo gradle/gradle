@@ -21,10 +21,6 @@ public class SkippedExecutionResult {
     private final String type;
     private final String text;
 
-    public SkippedExecutionResult() {
-        this("", "", "");
-    }
-
     public SkippedExecutionResult(String message, String type, String text) {
         this.message = message;
         this.type = type;
