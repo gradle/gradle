@@ -111,7 +111,7 @@ class DefaultIsolatedProjectEvaluationListenerProvider(
 
     private
     fun isolate(actions: IsolatedProjectActions, owner: IsolateOwner) =
-        IsolatedActionSerializer(owner, owner.serviceOf(), owner.serviceOf())
+        IsolatedActionSerializer(owner, owner.serviceOf(), owner.serviceOf<IsolatedActionCodecsFactory>())
             .serialize(actions)
 }
 
@@ -206,7 +206,7 @@ fun isolatedActions(
     gradle: Gradle,
     isolated: SerializedIsolatedActionGraph<IsolatedProjectActions>
 ) = IsolateOwners.OwnerGradle(gradle).let { owner ->
-    IsolatedActionDeserializer(owner, owner.serviceOf(), owner.serviceOf())
+    IsolatedActionDeserializer(owner, owner.serviceOf(), owner.serviceOf<IsolatedActionCodecsFactory>())
         .deserialize(isolated)
 }
 

@@ -22,7 +22,7 @@ import org.gradle.api.internal.file.FilePropertyFactory
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory.ValueSourceProvider
 import org.gradle.api.internal.provider.PropertyFactory
 import org.gradle.api.services.internal.BuildServiceProvider
-import org.gradle.internal.serialize.codecs.core.baseTypes
+import org.gradle.internal.cc.impl.isolation.IsolationCodecsProvider
 import org.gradle.internal.serialize.codecs.core.DirectoryCodec
 import org.gradle.internal.serialize.codecs.core.DirectoryPropertyCodec
 import org.gradle.internal.serialize.codecs.core.FixedValueReplacingProviderCodec
@@ -34,12 +34,14 @@ import org.gradle.internal.serialize.codecs.core.ProviderCodec
 import org.gradle.internal.serialize.codecs.core.RegularFileCodec
 import org.gradle.internal.serialize.codecs.core.RegularFilePropertyCodec
 import org.gradle.internal.serialize.codecs.core.SetPropertyCodec
+import org.gradle.internal.serialize.codecs.core.baseTypes
 import org.gradle.internal.serialize.codecs.core.groovyCodecs
 import org.gradle.internal.serialize.codecs.core.jos.ExternalizableCodec
 import org.gradle.internal.serialize.codecs.core.jos.JavaObjectSerializationCodec
 import org.gradle.internal.serialize.codecs.core.jos.JavaSerializationEncodingLookup
 import org.gradle.internal.serialize.codecs.core.unsupportedTypes
 import org.gradle.internal.serialize.codecs.stdlib.ProxyCodec
+import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.codecs.BeanCodec
 import org.gradle.internal.serialize.graph.codecs.Bindings
 import org.gradle.internal.serialize.graph.codecs.BindingsBuilder
@@ -65,8 +67,9 @@ class IsolatedActionCodecsFactory(
     private
     val fileFactory: FileFactory
 
-) {
-    fun isolatedActionCodecs() = Bindings.of {
+) : IsolationCodecsProvider {
+
+    override fun isolationCodecs(): Codec<Any?> = Bindings.of {
         allUnsupportedTypes()
         baseTypes()
         supportedPropertyTypes()
