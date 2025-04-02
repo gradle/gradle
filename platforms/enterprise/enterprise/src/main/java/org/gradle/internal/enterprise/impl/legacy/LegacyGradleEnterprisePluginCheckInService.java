@@ -53,8 +53,6 @@ public class LegacyGradleEnterprisePluginCheckInService implements BuildScanConf
     private final GradleEnterprisePluginManager manager;
     private final BuildType buildType;
 
-    private BuildScanEndOfBuildNotifier.Listener listener;
-
     @Inject
     public LegacyGradleEnterprisePluginCheckInService(
         GradleInternal gradle,
@@ -93,10 +91,7 @@ public class LegacyGradleEnterprisePluginCheckInService implements BuildScanConf
 
     @Override
     public void notify(BuildScanEndOfBuildNotifier.Listener listener) {
-        if (this.listener != null) {
-            throw new IllegalStateException("listener already set to " + this.listener);
-        }
-        this.listener = listener;
+        // Should not get here, since none of the plugin versions using this service are supported
     }
 
     private static boolean isPluginAwareOfUnsupported(VersionNumber pluginVersion) {
