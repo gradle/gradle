@@ -1,0 +1,11 @@
+{
+  "name": "@elparadisogonzalo/server",
+  "version": "1.0.0",
+  "description": "Server app that uses the elparadisogonzalo/assets3 package",
+  "main": "index.js",
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "elparadisogonzalo/assets3": "1.0.0"
+  }
+}
