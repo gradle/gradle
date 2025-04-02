@@ -58,7 +58,7 @@ class JUnitJupiterAssumptionFailureIntegrationTest extends AbstractIntegrationSp
 
             public class MyTest {
                 @Test
-                void theTest() {
+                public void theTest() {
                     Assumptions.assumeTrue(false, "skipped reason");
                 }
             }
@@ -71,7 +71,64 @@ class JUnitJupiterAssumptionFailureIntegrationTest extends AbstractIntegrationSp
         testResult.testClass("com.example.MyTest").assertTestSkipped("theTest") {
             assert it.message == "Assumption failed: skipped reason"
             assert it.type == "org.opentest4j.TestAbortedException"
-            assert it.text != null
+            assert it.text.contains("skipped reason")
+        }
+    }
+
+    def "does not capture ignored tests as assumption failures"() {
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+            ${mavenCentralRepository()}
+
+            testing {
+                suites {
+                    test {
+                        useJUnitJupiter()
+                        targets {
+                            all {
+                                testTask.configure {
+                                    addTestListener(new TestListener() {
+                                        void beforeSuite(TestDescriptor suite) {}
+                                        void afterSuite(TestDescriptor suite, TestResult result) {}
+                                        void beforeTest(TestDescriptor testDescriptor) {}
+                                        void afterTest(TestDescriptor testDescriptor, TestResult result) {
+                                            println("No assumption failure")
+                                            assert result.assumptionFailure == null
+                                        }
+                                    })
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        """
+        file("src/test/java/com/example/MyTest.java") << """
+            package com.example;
+
+            import org.junit.jupiter.api.Disabled;
+            import org.junit.jupiter.api.Test;
+
+            public class MyTest {
+                @Test
+                @Disabled
+                public void theTest() {
+                    // fail the test if it actually runs
+                    assert false;
+                }
+            }
+        """
+        when:
+        succeeds("test")
+        then:
+        outputContains("No assumption failure")
+        def testResult = new DefaultTestExecutionResult(testDirectory)
+        testResult.testClass("com.example.MyTest").assertTestSkipped("theTest") {
+            assert it.message.isEmpty()
+            assert it.type.isEmpty()
+            assert it.text.isEmpty()
         }
     }
 }

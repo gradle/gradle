@@ -232,13 +232,16 @@ class HtmlTestExecutionResult implements TestExecutionResult {
         @Override
         TestClassExecutionResult assertTestSkipped(String name, Consumer<SkippedExecutionResult> assertions) {
             TestCase testCase = testsSkipped.find { it == testCase(name) }
-            String possibleText = testCase.getMessages().first()
+            assert testCase
+
             final SkippedExecutionResult skippedExecutionResult
-            if (possibleText) {
+            if (!testCase.messages.isEmpty()) {
+                String possibleText = testCase.getMessages().first()
                 String[] stacktraceMessage = possibleText.readLines().first().split(":", 2)
+                assert stacktraceMessage.length == 2 // sanity check that we're parsing something that looks like an exception stacktrace
                 skippedExecutionResult = new SkippedExecutionResult(stacktraceMessage[1].trim(), stacktraceMessage[0], possibleText)
             } else {
-                // no details about this skipped execution
+                // no messages for this skipped execution
                 skippedExecutionResult = new SkippedExecutionResult()
             }
             assertions.accept(skippedExecutionResult)

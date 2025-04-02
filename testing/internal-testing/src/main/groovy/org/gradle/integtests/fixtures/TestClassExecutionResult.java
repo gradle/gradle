@@ -95,6 +95,9 @@ public interface TestClassExecutionResult {
 
     TestClassExecutionResult assertTestSkipped(String name);
 
+    /**
+     * Asserts that the given test was skipped and its details match the assertions checked.
+     */
     TestClassExecutionResult assertTestSkipped(String name, Consumer<SkippedExecutionResult> assertions);
 
     /**

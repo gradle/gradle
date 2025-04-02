@@ -71,7 +71,70 @@ class TestNGAssumptionFailureIntegrationTest extends AbstractIntegrationSpec {
         testResult.testClass("com.example.MyTest").assertTestSkipped("theTest") {
             assert it.message == "skipped reason"
             assert it.type == "org.testng.SkipException"
-            assert it.text != null
+            assert it.text.contains("skipped reason")
         }
+    }
+
+    def "does not capture ignored tests as assumption failures"() {
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+            ${mavenCentralRepository()}
+
+            testing {
+                suites {
+                    test {
+                        useTestNG()
+                        targets {
+                            all {
+                                testTask.configure {
+                                    addTestListener(new TestListener() {
+                                        void beforeSuite(TestDescriptor suite) {}
+                                        void afterSuite(TestDescriptor suite, TestResult result) {}
+                                        void beforeTest(TestDescriptor testDescriptor) {}
+                                        void afterTest(TestDescriptor testDescriptor, TestResult result) {
+                                            println("No assumption failure")
+                                            assert result.assumptionFailure == null
+                                        }
+                                    })
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        """
+        file("src/test/java/com/example/MyTest.java") << """
+            package com.example;
+
+            import org.testng.annotations.Test;
+            import org.testng.annotations.Ignore;
+
+            public class MyTest {
+                @Test
+                @Ignore
+                public void theTest() {
+                    // fail the test if it actually runs
+                    assert false;
+                }
+
+                @Test
+                public void anotherTest() {
+                    // This is here to workaround a deprecation warning with TestNG and ignored tests
+                }
+            }
+        """
+        when:
+        succeeds("test")
+        then:
+        outputContains("No assumption failure")
+        // TestNG ignored tests are completely invisible to our test reporting. We don't seem to capture them at all
+//        def testResult = new DefaultTestExecutionResult(testDirectory)
+//        testResult.testClass("com.example.MyTest").assertTestSkipped("theTest") {
+//            assert it.message.isEmpty()
+//            assert it.type.isEmpty()
+//            assert it.text.isEmpty()
+//        }
     }
 }

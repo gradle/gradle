@@ -16,34 +16,29 @@
 
 package org.gradle.integtests.fixtures;
 
-import javax.annotation.Nullable;
-
 public class SkippedExecutionResult {
-    private final @Nullable String message;
-    private final @Nullable String type;
-    private final @Nullable String text;
+    private final String message;
+    private final String type;
+    private final String text;
 
     public SkippedExecutionResult() {
-        this(null, null, null);
+        this("", "", "");
     }
 
-    public SkippedExecutionResult(@Nullable String message, @Nullable String type, @Nullable String text) {
+    public SkippedExecutionResult(String message, String type, String text) {
         this.message = message;
         this.type = type;
         this.text = text;
     }
 
-    @Nullable
     public String getMessage() {
         return message;
     }
 
-    @Nullable
     public String getType() {
         return type;
     }
 
-    @Nullable
     public String getText() {
         return text;
     }
