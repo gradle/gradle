@@ -87,14 +87,18 @@ If any input has changed, Gradle reruns the configuration phase and updates the 
 
 The following elements determine whether a Configuration Cache entry is valid:
 
-- Init scripts
-- Settings scripts
-- Build scripts
-- System properties used during the configuration phase
-- Gradle properties used during the configuration phase
-- Environment variables used during the configuration phase
-- Configuration files accessed using value suppliers such as providers
-- `buildSrc` and plugin included build inputs, including build configuration inputs and source files.
+1. Gradle environment
+** `GRADLE_USER_HOME`
+** Gradle Daemon JVM
+2. Init scripts
+3. `buildSrc` and included build logic build contents (build scripts, sources, and intermediate build outputs)
+4. Build and Settings scripts, including included scripts (`apply from: foo.gradle`)
+5. Gradle configuration files (Version Catalogs, dependency verification files, dependency lock files, `gradle.properties` files)
+6. Contents of files read at configuration time
+7. File system state checked at configuration time (file presence, directory contents, etc.)
+8. Custom `ValueSource` values obtained at configuration time (this also includes built-in providers, like `providers.exec` and `providers.fileContents`).
+9. System properties used during the configuration phase
+10. Environment variables used during the configuration phase
 
 === Serialization
 
@@ -776,7 +780,7 @@ These restrictions exist because these types cannot easily be stored or reconstr
 
 Live JVM state types (e.g., `ClassLoader`, `Thread`, `OutputStream`, `Socket`) are disallowed, as they do not represent task inputs or outputs.
 
-The only exceptions are standard streams (`System.in`, `System.out`, `System.err`), which can be used as parameters for link:{groovyDslPath}/org.gradle.api.tasks.Exec.html[`Exec`] and link:{groovyDslPath}/org.gradle.api.tasks.JavaExec.html[`JavaExec`] tasks.
+The only exceptions are standard streams (`System.in`, `System.out`, `System.err`), which can be used, for example, as parameters for link:{groovyDslPath}/org.gradle.api.tasks.Exec.html[`Exec`] and link:{groovyDslPath}/org.gradle.api.tasks.JavaExec.html[`JavaExec`] tasks.
 
 ==== Gradle Model Types
 
@@ -790,7 +794,7 @@ Similarly, instead of referencing a `SourceSet` for source files or classpath re
 The same requirement applies to dependency management types with some nuances.
 
 Some dependency management types, such as `Configuration` and `SourceDirectorySet`, should not be used as task inputs because they contain unnecessary state and are not precise.
-Instead:
+Use a less specific type that gives necessary features instead:
 
 * If referencing a `Configuration` to get resolved files, declare a `FileCollection` input.
 * If referencing a `SourceDirectorySet`, declare a `FileTree` input.
@@ -1014,14 +1018,14 @@ include::sample[dir="snippets/configurationCache/sharedObjects/groovy",files="bu
 <3> Compare the reference to `ArrayList` instance stored in the task field and the reference captured in the `doLast` action.
 <4> Check the equality of stored and captured lists.
 
-Reference equality is preserved in both cases:
+Without Configuration Cache, reference equality is preserved in both cases:
 
 ----
 ❯ ./gradlew --no-configuration-cache checkEquality
 include::{snippetsPath}/configurationCache/sharedObjects/tests/sharingObjectsWithoutConfigurationCache.out[]
 ----
 
-Only user-defined object references remain identical.
+With Configuration Cache enabled, only user-defined object references remain identical.
 List references are different, although the lists themselves remain equal:
 
 ----
