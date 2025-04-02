@@ -21,10 +21,10 @@ import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 
-import static org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService.MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_ISOLATED_PROJECTS
-import static org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService.UNSUPPORTED_PLUGIN_DUE_TO_ISOLATED_PROJECTS_MESSAGE
 import static org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE
 import static org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE_MESSAGE
+import static org.gradle.internal.enterprise.impl.legacy.DevelocityPluginCompatibility.ISOLATED_PROJECTS_SUPPORTED_PLUGIN_VERSION
+import static org.gradle.internal.enterprise.impl.legacy.DevelocityPluginCompatibility.MINIMUM_SUPPORTED_PLUGIN_VERSION_DISPLAY
 
 class DevelocityPluginCheckInIntegrationTest extends AbstractIntegrationSpec {
 
@@ -109,16 +109,15 @@ class DevelocityPluginCheckInIntegrationTest extends AbstractIntegrationSpec {
         output.contains("present: ${applied}")
 
         and:
-        output.contains("develocityPlugin.checkIn.unsupported.reasonMessage = $UNSUPPORTED_PLUGIN_DUE_TO_ISOLATED_PROJECTS_MESSAGE") != applied
+        if (applied) {
+            output.contains("develocityPlugin.checkIn.unsupported.reasonMessage = Gradle Enterprise plugin 3.13.1 has been disabled as it is incompatible with Isolated Projects feature. Upgrade to Gradle Enterprise plugin 3.13.1 or newer to restore functionality.")
+        } else {
+            output.contains("develocityPlugin.checkIn.supported")
+        }
 
         where:
-        pluginVersion                           | applied
-        '3.11.4'                                | false
-        minimumPluginVersionForIsolatedProjects | true
+        pluginVersion                              | applied
+        MINIMUM_SUPPORTED_PLUGIN_VERSION_DISPLAY   | false
+        ISOLATED_PROJECTS_SUPPORTED_PLUGIN_VERSION | true
     }
-
-    private static String getMinimumPluginVersionForIsolatedProjects() {
-        "${MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_ISOLATED_PROJECTS.getMajor()}.${MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_ISOLATED_PROJECTS.getMinor()}"
-    }
-
 }
