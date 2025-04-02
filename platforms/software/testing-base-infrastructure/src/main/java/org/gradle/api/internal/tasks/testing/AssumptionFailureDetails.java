@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.fixtures
+package org.gradle.api.internal.tasks.testing;
 
-import static org.gradle.api.plugins.scala.ScalaBasePlugin.DEFAULT_ZINC_VERSION
+@org.gradle.api.NonNullApi
+public class AssumptionFailureDetails extends DefaultTestFailureDetails {
+    public AssumptionFailureDetails(String message, String className, String stacktrace) {
+        super(message, className, stacktrace);
+    }
 
+    @Override
+    public boolean isAssumptionFailure() {
+        return true;
+    }
 
-class ZincCoverage {
-    public static final List<String> ALL_VERSIONS = [DEFAULT_ZINC_VERSION, "1.8.1", "1.7.2", "1.6.0"]
+    @Override
+    public String toString() {
+        return "assumption " + super.toString();
+    }
 }
