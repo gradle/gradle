@@ -36,8 +36,7 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
         given:
         withReportProblemTask """
             ${problemIdScript()}
-            problems.getReporter().report(problemId) {
-            }
+            problems.getReporter().report(problemId) {}
         """
 
         when:
@@ -222,9 +221,7 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
             .multiProjectBuild("included", ['sub1', 'sub2']) {
                 file('sub1').file('build.gradle') << getProblemReportingScript("""
                     ${problemIdScript()}
-                    problems.getReporter().report(problemId) {
-                        it.stackLocation()
-                    }
+                    problems.getReporter().report(problemId) {}
                 """)
             }
 
