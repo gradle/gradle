@@ -24,7 +24,7 @@ import org.gradle.test.preconditions.IntegTestPreconditions
 import static org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE
 import static org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE_MESSAGE
 import static org.gradle.internal.enterprise.impl.legacy.DevelocityPluginCompatibility.ISOLATED_PROJECTS_SUPPORTED_PLUGIN_VERSION
-import static org.gradle.internal.enterprise.impl.legacy.DevelocityPluginCompatibility.MINIMUM_SUPPORTED_PLUGIN_VERSION_DISPLAY
+import static org.gradle.internal.enterprise.impl.legacy.DevelocityPluginCompatibility.MINIMUM_SUPPORTED_PLUGIN_VERSION
 
 class DevelocityPluginCheckInIntegrationTest extends AbstractIntegrationSpec {
 
@@ -117,7 +117,7 @@ class DevelocityPluginCheckInIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         pluginVersion                              | applied
-        MINIMUM_SUPPORTED_PLUGIN_VERSION_DISPLAY   | false
+        MINIMUM_SUPPORTED_PLUGIN_VERSION           | false
         ISOLATED_PROJECTS_SUPPORTED_PLUGIN_VERSION | true
     }
 }

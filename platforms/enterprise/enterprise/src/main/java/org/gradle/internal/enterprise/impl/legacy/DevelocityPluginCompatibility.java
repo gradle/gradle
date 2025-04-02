@@ -26,9 +26,9 @@ public class DevelocityPluginCompatibility {
 
     // Gradle versions 9+ are not compatible Gradle Enterprise plugin < 3.13.1
     @VisibleForTesting
-    public static final String MINIMUM_SUPPORTED_PLUGIN_VERSION_DISPLAY = "3.13.1";
+    public static final String MINIMUM_SUPPORTED_PLUGIN_VERSION = "3.13.1";
     @VisibleForTesting
-    public static final VersionNumber MINIMUM_SUPPORTED_PLUGIN_VERSION = VersionNumber.parse(MINIMUM_SUPPORTED_PLUGIN_VERSION_DISPLAY);
+    public static final VersionNumber MINIMUM_SUPPORTED_PLUGIN_VERSION_NUMBER = VersionNumber.parse(MINIMUM_SUPPORTED_PLUGIN_VERSION);
 
     @VisibleForTesting
     public static final String ISOLATED_PROJECTS_SUPPORTED_PLUGIN_VERSION = "3.15";
@@ -36,14 +36,14 @@ public class DevelocityPluginCompatibility {
     public static final VersionNumber ISOLATED_PROJECTS_SUPPORTED_PLUGIN_VERSION_NUMBER = VersionNumber.parse(ISOLATED_PROJECTS_SUPPORTED_PLUGIN_VERSION);
 
     public static boolean isUnsupportedPluginVersion(VersionNumber pluginBaseVersion) {
-        return MINIMUM_SUPPORTED_PLUGIN_VERSION.compareTo(pluginBaseVersion) > 0;
+        return MINIMUM_SUPPORTED_PLUGIN_VERSION_NUMBER.compareTo(pluginBaseVersion) > 0;
     }
 
     public static String getUnsupportedPluginMessage(String pluginVersion) {
         return String.format(
             "Gradle Enterprise plugin %s has been disabled as it is incompatible with this version of Gradle. Upgrade to Gradle Enterprise plugin %s or newer to restore functionality.",
             pluginVersion,
-            MINIMUM_SUPPORTED_PLUGIN_VERSION_DISPLAY
+            MINIMUM_SUPPORTED_PLUGIN_VERSION
         );
     }
 
