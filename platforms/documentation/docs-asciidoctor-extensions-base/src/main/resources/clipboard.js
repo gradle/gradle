@@ -1,3 +1,4 @@
+/* Custom clipboard JSS code */
 window.onload = function() {
         var pre = document.getElementsByTagName('pre');
 
