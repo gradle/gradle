@@ -16,6 +16,7 @@
 
 package org.gradle.smoketests
 
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedDevelocityPlugin
 import org.gradle.test.fixtures.file.TestFile
@@ -292,16 +293,25 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
     }
 
     def "plugin is disabled for unsupported version #version"() {
+        def expectedToFailWithConfigCacheProblem =
+            GradleContextualExecuter.configCache && VersionNumber.parse(version) < VersionNumber.parse("3.4")
+
         when:
         usePluginVersion version
 
         and:
-        def output = scanRunner()
-            .build().output
+        def runner = scanRunner()
+        def buildResult = expectedToFailWithConfigCacheProblem ? runner.buildAndFail() : runner.build()
+        def output = buildResult.output
 
         then:
         output.contains("Gradle Enterprise plugin $version has been disabled as it is incompatible with this version of Gradle. Upgrade to Gradle Enterprise plugin 3.13.1 or newer to restore functionality.")
         !output.contains("Build scan written to")
+
+        if (expectedToFailWithConfigCacheProblem) {
+            assert output.contains("1 problem was found storing the configuration cache.")
+            assert output =~ /.*registration of listener on '\S+' is unsupported.*/
+        }
 
         where:
         version << UNSUPPORTED
