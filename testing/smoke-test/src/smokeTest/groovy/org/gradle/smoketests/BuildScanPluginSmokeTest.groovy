@@ -190,7 +190,6 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
             .build().output.contains("Build scan written to")
 
         where:
-        // isolated projects requires configuration cache support
         version << SUPPORTED
             .findAll { FIRST_VERSION_SUPPORTING_ISOLATED_PROJECTS <= VersionNumber.parse(it) }
     }
@@ -255,7 +254,6 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         }
 
         where:
-        // isolated projects requires configuration cache support
         version << SUPPORTED
             .findAll { VersionNumber.parse(it) >= FIRST_VERSION_SUPPORTING_ISOLATED_PROJECTS_FOR_TEST_ACCELERATION }
     }
@@ -270,11 +268,10 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
             .build().output
 
         then:
-        output.contains("Gradle Enterprise plugin has been disabled as it is incompatible with the isolated projects feature")
+        output.contains("Gradle Enterprise plugin $version has been disabled as it is incompatible with Isolated Projects feature. Upgrade to Gradle Enterprise plugin 3.15 or newer to restore functionality.")
         !output.contains("Build scan written to")
 
         where:
-        // isolated projects requires configuration cache support
         version << SUPPORTED
             .findAll { VersionNumber.parse(it) < FIRST_VERSION_SUPPORTING_ISOLATED_PROJECTS }
     }
@@ -366,10 +363,10 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
             .maybeExpectLegacyDeprecationWarningIf(FIRST_VERSION_UNDER_DEVELOCITY_BRAND <= versionNumber && ci == CI.TEAM_CITY,
                 "- The deprecated \"gradleEnterprise.buildScan.buildScanPublished\" API has been replaced by \"develocity.buildScan.buildScanPublished\"")
             .maybeExpectLegacyDeprecationWarning(
-            "Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated. " +
-                "This is scheduled to be removed in Gradle 10.0. " +
-                "Use assignment ('url = <value>') instead. " +
-                "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#groovy_space_assignment_syntax"
+                "Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 10.0. " +
+                    "Use assignment ('url = <value>') instead. " +
+                    "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#groovy_space_assignment_syntax"
             )
             .build()
 
