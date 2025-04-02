@@ -37,6 +37,7 @@ public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterp
 
     private final GradleEnterprisePluginManager manager;
     private final DefaultGradleEnterprisePluginAdapterFactory pluginAdapterFactory;
+    private final boolean isConfigurationCacheEnabled;
     private final boolean isIsolatedProjectsEnabled;
 
     public DefaultGradleEnterprisePluginCheckInService(
@@ -46,6 +47,7 @@ public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterp
     ) {
         this.manager = manager;
         this.pluginAdapterFactory = pluginAdapterFactory;
+        this.isConfigurationCacheEnabled = buildModelParameters.isConfigurationCache();
         this.isIsolatedProjectsEnabled = buildModelParameters.isIsolatedProjects();
     }
 
@@ -54,26 +56,23 @@ public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterp
     public static final String UNSUPPORTED_TOGGLE_MESSAGE = "Enterprise plugin unsupported due to secret toggle";
 
     private static final String DISABLE_TEST_ACCELERATION_PROPERTY = "gradle.internal.testacceleration.disableImplicitApplication";
+    private static final VersionNumber AUTO_DISABLE_TEST_ACCELERATION_SINCE_VERSION = VersionNumber.parse("3.14");
 
     @Override
     public GradleEnterprisePluginCheckInResult checkIn(GradleEnterprisePluginMetadata pluginMetadata, GradleEnterprisePluginServiceFactory serviceFactory) {
-        if (Boolean.getBoolean(UNSUPPORTED_TOGGLE)) {
-            return checkInUnsupportedResult(UNSUPPORTED_TOGGLE_MESSAGE);
-        }
-
         String pluginVersion = pluginMetadata.getVersion();
         VersionNumber pluginBaseVersion = VersionNumber.parse(pluginVersion).getBaseVersion();
 
+        if (Boolean.getBoolean(UNSUPPORTED_TOGGLE)) {
+            return checkInUnsupportedResult(pluginBaseVersion, UNSUPPORTED_TOGGLE_MESSAGE);
+        }
+
         if (isUnsupportedPluginVersion(pluginBaseVersion)) {
-            return checkInUnsupportedResult(getUnsupportedPluginMessage(pluginVersion));
+            return checkInUnsupportedResult(pluginBaseVersion, getUnsupportedPluginMessage(pluginVersion));
         }
 
         if (isIsolatedProjectsEnabled && isUnsupportedWithIsolatedProjects(pluginBaseVersion)) {
-            // Until GE plugin 3.14, Test Acceleration is applied even if the check-in returns an "unsupported" result.
-            // We have to disable it explicitly, because it is not compatible with isolated projects.
-            System.setProperty(DISABLE_TEST_ACCELERATION_PROPERTY, "true");
-
-            return checkInUnsupportedResult(getUnsupportedWithIsolatedProjectsMessage(pluginVersion));
+            return checkInUnsupportedResult(pluginBaseVersion, getUnsupportedWithIsolatedProjectsMessage(pluginVersion));
         }
 
         DefaultGradleEnterprisePluginAdapter adapter = pluginAdapterFactory.create(serviceFactory);
@@ -82,11 +81,21 @@ public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterp
         return checkInResult(null, () -> ref);
     }
 
-    private GradleEnterprisePluginCheckInResult checkInUnsupportedResult(String unsupportedMessage) {
+    private GradleEnterprisePluginCheckInResult checkInUnsupportedResult(VersionNumber pluginBaseVersion, String unsupportedMessage) {
+        // Test Acceleration can be applied even if the check-in returns an "unsupported" result.
+        // We have to disable it manually, because it is not compatible with Configuration Cache
+        if (isConfigurationCacheEnabled && !supportsAutoDisableTestAcceleration(pluginBaseVersion)) {
+            System.setProperty(DISABLE_TEST_ACCELERATION_PROPERTY, "true");
+        }
+
         manager.unsupported();
         return checkInResult(unsupportedMessage, () -> {
             throw new IllegalStateException();
         });
+    }
+
+    private static boolean supportsAutoDisableTestAcceleration(VersionNumber pluginBaseVersion) {
+        return AUTO_DISABLE_TEST_ACCELERATION_SINCE_VERSION.compareTo(pluginBaseVersion) <= 0;
     }
 
     private static GradleEnterprisePluginCheckInResult checkInResult(@Nullable String unsupportedMessage, Supplier<GradleEnterprisePluginServiceRef> pluginServiceRefSupplier) {
