@@ -28,8 +28,12 @@ import org.gradle.api.problems.DocLink;
 public interface DeprecateSpec {
 
     /**
-     * Declares a longer, potentially multi-line detailing of the deprecation.
-     * Possibly can be used to detail the reasons of the deprecation.
+     * Declares additional details about the deprecation.
+     * <p>
+     * Details are primarily used to provide a reason for the deprecation,
+     * and to document any important additional information the users should know about.
+     * <p>
+     * Details can be multi-line.
      *
      * @return the fluent builder used to call this
      * @since 8.14
