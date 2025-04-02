@@ -33,4 +33,5 @@ dependencies {
 
     implementation(projects.baseServices)
     implementation(projects.serviceLookup)
+    implementation(projects.stdlibKotlinExtensions)
 }

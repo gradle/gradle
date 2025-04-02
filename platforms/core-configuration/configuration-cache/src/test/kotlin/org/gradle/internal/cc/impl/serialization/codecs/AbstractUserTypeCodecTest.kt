@@ -19,7 +19,7 @@ package org.gradle.internal.cc.impl.serialization.codecs
 import com.nhaarman.mockitokotlin2.mock
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.cc.base.serialize.IsolateOwners
-import org.gradle.internal.cc.impl.problems.AbstractProblemsListener
+import org.gradle.internal.cc.base.problems.AbstractProblemsListener
 import org.gradle.internal.cc.impl.serialize.Codecs
 import org.gradle.internal.cc.impl.serialize.DefaultClassDecoder
 import org.gradle.internal.cc.impl.serialize.DefaultClassEncoder
