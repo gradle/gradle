@@ -19,6 +19,7 @@ package org.gradle.smoketests
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
+import org.gradle.test.fixtures.Flaky
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.VersionNumber
 import spock.lang.Issue
@@ -53,6 +54,7 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         kotlinVersion << TestedVersions.kotlin.versions
     }
 
+    @Flaky(because = "https://github.com/gradle/gradle-private/issues/4643")
     def 'can run tests with kotlin multiplatform with js project (kotlin=#kotlinVersion)'() {
         given:
         withKotlinBuildFile()
