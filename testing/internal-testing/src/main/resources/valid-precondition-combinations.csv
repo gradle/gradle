@@ -37,6 +37,7 @@ UnitTestPreconditions$Jdk17OrLater
 UnitTestPreconditions$Jdk17OrLater,IntegTestPreconditions$NotEmbeddedExecutor
 UnitTestPreconditions$Jdk21OrEarlier
 UnitTestPreconditions$Jdk22OrEarlier
+UnitTestPreconditions$Jdk23OrEarlier
 UnitTestPreconditions$Jdk21OrLater
 UnitTestPreconditions$KotlinSupportedJdk
 UnitTestPreconditions$Jdk8OrEarlier

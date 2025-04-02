@@ -20,6 +20,7 @@ import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestFailureDetails;
 import org.gradle.internal.serialize.PlaceholderExceptionSupport;
 
+import org.jspecify.annotations.Nullable;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Collections;
@@ -54,44 +55,37 @@ public class DefaultTestFailure extends TestFailure {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        DefaultTestFailure that = (DefaultTestFailure) o;
-
-        if (rawFailure != null ? !rawFailure.equals(that.rawFailure) : that.rawFailure != null) {
-            return false;
-        }
-        return details != null ? details.equals(that.details) : that.details == null;
+    public String toString() {
+        return "test failure {" +
+            "rawFailure=" + rawFailure.getClass().getCanonicalName() +
+            ", causes=" + causes.size() +
+            ", details=" + details +
+            '}';
     }
 
-    @Override
-    public int hashCode() {
-        int result = rawFailure != null ? rawFailure.hashCode() : 0;
-        result = 31 * result + (details != null ? details.hashCode() : 0);
-        return result;
+    public static TestFailure fromTestAssumptionFailure(Throwable failure) {
+        TestFailureDetails details = new AssumptionFailureDetails(messageOf(failure), classNameOf(failure), stacktraceOf(failure));
+        return new DefaultTestFailure(failure, details, Collections.<TestFailure>emptyList());
     }
 
-    public static TestFailure fromTestAssertionFailure(Throwable failure, String expected, String actual, List<TestFailure> causes) {
-        DefaultTestFailureDetails details = new DefaultTestFailureDetails(messageOf(failure), classNameOf(failure), stacktraceOf(failure), true, false, expected, actual, null, null);
-        return new DefaultTestFailure(failure, details, causes == null ? Collections.<TestFailure>emptyList() : causes);
+    public static TestFailure fromTestAssertionFailure(Throwable failure, String expected, String actual, @Nullable List<TestFailure> causes) {
+        TestFailureDetails details = new AssertionFailureDetails(messageOf(failure), classNameOf(failure), stacktraceOf(failure), expected, actual);
+        return new DefaultTestFailure(failure, details, emptyIfNull(causes));
     }
 
-    public static TestFailure fromFileComparisonTestAssertionFailure(Throwable failure, String expected, String actual, List<TestFailure> causes, byte[] expectedContent, byte[] actualContent) {
-        DefaultTestFailureDetails details = new DefaultTestFailureDetails(messageOf(failure), classNameOf(failure), stacktraceOf(failure), true, true, expected, actual, expectedContent, actualContent);
-        return new DefaultTestFailure(failure, details, causes == null ? Collections.<TestFailure>emptyList() : causes);
+    public static TestFailure fromFileComparisonTestAssertionFailure(Throwable failure, String expected, String actual, @Nullable List<TestFailure> causes, byte[] expectedContent, byte[] actualContent) {
+        TestFailureDetails details = new FileComparisonFailureDetails(messageOf(failure), classNameOf(failure), stacktraceOf(failure), expected, actual, expectedContent, actualContent);
+        return new DefaultTestFailure(failure, details, emptyIfNull(causes));
     }
 
-    public static TestFailure fromTestFrameworkFailure(Throwable failure, List<TestFailure> causes) {
-        DefaultTestFailureDetails details = new DefaultTestFailureDetails(messageOf(failure), classNameOf(failure), stacktraceOf(failure), false, false, null, null, null, null);
-        return new DefaultTestFailure(failure, details, causes == null ? Collections.<TestFailure>emptyList() : causes);
+    public static TestFailure fromTestFrameworkFailure(Throwable failure, @Nullable List<TestFailure> causes) {
+        TestFailureDetails details = new DefaultTestFailureDetails(messageOf(failure), classNameOf(failure), stacktraceOf(failure));
+        return new DefaultTestFailure(failure, details, emptyIfNull(causes));
     }
 
+    private static List<TestFailure> emptyIfNull(@Nullable List<TestFailure> causes) {
+        return causes == null ? Collections.<TestFailure>emptyList() : causes;
+    }
 
     private static String messageOf(Throwable throwable) {
         try {
