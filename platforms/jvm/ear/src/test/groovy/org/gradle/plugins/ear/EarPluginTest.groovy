@@ -54,7 +54,6 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         project.getPlugins().hasPlugin(BasePlugin)
-        project.convention.plugins.ear instanceof EarPluginConvention
     }
 
     def "creates configurations"() {
