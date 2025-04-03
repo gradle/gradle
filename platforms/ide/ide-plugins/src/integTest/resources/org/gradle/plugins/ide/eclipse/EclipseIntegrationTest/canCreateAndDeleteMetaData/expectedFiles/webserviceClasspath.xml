@@ -15,7 +15,7 @@
 			<attribute name="org.eclipse.jst.component.nondependency" value=""/>
 		</attributes>
 	</classpathentry>
-	<classpathentry sourcepath="@CACHE_DIR@/org.slf4j/slf4j-api/1.5.8/@SHA1@/slf4j-api-1.5.8-sources.jar" kind="lib" path="@CACHE_DIR@/org.slf4j/slf4j-api/1.5.8/@SHA1@/slf4j-api-1.5.8.jar">
+	<classpathentry sourcepath="@CACHE_DIR@/org.slf4j/slf4j-api/2.0.17/@SHA1@/slf4j-api-2.0.17-sources.jar" kind="lib" path="@CACHE_DIR@/org.slf4j/slf4j-api/1.5.8/@SHA1@/slf4j-api-1.5.8.jar">
 		<attributes>
 			<attribute name="gradle_used_by_scope" value="main,test"/>
 			<attribute name="org.eclipse.jst.component.nondependency" value=""/>

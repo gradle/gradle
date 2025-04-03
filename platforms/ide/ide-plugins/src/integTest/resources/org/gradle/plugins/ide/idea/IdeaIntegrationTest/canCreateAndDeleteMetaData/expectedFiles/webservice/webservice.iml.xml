@@ -13,11 +13,11 @@
     <orderEntry type="module-library" scope="PROVIDED">
       <library>
         <CLASSES>
-          <root url="jar://@CACHE_DIR@/org.slf4j/slf4j-api/1.5.8/@SHA1@/slf4j-api-1.5.8.jar!/"/>
+          <root url="jar://@CACHE_DIR@/org.slf4j/slf4j-api/2.0.17/@SHA1@/slf4j-api-2.0.17.jar!/"/>
         </CLASSES>
         <JAVADOC/>
         <SOURCES>
-          <root url="jar://@CACHE_DIR@/org.slf4j/slf4j-api/1.5.8/@SHA1@/slf4j-api-1.5.8-sources.jar!/"/>
+          <root url="jar://@CACHE_DIR@/org.slf4j/slf4j-api/2.0.17/@SHA1@/slf4j-api-2.0.17-sources.jar!/"/>
         </SOURCES>
       </library>
     </orderEntry>
