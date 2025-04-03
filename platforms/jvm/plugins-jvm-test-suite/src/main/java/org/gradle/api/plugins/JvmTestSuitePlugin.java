@@ -22,7 +22,6 @@ import org.gradle.api.Project;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.internal.DefaultJvmTestSuite;
 import org.gradle.api.tasks.testing.Test;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.testing.base.TestingExtension;
 import org.gradle.testing.base.plugins.TestSuiteBasePlugin;
 
@@ -54,24 +53,6 @@ public abstract class JvmTestSuitePlugin implements Plugin<Project> {
         testing.getSuites().registerBinding(JvmTestSuite.class, DefaultJvmTestSuite.class);
 
         project.getTasks().withType(Test.class).configureEach(test -> {
-            // The test task may have already been created but the test sourceSet may not exist yet.
-            // So defer looking up the java extension and sourceSet until the convention mapping is resolved.
-            // See https://github.com/gradle/gradle/issues/18622
-            test.getConventionMapping().map("testClassesDirs", () -> {
-                DeprecationLogger.deprecate("Relying on the convention for Test.testClassesDirs in custom Test tasks")
-                    .willBeRemovedInGradle9()
-                    .withUpgradeGuideSection(8, "test_task_default_classpath")
-                    .nagUser();
-
-                return ((JvmTestSuite) testing.getSuites().findByName(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME)).getSources().getOutput().getClassesDirs();
-            });
-            test.getConventionMapping().map("classpath", () -> {
-                DeprecationLogger.deprecate("Relying on the convention for Test.classpath in custom Test tasks")
-                    .willBeRemovedInGradle9()
-                    .withUpgradeGuideSection(8, "test_task_default_classpath")
-                    .nagUser();
-                return ((JvmTestSuite) testing.getSuites().findByName(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME)).getSources().getRuntimeClasspath();
-            });
             test.getModularity().getInferModulePath().convention(java.getModularity().getInferModulePath());
         });
 
