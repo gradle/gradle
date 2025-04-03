@@ -61,7 +61,7 @@ For Gradle 8.x, the minimum supported version was 7.3.0.
 Starting with Gradle 9.0, the minimum supported Gradle Enterprise Plugin version is 3.13.1.
 Earlier versions are no longer supported as they rely on Gradle APIs that have been removed.
 Consider upgrading to the latest version of the Gradle Enterprise Plugin,
-or even better to the latest version of the link:https://docs.gradle.com/develocity/gradle-plugin[Develocity Plugin].
+or better yet, upgrade to the latest version of the link:https://docs.gradle.com/develocity/gradle-plugin[Develocity Plugin].
 
 For Gradle 8.x, the minimum supported version was 3.0.
 
