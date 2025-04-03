@@ -82,6 +82,7 @@ public class ComponentSelectionRulesProcessor {
         }
     }
 
+    @SuppressWarnings("MixedMutabilityReturnType")
     private List<Object> getInputValues(List<Class<?>> inputTypes, MetadataProvider metadataProvider) {
         if (inputTypes.size() == 0) {
             return Collections.emptyList();

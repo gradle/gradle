@@ -149,6 +149,7 @@ class PgpKeyGrouper {
 
     // Tries to find the common super-group for a list of groups
     // For example given ["org.foo", "org.foo.bar", "org.foo.baz"] it will group using "org.foo.*"
+    @SuppressWarnings("MixedMutabilityReturnType")
     static List<List<String>> tryComputeCommonPrefixes(List<String> groups) {
         List<List<String>> splitGroups = groups.stream()
             .map(GROUP_SPLITTER::splitToList)

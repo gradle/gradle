@@ -237,15 +237,10 @@ public class NormalizingExcludeFactory extends DelegatingExcludeFactory {
             ExcludeSpec second = specIterator.next();
 
             if (first instanceof ExcludeAnyOf || second instanceof ExcludeAnyOf) {
-                ImmutableSet.Builder<ExcludeSpec> newBuilder = ImmutableSet.builder();
-                if (first instanceof ExcludeAnyOf) {
-                    newBuilder.addAll(((ExcludeAnyOf)first).getComponents());
-                } else {
+                if (!(first instanceof ExcludeAnyOf)) {
                     builder.add(first);
                 }
-                if (second instanceof ExcludeAnyOf) {
-                    newBuilder.addAll(((ExcludeAnyOf)second).getComponents());
-                } else {
+                if (!(second instanceof ExcludeAnyOf)) {
                     builder.add(second);
                 }
                 elements = builder.build();

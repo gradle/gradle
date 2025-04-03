@@ -279,6 +279,7 @@ public abstract class CollectionUtils {
         return flattenCollectionsInternal(type, things);
     }
 
+    @SuppressWarnings("MixedMutabilityReturnType")
     private static <T> List<T> flattenCollectionsInternal(Class<T> type, Object... things) {
         if (things == null) {
             return Collections.singletonList(null);

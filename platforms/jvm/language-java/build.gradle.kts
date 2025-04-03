@@ -12,10 +12,6 @@ errorprone {
     disabledChecks.addAll(
         "CheckReturnValue", // 2 occurrences
         "DoNotClaimAnnotations", // 6 occurrences
-        "InconsistentCapitalization", // 1 occurrences
-        "InvalidInlineTag", // 3 occurrences
-        "MissingCasesInEnumSwitch", // 1 occurrences
-        "MixedMutabilityReturnType", // 3 occurrences
     )
 }
 

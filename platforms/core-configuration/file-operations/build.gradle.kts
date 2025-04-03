@@ -27,7 +27,6 @@ description = "Operations on files, such as archiving, copying, deleting"
 
 errorprone {
     disabledChecks.addAll(
-        "InlineMeSuggester", // 1 occurrences
         "ReferenceEquality", // 2 occurrences
     )
 }
