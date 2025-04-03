@@ -49,6 +49,8 @@ public class DefaultTaskExecutionPreparer implements TaskExecutionPreparer {
             if (skipEvaluationDuringProjectPreparation(buildModelParameters, gradle)) {
                 new ProjectsEvaluatedNotifier(buildOperationRunner).notify(gradle);
             }
+
+            gradle.crossStableProjectsCoordinatesBarrier();
         });
     }
 }
