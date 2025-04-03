@@ -22,8 +22,6 @@ import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
-import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
-import org.gradle.api.internal.artifacts.ProjectComponentIdentifierInternal
 import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.build.BuildModelControllerServices
 import org.gradle.internal.build.BuildState
@@ -60,18 +58,6 @@ class DefaultIncludedBuildTest extends Specification {
             buildPath >> Path.path(":a:b:c")
         }
         build = new DefaultIncludedBuild(buildId, buildDefinition, false, owningBuild, buildTree, Mock(Instantiator))
-    }
-
-    def "creates a foreign id for projects"() {
-        def projectId = new DefaultProjectComponentIdentifier(Stub(BuildIdentifier), Path.path("id"), Path.path("project"), "name")
-
-        expect:
-        def id = build.idToReferenceProjectFromAnotherBuild(projectId) as ProjectComponentIdentifierInternal
-        id.identityPath == projectId.identityPath
-        id.identityPath.path == projectId.buildTreePath
-        id.buildTreePath == projectId.buildTreePath
-        id.projectPath == projectId.projectPath
-        id.projectName == projectId.projectName
     }
 
     def "can run action against build state"() {

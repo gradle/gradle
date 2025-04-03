@@ -34,8 +34,4 @@ public interface CompositeBuildParticipantBuildState extends BuildState {
      */
     Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> getAvailableModules();
 
-    /**
-     * Creates a copy of the identifier for a project in this build, to use in the dependency resolution result from some other build
-     */
-    ProjectComponentIdentifier idToReferenceProjectFromAnotherBuild(ProjectComponentIdentifier identifier);
 }
