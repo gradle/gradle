@@ -15,4 +15,45 @@
 [[best_practices_general]]
 = General Gradle Best Practices
 
-Add content here.
+[[use_the_plugins_block]]
+== Apply Plugins Using the `plugins` Block
+
+You should always use the `plugins` block to <<plugin_basics.adoc#applying_plugins,apply plugins>> in your build scripts.
+
+=== Explanation
+
+The `plugins` block is the preferred way to apply plugins in Gradle.
+The plugins API allows Gradle to better manage the loading of plugins and it is both more concise and less error-prone than adding dependencies to the buildscript's classpath explicitly in order to use the `apply` method.
+
+It allows Gradle to optimize the loading and reuse of plugin classes and helps inform tools about the potential properties and values in extensions the plugins will add to the build script.
+It is constrained to be idempotent (produce the same result every time) and side effect-free (safe for Gradle to execute at any time).
+
+=== Example
+
+==== Don't Do This
+
+====
+include::sample[dir="snippets/bestPractices/usePluginsBlock/kotlin/avoid-this",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/usePluginsBlock/groovy/avoid-this",files="build.gradle[tags=avoid-this]"]
+====
+
+<1> *Declare a Repository*: To use the legacy plugin application syntax, you need to explicitly tell Gradle where to find a plugin.
+<2> *Declare a Plugin Dependency*: To use the legacy plugin application syntax with third-party plugins, you need to explicitly tell Gradle the full coordinates of the plugin.
+<3> *Apply a Core Plugin*: This is very similar using either method.
+<4> *Apply a Third-Party Plugin*: The syntax is the same as for core Gradle plugins, but the version is not present at the point of application in your buildscript.
+
+==== Do This Instead
+
+====
+include::sample[dir="snippets/bestPractices/usePluginsBlock/kotlin/do-this",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/usePluginsBlock/groovy/do-this",files="build.gradle[tags=do-this]"]
+====
+
+<1> *Apply a Core Plugin*: This is very similar using either method.
+<2> *Apply a Third-Party Plugin*: You specify the version using method chaining in the `plugins` block itself.
+
+=== References
+<<plugins.adoc#sec:using_plugins,Using Plugins>>
+
+=== Tags
+`#structuring-builds`
