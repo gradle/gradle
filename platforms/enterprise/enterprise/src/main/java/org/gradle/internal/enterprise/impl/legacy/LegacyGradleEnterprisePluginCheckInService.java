@@ -19,8 +19,6 @@ package org.gradle.internal.enterprise.impl.legacy;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.BuildType;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.internal.buildtree.BuildModelParameters;
-import org.gradle.internal.enterprise.core.GradleEnterprisePluginAdapter;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.scan.config.BuildScanConfig;
 import org.gradle.internal.scan.config.BuildScanConfigProvider;
@@ -29,10 +27,16 @@ import org.gradle.internal.scan.eob.BuildScanEndOfBuildNotifier;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.internal.VersionNumber;
-import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 
+/**
+ * A check-in service used by the Gradle Enterprise plugin versions until 3.4, none of which are supported anymore.
+ * <p>
+ * We keep this service, because for the plugin versions 3.0+ we can gracefully avoid plugin application and report an unsupported message.
+ * <p>
+ * More modern versions of the plugin use {@link org.gradle.internal.enterprise.GradleEnterprisePluginCheckInService}.
+ */
 @ServiceScope(Scope.Build.class)
 public class LegacyGradleEnterprisePluginCheckInService implements BuildScanConfigProvider, BuildScanEndOfBuildNotifier {
 
@@ -46,35 +50,18 @@ public class LegacyGradleEnterprisePluginCheckInService implements BuildScanConf
     private static final VersionNumber FIRST_VERSION_AWARE_OF_UNSUPPORTED = VersionNumber.parse("1.11");
 
     private final GradleInternal gradle;
-    private final BuildModelParameters buildModelParameters;
     private final GradleEnterprisePluginManager manager;
     private final BuildType buildType;
-
-    private BuildScanEndOfBuildNotifier.Listener listener;
 
     @Inject
     public LegacyGradleEnterprisePluginCheckInService(
         GradleInternal gradle,
-        BuildModelParameters buildModelParameters,
         GradleEnterprisePluginManager manager,
         BuildType buildType
     ) {
         this.gradle = gradle;
-        this.buildModelParameters = buildModelParameters;
         this.manager = manager;
         this.buildType = buildType;
-    }
-
-    @Nullable
-    private String unsupportedReason(VersionNumber pluginVersion) {
-        if (Boolean.getBoolean(UNSUPPORTED_TOGGLE)) {
-            return UNSUPPORTED_TOGGLE_MESSAGE;
-        } else if (buildModelParameters.isConfigurationCache()) {
-            return "Build scans have been disabled due to incompatibility between your Gradle Enterprise plugin version (" + pluginVersion + ") and configuration caching. " +
-                "Please use Gradle Enterprise plugin version 3.4 or later for compatibility with configuration caching.";
-        } else {
-            return null;
-        }
     }
 
     @Override
@@ -83,19 +70,16 @@ public class LegacyGradleEnterprisePluginCheckInService implements BuildScanConf
             throw new IllegalStateException("Configuration has already been collected.");
         }
 
-        VersionNumber pluginVersion = VersionNumber.parse(pluginMetadata.getVersion()).getBaseVersion();
-        if (pluginVersion.compareTo(FIRST_GRADLE_ENTERPRISE_PLUGIN_VERSION) < 0) {
+        String pluginVersion = pluginMetadata.getVersion();
+        VersionNumber pluginBaseVersion = VersionNumber.parse(pluginVersion).getBaseVersion();
+        if (pluginBaseVersion.compareTo(FIRST_GRADLE_ENTERPRISE_PLUGIN_VERSION) < 0) {
             throw new UnsupportedBuildScanPluginVersionException(GradleEnterprisePluginManager.OLD_SCAN_PLUGIN_VERSION_MESSAGE);
         }
 
         String unsupportedReason = unsupportedReason(pluginVersion);
-        if (unsupportedReason == null) {
-            manager.registerAdapter(new Adapter());
-        } else {
-            manager.unsupported();
-            if (!isPluginAwareOfUnsupported(pluginVersion)) {
-                throw new UnsupportedBuildScanPluginVersionException(unsupportedReason);
-            }
+        manager.unsupported();
+        if (!isPluginAwareOfUnsupported(pluginBaseVersion)) {
+            throw new UnsupportedBuildScanPluginVersionException(unsupportedReason);
         }
 
         return new Config(
@@ -107,14 +91,19 @@ public class LegacyGradleEnterprisePluginCheckInService implements BuildScanConf
 
     @Override
     public void notify(BuildScanEndOfBuildNotifier.Listener listener) {
-        if (this.listener != null) {
-            throw new IllegalStateException("listener already set to " + this.listener);
-        }
-        this.listener = listener;
+        // Should not get here, since none of the plugin versions using this service are supported
     }
 
-    private boolean isPluginAwareOfUnsupported(VersionNumber pluginVersion) {
+    private static boolean isPluginAwareOfUnsupported(VersionNumber pluginVersion) {
         return pluginVersion.compareTo(FIRST_VERSION_AWARE_OF_UNSUPPORTED) >= 0;
+    }
+
+    private static String unsupportedReason(String pluginVersion) {
+        if (Boolean.getBoolean(UNSUPPORTED_TOGGLE)) {
+            return UNSUPPORTED_TOGGLE_MESSAGE;
+        } else {
+            return DevelocityPluginCompatibility.getUnsupportedPluginMessage(pluginVersion);
+        }
     }
 
     private static class Config implements BuildScanConfig {
@@ -194,28 +183,4 @@ public class LegacyGradleEnterprisePluginCheckInService implements BuildScanConf
         }
     }
 
-    private class Adapter implements GradleEnterprisePluginAdapter {
-        @Override
-        public boolean shouldSaveToConfigurationCache() {
-            return false;
-        }
-
-        @Override
-        public void onLoadFromConfigurationCache() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public void buildFinished(@Nullable Throwable buildFailure) {
-            if (listener != null) {
-                listener.execute(new BuildResult() {
-                    @Nullable
-                    @Override
-                    public Throwable getFailure() {
-                        return buildFailure;
-                    }
-                });
-            }
-        }
-    }
 }
