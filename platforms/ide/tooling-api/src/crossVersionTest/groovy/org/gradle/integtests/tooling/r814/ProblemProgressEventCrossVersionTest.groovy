@@ -20,6 +20,10 @@ package org.gradle.integtests.tooling.r814
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.tooling.events.ProgressEvent
+import org.gradle.tooling.events.ProgressListener
+import org.gradle.tooling.events.problems.Problem
+import org.gradle.tooling.events.problems.SingleProblemEvent
 import org.gradle.workers.fixtures.WorkerExecutorFixture
 
 @ToolingApiVersion(">=8.14")
@@ -158,7 +162,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         """
 
         when:
-        def listener = new org.gradle.integtests.tooling.r813.ProblemProgressEventCrossVersionTest.ProblemProgressListener()
+        def listener = new ProblemProgressListener()
         withConnection { connection ->
             connection.newBuild()
                 .forTasks("reportProblem")
@@ -180,5 +184,76 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
         where:
         isolationMode << WorkerExecutorFixture.ISOLATION_MODES
+    }
+
+    def "deprecations with their own additional data types are reported correctly"() {
+        buildFile """
+            import org.gradle.api.problems.Severity
+            import org.gradle.api.problems.AdditionalData
+
+            abstract class DeprecatingTask extends DefaultTask {
+                @Inject
+                protected abstract Problems getProblems();
+
+                @TaskAction
+                void run() {
+                    getProblems()
+                        .getDeprecationReporter()
+                        .deprecate(${reportSource}, "test deprecation", feature -> feature
+                            .willBeRemovedInVersion("x.y.z")
+                            .shouldBeReplacedBy("replacement")
+                            .details("reasoning")
+                        )
+                }
+            }
+
+            tasks.register("reportDeprecation", DeprecatingTask)
+        """
+
+        when:
+        def listener = new ProblemProgressListener()
+        withConnection { connection ->
+            connection
+                .newBuild()
+                .forTasks("reportDeprecation")
+                .addProgressListener(listener)
+                .run()
+        }
+
+        then:
+        def problems = listener.problems
+        problems.size() == 1
+
+        def deprecation = problems[0]
+        deprecation.contextualLabel.contextualLabel == "test deprecation"
+        deprecation.details.details == "reasoning"
+        def additionalData = deprecation.additionalData.asMap
+        additionalData.size() == 3
+        additionalData['willBeRemovedInVersion'] == "x.y.z"
+        additionalData['shouldBeReplacedBy'] == "replacement"
+        additionalData['reportSource'] == expectedSourceFields
+
+        where:
+        reportSource                                                                        | expectedSourceFields
+        "org.gradle.api.problems.internal.deprecation.source.InternalReportSource.gradle()" | ["id": "gradle"]
+        "org.gradle.api.problems.deprecation.source.ReportSource.plugin(\"plugin.id\")"     | ["id": "plugin", "pluginId": "plugin.id"]
+    }
+
+    class ProblemProgressListener implements ProgressListener {
+        List<Problem> problems = []
+
+        @Override
+        void statusChanged(ProgressEvent event) {
+            if (event instanceof SingleProblemEvent) {
+                def problem = event.problem
+                def problemId = problem.definition.id
+                // We are not interested in this specific deprecation
+                if (problemId.name == 'executing-gradle-on-jvm-versions-and-lower') {
+                    return
+                }
+
+                this.problems.add(event.problem)
+            }
+        }
     }
 }

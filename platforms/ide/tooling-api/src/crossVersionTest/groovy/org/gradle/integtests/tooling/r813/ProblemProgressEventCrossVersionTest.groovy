@@ -125,7 +125,6 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
     }
 
     class ProblemProgressListener implements ProgressListener {
-
         List<Problem> problems = []
 
         @Override
