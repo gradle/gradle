@@ -157,7 +157,7 @@ class PassingCommandLineArgumentsCrossVersionSpec extends ToolingApiSpecificatio
         noExceptionThrown()
     }
 
-    @TargetGradleVersion(">=3.0 <5.0")
+    @TargetGradleVersion(">=4.0 <5.0")
     def "can configure searchUpwards via build arguments"() {
         given:
         file('build.gradle') << "assert !gradle.startParameter.searchUpwards"

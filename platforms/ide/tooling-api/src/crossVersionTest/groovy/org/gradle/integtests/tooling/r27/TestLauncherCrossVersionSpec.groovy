@@ -27,7 +27,6 @@ import spock.lang.Timeout
 
 import static org.gradle.integtests.tooling.fixture.TextUtil.normaliseLineSeparators
 
-@TargetGradleVersion(">=3.0")
 @Timeout(120)
 class TestLauncherCrossVersionSpec extends TestLauncherSpec {
 
@@ -139,7 +138,7 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         Test method util.TestUtil.someUtilMethod()"""
     }
 
-    @TargetGradleVersion(">=3.0 <8.4")
+    @TargetGradleVersion(">=4.0 <8.4")
     def "throws exception with meaningful error message on failing tests"() {
         setup:
         withFailingTest()

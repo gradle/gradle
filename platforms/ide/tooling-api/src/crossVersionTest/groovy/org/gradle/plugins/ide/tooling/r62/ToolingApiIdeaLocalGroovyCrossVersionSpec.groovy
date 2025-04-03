@@ -16,7 +16,7 @@
 
 package org.gradle.plugins.ide.tooling.r62
 
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.idea.IdeaProject
 import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency
@@ -27,7 +27,6 @@ import spock.lang.Issue
 class ToolingApiIdeaLocalGroovyCrossVersionSpec extends ToolingApiSpecification {
 
     @Issue("https://github.com/gradle/gradle/issues/12274")
-    @TargetGradleVersion(">=3.4")
     def "resolves localGroovy() as IdeaSingleEntryLibraryDependency for IdeaProject via tooling API"() {
         given:
         Assume.assumeFalse("6.2 is broken and does not include localGroovy in the IdeaModule", targetVersion == GradleVersion.version("6.2"))

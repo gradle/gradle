@@ -43,7 +43,6 @@ class InvalidateVirtualFileSystemAfterChangeCrossVersionSpec extends ToolingApiS
         executer = toolingApi.createExecuter()
     }
 
-    @TargetGradleVersion(">=3.0")
     def "no daemon is started for request"() {
         when:
         withConnection { connection ->
@@ -111,7 +110,7 @@ class InvalidateVirtualFileSystemAfterChangeCrossVersionSpec extends ToolingApiS
         build?.waitForFinish()
     }
 
-    @TargetGradleVersion(">=3.0 <6.1")
+    @TargetGradleVersion(">=4.0 <6.1")
     def "invalidating paths has no effect on older daemons"() {
         when:
         createIdleDaemon()

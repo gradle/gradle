@@ -22,7 +22,7 @@ import org.gradle.tooling.model.eclipse.EclipseProject
 
 class ToolingApiEclipseModelSourceDirectoryOutputCrossVersionSpec extends ToolingApiSpecification {
 
-    @TargetGradleVersion(">=3.0 <4.4")
+    @TargetGradleVersion(">=4.0 <4.4")
     def "Source directory has no output specified"() {
         setup:
         settingsFile << 'rootProject.name = "root"'

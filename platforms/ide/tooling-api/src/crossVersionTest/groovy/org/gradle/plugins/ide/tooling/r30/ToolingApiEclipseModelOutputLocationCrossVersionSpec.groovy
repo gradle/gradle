@@ -27,7 +27,7 @@ class ToolingApiEclipseModelOutputLocationCrossVersionSpec extends ToolingApiSpe
         settingsFile << 'rootProject.name = "root"'
     }
 
-    @TargetGradleVersion(">=3.0 <4.4")
+    @TargetGradleVersion(">=4.0 <4.4")
     def "Non-Java project has default output location"() {
         when:
         EclipseProject project = loadToolingModel(EclipseProject)
@@ -37,7 +37,7 @@ class ToolingApiEclipseModelOutputLocationCrossVersionSpec extends ToolingApiSpe
         output.path == 'bin'
     }
 
-    @TargetGradleVersion(">=3.0 <4.4")
+    @TargetGradleVersion(">=4.0 <4.4")
     def "Java project has default output location"() {
         setup:
         buildFile << "apply plugin: 'java'"

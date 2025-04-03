@@ -20,14 +20,12 @@ import groovy.transform.stc.SimpleType
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiConnector
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.TestLauncher
 
 import java.util.regex.Pattern
 
 @TargetGradleVersion(">=7.6")
-@ToolingApiVersion(">=7.6")
 class TestLauncherTaskExecutionCrossVersionSpec extends ToolingApiSpecification {
 
     def setup() {

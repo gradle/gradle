@@ -17,12 +17,10 @@
 package org.gradle.integtests.tooling.r32
 
 import org.gradle.integtests.tooling.fixture.ClassLoaderFixture
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.test.fixtures.file.TestFile
 
 class BuildActionCrossVersionSpec extends ToolingApiSpecification {
-    @TargetGradleVersion(">=3.2")
     def "can use multiple action implementations with different classpath roots and loaded from same ClassLoader"() {
         settingsFile.text = 'rootProject.name = "not broken"'
 

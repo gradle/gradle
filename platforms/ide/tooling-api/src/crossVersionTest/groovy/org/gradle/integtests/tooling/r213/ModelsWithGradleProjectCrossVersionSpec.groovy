@@ -74,7 +74,6 @@ class ModelsWithGradleProjectCrossVersionSpec extends ToolingApiSpecification {
         modelType << buildScopedModels
     }
 
-    @TargetGradleVersion(">=3.3")
     def "ProjectConnection provides all GradleProjects for subproject of multi-project build"() {
         when:
         def rootDir = rootMulti.file("x")
@@ -112,7 +111,6 @@ class ModelsWithGradleProjectCrossVersionSpec extends ToolingApiSpecification {
         modelType << projectScopedModels
     }
 
-    @TargetGradleVersion(">=3.3")
     def "ProjectConnection provides GradleProject for subproject of multi-project build"() {
         given:
         def rootDir = rootMulti.file("x")
@@ -130,7 +128,7 @@ class ModelsWithGradleProjectCrossVersionSpec extends ToolingApiSpecification {
         assertProject(projectFromEclipseProject, rootMulti, ':x', 'x', ':', [])
     }
 
-    @TargetGradleVersion(">=3.0 <7.0")
+    @TargetGradleVersion(">=4.0 <7.0")
     def "ProjectConnection provides GradleProject for subproject of multi-project build with --no-search-upward"() {
         when:
         def rootDir = rootMulti.file("x")

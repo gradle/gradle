@@ -18,12 +18,10 @@ package org.gradle.integtests.tooling.r82
 
 import org.gradle.integtests.tooling.TestLauncherSpec
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.TestLauncher
 import org.gradle.tooling.TestSpecs
 import spock.lang.Issue
 
-@ToolingApiVersion('>=7.6')
 @TargetGradleVersion(">=8.2")
 class TestLauncherTestSpecCrossVersionSpec extends TestLauncherSpec {
 
