@@ -48,6 +48,8 @@ class JacocoAgentJarTest extends Specification {
         '0.8.9'               | true
         '0.8.10'              | true
         '0.8.11'              | true
+        '0.8.12'              | true
+        '0.8.13'              | true
     }
 
     def "versions >= 0.7.6 support include no location classes #version -> #incNoLocationClassesSupport"() {
@@ -73,5 +75,7 @@ class JacocoAgentJarTest extends Specification {
         '0.8.9'               | true
         '0.8.10'              | true
         '0.8.11'              | true
+        '0.8.12'              | true
+        '0.8.13'              | true
     }
 }
