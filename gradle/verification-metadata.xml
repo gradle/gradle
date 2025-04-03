@@ -289,6 +289,7 @@
             <trusting group="xmlunit"/>
             <trusting group="^org[.]apache($|([.].*))" regex="true"/>
          </trusted-key>
+         <trusted-key id="9C60C6B3A5A9DF8FEDD299D65BE0BA8CB80602AE" group="org.apache.ivy"/>
          <trusted-key id="CF17E92C9FFA55316B5DB83901D734EE5EE9C3F8" group="org.eclipse.sisu"/>
          <trusted-key id="CF4B3A3F53BEF9A2CE2CBFB895962C5E716C39AA" group="com.autonomousapps"/>
          <trusted-key id="D40633BFD9FDB773C896E9025DFB46C505B694FE" group="com.github.bbottema"/>
