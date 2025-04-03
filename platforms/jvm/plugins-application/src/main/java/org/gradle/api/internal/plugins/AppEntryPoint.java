@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.tasks.application;
 
-import org.gradle.work.DisableCachingByDefault;
+package org.gradle.api.internal.plugins;
 
 /**
- * Legacy class for binary compatibility. It has the same behavior as {@link org.gradle.jvm.application.tasks.CreateStartScripts}.
+ * Describes how an application can be started.
  *
- * @see org.gradle.jvm.application.tasks.CreateStartScripts
+ * @implNote This is to be treated as a "sealed" interface. All usage points need updating if a new implementation is added.
  */
-@DisableCachingByDefault(because = "Not worth caching")
-public abstract class CreateStartScripts extends org.gradle.jvm.application.tasks.CreateStartScripts {
+public interface AppEntryPoint {
 }
