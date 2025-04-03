@@ -16,11 +16,13 @@
 
 package org.gradle.internal.classpath
 
+import org.gradle.internal.classpath.intercept.CallSiteInterceptorSet
 import org.gradle.internal.classpath.intercept.DefaultCallSiteDecorator
 import org.gradle.internal.classpath.intercept.DefaultCallSiteInterceptorSet
-import org.gradle.internal.classpath.intercept.CallSiteInterceptorSet
+import org.gradle.internal.instrumentation.api.groovybytecode.CallInterceptor
 import org.gradle.test.precondition.TestPrecondition
 import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 import static org.gradle.internal.classpath.BasicCallInterceptionTestInterceptorsDeclaration.TEST_GENERATED_CLASSES_PACKAGE
@@ -40,23 +42,17 @@ class CallInterceptingMetaClassTest extends Specification {
     def interceptorTestReceiverClassLock = new ClassBasedLock(InterceptorTestReceiver)
 
     def callTracker = new DefaultInstrumentedGroovyCallsTracker()
+    def interceptors = callInterceptors.getCallInterceptors(ALL)
 
     def setup() {
-        interceptorTestReceiverClassLock.lock()
-        originalMetaClass = InterceptorTestReceiver.metaClass
-        def interceptors = callInterceptors.getCallInterceptors(ALL)
-        def callSiteResolver = new DefaultCallSiteDecorator(interceptors)
-        GroovySystem.metaClassRegistry.setMetaClass(
-            InterceptorTestReceiver,
-            new CallInterceptingMetaClass(GroovySystem.metaClassRegistry, InterceptorTestReceiver, InterceptorTestReceiver.metaClass, callTracker, callSiteResolver)
-        )
+        originalMetaClass = setupMetaClass(InterceptorTestReceiver, interceptorTestReceiverClassLock, interceptors, callTracker)
         instance = new InterceptorTestReceiver()
     }
 
     def cleanup() {
-        GroovySystem.metaClassRegistry.setMetaClass(InterceptorTestReceiver, originalMetaClass)
-        instance = null
-        interceptorTestReceiverClassLock.unlock()
+        cleanupMetaClass(InterceptorTestReceiver, interceptorTestReceiverClassLock, originalMetaClass) {
+            instance = null
+        }
     }
 
     def 'intercepts a dynamic call with no argument'() {
@@ -305,6 +301,55 @@ class CallInterceptingMetaClassTest extends Specification {
         "via setProperty" | "string"  | "setNonExistentProperty(String)-non-existent" | "nonExistentProperty" | { instance.metaClass.setProperty(null, instance, "nonExistentProperty", "!", false, false) }
     }
 
+    def 'set meta property use Provider API coercion for DynamicObject when a property is not intercepted but a property with the same name in another type is intercepted'() {
+        given:
+        def propertyName = "richProperty"
+        MetaProperty property = null
+
+        // Unintercepted class with "richProperty"
+        def uninterceptedClass = TestUtil.newInstance(InterceptorTestReceiver).class
+        def uninterceptedClassBasedLock = new ClassBasedLock(uninterceptedClass)
+        def uninterceptedOriginalMetaClass = setupMetaClass(uninterceptedClass, uninterceptedClassBasedLock, interceptors, callTracker)
+        // Create a new instance so it has a new meta class
+        def uninterceptedInstance = TestUtil.newInstance(InterceptorTestReceiver)
+
+        // Intercepted class with "richProperty"
+        def interceptedDecoratedClass = TestUtil.newInstance(InterceptorTestReceiver.ControllingObject).class
+        def interceptedClassBasedLock = new ClassBasedLock(interceptedDecoratedClass)
+        def interceptedOriginalMetaClass = setupMetaClass(interceptedDecoratedClass, interceptedClassBasedLock, interceptors, callTracker)
+        // Create a new instance so it has a new meta class
+        def interceptedInstance = TestUtil.newInstance(InterceptorTestReceiver.ControllingObject)
+
+
+        when:
+        withEntryPoint(SET_PROPERTY, propertyName) {
+            property = uninterceptedInstance.metaClass.getMetaProperty(propertyName)
+            property.setProperty(uninterceptedInstance, ["a": "b"])
+        }
+
+        then:
+        uninterceptedInstance.intercepted == null
+        property != null
+        property instanceof CallInterceptingMetaClass.DefaultInterceptedMetaProperty
+        uninterceptedInstance.richProperty.get() == ["a": "b"]
+
+        when:
+        withEntryPoint(SET_PROPERTY, propertyName) {
+            property = interceptedInstance.metaClass.getMetaProperty(propertyName)
+            property.setProperty(interceptedInstance, ["a": "b"])
+        }
+
+        then:
+        interceptedInstance.intercepted == "setRichProperty(Map<String, String>)"
+        property != null
+        property instanceof CallInterceptingMetaClass.DefaultInterceptedMetaProperty
+        interceptedInstance.richProperty.get() == ["a": "b"]
+
+        cleanup:
+        cleanupMetaClass(uninterceptedInstance.getClass(), uninterceptedClassBasedLock, uninterceptedOriginalMetaClass)
+        cleanupMetaClass(interceptedInstance.getClass(), interceptedClassBasedLock, interceptedOriginalMetaClass)
+    }
+
     def 'intercepts getMetaProperty for matching properties'() {
         MetaProperty property = null
 
@@ -315,7 +360,7 @@ class CallInterceptingMetaClassTest extends Specification {
 
         then:
         property != null
-        (property instanceof CallInterceptingMetaClass.InterceptedMetaProperty) == shouldIntercept
+        (property instanceof CallInterceptingMetaClass.DefaultInterceptedMetaProperty) == shouldIntercept
 
         where:
         propertyName | shouldIntercept
@@ -338,8 +383,9 @@ class CallInterceptingMetaClassTest extends Specification {
 
         then:
         properties.size() == 4
-        properties.every { it instanceof CallInterceptingMetaClass.InterceptedMetaProperty }
+        properties.every { it instanceof CallInterceptingMetaClass.DefaultInterceptedMetaProperty }
     }
+
 
     private Object withEntryPoint(InstrumentedGroovyCallsTracker.CallKind kind, String name, Closure<?> call) {
         def entryPoint = callTracker.enterCall("from-test", name, kind)
@@ -348,5 +394,22 @@ class CallInterceptingMetaClassTest extends Specification {
         } finally {
             callTracker.leaveCall(entryPoint)
         }
+    }
+
+    private static MetaClass setupMetaClass(Class<?> clazz, ClassBasedLock classBasedLock, List<CallInterceptor> interceptors, InstrumentedGroovyCallsTracker callTracker) {
+        classBasedLock.lock()
+        def originalMetaClass = clazz.metaClass
+        def callSiteResolver = new DefaultCallSiteDecorator(interceptors)
+        GroovySystem.metaClassRegistry.setMetaClass(
+            clazz,
+            new CallInterceptingMetaClass(GroovySystem.metaClassRegistry, clazz, clazz.metaClass, callTracker, callSiteResolver)
+        )
+        return originalMetaClass
+    }
+
+    private static MetaClass cleanupMetaClass(Class<?> clazz, ClassBasedLock classBasedLock, MetaClass originalMetaClass, additionalCleanup = {}) {
+        GroovySystem.metaClassRegistry.setMetaClass(clazz, originalMetaClass)
+        additionalCleanup()
+        classBasedLock.unlock()
     }
 }

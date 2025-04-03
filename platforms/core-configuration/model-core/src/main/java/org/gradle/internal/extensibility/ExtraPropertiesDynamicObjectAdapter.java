@@ -63,4 +63,9 @@ public class ExtraPropertiesDynamicObjectAdapter extends AbstractDynamicObject {
         }
         return DynamicInvokeResult.notFound();
     }
+
+    @Override
+    public DynamicInvokeResult trySetPropertyWithoutInstrumentation(String name, @Nullable Object value) {
+        return trySetProperty(name, value);
+    }
 }
