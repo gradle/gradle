@@ -186,7 +186,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             .provider(registration -> {
                 registration.add(FileResolver.class, resolver);
                 registration.add(FileCollectionFactory.class, fileCollectionFactory);
-                registration.add(DependencyMetaDataProvider.class, AnonymousModule::new);
+                registration.add(DependencyMetaDataProvider.class, () -> new AnonymousModule(owner));
                 registration.add(ProjectFinder.class, new UnknownProjectFinder("Project dependencies cannot be declared here."));
                 registration.add(DomainObjectContext.class, owner);
             })

@@ -18,34 +18,43 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 
 /**
  * A module representing a component with no unique identity.
  */
 public class AnonymousModule implements Module {
+    private final ModuleComponentIdentifier id;
 
-    private static final ModuleComponentIdentifier ID = new DefaultModuleComponentIdentifier(
-        DefaultModuleIdentifier.newId(
-            "unspecified",
-            "unspecified"
-        ),
-        Project.DEFAULT_VERSION
-    );
+    AnonymousModule(DomainObjectContext domainObjectContext) {
+        this.id = new DefaultModuleComponentIdentifier(
+            DefaultModuleIdentifier.newId(
+                "unspecified",
+                "unspecified"
+            ),
+            Project.DEFAULT_VERSION
+        ) {
+            @Override
+            public String getDisplayName() {
+                return domainObjectContext.getDisplayName();
+            }
+        };
+    }
 
     @Override
     public String getGroup() {
-        return ID.getGroup();
+        return id.getGroup();
     }
 
     @Override
     public String getName() {
-        return ID.getModule();
+        return id.getModule();
     }
 
     @Override
     public String getVersion() {
-        return ID.getVersion();
+        return id.getVersion();
     }
 
     @Override
@@ -55,6 +64,6 @@ public class AnonymousModule implements Module {
 
     @Override
     public ComponentIdentifier getComponentId() {
-        return ID;
+        return id;
     }
 }

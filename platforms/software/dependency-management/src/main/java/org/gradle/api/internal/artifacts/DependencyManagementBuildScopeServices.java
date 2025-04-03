@@ -21,6 +21,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.capability.CapabilitySelectorSerializer;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
@@ -160,15 +161,8 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
     }
 
     @Provides
-    protected DependencyMetaDataProvider createDependencyMetaDataProvider() {
-        return new DependencyMetaDataProviderImpl();
-    }
-
-    private static class DependencyMetaDataProviderImpl implements DependencyMetaDataProvider {
-        @Override
-        public Module getModule() {
-            return new AnonymousModule();
-        }
+    protected DependencyMetaDataProvider createDependencyMetaDataProvider(DomainObjectContext domainObjectContext) {
+        return () -> new AnonymousModule(domainObjectContext);
     }
 
     @Provides
