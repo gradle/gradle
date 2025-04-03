@@ -18,6 +18,8 @@ package org.gradle.api.internal.tasks.util
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.process.ProcessForkOptions
 import org.gradle.process.internal.DefaultProcessForkOptions
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultProcessForkOptionsTest extends Specification {
@@ -25,7 +27,7 @@ class DefaultProcessForkOptionsTest extends Specification {
     def resolver = Mock(FileResolver.class) {
         resolve(".") >> baseDir
     }
-    def options = new DefaultProcessForkOptions(resolver)
+    def options = new DefaultProcessForkOptions(TestUtil.objectFactory(new TestFile(baseDir)), resolver)
 
     def defaultValues() {
         expect:
