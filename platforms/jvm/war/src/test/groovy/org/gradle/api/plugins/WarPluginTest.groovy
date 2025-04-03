@@ -70,7 +70,7 @@ class WarPluginTest extends AbstractProjectBuilderSpec {
         task = project.tasks[BasePlugin.ASSEMBLE_TASK_NAME]
 
         then:
-        task dependsOn(WarPlugin.WAR_TASK_NAME, JavaPlugin.JAR_TASK_NAME)
+        task dependsOn(WarPlugin.WAR_TASK_NAME, JvmConstants.JAR_TASK_NAME)
     }
 
     def "depends on runtime config"() {
