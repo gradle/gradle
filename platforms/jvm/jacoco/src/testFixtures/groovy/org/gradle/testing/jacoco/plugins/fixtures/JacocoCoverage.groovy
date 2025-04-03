@@ -24,7 +24,7 @@ final class JacocoCoverage {
 
     private JacocoCoverage() {}
 
-    private static final String[] ALL = [JacocoPlugin.DEFAULT_JACOCO_VERSION, '0.7.1.201405082137', '0.7.6.201602180812', '0.8.3'].asImmutable()
+    private static final String[] ALL = [JacocoPlugin.DEFAULT_JACOCO_VERSION, '0.7.6.201602180812'].asImmutable()
     // Order matters here, as we want to test the latest version first
     // Relies on Groovy keeping the order of the keys in a map literal
     private static final Map<JavaVersion, JacocoVersion> JDK_CUTOFFS = [
