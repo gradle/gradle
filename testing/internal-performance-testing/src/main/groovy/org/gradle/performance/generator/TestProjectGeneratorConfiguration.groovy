@@ -90,7 +90,7 @@ class TestProjectGeneratorConfigurationBuilder {
             commonsLang: 'commons-lang:commons-lang:2.5',
             commonsHttpClient: 'commons-httpclient:commons-httpclient:3.0',
             commonsCodec: 'commons-codec:commons-codec:1.2',
-            jclOverSlf4j: 'org.slf4j:jcl-over-slf4j:1.7.10',
+            jclOverSlf4j: 'org.slf4j:jcl-over-slf4j:2.0.17',
         ]
     }
 
