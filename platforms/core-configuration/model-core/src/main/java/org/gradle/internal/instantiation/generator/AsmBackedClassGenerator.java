@@ -58,6 +58,7 @@ import org.gradle.internal.state.Managed;
 import org.gradle.internal.state.ModelObject;
 import org.gradle.internal.state.OwnerAware;
 import org.gradle.model.internal.asm.AsmClassGenerator;
+import org.gradle.model.internal.asm.AsmClassGeneratorUtils;
 import org.gradle.model.internal.asm.BytecodeFragment;
 import org.gradle.model.internal.asm.ClassGeneratorSuffixRegistry;
 import org.gradle.model.internal.asm.ClassVisitorScope;
@@ -636,7 +637,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
             includeNotInheritedAnnotations();
 
-            visit(V1_8, ACC_PUBLIC | ACC_SYNTHETIC, generatedType.getInternalName(), null,
+            visit(V1_8, ACC_PUBLIC | ACC_SYNTHETIC, generatedType.getInternalName(), AsmClassGeneratorUtils.encodeTypeVariablesAsSignature(type),
                 superclass.getInternalName(), interfaceTypes.toArray(EMPTY_STRINGS));
 
             generateInitMethod();

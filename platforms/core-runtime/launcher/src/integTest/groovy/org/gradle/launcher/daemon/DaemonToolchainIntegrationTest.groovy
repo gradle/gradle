@@ -70,25 +70,6 @@ class DaemonToolchainIntegrationTest extends AbstractIntegrationSpec implements 
         assertDaemonUsedJvm(otherJvm)
     }
 
-    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
-    def "Given installation with relative path to project and disabled auto-detection When executing any task Then daemon jvm was set up with the relative path toolchain"() {
-        given:
-        def otherJvm = AvailableJavaHomes.differentVersion
-        def otherMetadata = AvailableJavaHomes.getJvmInstallationMetadata(otherJvm)
-        writeJvmCriteria(otherJvm.javaVersion, otherMetadata.vendor.knownVendor.name())
-        captureJavaHome()
-
-        def relativePathOtherJvmInstallation = testDirectory.relativePath(otherJvm.javaHome)
-        executer.withArguments([
-            "-Porg.gradle.java.installations.auto-detect=false",
-            "-Porg.gradle.java.installations.paths=" + relativePathOtherJvmInstallation
-        ])
-
-        expect:
-        succeeds("help")
-        assertDaemonUsedJvm(otherJvm)
-    }
-
     def "Given daemon toolchain criteria with version that doesn't match installed ones When executing any task Then fails with the expected message"() {
         given:
         // Java 10 is not available

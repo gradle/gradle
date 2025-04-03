@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.buildconfiguration.resolvers;
+package org.gradle.integtests.fixtures
 
-import org.gradle.api.GradleException;
+import static org.gradle.api.plugins.scala.ScalaBasePlugin.DEFAULT_ZINC_VERSION
 
-public class UnconfiguredToolchainRepositoriesResolver extends GradleException {
 
-    public UnconfiguredToolchainRepositoriesResolver() {
-        super("Toolchain download repositories have not been configured.");
-    }
+class ZincCoverage {
+    public static final List<String> ALL_VERSIONS = [DEFAULT_ZINC_VERSION, "1.8.1", "1.7.2", "1.6.0"]
 }
