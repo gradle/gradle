@@ -21,6 +21,7 @@ import com.google.common.io.ByteStreams;
 import org.gradle.api.GradleException;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.internal.plugins.ExecutableJar;
 import org.gradle.api.internal.plugins.StartScriptGenerator;
 import org.gradle.api.tasks.wrapper.Wrapper;
 import org.gradle.api.tasks.wrapper.Wrapper.PathBase;
@@ -28,7 +29,6 @@ import org.gradle.internal.util.PropertiesUtils;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.DistributionLocator;
 import org.gradle.util.internal.GFileUtils;
-import org.gradle.wrapper.GradleWrapperMain;
 import org.gradle.wrapper.WrapperExecutor;
 
 import javax.annotation.Nullable;
@@ -38,10 +38,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
 import java.nio.file.Files;
+import java.util.Collections;
 import java.util.Locale;
 import java.util.Properties;
-
-import static java.util.Collections.singletonList;
 
 @NonNullApi
 public class WrapperGenerator {
@@ -123,13 +122,14 @@ public class WrapperGenerator {
     private static void writeScripts(String jarFileRelativePath, File unixScript, File batchScript) {
         StartScriptGenerator generator = new StartScriptGenerator();
         generator.setApplicationName("Gradle");
-        generator.setMainClassName(GradleWrapperMain.class.getName());
-        generator.setClasspath(singletonList(jarFileRelativePath));
+        generator.setEntryPoint(new ExecutableJar(jarFileRelativePath));
+        generator.setClasspath(Collections.emptyList());
         generator.setOptsEnvironmentVar("GRADLE_OPTS");
         generator.setExitEnvironmentVar("GRADLE_EXIT_CONSOLE");
         generator.setAppNameSystemProperty("org.gradle.appname");
         generator.setScriptRelPath(unixScript.getName());
         generator.setDefaultJvmOpts(ImmutableList.of("-Xmx64m", "-Xms64m"));
+
         generator.generateUnixScript(unixScript);
         generator.generateWindowsScript(batchScript);
     }

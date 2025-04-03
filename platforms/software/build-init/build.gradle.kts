@@ -48,7 +48,6 @@ dependencies {
     }
     implementation(projects.pluginsJvmTestSuite)
     implementation(projects.serviceLookup)
-    implementation(projects.wrapperMain)
     implementation(projects.wrapperShared)
 
     implementation(libs.groovy)
@@ -94,6 +93,7 @@ dependencies {
     testImplementation(projects.native)
     testImplementation(projects.snapshots)
     testImplementation(projects.processServices)
+    testImplementation(projects.wrapperMain)
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.platformNative))
 

@@ -4859,7 +4859,6 @@ Class <org.gradle.wrapper.Download$ProxyAuthenticator> is not annotated (directl
 Class <org.gradle.wrapper.Download> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (Download.java:0)
 Class <org.gradle.wrapper.DownloadProgressListener> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DownloadProgressListener.java:0)
 Class <org.gradle.wrapper.GradleUserHomeLookup> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (GradleUserHomeLookup.java:0)
-Class <org.gradle.wrapper.GradleWrapperMain> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (GradleWrapperMain.java:0)
 Class <org.gradle.wrapper.IDownload> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (IDownload.java:0)
 Class <org.gradle.wrapper.Install$1> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (Install.java:0)
 Class <org.gradle.wrapper.Install$InstallCheck> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (Install.java:0)
