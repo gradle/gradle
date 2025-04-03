@@ -175,12 +175,10 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
             solutions == []
             details == null
             contextualLocations.size() == 1
-            with(contextualLocations[0] as TaskLocation) {
-                buildTreePath == ":reportProblem"
-                operationId == Long.parseLong(buildOperationIdFile.text)
-                exception.message == "Exception message"
-                exception.stacktrace.contains("Caused by: java.lang.Exception: Wrapped cause")
-            }
+            (contextualLocations[0] as TaskLocation).buildTreePath == ":reportProblem"
+            operationId == Long.parseLong(buildOperationIdFile.text)
+            exception.message == "Exception message"
+            exception.stacktrace.contains("Caused by: java.lang.Exception: Wrapped cause")
 
             if (isolationMode != "'${WorkerExecutorFixture.IsolationMode.PROCESS_ISOLATION.method}'") {
                 with(originLocations[0] as StackTraceLocation) {

@@ -86,7 +86,11 @@ class ConfigurationCacheProblemsTapi813PlusCrossVersionTest extends ToolingApiSp
             definition.severity == Severity.ERROR
             (originLocations[0] as LineInFileLocation).path == "build file 'build.gradle'" // FIXME: the path should not contain a prefix nor extra quotes
             if (targetVersion.baseVersion < GradleVersion.version("8.14")) {
+                originLocations.size() == 2
                 (originLocations[1] as LineInFileLocation).path == buildFileLocation(buildFile, targetVersion)
+            }
+            else {
+                originLocations.size() == 1
             }
             additionalData instanceof DefaultAdditionalData
             additionalData.asMap.isEmpty()

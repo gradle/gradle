@@ -196,9 +196,8 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                 line == 1
                 path == 'test-location'
             }
-            with(contextualLocations.get(0) as TaskLocation) {
-                it.buildTreePath == ':reportProblem'
-            }
+            contextualLocations.size() == 1
+            (contextualLocations.get(0) as TaskLocation).buildTreePath == ':reportProblem'
         }
     }
 
