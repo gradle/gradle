@@ -20,7 +20,6 @@ dependencies {
     implementation("commons-lang:commons-lang")
     implementation("org.asciidoctor:asciidoctor-gradle-jvm")
     implementation("org.asciidoctor:asciidoctorj")
-    implementation("org.asciidoctor:asciidoctorj-pdf")
     implementation("dev.adamko.dokkatoo:dokkatoo-plugin")
     implementation("org.jetbrains.dokka:dokka-core")
 

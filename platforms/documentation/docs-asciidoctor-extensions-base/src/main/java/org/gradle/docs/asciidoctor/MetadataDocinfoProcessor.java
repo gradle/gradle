@@ -64,11 +64,4 @@ public class MetadataDocinfoProcessor extends DocinfoProcessor {
 
         return outputHtml.toString();
     }
-
-    // This method is necessary to avoid https://github.com/asciidoctor/asciidoctorj-pdf/issues/7
-    // when generating PDFs.
-    // "(NameError) no method 'process' for arguments (org.jruby.RubyObject,org.jruby.RubyObject)"
-    public Object process(Object document, Object output) {
-        return output;
-    }
 }
