@@ -46,7 +46,7 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
         PathToFileResolver resolver,
         FileCollectionFactory fileCollectionFactory
     ) {
-        super(resolver);
+        super(objectFactory, resolver);
         this.fileCollectionFactory = fileCollectionFactory;
         this.debugOptions = objectFactory.newInstance(DefaultJavaDebugOptions.class, objectFactory);
         this.options = new JvmOptions(fileCollectionFactory, new JavaDebugOptionsBackedSpec(debugOptions));

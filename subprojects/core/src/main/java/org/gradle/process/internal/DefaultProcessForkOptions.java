@@ -16,6 +16,13 @@
 package org.gradle.process.internal;
 
 import com.google.common.collect.Maps;
+import org.gradle.api.file.Directory;
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.FileSystemLocation;
+import org.gradle.api.internal.lambdas.SerializableLambdas;
+import org.gradle.api.internal.provider.Providers;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.process.ProcessForkOptions;
 
@@ -26,11 +33,13 @@ import java.util.Map;
 public class DefaultProcessForkOptions implements ProcessForkOptions {
     protected final PathToFileResolver resolver;
     private Object executable;
-    private File workingDir;
+    private final DirectoryProperty workingDir;
     private Map<String, Object> environment;
 
-    public DefaultProcessForkOptions(PathToFileResolver resolver) {
+    public DefaultProcessForkOptions(ObjectFactory objectFactory, PathToFileResolver resolver) {
         this.resolver = resolver;
+        DirectoryProperty defaultWorkingDir = objectFactory.directoryProperty().fileProvider(Providers.changing(() -> resolver.resolve(new File("."))));
+        this.workingDir = objectFactory.directoryProperty().convention(defaultWorkingDir);
     }
 
     @Override
@@ -56,20 +65,33 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
 
     @Override
     public File getWorkingDir() {
-        if (workingDir == null) {
-            workingDir = resolver.resolve(".");
-        }
-        return workingDir;
+        return workingDir.getAsFile().get();
     }
 
     @Override
     public void setWorkingDir(File dir) {
-        this.workingDir = resolver.resolve(dir);
+        this.workingDir.set(dir);
     }
 
     @Override
     public void setWorkingDir(Object dir) {
-        this.workingDir = resolver.resolve(dir);
+        if (dir instanceof DirectoryProperty) {
+            workingDir.set((DirectoryProperty) dir);
+        } else if (dir instanceof Provider) {
+            workingDir.fileProvider(((Provider<?>) dir).map(SerializableLambdas.transformer(file -> {
+                if (file instanceof FileSystemLocation) {
+                    return ((Directory) file).getAsFile();
+                } else if (file instanceof File) {
+                    return (File) file;
+                } else {
+                    return resolver.resolve(file);
+                }
+            })));
+        } else if (dir instanceof File) {
+            workingDir.set((File) dir);
+        } else {
+            workingDir.set(resolver.resolve(dir));
+        }
     }
 
     @Override
