@@ -11,7 +11,7 @@ dependencies {
 // end::dependencies[]
 
 // tag::substitution_rule[]
-configurations.all {
+configurations.configureEach {
     resolutionStrategy.dependencySubstitution {
         substitute(module("co.paralleluniverse:quasar-core"))
             .using(module("co.paralleluniverse:quasar-core:0.8.0"))
