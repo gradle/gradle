@@ -72,6 +72,7 @@ Core Gradle plugins that still registered deprecated conventions have also been 
 |===
 |Plugin |Access |Type |Solution
 |`war` |`project.war` | `WarPluginConvention` | Configure the `war` task directly instead.
+|`ear` |`project.ear` | `EarPluginConvention` | Configure the `ear` task directly instead.
 |===
 
 ==== Gradle API now uses JSpecify Nullability Annotations
