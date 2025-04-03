@@ -127,8 +127,9 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
         final String value = toJvmArgsString(invocation.launcherJvmArgs);
         environmentVars.put(jvmOptsEnvVar, value);
 
-        // Always set JAVA_HOME, so the daemon process runs on the configured JVM
-        environmentVars.put("JAVA_HOME", getJavaHome());
+        if (!environmentVars.containsKey("JAVA_HOME")) {
+            environmentVars.put("JAVA_HOME", getJavaHome());
+        }
     }
 
     @Override

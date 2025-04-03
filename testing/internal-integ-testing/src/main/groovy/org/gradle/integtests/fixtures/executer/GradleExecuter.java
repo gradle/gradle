@@ -85,6 +85,16 @@ public interface GradleExecuter extends Stoppable {
      */
     GradleExecuter withEnvironmentVars(Map<String, ?> environment);
 
+    /**
+     * Sets the additional environment variables to use when executing the build, allowing to pass JAVA_HOME as well.
+     * <p>
+     * The provided environment is added to the environment variables of this process, so it is only possible to add new variables or modify values of existing ones.
+     * Not propagating a variable of this process to the executed build at all is not supported.
+     * <p>
+     * Setting "JAVA_HOME" this way is not supported.
+     */
+    GradleExecuter withEnvironmentVarsIncludingJavaHome(Map<String, ?> environment);
+
     GradleExecuter usingInitScript(File initScript);
 
     /**
