@@ -58,6 +58,12 @@ For full details, see the https://github.com/google/guava/releases[Guava release
 The incubating `EclipseClasspath.baseSourceOutputDir` was previously declared as a `Property<File>`.
 It has now been correctly updated to a `DirectoryProperty` to reflect the intended type.
 
+==== Upgrade to Groovy 3.0.24
+
+Groovy has been updated to https://groovy-lang.org/changelogs/changelog-3.0.24.html[Groovy 3.0.24].
+
+Since the previous version was 3.0.22, this includes changes for https://groovy-lang.org/changelogs/changelog-3.0.23.html[Groovy 3.0.23] as well.
+
 === Deprecations
 
 [[null-attribute-lookup]]
