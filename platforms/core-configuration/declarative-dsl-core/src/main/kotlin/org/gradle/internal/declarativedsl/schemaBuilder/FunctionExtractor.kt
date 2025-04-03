@@ -207,6 +207,9 @@ class DefaultFunctionExtractor(
             if ((kType.classifier as? KClass<*>)?.isSubclassOf(Map::class) == true) {
                 host.schemaBuildingFailure("Illegal type '${kType}': functions returning Map types are not supported")
             }
+            if (kType.classifier == Pair::class) {
+                host.schemaBuildingFailure("Illegal type '${kType}': functions returning Pair are not supported")
+            }
         }
     }
 

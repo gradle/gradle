@@ -69,7 +69,7 @@ class FunctionExtractorTest {
     }
 
     @Test
-    fun `functions returning a Map type get rejected with a clear message`() {
+    fun `functions returning a Map or Pair type get rejected with a clear message`() {
         assertFailsWith<DeclarativeDslSchemaBuildingException> { schemaFromTypes(HasMapFactory::class, listOf(HasMapFactory::class)) }.run {
             Assert.assertEquals(
                 """
@@ -81,7 +81,7 @@ class FunctionExtractorTest {
             )
         }
 
-        assertFailsWith<DeclarativeDslSchemaBuildingException> { schemaFromTypes(HasMapFactory::class, listOf(HasMapSubtypeFactory::class)) }.run {
+        assertFailsWith<DeclarativeDslSchemaBuildingException> { schemaFromTypes(HasMapSubtypeFactory::class, listOf(HasMapSubtypeFactory::class)) }.run {
             Assert.assertEquals(
                 """
                     |Illegal type 'kotlin.collections.MutableMap<K, V>': functions returning Map types are not supported
@@ -99,6 +99,17 @@ class FunctionExtractorTest {
                     |  in return value type 'kotlin.collections.Map<K, V>'
                     |  in member 'fun org.gradle.internal.declarativedsl.schemaBuidler.FunctionExtractorTest.HasAddingMapFactory.addMap(): kotlin.collections.Map<K, V>'
                     |  in class 'org.gradle.internal.declarativedsl.schemaBuidler.FunctionExtractorTest.HasAddingMapFactory'
+                """.trimMargin(), message
+            )
+        }
+
+        assertFailsWith<DeclarativeDslSchemaBuildingException> { schemaFromTypes(HasPairFactory::class, listOf(HasPairFactory::class)) }.run {
+            Assert.assertEquals(
+                """
+                    |Illegal type 'kotlin.Pair<kotlin.String, kotlin.String>': functions returning Pair are not supported
+                    |  in return value type 'kotlin.Pair<kotlin.String, kotlin.String>'
+                    |  in member 'fun org.gradle.internal.declarativedsl.schemaBuidler.FunctionExtractorTest.HasPairFactory.pair(): kotlin.Pair<kotlin.String, kotlin.String>'
+                    |  in class 'org.gradle.internal.declarativedsl.schemaBuidler.FunctionExtractorTest.HasPairFactory'
                 """.trimMargin(), message
             )
         }
@@ -137,6 +148,11 @@ class FunctionExtractorTest {
     abstract class HasAddingMapFactory {
         @Adding
         abstract fun <K, V> addMap(): Map<K, V>
+    }
+
+    abstract class HasPairFactory {
+        @Adding
+        abstract fun pair(): Pair<String, String>
     }
 }
 
