@@ -38,7 +38,7 @@ class AndroidGradlePluginVersions {
     public static final String OVERRIDE_VERSION_CHECK = '-Dcom.android.build.gradle.overrideVersionCheck=true'
 
     private static final VersionNumber AGP_8_0 = VersionNumber.parse('8.0.0')
-    private static final VersionNumber AGP_8_9 = VersionNumber.parse('8.9.0')
+    private static final VersionNumber AGP_8_10_ALPHA08 = VersionNumber.parse('8.10.0-alpha08')
     private static final VersionNumber AGP_7_0 = VersionNumber.parse('7.0.0')
     private static final VersionNumber AGP_7_3 = VersionNumber.parse('7.3.0')
     private static final VersionNumber KOTLIN_1_6_20 = VersionNumber.parse('1.6.20')
@@ -172,8 +172,7 @@ class AndroidGradlePluginVersions {
         }
         // TODO: Remove for Gradle 9.0
         // These versions are not compatible with Copy/Sync.destinationDir changes
-        assumeTrue("AGP version -dev, doesn't work with Provider API", !agpVersion.contains("-dev"))
-        assumeTrue("AGP version must be > 8.9.0", agpVersionNumber > AGP_8_9)
+        assumeTrue("AGP version must be > 8.10.0-alpha08", agpVersionNumber > AGP_8_10_ALPHA08)
     }
 
     static JavaVersion getMinimumJavaVersionFor(String agpVersion) {

@@ -88,7 +88,7 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest implements R
 
             androidComponents {
                 onVariants {
-                    it.buildConfigFields.put("MyCustomField",
+                    it.buildConfigFields?.put("MyCustomField",
                         customFieldValueProvider
                             .${provider['mapBegin']}
                             BuildConfigField("String", "\\"{${provider['get']}}\\"", "My custom field")
