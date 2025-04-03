@@ -130,9 +130,9 @@ public class ServiceRegistryBuilder {
      * <p>
      * Only one scope can be specified. The last configured scope takes effect.
      *
-     * @see #scopeStrictly(Class)
+     * @see #scope(Class)
      */
-    public ServiceRegistryBuilder scope(Class<? extends Scope> scope) {
+    public ServiceRegistryBuilder scopeLenient(Class<? extends Scope> scope) {
         this.scope = scope;
         this.strict = false;
         return this;
@@ -147,9 +147,9 @@ public class ServiceRegistryBuilder {
      * <p>
      * Only one scope can be specified. The last configured scope takes effect.
      *
-     * @see #scope(Class)
+     * @see #scopeLenient(Class)
      */
-    public ServiceRegistryBuilder scopeStrictly(Class<? extends Scope> scope) {
+    public ServiceRegistryBuilder scope(Class<? extends Scope> scope) {
         this.scope = scope;
         this.strict = true;
         return this;
