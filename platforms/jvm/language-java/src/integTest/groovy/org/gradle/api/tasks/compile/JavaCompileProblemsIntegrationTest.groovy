@@ -42,6 +42,8 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
     /**
      * A map of all possible file locations, and the number of occurrences we expect to find in the problems.
      */
+    public static final String REDUNDANT_CAST_JAVA_8_MESSAGE = 'redundant cast to java.lang.String'
+    public static final String REDUNDANT_CAST_JAVA_9_MESSAGE = 'redundant cast to String'
     private final Map<String, Integer> possibleFileLocations = [:]
 
     /**
@@ -85,14 +87,13 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
             assertLabel(it)
             assertLocations(it, true)
             severity == Severity.ERROR
-            contextualLabel == '\';\' expected'
             fqid == 'compilation:java:compiler-err-expected'
             contextualLabel == '\';\' expected'
         }
         verifyAll(receivedProblem(1)) {
+            assertLabel(it)
             assertLocations(it, true)
             severity == Severity.ERROR
-            contextualLabel == '\';\' expected'
             fqid == 'compilation:java:compiler-err-expected'
             contextualLabel == '\';\' expected'
         }
@@ -153,16 +154,26 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
             assertLocations(it, true)
             severity == Severity.WARNING
             fqid == 'compilation:java:compiler-warn-redundant-cast'
-            contextualLabel == 'redundant cast to java.lang.String'
+            assertRedundantCastInContextualLabel(contextualLabel)
         }
         verifyAll(receivedProblem(1)) {
             assertLocations(it, true)
             severity == Severity.WARNING
             fqid == 'compilation:java:compiler-warn-redundant-cast'
-            contextualLabel == 'redundant cast to java.lang.String'
+            assertRedundantCastInContextualLabel(contextualLabel)
         }
 
         result.error.contains("2 warnings\n")
+    }
+
+    void assertRedundantCastInContextualLabel(String label) {
+        if (JavaVersion.current().java9Compatible) {
+            // Above Java 9, we can use the RichDiagnosticFormatter
+            assert label == REDUNDANT_CAST_JAVA_9_MESSAGE
+        } else {
+            // Below Java 9, we have to use the BasicDiagnosticFormatter
+            assert label == REDUNDANT_CAST_JAVA_8_MESSAGE
+        }
     }
 
     def "problem is received when a single-file note happens"() {
@@ -201,25 +212,27 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
             assertLocations(it, true)
             severity == Severity.WARNING
             fqid == 'compilation:java:compiler-warn-redundant-cast'
-            contextualLabel == 'redundant cast to java.lang.String'
+            assertRedundantCastInContextualLabel(contextualLabel)
+
         }
         verifyAll(receivedProblem(1)) {
             assertLocations(it, true)
             severity == Severity.WARNING
             fqid == 'compilation:java:compiler-warn-redundant-cast'
-            contextualLabel == 'redundant cast to java.lang.String'
+            assertRedundantCastInContextualLabel(contextualLabel)
         }
         verifyAll(receivedProblem(2)) {
             assertLocations(it, true)
             severity == Severity.WARNING
             fqid == 'compilation:java:compiler-warn-redundant-cast'
-            contextualLabel == 'redundant cast to java.lang.String'
+            assertRedundantCastInContextualLabel(contextualLabel)
+
         }
         verifyAll(receivedProblem(3)) {
             assertLocations(it, true)
             severity == Severity.WARNING
             fqid == 'compilation:java:compiler-warn-redundant-cast'
-            contextualLabel == 'redundant cast to java.lang.String'
+            assertRedundantCastInContextualLabel(contextualLabel)
         }
 
         result.error.contains("4 warnings\n")
@@ -290,13 +303,13 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
             assertLocations(it, true)
             severity == Severity.WARNING
             fqid == 'compilation:java:compiler-warn-redundant-cast'
-            contextualLabel == 'redundant cast to java.lang.String'
+            assertRedundantCastInContextualLabel(contextualLabel)
         }
         verifyAll(receivedProblem(3)) {
             assertLocations(it, true)
             severity == Severity.WARNING
             fqid == 'compilation:java:compiler-warn-redundant-cast'
-            contextualLabel == 'redundant cast to java.lang.String'
+            assertRedundantCastInContextualLabel(contextualLabel)
         }
 
         result.error.contains("2 errors\n")
@@ -330,7 +343,8 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
             assertLocations(it, true)
             severity == Severity.WARNING
             fqid == 'compilation:java:compiler-warn-redundant-cast'
-            contextualLabel == 'redundant cast to java.lang.String'
+            assertRedundantCastInContextualLabel(contextualLabel)
+            assertRedundantCastInDetails(details, "$fooFileLocation:5")
             solutions.empty
             verifyAll(getSingleOriginLocation(FileLocation)) {
                 it.path == fooFileLocation.absolutePath
@@ -341,21 +355,8 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
             assertLocations(it, true)
             severity == Severity.WARNING
             fqid == 'compilation:java:compiler-warn-redundant-cast'
-            if (JavaVersion.current().java9Compatible) {
-                // Above Java 9, we can use the RichDiagnosticFormatter
-                contextualLabel == 'redundant cast to String'
-                details == """\
-${fooFileLocation}:9: warning: [cast] redundant cast to String
-        String s = (String)"Hello World";
-                   ^"""
-            } else {
-                // Below Java 9, we have to use the BasicDiagnosticFormatter
-                contextualLabel == 'redundant cast to java.lang.String'
-                details == """\
-${fooFileLocation}:9: warning: [cast] redundant cast to java.lang.String
-        String s = (String)"Hello World";
-                   ^"""
-            }
+            assertRedundantCastInContextualLabel(contextualLabel)
+            assertRedundantCastInDetails(details, "$fooFileLocation:9")
             solutions.empty
         }
 
@@ -457,9 +458,9 @@ ${fooFileLocation}:9: warning: [cast] redundant cast to java.lang.String
             assertLocations(it, true)
             severity == Severity.WARNING
             fqid == 'compilation:java:compiler-warn-redundant-cast'
-            contextualLabel == 'redundant cast to java.lang.String'
+            contextualLabel == REDUNDANT_CAST_JAVA_8_MESSAGE
             // In JDK8, the compiler will not simplify the type to just "String"
-            details.contains("redundant cast to java.lang.String")
+            details.contains(REDUNDANT_CAST_JAVA_8_MESSAGE)
         }
     }
 
@@ -484,9 +485,8 @@ ${fooFileLocation}:9: warning: [cast] redundant cast to java.lang.String
             assertLocations(it, true)
             severity == Severity.WARNING
             fqid == 'compilation:java:compiler-warn-redundant-cast'
-            contextualLabel == 'redundant cast to java.lang.String'
-            // In JDK11, the compiler will not simplify the type to just "String"
-            details.contains("redundant cast to String")
+            contextualLabel == REDUNDANT_CAST_JAVA_9_MESSAGE
+            details.contains(REDUNDANT_CAST_JAVA_9_MESSAGE)
         }
 
         where:
@@ -693,4 +693,19 @@ ${fooFileLocation}:9: warning: [cast] redundant cast to java.lang.String
         """
     }
 
+    def void assertRedundantCastInDetails(String details, String fooFileLocation) {
+        if (JavaVersion.current().java9Compatible) {
+            // Above Java 9, we can use the RichDiagnosticFormatter
+            assert details == """\
+${fooFileLocation}: warning: [cast] $REDUNDANT_CAST_JAVA_9_MESSAGE
+        String s = (String)"Hello World";
+                   ^"""
+        } else {
+            // Below Java 9, we have to use the BasicDiagnosticFormatter
+            assert details == """\
+${fooFileLocation}: warning: [cast] $REDUNDANT_CAST_JAVA_8_MESSAGE
+        String s = (String)"Hello World";
+                   ^"""
+        }
+    }
 }
