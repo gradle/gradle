@@ -17,7 +17,6 @@ package org.gradle.kotlin.dsl.provider.plugins.precompiled
 
 
 import org.gradle.api.InvalidUserCodeException
-import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.Transformer
@@ -161,7 +160,6 @@ class DefaultPrecompiledScriptPluginsSupport : PrecompiledScriptPluginsSupport {
         val scriptPlugins = scriptPluginFiles.map(::PrecompiledScriptPlugin)
         enableScriptCompilationOf(
             scriptPlugins,
-            target.jvmTarget,
             target.kotlinSourceDirectorySet
         )
 
@@ -182,7 +180,6 @@ class DefaultPrecompiledScriptPluginsSupport : PrecompiledScriptPluginsSupport {
 private
 fun Project.enableScriptCompilationOf(
     scriptPlugins: List<PrecompiledScriptPlugin>,
-    jvmTargetProvider: Provider<JavaVersion>,
     kotlinSourceDirectorySet: SourceDirectorySet
 ) {
 
@@ -216,7 +213,6 @@ fun Project.enableScriptCompilationOf(
 
         val compilePluginsBlocks = registerCompilePluginsBlocksTask(
             compileClasspath = compileClasspath,
-            jvmTarget = jvmTargetProvider,
             extractPluginsBlocksTask = extractPrecompiledScriptPluginPlugins,
             extractedPluginsBlocksDir = extractedPluginsBlocks,
             externalPluginSpecBuildersTask = generateExternalPluginSpecBuilders,
@@ -289,7 +285,6 @@ fun Project.enableScriptCompilationOf(
 
 private fun Project.registerCompilePluginsBlocksTask(
     compileClasspath: FileCollection,
-    jvmTarget: Provider<JavaVersion>,
     extractPluginsBlocksTask: TaskProvider<ExtractPrecompiledScriptPluginPlugins>,
     extractedPluginsBlocksDir: Provider<Directory>,
     externalPluginSpecBuildersTask: TaskProvider<GenerateExternalPluginSpecBuilders>,
@@ -324,7 +319,6 @@ private fun Project.registerCompilePluginsBlocksTask(
         // OLD: Let's use a custom task that uses the Kotlin embedded compiler *internal* K1 API
         tasks.register("compilePluginsBlocks", CompilePrecompiledScriptPluginPlugins::class.java) { task ->
             task.javaLauncher.set(project.javaToolchainService.launcherFor(project.java.toolchain))
-            @Suppress("DEPRECATION") task.jvmTarget.set(jvmTarget)
 
             task.dependsOn(extractPluginsBlocksTask)
             task.sourceDir(extractedPluginsBlocksDir)

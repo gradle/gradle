@@ -71,37 +71,6 @@ class KotlinDslJvmTargetIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    @Requires(UnitTestPreconditions.Jdk11OrLater::class)
-    fun `can use a different jvmTarget to compile precompiled scripts`() {
-
-        withClassJar("buildSrc/utils.jar", JavaClassUtil::class.java)
-
-        withDefaultSettingsIn("buildSrc")
-        withKotlinDslPluginIn("buildSrc").appendText("""
-
-            java {
-                sourceCompatibility = JavaVersion.VERSION_11
-                targetCompatibility = JavaVersion.VERSION_11
-            }
-
-            kotlinDslPluginOptions {
-                jvmTarget.set("11")
-            }
-
-            dependencies {
-                implementation(files("utils.jar"))
-            }
-        """)
-
-        withFile("buildSrc/src/main/kotlin/some.gradle.kts", printScriptJavaClassFileMajorVersion)
-        withBuildScript("""plugins { id("some") }""")
-
-        executer.expectDocumentedDeprecationWarning("The KotlinDslPluginOptions.jvmTarget property has been deprecated. This is scheduled to be removed in Gradle 9.0. Configure a Java Toolchain instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#kotlin_dsl_plugin_toolchains")
-
-        assertThat(build("help").output, containsString(outputFor(JavaVersion.VERSION_11)))
-    }
-
-    @Test
     @LeaksFileHandles("Kotlin compiler daemon  taking time to shut down")
     fun `can use Java Toolchain to compile precompiled scripts`() {
 
