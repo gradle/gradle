@@ -1274,6 +1274,14 @@
             ]
         },
         {
+            "type": "org.gradle.kotlin.dsl.TaskContainerScope",
+            "member": "Method org.gradle.kotlin.dsl.TaskContainerScope.invoke(java.lang.String)",
+            "acceptation": "Removed deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
             "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.setForkOptions(org.gradle.api.tasks.scala.ScalaForkOptions)",
             "acceptation": "Remove deprecated method",
