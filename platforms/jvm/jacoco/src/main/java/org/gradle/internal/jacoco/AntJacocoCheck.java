@@ -17,15 +17,14 @@
 package org.gradle.internal.jacoco;
 
 import com.google.common.base.Joiner;
-import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableMap;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.project.antbuilder.AntBuilderDelegate;
 import org.gradle.internal.Cast;
-import org.gradle.testing.jacoco.tasks.rules.JacocoLimit;
-import org.gradle.testing.jacoco.tasks.rules.JacocoViolationRule;
+import org.gradle.internal.jacoco.rules.JacocoLimitImpl.SerializableJacocoLimit;
+import org.gradle.internal.jacoco.rules.JacocoViolationRuleImpl.SerializableJacocoViolationRule;
 import org.gradle.util.internal.GFileUtils;
 import org.jspecify.annotations.Nullable;
 
@@ -34,17 +33,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-
-import static com.google.common.collect.Sets.filter;
+import java.util.stream.Collectors;
 
 public class AntJacocoCheck implements Action<AntBuilderDelegate> {
     private static final String VIOLATIONS_ANT_PROPERTY = "jacocoViolations";
-    private static final Predicate<JacocoViolationRule> RULE_ENABLED_PREDICATE = new Predicate<JacocoViolationRule>() {
-        @Override
-        public boolean apply(JacocoViolationRule rule) {
-            return rule.isEnabled();
-        }
-    };
 
     private final JacocoCoverageParameters params;
 
@@ -95,7 +87,9 @@ public class AntJacocoCheck implements Action<AntBuilderDelegate> {
                         }
                     }});
 
-                    Set<JacocoViolationRule> rules = filter(params.getRules().get(), RULE_ENABLED_PREDICATE);
+                    Set<SerializableJacocoViolationRule> rules = params.getRules().get().stream()
+                        .filter(SerializableJacocoViolationRule::isEnabled)
+                        .collect(Collectors.toSet());
                     if (!rules.isEmpty()) {
                         Map<String, Object> checkArgs = ImmutableMap.<String, Object>of(
                             "failonviolation", params.getFailOnViolation().get(),
@@ -104,12 +98,16 @@ public class AntJacocoCheck implements Action<AntBuilderDelegate> {
                         antBuilder.invokeMethod("check", new Object[] {checkArgs, new Closure<Object>(this, this) {
                             @SuppressWarnings("UnusedDeclaration")
                             public Object doCall(Object ignore) {
-                                for (final JacocoViolationRule rule : rules) {
-                                    Map<String, Object> ruleArgs = ImmutableMap.<String, Object>of("element", rule.getElement(), "includes", Joiner.on(':').join(rule.getIncludes()), "excludes", Joiner.on(':').join(rule.getExcludes()));
+                                for (final SerializableJacocoViolationRule rule : rules) {
+                                    Map<String, Object> ruleArgs = ImmutableMap.<String, Object>of(
+                                        "element", rule.getElement(),
+                                        "includes", Joiner.on(':').join(rule.getIncludes()),
+                                        "excludes", Joiner.on(':').join(rule.getExcludes())
+                                    );
                                     antBuilder.invokeMethod("rule", new Object[] {ruleArgs, new Closure<Object>(this, this) {
                                         @SuppressWarnings("UnusedDeclaration")
                                         public Object doCall(Object ignore) {
-                                            for (JacocoLimit limit : rule.getLimits()) {
+                                            for (SerializableJacocoLimit limit : rule.getLimits()) {
                                                 Map<String, Object> limitArgs = new HashMap<String, Object>();
                                                 limitArgs.put("counter", limit.getCounter());
                                                 limitArgs.put("value", limit.getValue());
