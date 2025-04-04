@@ -31,6 +31,7 @@ dependencies {
     api(projects.persistentCache)
     api(projects.platformBase)
     api(projects.platformNative)
+    api(projects.scopedPersistentCache)
     api(projects.serialization)
     api(projects.serviceLookup)
     api(projects.serviceProvider)

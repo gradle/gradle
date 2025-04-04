@@ -117,6 +117,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "resources",
         "resources-http",
         "runtime-api-info",
+        "scoped-persistent-cache",
         "serialization",
         "service-lookup",
         "service-provider",

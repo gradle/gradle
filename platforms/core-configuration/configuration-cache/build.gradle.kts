@@ -61,6 +61,7 @@ dependencies {
     implementation(projects.modelCore)
     implementation(projects.persistentCache)
     implementation(projects.problemsApi)
+    implementation(projects.scopedPersistentCache)
     implementation(projects.serialization)
     implementation(projects.stdlibKotlinExtensions)
     implementation(projects.stdlibSerializationCodecs)

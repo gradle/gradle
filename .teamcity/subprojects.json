@@ -1162,6 +1162,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "scoped-persistent-cache",
+    "path": "platforms/core-execution/scoped-persistent-cache",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "security",
     "path": "platforms/software/security",
     "unitTests": true,
