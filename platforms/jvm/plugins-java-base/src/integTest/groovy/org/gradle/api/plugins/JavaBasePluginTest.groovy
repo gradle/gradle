@@ -305,7 +305,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
 
         then:
         TaskDependencyMatchers.dependsOn().matches(task)
-        task.destinationDirectory.get().asFile == project.libsDirectory.get().asFile
+        task.destinationDirectory.get().asFile == project.base.libsDirectory.get().asFile
     }
 
     def "creates lifecycle build tasks"() {
@@ -359,7 +359,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
 
         then:
         def someJar = project.tasks.create('someJar', Jar)
-        someJar.destinationDirectory.get().asFile == project.libsDirectory.get().asFile
+        someJar.destinationDirectory.get().asFile == project.base.libsDirectory.get().asFile
     }
 
     @Issue("gradle/gradle#8700")

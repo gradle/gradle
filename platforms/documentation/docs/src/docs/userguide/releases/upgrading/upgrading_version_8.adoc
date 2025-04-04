@@ -60,11 +60,12 @@ The "convention" concept, defined by the `org.gradle.api.plugins.Convention` typ
 
 Core Gradle plugins that still registered deprecated conventions have also been updated, leading to their removal:
 
-.Removed plugin extensions
+.Removed plugin conventions
 [cols="1,1,1,5"]
 |===
 |Plugin |Access |Type |Solution
 |`war` |`project.war` | `WarPluginConvention` | Configure the `war` task directly instead.
+|`base` | `project.distDirName`, `project.libsDirName`, `project.archivesBaseName` | `BasePluginConvention` | Replaced by `project.base` extension of type `BasePluginExtension`.
 |===
 
 ==== Gradle API now uses JSpecify Nullability Annotations

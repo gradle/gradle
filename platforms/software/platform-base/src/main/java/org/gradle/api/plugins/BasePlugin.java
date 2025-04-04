@@ -22,11 +22,9 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.plugins.BuildConfigurationRule;
-import org.gradle.api.internal.plugins.NaggingBasePluginConvention;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.internal.DefaultBasePluginExtension;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 
 /**
@@ -42,22 +40,11 @@ public abstract class BasePlugin implements Plugin<Project> {
     @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(LifecycleBasePlugin.class);
-
         BasePluginExtension baseExtension = project.getExtensions().create(BasePluginExtension.class, "base", DefaultBasePluginExtension.class, project);
-
-        addConvention(project, baseExtension);
         configureExtension(project, baseExtension);
         configureBuildConfigurationRule(project);
         configureArchiveDefaults(project, baseExtension);
         configureConfigurations(project);
-    }
-
-    @SuppressWarnings("deprecation")
-    private void addConvention(Project project, BasePluginExtension baseExtension) {
-        BasePluginConvention convention = project.getObjects().newInstance(org.gradle.api.plugins.internal.DefaultBasePluginConvention.class, baseExtension);
-        DeprecationLogger.whileDisabled(() -> {
-            project.getConvention().getPlugins().put("base", new NaggingBasePluginConvention(convention));
-        });
     }
 
     private void configureExtension(Project project, BasePluginExtension extension) {
