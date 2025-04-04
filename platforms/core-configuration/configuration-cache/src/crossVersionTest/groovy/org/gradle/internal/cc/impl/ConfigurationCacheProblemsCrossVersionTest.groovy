@@ -81,7 +81,9 @@ class ConfigurationCacheProblemsCrossVersionTest extends ToolingApiSpecification
             definition.id.group.name == "configuration-cache"
             definition.severity == Severity.ERROR
             (locations[0] as LineInFileLocation).path == "build file 'build.gradle'" // FIXME: the path should not contain a prefix nor extra quotes
-            (locations[1] as LineInFileLocation).path == buildFileLocation(buildFile, targetVersion)
+            if (targetVersion.baseVersion < GradleVersion.version("8.14")) {
+                (locations[1] as LineInFileLocation).path == buildFileLocation(buildFile, targetVersion)
+            }
             additionalData.asMap.isEmpty()
         }
     }

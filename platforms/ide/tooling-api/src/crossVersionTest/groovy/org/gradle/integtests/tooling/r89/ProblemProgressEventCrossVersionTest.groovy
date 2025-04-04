@@ -119,11 +119,15 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         verifyAll(problems[0]) {
             details?.details == expectedDetails
             definition.documentationLink?.url == expectedDocumentation
-            locations.size() >= 2
+
+            def locationCount = getLocationCount()
+            locations.size() >= locationCount
             (locations[0] as LineInFileLocation).path == '/tmp/foo'
-            (locations[1] as LineInFileLocation).path == buildFileLocation(buildFile, targetVersion)
+            if (targetVersion < GradleVersion.version("8.14")) {
+                (locations[1] as LineInFileLocation).path == buildFileLocation(buildFile, targetVersion)
+            }
             if (targetVersion >= GradleVersion.version("8.12")) {
-                assert (locations[2] as TaskPathLocation).buildTreePath == ':reportProblem'
+                assert (locations[locationCount - 1] as TaskPathLocation).buildTreePath == ':reportProblem'
             }
             definition.severity == Severity.WARNING
             solutions.size() == 1
@@ -134,6 +138,16 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         detailsConfig              | expectedDetails | documentationConfig                         | expectedDocumentation
         '.details("long message")' | "long message"  | '.documentedAt("https://docs.example.org")' | 'https://docs.example.org'
         ''                         | null            | ''                                          | null
+    }
+
+    int getLocationCount() {
+        if (targetVersion >= GradleVersion.version("8.14")) {
+            return 2
+        }
+        if (targetVersion >= GradleVersion.version("8.12")) {
+            return 3
+        }
+        return 2
     }
 
     def "Problems expose details via Tooling API events with problem definition"() {
