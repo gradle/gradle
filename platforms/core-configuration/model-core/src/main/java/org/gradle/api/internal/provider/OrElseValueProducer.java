@@ -61,8 +61,8 @@ class OrElseValueProducer implements ValueSupplier.ValueProducer {
             if (mayHaveValue(left)) {
                 if (leftProducer.isKnown()) {
                     leftProducer.visitProducerTasks(visitor);
+                    return;
                 }
-                return;
             }
             if (right != null && rightProducer.isKnown() && mayHaveValue(right)) {
                 rightProducer.visitProducerTasks(visitor);
