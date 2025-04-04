@@ -351,7 +351,7 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
         public void execute(ExecutionListener executionListener) {
             ServiceRegistry basicServices = createBasicGlobalServices(loggingServices);
             BuildEnvironmentConfigurationConverter buildEnvironmentConfigurationConverter = new BuildEnvironmentConfigurationConverter(
-                new BuildLayoutFactory(),
+                basicServices.get(BuildLayoutFactory.class),
                 basicServices.get(FileCollectionFactory.class));
             buildEnvironmentConfigurationConverter.configure(parser);
 

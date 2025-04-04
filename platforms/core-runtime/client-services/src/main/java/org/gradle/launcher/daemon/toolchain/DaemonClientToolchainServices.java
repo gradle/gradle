@@ -19,6 +19,7 @@ package org.gradle.launcher.daemon.toolchain;
 import net.rubygrapefruit.platform.SystemInfo;
 import net.rubygrapefruit.platform.WindowsRegistry;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.file.BaseDirFileResolver;
 import org.gradle.api.internal.file.DefaultFileOperations;
 import org.gradle.api.internal.file.DefaultFilePropertyFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -38,6 +39,8 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.scopes.ScopedCacheBuilderFactory;
 import org.gradle.initialization.GradleUserHomeDirProvider;
+import org.gradle.initialization.layout.BuildLayoutConfiguration;
+import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.impl.DefaultDeleter;
@@ -78,6 +81,7 @@ import org.gradle.platform.internal.CurrentBuildPlatform;
 import org.gradle.process.internal.ClientExecHandleBuilderFactory;
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -92,10 +96,12 @@ public class DaemonClientToolchainServices implements ServiceRegistrationProvide
     private final ToolchainConfiguration toolchainConfiguration;
     private final ToolchainDownloadUrlProvider toolchainDownloadUrlProvider;
     private final Optional<InternalBuildProgressListener> buildProgressListener;
+    private final BuildLayoutConfiguration buildLayoutConfiguration;
 
-    public DaemonClientToolchainServices(ToolchainConfiguration toolchainConfiguration, ToolchainDownloadUrlProvider toolchainDownloadUrlProvider, Optional<InternalBuildProgressListener> buildProgressListener) {
+    public DaemonClientToolchainServices(ToolchainConfiguration toolchainConfiguration, ToolchainDownloadUrlProvider toolchainDownloadUrlProvider, BuildLayoutConfiguration buildLayoutConfiguration, Optional<InternalBuildProgressListener> buildProgressListener) {
         this.toolchainConfiguration = toolchainConfiguration;
         this.toolchainDownloadUrlProvider = toolchainDownloadUrlProvider;
+        this.buildLayoutConfiguration = buildLayoutConfiguration;
         // TODO passing an optional down is fishy
         this.buildProgressListener = buildProgressListener;
     }
@@ -113,7 +119,6 @@ public class DaemonClientToolchainServices implements ServiceRegistrationProvide
         FileLockManager fileLockManager,
         ClientExecHandleBuilderFactory execHandleFactory,
         GradleUserHomeTemporaryFileProvider gradleUserHomeTemporaryFileProvider,
-        FileResolver fileResolver,
         PropertyHost propertyHost,
         FileCollectionFactory fileCollectionFactory,
         DirectoryFileTreeFactory directoryFileTreeFactory,
@@ -122,7 +127,8 @@ public class DaemonClientToolchainServices implements ServiceRegistrationProvide
         WindowsRegistry windowsRegistry,
         OperatingSystem os,
         SystemInfo systemInfo,
-        ScopedCacheBuilderFactory scopedCacheBuilderFactory
+        ScopedCacheBuilderFactory scopedCacheBuilderFactory,
+        BuildLayoutFactory buildLayoutFactory
     ) {
         return Lazy.unsafe().of(() -> {
             // NOTE: These need to be kept in sync with ToolchainsJvmServices
@@ -135,6 +141,8 @@ public class DaemonClientToolchainServices implements ServiceRegistrationProvide
             installationSuppliers.add(new OsXInstallationSupplier(os, new DefaultOsXJavaHomeCommand(execHandleFactory)));
             installationSuppliers.add(new WindowsInstallationSupplier(windowsRegistry, os));
 
+            File rootDirectory = buildLayoutFactory.getLayoutFor(buildLayoutConfiguration).getRootDirectory();
+            FileResolver fileResolver = new BaseDirFileResolver(rootDirectory);
             CurrentBuildPlatform currentBuildPlatform = new CurrentBuildPlatform(systemInfo, os);
             DefaultFilePropertyFactory filePropertyFactory = new DefaultFilePropertyFactory(propertyHost, fileResolver, fileCollectionFactory);
             DecompressionCoordinator decompressionCoordinator = new DefaultDecompressionCoordinator(scopedCacheBuilderFactory);

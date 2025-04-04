@@ -37,6 +37,7 @@ import org.gradle.cache.internal.locklistener.FileLockContentionHandler;
 import org.gradle.cache.internal.locklistener.InetAddressProvider;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.DefaultBuildCancellationToken;
+import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.DefaultListenerManager;
@@ -47,6 +48,11 @@ import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 import org.gradle.internal.remote.services.MessagingServices;
+import org.gradle.internal.scripts.DefaultScriptFileResolver;
+import org.gradle.internal.scripts.DefaultScriptFileResolverListeners;
+import org.gradle.internal.scripts.ScriptFileResolvedListener;
+import org.gradle.internal.scripts.ScriptFileResolver;
+import org.gradle.internal.scripts.ScriptFileResolverListeners;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
@@ -64,6 +70,8 @@ import java.net.InetAddress;
 public class BasicGlobalScopeServices implements ServiceRegistrationProvider {
     void configure(ServiceRegistration serviceRegistration) {
         serviceRegistration.add(FileLookup.class, DefaultFileLookup.class);
+        serviceRegistration.add(ScriptFileResolvedListener.class, ScriptFileResolverListeners.class, DefaultScriptFileResolverListeners.class);
+        serviceRegistration.add(ScriptFileResolver.class, DefaultScriptFileResolver.class);
         serviceRegistration.addProvider(new MessagingServices());
     }
 
@@ -151,6 +159,11 @@ public class BasicGlobalScopeServices implements ServiceRegistrationProvider {
     @Provides
     ScopedListenerManager createListenerManager() {
         return new DefaultListenerManager(Global.class);
+    }
+
+    @Provides
+    BuildLayoutFactory createBuildLayoutFactory(ScriptFileResolver scriptFileResolver) {
+        return new BuildLayoutFactory(scriptFileResolver);
     }
 }
 

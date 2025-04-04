@@ -16,6 +16,7 @@
 package org.gradle.internal.scripts;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +31,7 @@ public class DefaultScriptFileResolver implements ScriptFileResolver {
     @Nullable
     private final ScriptFileResolvedListener scriptFileResolvedListener;
 
+    @Inject
     public DefaultScriptFileResolver(@Nullable ScriptFileResolvedListener scriptFileResolvedListener) {
         this.scriptFileResolvedListener = scriptFileResolvedListener;
     }
