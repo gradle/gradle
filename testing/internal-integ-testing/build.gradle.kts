@@ -109,6 +109,7 @@ dependencies {
     implementation(projects.wrapperShared)
 
     implementation(testFixtures(projects.buildOperations))
+    implementation(testFixtures(projects.buildProcessServices))
 
     implementation(libs.ansiControlSequenceUtil)
     implementation(libs.commonsCompress)

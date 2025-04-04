@@ -38,10 +38,11 @@ dependencies {
     smokeTestImplementation(libs.junitPlatform)
     smokeTestImplementation(libs.jacksonDatabind)
 
+    smokeTestImplementation(testFixtures(projects.buildProcessServices))
     smokeTestImplementation(testFixtures(projects.core))
+    smokeTestImplementation(testFixtures(projects.modelReflect))
     smokeTestImplementation(testFixtures(projects.pluginDevelopment))
     smokeTestImplementation(testFixtures(projects.versionControl))
-    smokeTestImplementation(testFixtures(projects.modelReflect))
 
     smokeTestDistributionRuntimeOnly(projects.distributionsFull)
 }

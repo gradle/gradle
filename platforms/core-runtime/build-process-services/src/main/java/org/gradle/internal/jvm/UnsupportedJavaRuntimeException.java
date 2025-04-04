@@ -42,11 +42,11 @@ public class UnsupportedJavaRuntimeException extends RuntimeException {
     }
 
     private static void assertIsSupportedDaemonJvmVersion(int majorVersion, String message) {
-        if (majorVersion < SupportedJavaVersions.MINIMUM_JAVA_VERSION) {
+        if (majorVersion < SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION) {
             throw new UnsupportedJavaRuntimeException(String.format(
                 "Gradle %s requires Java %d or later to run. " + message,
                 GradleVersion.current().getVersion(),
-                SupportedJavaVersions.MINIMUM_JAVA_VERSION,
+                SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION,
                 majorVersion
             ));
         }

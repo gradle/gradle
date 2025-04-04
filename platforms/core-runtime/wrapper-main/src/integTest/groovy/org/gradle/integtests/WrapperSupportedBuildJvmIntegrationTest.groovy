@@ -38,7 +38,7 @@ class WrapperSupportedBuildJvmIntegrationTest extends AbstractWrapperIntegration
 
         expect:
         def failure = wrapperExecuter.withTasks("help").runWithFailure()
-        failure.assertHasErrorOutput("Gradle ${GradleVersion.current().version} requires Java 1.8 or later to run. You are currently using Java ${jdk.javaVersion}.")
+        failure.assertHasErrorOutput("Gradle requires Java 8 or later to run. You are currently using Java ${jdk.javaVersion}.")
 
         where:
         jdk << AvailableJavaHomes.getJdks("1.6", "1.7")
