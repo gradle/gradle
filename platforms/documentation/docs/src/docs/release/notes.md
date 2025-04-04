@@ -107,7 +107,7 @@ class LibraryTest {
 
 If the assumeTrue check fails, the reason ("missing requirements to run this test") is now visible in the XML and HTML test report:
 
-![HTML test report check](../release-notes-assets/HTML-Test-Report.png "HTML test report check")
+![HTML test report check](./release-notes-assets/HTML-Test-Report.png "HTML test report check")
 
 This feature was contributed by [Ivy Chen](https://github.com/Mengmeiivy) with [Aurimas Liutikas](https://github.com/liutikas).
 
