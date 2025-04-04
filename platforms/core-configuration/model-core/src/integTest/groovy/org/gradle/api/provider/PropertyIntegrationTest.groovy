@@ -1092,53 +1092,73 @@ project.extensions.create("some", SomeExtension)
         failureCauseContains("Circular evaluation detected")
     }
 
-    def "humble beginnings"() {
+    //TODO-RC this seems redundant with tests in TaskDependencyInferenceIntegrationTest
+    def "task dependencies are reflected by orElse"() {
         buildFile """
-            abstract class ProvideFoo extends DefaultTask {
+
+            abstract class ProvideContent extends DefaultTask {
                 @OutputFile
-                abstract RegularFileProperty getFooFile()
+                abstract RegularFileProperty getResultFile()
+
+                @Input
+                @Optional
+                abstract Property<String> getContent()
+
+                @Input
+                @Optional
+                abstract Property<String> getFileName()
+
+                ProvideContent() {
+                    resultFile.convention(content.flatMap { project.layout.buildDirectory.file("contents.txt") })
+                }
 
                 @TaskAction
                 void writeFoo() {
-                    fooFile.get().asFile.write("Bar!")
+                    resultFile.get().asFile.write(content.get())
                 }
             }
 
-            abstract class ConsumeFoo extends DefaultTask {
+            abstract class ConsumeContent extends DefaultTask {
                 @Input
-                abstract Property<String> getFooString()
+                abstract Property<String> getReadString()
 
                 @TaskAction
                 void printFoo() {
-                    println("Foo is " + fooString.get())
+                    println("Content is '" + readString.get() + "'")
                 }
             }
 
-            def provideFoo = tasks.register("provideFoo", ProvideFoo) {
-                fooFile.set(layout.buildDirectory.file("foo.txt"))
+            def provide1 = tasks.register("provide1", ProvideContent) {
+                content.set(project.findProperty("message") as String)
+            }
+            def provide2 = tasks.register("provide2", ProvideContent) {
+                content.convention("Default message")
             }
 
-            tasks.register("consumeFoo", ConsumeFoo) {
-                fooString.set(
-                    providers
-                        .gradleProperty("foo")
-                        .orElse(provideFoo.flatMap { it.fooFile }.map { it.asFile.text })
+            tasks.register("consume", ConsumeContent) {
+                readString.set(
+                    provide1
+                        .flatMap { it.resultFile }
+                        .orElse(provide2.flatMap { it.resultFile })
+                        .map { it.asFile.text }
                 )
             }
         """
 
         when:
-        run "consumeFoo", "-Pfoo=42"
+        run "consume"
 
         then:
-        outputContains "Foo is 42"
-        notExecuted("provideFoo")
+        outputContains "Content is 'Default message'"
+        executed(":consume", ":provide2")
+        notExecuted(":provide1")
 
         when:
-        run "consumeFoo"
+        run "consume", "-Pmessage=Hello"
 
         then:
-        outputContains("Foo is Bar!")
-        executed("provideFoo", "consumeFoo")
+        outputContains "Content is 'Hello'"
+        executed(":consume", ":provide1")
+        notExecuted(":provide2")
     }
 }
