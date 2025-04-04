@@ -22,7 +22,9 @@ import org.gradle.declarative.dsl.schema.DataType
 import org.gradle.declarative.dsl.schema.DataType.ParameterizedTypeInstance.TypeArgument.ConcreteTypeArgument
 import org.gradle.internal.declarativedsl.analysis.SchemaTypeRefContext
 import org.gradle.internal.declarativedsl.assertIs
+import org.gradle.internal.declarativedsl.schemaBuidler.GenericOpaqueTypesTest.GenericType
 import org.gradle.internal.declarativedsl.schemaBuilder.DeclarativeDslSchemaBuildingException
+import org.gradle.internal.declarativedsl.schemaBuilder.TopLevelFunctionDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 import org.gradle.internal.declarativedsl.schemaUtils.singleFunctionNamed
 import org.gradle.internal.declarativedsl.schemaUtils.typeFor
@@ -30,6 +32,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertSame
 import org.junit.Test
 import org.junit.jupiter.api.assertThrows
+import kotlin.reflect.KFunction
 
 class GenericOpaqueTypesTest {
     @Test
@@ -76,9 +79,9 @@ class GenericOpaqueTypesTest {
 
     @Test
     fun `correctly imports a map type`() {
-        val myMapFunction = schemaWithCollections.typeFor<Schema>().singleFunctionNamed("myMap")
+        val myMapFunction = schemaWithCollections.externalFunctionsByFqName.values.single { it.simpleName == "myMap" }
         with(SchemaTypeRefContext(schemaWithCollections)) {
-            val returnType = resolveRef(myMapFunction.function.returnValueType)
+            val returnType = resolveRef(myMapFunction.returnValueType)
             assertIs<DataType.ParameterizedTypeInstance>(returnType)
 
             assertEquals(Map::class.qualifiedName, returnType.typeSignature.name.qualifiedName)
@@ -108,7 +111,10 @@ class GenericOpaqueTypesTest {
         )
     }
 
-    private val schemaWithCollections get() = schemaFromTypes(Schema::class, listOf(Schema::class, List::class, GenericType::class))
+    private val schemaWithCollections
+        get() = schemaFromTypes(Schema::class, listOf(Schema::class, List::class, GenericType::class), externalFunctionDiscovery = object : TopLevelFunctionDiscovery {
+            override fun discoverTopLevelFunctions(): List<KFunction<*>> = listOf(::myMap)
+        })
 
     @Suppress("unused")
     class Schema {
@@ -120,9 +126,6 @@ class GenericOpaqueTypesTest {
 
         @Restricted
         fun factoryFunctionTakingListOfLists(listOfLists: List<List<String>>): String = listOfLists.joinToString()
-
-        @Restricted
-        fun myMap(): Map<Int, GenericType<String>> = emptyMap()
     }
 
     @Suppress("unused")
@@ -134,3 +137,6 @@ class GenericOpaqueTypesTest {
         fun configure(f: GenericType<String>.() -> Unit)
     }
 }
+
+@Restricted
+fun myMap(): Map<Int, GenericType<String>> = emptyMap()

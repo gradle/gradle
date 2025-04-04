@@ -58,6 +58,8 @@ import kotlin.reflect.full.starProjectedType
 import kotlin.reflect.typeOf
 
 interface SchemaBuildingHost {
+    val topLevelReceiverClass: KClass<*>
+
     fun containerTypeRef(kClass: KClass<*>): DataTypeRef
     fun modelTypeRef(kType: KType): DataTypeRef
     fun varargTypeRef(varargType: KType): DataTypeRef
@@ -131,7 +133,7 @@ class DataSchemaBuilder(
     private val augmentationsProvider: AugmentationsProvider
 ) {
 
-    private class Host : SchemaBuildingHost {
+    private class Host(override val topLevelReceiverClass: KClass<*>) : SchemaBuildingHost {
         val dataClassToKClass = mutableMapOf<DataClass, KClass<*>>()
 
         val typeSignatures = mutableMapOf<FqName, ParameterizedTypeSignature>()
@@ -270,12 +272,16 @@ class DataSchemaBuilder(
         externalObjects: Map<FqName, KClass<*>> = emptyMap(),
         defaultImports: List<FqName> = emptyList(),
     ): AnalysisSchema {
-        val host = Host()
+        val host = Host(topLevelReceiver)
         val preIndex = createPreIndex(host, types)
 
-        val dataTypes = preIndex.types.filter { it.typeParameters.none() }.map { createDataType(host, it, preIndex) }
+        val dataTypes = preIndex.types.filter { it.typeParameters.none() }.map {
+            createDataType(host, it, preIndex)
+        }
 
-        val extFunctions = externalFunctions.mapNotNull { functionExtractor.topLevelFunction(host, it, preIndex) }.associateBy { it.fqName }
+        val (infixExternalFunctions, regularExternalFunctions) = externalFunctions.partition { it.isInfix }
+        val extFunctions = regularExternalFunctions.mapNotNull { functionExtractor.topLevelFunction(host, it, preIndex) }.associateBy { it.fqName }
+        val infixFunctions = infixExternalFunctions.mapNotNull { functionExtractor.topLevelFunction(host, it, preIndex) }.associateBy { it.fqName }
         val extObjects = externalObjects.map { (key, value) ->
             host.withTag(SchemaBuildingTags.externalObject(key)) {
                 key to DefaultExternalObjectProviderKey(host.containerTypeRef(value::class))
@@ -290,6 +296,7 @@ class DataSchemaBuilder(
             host.typeSignatures,
             host.typeInstances,
             extFunctions,
+            infixFunctions,
             extObjects,
             defaultImports.toSet(),
             augmentationsProvider.augmentations(host)

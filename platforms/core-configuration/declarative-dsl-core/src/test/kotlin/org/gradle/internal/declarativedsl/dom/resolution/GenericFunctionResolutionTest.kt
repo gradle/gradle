@@ -17,16 +17,22 @@
 package org.gradle.internal.declarativedsl.dom.resolution
 
 import org.gradle.declarative.dsl.model.annotations.Restricted
+import org.gradle.internal.declarativedsl.analysis.DefaultFqName
 import org.gradle.internal.declarativedsl.analysis.ErrorReason
 import org.gradle.internal.declarativedsl.analysis.ErrorReason.UnresolvedAssignmentRhs
 import org.gradle.internal.declarativedsl.analysis.ErrorReason.UnresolvedFunctionCallSignature
 import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
 import org.gradle.internal.declarativedsl.assertIs
 import org.gradle.internal.declarativedsl.demo.resolve
+import org.gradle.internal.declarativedsl.schemaBuilder.TopLevelFunctionDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import kotlin.reflect.KClass
+import kotlin.reflect.KFunction
+import kotlin.reflect.jvm.javaMethod
+import kotlin.reflect.jvm.kotlinFunction
 
 class GenericFunctionResolutionTest {
     @Test
@@ -154,7 +160,14 @@ class GenericFunctionResolutionTest {
         return resolution.errors.map { it.errorReason }.toSet()
     }
 
-    private val schema = schemaFromTypes(Receiver::class, listOf(Receiver::class, Box::class, Super::class, Sub::class))
+    private val schema = schemaFromTypes(
+        Receiver::class,
+        listOf(Receiver::class, Box::class, Super::class, Sub::class),
+        externalFunctionDiscovery = object : TopLevelFunctionDiscovery {
+            override fun discoverTopLevelFunctions(): List<KFunction<*>> = listOf(topLevelClass().java.methods.single { it.name == "pairOfKAndV" }.kotlinFunction!!)
+        },
+        defaultImports = listOf(DefaultFqName.parse(topLevelClass().java.`package`.name + ".pairOfKAndV"))
+    )
 
     @Suppress("unused")
     interface Receiver {
@@ -178,9 +191,6 @@ class GenericFunctionResolutionTest {
 
         @Restricted
         fun <T> boxOfBoxOfInt(): Box<Box<Int>>
-
-        @Restricted
-        fun <K, V> pairOfKAndV(k: K, v: V): Pair<K, V>
 
         @Restricted
         fun boxOfSub(): Box<Sub>
@@ -222,3 +232,8 @@ class GenericFunctionResolutionTest {
     interface Super
     interface Sub : Super
 }
+
+private fun topLevelClass(): KClass<*> = ::topLevelClass.javaMethod!!.declaringClass.kotlin
+
+@Suppress("unused")
+fun <K, V> pairOfKAndV(k: K, v: V): Pair<K, V> = k to v

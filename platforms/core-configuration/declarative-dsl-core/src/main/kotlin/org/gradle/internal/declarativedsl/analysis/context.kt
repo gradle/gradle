@@ -6,6 +6,7 @@ import org.gradle.declarative.dsl.schema.DataType
 import org.gradle.declarative.dsl.schema.DataType.ParameterizedTypeInstance.TypeArgument
 import org.gradle.declarative.dsl.schema.DataTypeRef
 import org.gradle.declarative.dsl.schema.FqName
+import org.gradle.internal.declarativedsl.language.DataTypeInternal
 import org.gradle.internal.declarativedsl.language.LanguageTreeElement
 import org.gradle.internal.declarativedsl.language.LocalValue
 import java.util.concurrent.atomic.AtomicLong
@@ -89,29 +90,20 @@ class SchemaTypeRefContext(val schema: AnalysisSchema) : TypeRefContext {
         }
     }
 
-    /**
-     * The construction of this map has been made lazy to ensure compatibility with past Gradle versions.
-     *
-     * What makes it incompatible with past Gradle versions is that it uses [AnalysisSchema.genericInstantiationsByFqName],
-     * which is not available from the schema in past versions.
-     *
-     * By making initialization lazy and because it's used only by code added in the same version, the
-     * incompatibility problem can be avoided.
-     *
-     * @since 8.14
-     */
-    private val reconstructedGenericInstantiations by lazy {
-        schema.genericInstantiationsByFqName.mapValues { (_, values) ->
-            values.mapKeys { (typeArgs, _) -> typeArgs.map(::reconstructTypeArgument) }
-        }
-    }
+    private val typeInstances = mutableMapOf<Pair<FqName, List<TypeArgument>>, DataType.ParameterizedTypeInstance>()
 
     override fun maybeResolveRef(dataTypeRef: DataTypeRef): DataType? = when (dataTypeRef) {
         is DataTypeRef.Name ->
             schema.dataClassTypesByFqName[dataTypeRef.fqName]
 
-        is DataTypeRef.NameWithArgs ->
-            reconstructedGenericInstantiations[dataTypeRef.fqName]?.get(dataTypeRef.typeArguments.map(::reconstructTypeArgument))
+        is DataTypeRef.NameWithArgs -> {
+            val signature = schema.genericSignaturesByFqName[dataTypeRef.fqName]
+            if (signature != null) {
+                typeInstances.getOrPut(dataTypeRef.fqName to dataTypeRef.typeArguments) {
+                    DataTypeInternal.DefaultParameterizedTypeInstance(signature, dataTypeRef.typeArguments.map(::reconstructTypeArgument))
+                }
+            } else null
+        }
 
         is DataTypeRef.Type -> dataTypeRef.dataType
     }

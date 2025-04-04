@@ -43,6 +43,7 @@ import kotlin.reflect.KType
 import kotlin.reflect.KTypeParameter
 import kotlin.reflect.KVisibility
 import kotlin.reflect.full.instanceParameter
+import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.isSubtypeOf
 import kotlin.reflect.full.memberFunctions
 import kotlin.reflect.jvm.javaMethod
@@ -113,6 +114,9 @@ class DefaultFunctionExtractor(
         }
 
         val returnClassifier = function.returnType.classifier ?: error("return type must have a classifier")
+
+        checkReturnType(host, function.returnType)
+
         val fnParams = function.parameters
 
         val semanticsFromSignature = inferFunctionSemanticsFromSignature(host, function, inType, preIndex, configureLambdas)
@@ -196,6 +200,17 @@ class DefaultFunctionExtractor(
             params,
             semanticsFromSignature
         )
+    }
+
+    private fun checkReturnType(host: SchemaBuildingHost, kType: KType) {
+        host.withTag(SchemaBuildingTags.returnValueType(kType)) {
+            if ((kType.classifier as? KClass<*>)?.isSubclassOf(Map::class) == true) {
+                host.schemaBuildingFailure("Illegal type '${kType}': functions returning Map types are not supported")
+            }
+            if (kType.classifier == Pair::class) {
+                host.schemaBuildingFailure("Illegal type '${kType}': functions returning Pair are not supported")
+            }
+        }
     }
 
     private
