@@ -1,24 +1,24 @@
-<meta property="og:image" content="https://gradle.org/images/releases/gradle-@version@.png" />
+<meta property="og:image" content="https://gradle.org/images/releases/gradle-default.png" />
 <meta property="og:type"  content="article" />
 <meta property="og:title" content="Gradle @version@ Release Notes" />
 <meta property="og:site_name" content="Gradle Release Notes">
-<meta property="og:description" content="Gradle now supports Java 24, improves build performance with lazy configuration and configuration cache diagnostics, and expands the Problems API with support for structured data and GraalVM Native Image toolchain selection.">
+<meta property="og:description" content="Gradle @version@ adds support for Java 24, Native Image toolchains, improved skipped test reporting, lazy dependency configuration for better performance, richer diagnostics via the Problems API, and a new integrity check mode for the configuration cache.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@gradle">
 <meta name="twitter:creator" content="@gradle">
 <meta name="twitter:title" content="Gradle @version@ Release Notes">
-<meta name="twitter:description" content="Gradle now supports Java 24, improves build performance with lazy configuration and configuration cache diagnostics, and expands the Problems API with support for structured data and GraalVM Native Image toolchain selection.">
-<meta name="twitter:image" content="https://gradle.org/images/releases/gradle-@version@.png">
+<meta name="twitter:description" content="Gradle @version@ adds support for Java 24, Native Image toolchains, improved skipped test reporting, lazy dependency configuration for better performance, richer diagnostics via the Problems API, and a new integrity check mode for the configuration cache.">
+<meta name="twitter:image" content="https://gradle.org/images/releases/gradle-default.png">
 
 We are excited to announce Gradle @version@ (released [@releaseDate@](https://gradle.org/releases/)).
 
 Gradle now supports [Java 24](#java-24).
 
-This release adds support for selecting GraalVM Native Image toolchains, and introduces [lazy configuration initialization](#build-authoring) to improve configuration performance and memory usage.
+This release adds support for selecting [GraalVM Native Image toolchains](#toolchains), and includes [enhancements to the test report](#junit) when tests are skipped, for example, because of assumptions.
 
-It also expands the [Problems API](#build-authoring) to support arbitrary structured data, making it easier for IDEs to consume rich diagnostics through the Tooling API.
+Gradle @version@ introduces [lazy dependency configuration initialization](#build-authoring) to improve configuration performance and memory usage. The [Problems API](#build-authoring) is expanded to support arbitrary structured data, making it easier for IDEs to consume rich diagnostics through the Tooling API.
 
-Additionally, this release includes enhancements to the [configuration cache](#configuration-cache), including a new integrity check mode for improved debugging.
+Additionally, the [configuration cache](#configuration-cache) includes a new integrity check mode for improved debugging.
 
 <!-- 
 Include only their name, impactful features should be called out separately below.
@@ -28,6 +28,15 @@ Include only their name, impactful features should be called out separately belo
 -->
 
 We would like to thank the following community members for their contributions to this release of Gradle:
+[Ben Bader](https://github.com/benjamin-bader),
+[Björn Kautler](https://github.com/Vampire),
+[chandre92](https://github.com/chandre92),
+[Daniel Hammer](https://github.com/dlehammer),
+[Florian Dreier](https://github.com/DreierF),
+[Jendrik Johannes](https://github.com/jjohannes),
+[jimmy1995-gu](https://github.com/jimmy1995-gu),
+[Madalin Valceleanu](https://github.com/vmadalin),
+[Na Minhyeok](https://github.com/NaMinhyeok).
 
 Be sure to check out the [public roadmap](https://roadmap.gradle.org) for insight into what's planned for future releases.
 
@@ -46,14 +55,15 @@ For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility
 ## New features and usability improvements
 
 <a name="java-24"></a>
-### Support for building projects with Java 24
+### Support for Java 24
 
-Gradle now supports [using Java 24](userguide/compatibility.html#java) for compiling, testing, and starting Java programs.
-Selecting a language version is done using [toolchains](userguide/toolchains.html).
+With this release, Gradle supports [Java 24](https://openjdk.org/projects/jdk/24/). This means you can now use Java 24 for the [daemon](userguide/gradle_daemon.html) in addition to [toolchains](userguide/toolchains.html).
 
-You cannot run Gradle @version@ itself with Java 24 because Groovy does not fully support JDK 24.
-However, future versions are expected to provide this support.
+Third-party tool compatibility with Java 24 may still be limited. If you're using the [Tooling API](userguide/tooling_api.html), you’ll need to enable native access at startup due to its use of JNI. See [JEP 472](https://openjdk.org/jeps/472) for details.
 
+See [the compatibility documentation](userguide/compatibility.html#java) for more details.
+
+<a name="toolchains"></a>
 ### GraalVM Native Image selection for toolchains
 
 Gradle's [toolchain support](userguide/toolchains.html) allows provisioning and selection of specific JDK versions for building projects—compiling code, running tests, and even running Gradle itself.
@@ -74,6 +84,33 @@ See the [toolchain documentation](userguide/toolchains.html#sec:native_image) fo
 
 Note: Native Image capability selection is also supported for the [daemon toolchain](userguide/gradle_daemon.html#sec:native_image).
 
+<a name="junit"></a>
+### Skipped tests now report assumption violations
+
+When a test is skipped due to an assumption violation, Gradle now includes the reason in both the HTML and JUnit XML reports. This applies to JUnit 4, JUnit Platform, and TestNG.
+For example, JUnit Platform provides an [Assumptions API](https://junit.org/junit5/docs/5.0.0/api/org/junit/jupiter/api/Assumptions.html) to conditionally skip tests:
+
+```java
+package org.example;
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assumptions.*;
+
+class LibraryTest {
+    @Test 
+    void someLibraryMethodReturnsTrue() {
+        assumeTrue(canExecute(), "missing requirements to run this test");
+        // Code for the rest of the test
+    }   
+}
+```
+
+If the assumeTrue check fails, the reason ("missing requirements to run this test") is now visible in the XML and HTML test report:
+
+![HTML test report check](../release-notes-assets/HTML-Test-Report.png "HTML test report check")
+
+This feature was contributed by [Ivy Chen](https://github.com/Mengmeiivy) with [Aurimas Liutikas](https://github.com/liutikas).
+
 <a name="build-authoring"></a>
 ### Build authoring improvements
 
@@ -81,13 +118,13 @@ Gradle provides [rich APIs](userguide/getting_started_dev.html) for plugin autho
 
 #### Configurations are initialized lazily
 
-Just like [tasks](userguide/lazy_configuration.html), [configurations](userguide/declaring_configurations.html) are now realized only when necessary.
+Just like [tasks](userguide/lazy_configuration.html), [dependency configurations](userguide/declaring_configurations.html) are now realized only when necessary.
 
-Starting with this release, applying the `base` plugin—either directly or via another plugin such as the Java or Kotlin plugin—no longer realizes all configurations declared with `register` or the incubating role-based factory methods.
+Starting with this release, applying the `base` plugin—either directly or via another plugin such as the Java or Kotlin plugin—no longer realizes all configurations declared with `register` or the incubating role-based factory methods (like `configurations.resolvable(...)`).
 
 This change can lead to reduced configuration time and lower memory usage in some builds.
 
-To take advantage of this improvement, prefer using the `register` method over `create` when declaring configurations:
+To take advantage of this improvement, make sure to use the `register` method over `create` when declaring configurations:
 
 ```kotlin
 configurations {
@@ -99,15 +136,15 @@ configurations {
 }
 ```
 
-#### Expanded support for Arbitrary Data in the Problems API
+#### Expanded support for arbitrary data in the Problems API
 
-In Gradle 8.13, we introduced support for `additional data` in the public [Problems API](https://github.com/gradle/gradle/pull/32664/javadoc/org/gradle/api/problems/package-summary.html), allowing users to attach extra context to reported problems—albeit with some limitations.
+Gradle 8.13 introduced support for [additional data](javadoc/org/gradle/tooling/events/problems/CustomAdditionalData.html) in the [Problems API](userguide/reporting_problems.html), allowing users to attach extra context to reported problems—albeit with some limitations.
 
-In this release, those limitations have been removed. You can now include `arbitrary data` in problem reports, offering significantly greater flexibility.
+This release removes these limitations. You can now include _any_ arbitrary data in problem reports.
 
-This enhancement is especially valuable for IDE implementors managing both the plugin and its integration via the [Tooling API](https://github.com/gradle/gradle/pull/32664/userguide/tooling_api.html#embedding), where conveying rich, structured diagnostics is critical.
+This enhancement is especially valuable for IDE implementors managing both the plugin and its integration via the [Tooling API](userguide/tooling_api.html), where conveying rich, structured diagnostics is critical.
 
-For example, a worker task may now include more detailed diagnostic information:
+For example, a custom worker task can report a problem and attach detailed additional data—including primitive fields, lists, and composed objects:
 
 ```java
 public abstract class ProblemWorkerTask implements WorkAction<ProblemsWorkerTaskParameter> {
@@ -125,21 +162,25 @@ public abstract class ProblemWorkerTask implements WorkAction<ProblemsWorkerTask
         ProblemId problemId = ProblemId.create("type", "label", ProblemGroup.create("generic", "Generic"));
         getProblems().getReporter().report(problemId, problem -> problem
             .additionalData(SomeData.class, dataInstance -> {
-                dataInstance.getSome().set("some");                                 // Provider API properties can be used
-                dataInstance.setName("someData");                                   // Getters and setters can be used
-                dataInstance.setNames(Collections.singletonList("someMoreData"));   // Collections can be used
+                // Provider API properties can be used as arbitrary data
+                dataInstance.getSome().set("some");
+                // Getters and setters can be used as arbitrary data
+                dataInstance.setName("someData");
+                // Collections can be used as arbitrary data
+                dataInstance.setNames(Collections.singletonList("someMoreData"));
                 
                 SomeOtherData compositionDataInstance = getObjectFactory().newInstance(SomeOtherData.class);
                 compositionDataInstance.setOtherName("otherName");
                 
-                dataInstance.setOtherData(compositionDataInstance);                 // Composition can be used
+                // Composition can be used as arbitrary data
+                dataInstance.setOtherData(compositionDataInstance);
             })
         );
     }
 }
 ```
 
-The data interfaces for this example look as follows:
+The data attached to the problem is modeled with plain interfaces that use Gradle types where applicable:
 
 ```java
 import org.gradle.api.problems.AdditionalData;
@@ -165,13 +206,16 @@ public interface SomeOtherData {
 }
 ```
 
+
 With this enhancement, the Problems API becomes a more powerful diagnostic tool—capable of carrying rich, structured, and typed context through the build, IDE, and Tooling API layers.
 
-#### Receiving Additional Data via the Tooling API
+#### Receiving additional data via the Tooling API
 
-The [`CustomAdditionalData.get()`](org/gradle/tooling/events/problems/CustomAdditionalData.html#get(java.lang.Class)) method allows consumers on the Tooling API (TAPI) side to retrieve additional data using a typed view interface.
+The new [`CustomAdditionalData.get()`](/javadoc/org/gradle/tooling/events/problems/CustomAdditionalData.html#get(java.lang.Class)) method in the Tooling API (TAPI) allows consumers to retrieve additional data associated with build problems (or other events) reported during a Gradle build.
 
-On the receiving side, you can access the data like this:
+Previously, consumers of the Tooling API could only access a fixed set of predefined fields when inspecting problems or build events. With this new method, Gradle can serialize rich, structured data during the build and expose it to the Tooling API as a type-safe view interface.
+
+On the receiving side, you can access this data like so:
 
 ```java
 void someMethod(List<Problem> problems) {
@@ -183,7 +227,7 @@ void someMethod(List<Problem> problems) {
 }
 ```
 
-The data is exposed through view interfaces that mirror the structure of the data reported by the build logic:
+These view interfaces mirror the structure of the data produced by the build logic:
 
 ```java
 interface SomeOtherDataView {
@@ -201,21 +245,17 @@ interface SomeDataView {
 }
 ```
 
-These view types provide a safe, structured way to consume custom data in IDEs or other TAPI-based tooling.
-
-#### Support for details of assumption violations in JUnit4
-
-TBD
+These types provide a safe and structured way to consume custom data in IDEs or other TAPI-based tools, without relying on brittle parsing or assumptions about internal data formats.
 
 <a name="configuration-cache"></a>
-### Configuration Cache improvements
+### Configuration cache improvements
 
 The [configuration cache](userguide/configuration_cache.html) improves build time by caching the result of the configuration phase and reusing it for subsequent builds.
 This feature can significantly improve build performance.
 
 #### Integrity Check mode
 
-To help diagnose obscure configuration cache loading errors, you can now enable stricter integrity checks using the `org.gradle.configuration-cache.integrity-check` property.
+To help diagnose obscure configuration cache loading errors, you can now enable stricter [integrity checks](userguide/configuration_cache.html#config_cache:integrity_check) using the `org.gradle.configuration-cache.integrity-check` property.
 
 This mode provides more detailed error messages to pinpoint the exact part of your build that failed to serialize correctly.
 
@@ -233,17 +273,6 @@ Configuration cache state could not be cached: field `user` of task `:greet` of 
 
 Note: Enabling integrity checks increases the size of the configuration cache and slows down cache reads/writes.
 Use it only for troubleshooting—not in regular builds.
-
-## Promoted features
-
-Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backward compatibility.
-See the User Manual section on the "[Feature Lifecycle](userguide/feature_lifecycle.html)" for more information.
-
-The following are the features that have been promoted in this Gradle release.
-
-<!--
-### Example promoted
--->
 
 ## Fixed issues
 
