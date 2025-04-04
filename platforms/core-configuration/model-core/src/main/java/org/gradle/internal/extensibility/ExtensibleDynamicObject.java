@@ -213,6 +213,12 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
         }
 
         @Override
+        public DynamicInvokeResult trySetPropertyWithoutInstrumentation(String name, @Nullable Object value) {
+            setProperty(name, value);
+            return DynamicInvokeResult.found();
+        }
+
+        @Override
         public boolean hasProperty(String name) {
             return snapshotInheritable().hasProperty(name);
         }

@@ -37,7 +37,9 @@ import org.gradle.internal.instrumentation.api.groovybytecode.Invocation;
 import org.gradle.internal.instrumentation.api.groovybytecode.InvocationImpl;
 import org.gradle.internal.instrumentation.api.groovybytecode.PropertyAwareCallInterceptor;
 import org.gradle.internal.instrumentation.api.groovybytecode.SignatureAwareCallInterceptor;
+import org.gradle.internal.metaobject.DynamicObjectUtil;
 import org.gradle.internal.metaobject.InstrumentedMetaClass;
+import org.gradle.internal.metaobject.InterceptedMetaProperty;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -133,7 +135,7 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
                 Optional.ofNullable(setterCallerAndInterceptor).map(Pair::right).orElse(null)
             );
             if (propertyType != null) {
-                return new InterceptedMetaProperty(name,
+                return new DefaultInterceptedMetaProperty(name,
                     propertyType, original,
                     theClass, callsTracker, getterCallerAndInterceptor != null ? getterCallerAndInterceptor.right : null,
                     setterCallerAndInterceptor != null ? setterCallerAndInterceptor.right : null,
@@ -377,7 +379,7 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
     }
 
     @NullMarked
-    public static class InterceptedMetaProperty extends MetaProperty {
+    public static class DefaultInterceptedMetaProperty extends InterceptedMetaProperty {
         @Nullable
         private final MetaProperty original;
         private final Class<?> ownerClass;
@@ -386,7 +388,7 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
         private final CallInterceptor setterInterceptor;
         private final String consumerClass;
 
-        public InterceptedMetaProperty(
+        public DefaultInterceptedMetaProperty(
             String name,
             Class type,
             @Nullable MetaProperty original,
@@ -401,6 +403,12 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
             this.getterInterceptor = getterInterceptor;
             this.setterInterceptor = setterInterceptor;
             this.consumerClass = getConsumerClass;
+        }
+
+        @Nullable
+        @Override
+        public MetaProperty getOriginal() {
+            return original;
         }
 
         @Override
@@ -426,16 +434,24 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
             if (setterInterceptor != null) {
                 invokeWithInterceptor(callsTracker, setterInterceptor, name, SET_PROPERTY, object, new Object[]{newValue}, consumerClass, () -> {
                     if (original != null) {
-                        original.setProperty(object, newValue);
+                        setOriginalProperty(object, newValue);
                         return null;
                     } else {
                         throw new MissingPropertyException(name);
                     }
                 });
             } else if (original != null) {
-                original.setProperty(object, newValue);
+                setOriginalProperty(object, newValue);
             } else {
                 throw new MissingPropertyException(name, ownerClass);
+            }
+        }
+
+        private void setOriginalProperty(Object object, Object newValue) {
+            if (DynamicObjectUtil.isDynamicObject(object)) {
+                DynamicObjectUtil.asDynamicObject(object).trySetPropertyWithoutInstrumentation(name, newValue);
+            } else {
+                original.setProperty(object, newValue);
             }
         }
     }
