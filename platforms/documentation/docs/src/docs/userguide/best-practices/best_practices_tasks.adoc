@@ -182,6 +182,35 @@ include::sample[dir="snippets/bestPractices/avoidResolvingConfigurationsManually
 === Tags
 `#tasks`, `#inputs-and-outputs`, `#configurations`
 
+== Avoid using eager API on Gradle File Collections before task execution
+
+Gradle link:{javadocPath}/org/gradle/api/artifacts/Configuration.html[Configuration] and link:{javadocPath}/org/gradle/api/artifacts/FileCollection.html[FileCollection]
+extend JDK's `Collection<File>` interface, however calls to the JDK Collection API on configuration and file collection instances will trigger their implicit resolution.
+
+=== Example
+==== Don't Do This
+
+====
+include::sample[dir="snippets/bestPractices/avoidJdkCollectionApiOnFileCollections/kotlin",files="build.gradle.kts[tags=bad-zipping-task]"]
+include::sample[dir="snippets/bestPractices/avoidJdkCollectionApiOnFileCollections/groovy",files="build.gradle[tags=bad-zipping-task]"]
+====
+
+<1> *Add file via plus operator*: Plus operator will force runtimeClasspath configuration to be resolved implicitly. Task dependencies will be lost.
+
+==== Do This Instead
+
+Use Gradle API that supports lazy evaluation.
+
+====
+include::sample[dir="snippets/bestPractices/avoidJdkCollectionApiOnFileCollections/kotlin",files="build.gradle.kts[tags=good-zipping-task]"]
+include::sample[dir="snippets/bestPractices/avoidJdkCollectionApiOnFileCollections/groovy",files="build.gradle[tags=good-zipping-task]"]
+====
+
+<1> *Use ConfigurableFileCollection*: This allows combining file collections without their implicit resolution.
+
+=== Tags
+`#tasks`, `#inputs-and-outputs`, `#configurations`
+
 [[group_describe_tasks]]
 == Group and Describe custom Tasks
 
