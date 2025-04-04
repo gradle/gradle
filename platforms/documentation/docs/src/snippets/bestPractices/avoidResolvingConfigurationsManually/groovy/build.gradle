@@ -1,0 +1,24 @@
+plugins {
+    id 'java-library'
+}
+
+// tag::resolve-call[]
+def resolvedClasspath = configurations.runtimeClasspath.resolve() // <1>
+logger.lifecycle(resolvedClasspath.join(", "))
+// end::resolve-call[]
+
+// tag::good-classpath-printer[]
+abstract class ClasspathPrinter extends DefaultTask {
+    @InputFiles
+    abstract ConfigurableFileCollection getResolvedClasspath()
+
+    @TaskAction
+    void run() {
+        logger.lifecycle(resolvedClasspath.files.join(", ")) // <2>
+    }
+}
+
+tasks.register("classpathPrinter", ClasspathPrinter) {
+    it.resolvedClasspath.from(configurations.runtimeClasspath) // <1>
+}
+// end::good-classpath-printer[]

@@ -146,8 +146,41 @@ include::sample[dir="snippets/bestPractices/useCacheabilityAnnotations-do/groovy
 - <<build_cache_concepts.adoc#non_cacheable_tasks,Non-cacheable Tasks>>
 
 === Tags
+`#tasks`, `#caching`
 
-`<<tags_reference.adoc#tag:tasks,#tasks>>`, `<<tags_reference.adoc#tag:caching,#caching>>`
+== Don't resolve Configurations before Task Execution
+
+Resolving configuration before task execution phase can lead to incorrect results and slows gradle build performance.
+
+Once configuration is resolved it can't be resolved again, and it can lose some information when it is resolved too early.
+Calling manual resolution via link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#resolve()[resolve] method returns a set of Files that doesn't preserve references to the tasks that produced these files.
+This will break automatic task dependencies wiring through task input properties.
+
+=== Example
+
+==== Don't Do This
+
+====
+include::sample[dir="snippets/bestPractices/avoidResolvingConfigurationsManually/kotlin",files="build.gradle.kts[tags=resolve-call]"]
+include::sample[dir="snippets/bestPractices/avoidResolvingConfigurationsManually/groovy",files="build.gradle[tags=resolve-call]"]
+====
+
+<1> *Explicit resolve call*: `runtimeClasspath` configuration will be resolved as soon as task created. It will lose all task dependencies as well.
+
+==== Do This Instead
+
+Use lazy link:{javadocPath}/org/gradle/api/file/FileCollection.html[FileCollection] API instead.
+
+====
+include::sample[dir="snippets/bestPractices/avoidResolvingConfigurationsManually/kotlin",files="build.gradle.kts[tags=good-classpath-printer]"]
+include::sample[dir="snippets/bestPractices/avoidResolvingConfigurationsManually/groovy",files="build.gradle[tags=good-classpath-printer]"]
+====
+
+<1> *Pass runtimeClasspath as input to the File Collection*: the File Collection will not resolve `runtimeClasspath` immediately, and will preserve its task dependencies.
+<2> *Access resolved files*: It is safe to access files from the File Collection during task execution.
+
+=== Tags
+`#tasks`, `#inputs-and-outputs`, `#configurations`
 
 [[group_describe_tasks]]
 == Group and Describe custom Tasks
