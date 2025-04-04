@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.impl.isolation
+package org.gradle.internal.isolate.actions.services
 
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
@@ -24,15 +24,14 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.provider.CollectionPropertyInternal
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
-import org.gradle.internal.cc.impl.serialization.codecs.beanStateReaderLookupForTesting
-import org.gradle.internal.cc.base.serialize.IsolateOwners
-import org.gradle.internal.serialize.beans.services.DefaultBeanStateWriterLookup
-import org.gradle.internal.cc.impl.services.IsolatedActionCodecsFactory
 import org.gradle.internal.Cast.uncheckedNonnullCast
+import org.gradle.internal.cc.base.serialize.IsolateOwners
 import org.gradle.internal.isolate.graph.IsolatedActionDeserializer
 import org.gradle.internal.isolate.graph.IsolatedActionSerializer
 import org.gradle.internal.isolate.graph.SerializedIsolatedActionGraph
 import org.gradle.internal.isolation.IsolatedActionsForTesting.isolatedActionLambdaWith
+import org.gradle.internal.serialize.beans.services.DefaultBeanStateWriterLookup
+import org.gradle.internal.serialize.beans.services.test.beanStateReaderLookupForTesting
 import org.gradle.internal.serialize.codecs.core.jos.JavaSerializationEncodingLookup
 import org.gradle.util.TestUtil
 import org.gradle.util.TestUtil.objectFactory
@@ -42,11 +41,10 @@ import org.hamcrest.Matchers.equalTo
 import org.junit.Test
 import java.util.function.Consumer
 
-
 typealias TestableIsolatedAction<T> = IsolatedAction<in Consumer<T>>
 
 
-class IsolationActionIsolationTest {
+class IsolatedActionCodecsFactoryTest {
 
     @Test
     fun `can serialize Kotlin action`() {

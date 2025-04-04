@@ -17,9 +17,8 @@
 package org.gradle.internal.cc.impl.serialization.codecs
 
 import com.nhaarman.mockitokotlin2.mock
-import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
-import org.gradle.internal.cc.base.serialize.IsolateOwners
 import org.gradle.internal.cc.base.problems.AbstractProblemsListener
+import org.gradle.internal.cc.base.serialize.IsolateOwners
 import org.gradle.internal.cc.impl.serialize.Codecs
 import org.gradle.internal.cc.impl.serialize.DefaultClassDecoder
 import org.gradle.internal.cc.impl.serialize.DefaultClassEncoder
@@ -29,11 +28,9 @@ import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.extensions.stdlib.useToRun
 import org.gradle.internal.io.NullOutputStream
 import org.gradle.internal.serialize.FlushableEncoder
-import org.gradle.internal.serialize.beans.services.BeanConstructors
-import org.gradle.internal.serialize.beans.services.DefaultBeanStateReaderLookup
 import org.gradle.internal.serialize.beans.services.DefaultBeanStateWriterLookup
+import org.gradle.internal.serialize.beans.services.test.beanStateReaderLookupForTesting
 import org.gradle.internal.serialize.codecs.core.jos.JavaSerializationEncodingLookup
-import org.gradle.internal.serialize.graph.BeanStateReaderLookup
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.DefaultReadContext
 import org.gradle.internal.serialize.graph.DefaultWriteContext
@@ -43,7 +40,6 @@ import org.gradle.internal.serialize.graph.runWriteOperation
 import org.gradle.internal.serialize.graph.withIsolate
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
-import org.gradle.util.TestUtil
 import org.hamcrest.CoreMatchers.instanceOf
 import org.hamcrest.MatcherAssert.assertThat
 import java.io.ByteArrayInputStream
@@ -196,11 +192,3 @@ abstract class AbstractUserTypeCodecTest {
         attributeDesugaring = mock(),
     )
 }
-
-
-internal
-fun beanStateReaderLookupForTesting(): BeanStateReaderLookup =
-    DefaultBeanStateReaderLookup(
-        BeanConstructors(TestCrossBuildInMemoryCacheFactory()),
-        TestUtil.instantiatorFactory()
-    )
