@@ -2835,7 +2835,6 @@ Class <org.gradle.launcher.daemon.client.DaemonStopClient> is not annotated (dir
 Class <org.gradle.launcher.daemon.client.DefaultDaemonConnector$CleanupOnStaleAddress> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (DefaultDaemonConnector.java:0)
 Class <org.gradle.launcher.daemon.client.DefaultDaemonConnector> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (DefaultDaemonConnector.java:0)
 Class <org.gradle.launcher.daemon.client.DefaultDaemonStarter> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (DefaultDaemonStarter.java:0)
-Class <org.gradle.launcher.daemon.client.JvmVersionValidator> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (JvmVersionValidator.java:0)
 Class <org.gradle.launcher.daemon.client.NoUsableDaemonFoundException> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (NoUsableDaemonFoundException.java:0)
 Class <org.gradle.launcher.daemon.client.NotifyDaemonAboutChangedPathsClient> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (NotifyDaemonAboutChangedPathsClient.java:0)
 Class <org.gradle.launcher.daemon.client.ReportDaemonStatusClient> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (ReportDaemonStatusClient.java:0)

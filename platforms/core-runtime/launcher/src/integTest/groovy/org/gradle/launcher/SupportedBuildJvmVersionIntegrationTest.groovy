@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.buildconfiguration.fixture.DaemonJvmPropertiesFixture
+import org.gradle.internal.jvm.SupportedJavaVersionsDeprecations
 import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
@@ -49,7 +50,7 @@ class SupportedBuildJvmVersionIntegrationTest extends AbstractIntegrationSpec im
 
         expect:
         fails("help")
-        failure.assertHasErrorOutput("Gradle ${GradleVersion.current().version} requires Java 1.8 or later to run. You are currently using Java ${jdk.javaVersion}.")
+        failure.assertHasErrorOutput("Gradle requires Java 8 or later to run. You are currently using Java ${jdk.javaVersion}.")
 
         where:
         jdk << AvailableJavaHomes.getUnsupportedDaemonJdks()
@@ -68,7 +69,7 @@ class SupportedBuildJvmVersionIntegrationTest extends AbstractIntegrationSpec im
 
         expect:
         fails(["help"] + (noDaemon ? ["--no-daemon"] : []))
-        failure.assertHasErrorOutput("Gradle ${GradleVersion.current().version} requires Java 1.8 or later to run. You are currently using Java ${unsupportedJdk.javaVersion}.")
+        failure.assertHasErrorOutput("Gradle requires Java 8 or later to run. You are currently using Java ${unsupportedJdk.javaVersion}.")
 
         where:
         noDaemon << [false, true]
@@ -77,7 +78,7 @@ class SupportedBuildJvmVersionIntegrationTest extends AbstractIntegrationSpec im
     @Requires(UnitTestPreconditions.DeprecatedDaemonJdkVersion)
     def "running a build with a deprecated JVM is deprecated"() {
         expect:
-        executer.expectDocumentedDeprecationWarning("Executing Gradle on JVM versions 16 and lower has been deprecated. This will fail with an error in Gradle 9.0. Use JVM 17 or greater to execute Gradle. Projects can continue to use older JVM versions via toolchains. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#minimum_daemon_jvm_version")
+        executer.expectDocumentedDeprecationWarning(SupportedJavaVersionsDeprecations.expectedDaemonDeprecationWarning)
         succeeds(["help"] + (noDaemon ? ["--no-daemon"] : []))
 
         where:
@@ -120,7 +121,7 @@ class SupportedBuildJvmVersionIntegrationTest extends AbstractIntegrationSpec im
         captureJavaHome()
 
         when:
-        executer.expectDocumentedDeprecationWarning("Executing Gradle on JVM versions 16 and lower has been deprecated. This will fail with an error in Gradle 9.0. Use JVM 17 or greater to execute Gradle. Projects can continue to use older JVM versions via toolchains. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#minimum_daemon_jvm_version")
+        executer.expectDocumentedDeprecationWarning(SupportedJavaVersionsDeprecations.expectedDaemonDeprecationWarning)
         succeeds(["help"] + (noDaemon ? ["--no-daemon"] : []))
 
         then:
@@ -175,7 +176,7 @@ class SupportedBuildJvmVersionIntegrationTest extends AbstractIntegrationSpec im
         captureJavaHome()
 
         when:
-        executer.expectDocumentedDeprecationWarning("Executing Gradle on JVM versions 16 and lower has been deprecated. This will fail with an error in Gradle 9.0. Use JVM 17 or greater to execute Gradle. Projects can continue to use older JVM versions via toolchains. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#minimum_daemon_jvm_version")
+        executer.expectDocumentedDeprecationWarning(SupportedJavaVersionsDeprecations.expectedDaemonDeprecationWarning)
         succeeds(["help"] + (noDaemon ? ["--no-daemon"] : []))
 
         then:

@@ -114,6 +114,14 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
     }
 
     /**
+     * Output: This will fail with an error in Gradle <i>majorVersion</i>.0.
+     */
+    public WithDeprecationTimeline willBecomeAnErrorInGradle(int majorVersion) {
+        this.deprecationTimeline = DeprecationTimeline.willBecomeAnErrorInVersion(GradleVersion.version(majorVersion + ".0"));
+        return new WithDeprecationTimeline(this);
+    }
+
+    /**
      * Output: Starting with Gradle 9.0, ${message}.
      */
     public WithDeprecationTimeline startingWithGradle9(String message) {

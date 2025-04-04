@@ -19,6 +19,7 @@ package org.gradle.integtests.tooling.jvm
 import org.gradle.integtests.tooling.fixture.DaemonJvmPropertiesFixture
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.internal.jvm.SupportedJavaVersionsDeprecations
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.tooling.model.GradleProject
@@ -39,7 +40,7 @@ class ImplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification implemen
     @Requires(UnitTestPreconditions.DeprecatedDaemonJdkVersion)
     def "running a build with deprecated Java versions is deprecated"() {
         given:
-        expectDocumentedDeprecationWarning("Executing Gradle on JVM versions 16 and lower has been deprecated. This will fail with an error in Gradle 9.0. Use JVM 17 or greater to execute Gradle. Projects can continue to use older JVM versions via toolchains. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#minimum_daemon_jvm_version")
+        expectDocumentedDeprecationWarning(SupportedJavaVersionsDeprecations.expectedDaemonDeprecationWarning)
 
         expect:
         succeeds { connection ->
@@ -51,7 +52,7 @@ class ImplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification implemen
     @Requires(UnitTestPreconditions.DeprecatedDaemonJdkVersion)
     def "fetching a model with deprecated Java versions is deprecated"() {
         given:
-        expectDocumentedDeprecationWarning("Executing Gradle on JVM versions 16 and lower has been deprecated. This will fail with an error in Gradle 9.0. Use JVM 17 or greater to execute Gradle. Projects can continue to use older JVM versions via toolchains. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#minimum_daemon_jvm_version")
+        expectDocumentedDeprecationWarning(SupportedJavaVersionsDeprecations.expectedDaemonDeprecationWarning)
 
         expect:
         succeeds { connection ->
@@ -62,7 +63,7 @@ class ImplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification implemen
     @Requires(UnitTestPreconditions.DeprecatedDaemonJdkVersion)
     def "running an action with deprecated Java versions is deprecated"() {
         given:
-        expectDocumentedDeprecationWarning("Executing Gradle on JVM versions 16 and lower has been deprecated. This will fail with an error in Gradle 9.0. Use JVM 17 or greater to execute Gradle. Projects can continue to use older JVM versions via toolchains. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#minimum_daemon_jvm_version")
+        expectDocumentedDeprecationWarning(SupportedJavaVersionsDeprecations.expectedDaemonDeprecationWarning)
 
         expect:
         succeeds { connection ->
@@ -74,7 +75,7 @@ class ImplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification implemen
     def "running tests with deprecated Java versions is deprecated"() {
         given:
         writeTestFiles()
-        expectDocumentedDeprecationWarning("Executing Gradle on JVM versions 16 and lower has been deprecated. This will fail with an error in Gradle 9.0. Use JVM 17 or greater to execute Gradle. Projects can continue to use older JVM versions via toolchains. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#minimum_daemon_jvm_version")
+        expectDocumentedDeprecationWarning(SupportedJavaVersionsDeprecations.expectedDaemonDeprecationWarning)
 
         expect:
         succeeds { connection ->

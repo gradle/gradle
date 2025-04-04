@@ -47,13 +47,15 @@ dependencies {
     implementation(projects.native)
     implementation(projects.serviceRegistryBuilder)
 
-
     testImplementation(testFixtures(projects.core))
     testImplementation(projects.testingBase)
 
     testRuntimeOnly(projects.distributionsCore) {
         because("ProjectBuilder loads services from a Gradle distribution.")
     }
+
+    integTestImplementation(testFixtures(projects.buildProcessServices))
+
     integTestRuntimeOnly(projects.distributionsCore) {
         because("ProjectBuilder loads services from a Gradle distribution.")
     }
