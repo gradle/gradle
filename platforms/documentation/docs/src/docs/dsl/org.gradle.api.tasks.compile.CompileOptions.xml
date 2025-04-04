@@ -69,6 +69,10 @@
                 <td><literal>null</literal></td>
             </tr>
             <tr>
+                <td>enablePreview</td>
+                <td><literal>false</literal></td>
+            </tr>
+            <tr>
                 <td>javaModuleVersion</td>
                 <td></td>
             </tr>
