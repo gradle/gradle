@@ -1020,8 +1020,8 @@ project.extensions.create("some", SomeExtension)
                 'Mark property \'strings\' as optional',
             ]
             additionalData.asMap == [
-                'typeName' : 'MyTask',
-                'propertyName' : 'strings',
+                'typeName': 'MyTask',
+                'propertyName': 'strings',
             ]
         }
     }
@@ -1090,5 +1090,55 @@ project.extensions.create("some", SomeExtension)
 
         then:
         failureCauseContains("Circular evaluation detected")
+    }
+
+    def "humble beginnings"() {
+        buildFile """
+            abstract class ProvideFoo extends DefaultTask {
+                @OutputFile
+                abstract RegularFileProperty getFooFile()
+
+                @TaskAction
+                void writeFoo() {
+                    fooFile.get().asFile.write("Bar!")
+                }
+            }
+
+            abstract class ConsumeFoo extends DefaultTask {
+                @Input
+                abstract Property<String> getFooString()
+
+                @TaskAction
+                void printFoo() {
+                    println("Foo is " + fooString.get())
+                }
+            }
+
+            def provideFoo = tasks.register("provideFoo", ProvideFoo) {
+                fooFile.set(layout.buildDirectory.file("foo.txt"))
+            }
+
+            tasks.register("consumeFoo", ConsumeFoo) {
+                fooString.set(
+                    providers
+                        .gradleProperty("foo")
+                        .orElse(provideFoo.flatMap { it.fooFile }.map { it.asFile.text })
+                )
+            }
+        """
+
+        when:
+        run "consumeFoo", "-Pfoo=42"
+
+        then:
+        outputContains "Foo is 42"
+        notExecuted("provideFoo")
+
+        when:
+        run "consumeFoo"
+
+        then:
+        outputContains("Foo is Bar!")
+        executed("provideFoo", "consumeFoo")
     }
 }
