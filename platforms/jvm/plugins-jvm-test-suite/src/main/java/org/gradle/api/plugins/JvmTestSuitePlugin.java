@@ -53,6 +53,8 @@ public abstract class JvmTestSuitePlugin implements Plugin<Project> {
         testing.getSuites().registerBinding(JvmTestSuite.class, DefaultJvmTestSuite.class);
 
         project.getTasks().withType(Test.class).configureEach(test -> {
+            test.getConventionMapping().map("testClassesDirs", () -> project.getObjects().fileCollection());
+            test.getConventionMapping().map("classpath", () -> project.getObjects().fileCollection());
             test.getModularity().getInferModulePath().convention(java.getModularity().getInferModulePath());
         });
 

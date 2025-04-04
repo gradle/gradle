@@ -425,6 +425,8 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         def task = project.task('customTest', type: org.gradle.api.tasks.testing.Test.class)
 
         then:
+        task.classpath.files.empty
+        task.testClassesDirs.empty
         task.workingDir == project.projectDir
         task.reports.junitXml.outputLocation.get().asFile == new File(project.testResultsDir, 'customTest')
         task.reports.html.outputLocation.get().asFile == new File(project.testReportDir, 'customTest')

@@ -486,6 +486,50 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/18622")
+    def "by convention custom Test tasks have no classpath or test classes"() {
+        buildFile << """
+            tasks.withType(Test) {
+                // realize all test tasks
+            }
+            tasks.register("mytest", Test)
+            apply plugin: 'java'
+
+            ${mavenCentralRepository()}
+
+            testing {
+                suites {
+                    test {
+                        useJUnit()
+                    }
+                }
+            }
+        """
+
+        // Define some test classes in the convention test directory
+        // Previously, Gradle would have used these for all Test tasks by default
+        file('src/test/java/example/UnitTest.java') << '''
+            package example;
+
+            import org.junit.Assert;
+            import org.junit.Test;
+
+            public class UnitTest {
+                @Test
+                public void unitTest() {
+                    Assert.assertTrue(true);
+                }
+            }
+        '''
+
+        when:
+        succeeds("mytest")
+
+        then:
+        // No sources, so mytest is skipped
+        result.assertTaskSkipped(":mytest")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/18622")
     def "custom Test tasks still function if java plugin is never applied to create sourcesets"() {
         buildFile << """
             tasks.withType(Test) {
