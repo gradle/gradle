@@ -329,6 +329,54 @@
             ]
         },
         {
+            "type": "org.gradle.api.plugins.ProjectReportsPluginConvention",
+            "member": "Class org.gradle.api.plugins.ProjectReportsPluginConvention",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.ProjectReportsPluginConvention",
+            "member": "Constructor org.gradle.api.plugins.ProjectReportsPluginConvention()",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.ProjectReportsPluginConvention",
+            "member": "Method org.gradle.api.plugins.ProjectReportsPluginConvention.getProjectReportDir()",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.ProjectReportsPluginConvention",
+            "member": "Method org.gradle.api.plugins.ProjectReportsPluginConvention.getProjectReportDirName()",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.ProjectReportsPluginConvention",
+            "member": "Method org.gradle.api.plugins.ProjectReportsPluginConvention.getProjects()",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.ProjectReportsPluginConvention",
+            "member": "Method org.gradle.api.plugins.ProjectReportsPluginConvention.setProjectReportDirName(java.lang.String)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.plugins.WarPlugin",
             "member": "Method org.gradle.api.plugins.WarPlugin.configureConfigurations(org.gradle.api.artifacts.ConfigurationContainer)",
             "acceptation": "Removed deprecated method",
