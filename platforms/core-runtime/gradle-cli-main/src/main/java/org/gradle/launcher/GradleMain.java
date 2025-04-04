@@ -16,15 +16,16 @@
 
 package org.gradle.launcher;
 
-import org.gradle.internal.jvm.GradleVersionNumberLoader;
 import org.gradle.launcher.bootstrap.ProcessBootstrap;
 
+/**
+ * The main entrypoint to the Gradle CLI Client.
+ */
 public class GradleMain {
     public static void main(String[] args) throws Exception {
         String javaVersion = System.getProperty("java.specification.version");
         if (javaVersion.equals("1.6") || javaVersion.equals("1.7")) {
-            String gradleVersion = GradleVersionNumberLoader.loadGradleVersionNumber();
-            System.err.printf("%s %s requires Java 1.8 or later to run. You are currently using Java %s.%n", "Gradle", gradleVersion, javaVersion);
+            System.err.printf("Gradle requires Java 8 or later to run. You are currently using Java %s.%n", javaVersion);
             System.exit(1);
         }
 
