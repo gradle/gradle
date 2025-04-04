@@ -75,6 +75,7 @@ dependencies {
     testImplementation(projects.native)
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.platformBase))
+    testImplementation(testFixtures(projects.languageGroovy))
     testImplementation(testFixtures(projects.toolchainsJvm))
     testImplementation(testFixtures(projects.toolchainsJvmShared))
 

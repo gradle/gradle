@@ -696,6 +696,12 @@ tasks.named<Test>("docsTest") {
             excludeTestsMatching("org.gradle.docs.samples.*.snippet-code-quality-code-quality*")
         }
 
+        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_24)) {
+            // JaCoCo doesn't yet support Java 24 (need 0.8.13)
+            excludeTestsMatching("org.gradle.docs.samples.*.jvm-multi-project-with-code-coverage*")
+            excludeTestsMatching("org.gradle.docs.samples.*.snippet-testing-jacoco*")
+        }
+
         if (OperatingSystem.current().isMacOsX && System.getProperty("os.arch") == "aarch64") {
             excludeTestsMatching("org.gradle.docs.samples.*.snippet-native*.sample")
             excludeTestsMatching("org.gradle.docs.samples.*.snippet-swift*.sample")

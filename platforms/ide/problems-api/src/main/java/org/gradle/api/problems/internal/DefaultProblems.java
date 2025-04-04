@@ -60,7 +60,6 @@ public class DefaultProblems implements InternalProblems {
     public ProblemReporter getReporter() {
         return createReporter();
     }
-
     @NonNull
     private DefaultProblemReporter createReporter() {
         return new DefaultProblemReporter(
