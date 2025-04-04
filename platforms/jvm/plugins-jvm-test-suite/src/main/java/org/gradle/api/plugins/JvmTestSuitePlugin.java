@@ -48,13 +48,12 @@ public abstract class JvmTestSuitePlugin implements Plugin<Project> {
         project.getPluginManager().apply(JavaBasePlugin.class);
 
         JavaPluginExtension java = project.getExtensions().getByType(JavaPluginExtension.class);
-
-        TestingExtension testing = project.getExtensions().getByType(TestingExtension.class);
-        testing.getSuites().registerBinding(JvmTestSuite.class, DefaultJvmTestSuite.class);
-
         project.getTasks().withType(Test.class).configureEach(test -> {
             test.getModularity().getInferModulePath().convention(java.getModularity().getInferModulePath());
         });
+
+        TestingExtension testing = project.getExtensions().getByType(TestingExtension.class);
+        testing.getSuites().registerBinding(JvmTestSuite.class, DefaultJvmTestSuite.class);
 
         testing.getSuites().withType(JvmTestSuite.class).all(testSuite -> {
             testSuite.getTargets().all(target -> {
