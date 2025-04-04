@@ -693,6 +693,36 @@ The following types/formats are supported:
         file("out.txt").text == "b"
     }
 
+    def "input file property with value of orElse provider whose original value is a missing value source and alternative value is task output file property implies dependency on task"() {
+        taskTypeWithOutputFileProperty()
+        taskTypeWithInputFileProperty()
+        buildFile  """
+            import org.gradle.api.provider.*
+
+            abstract class NoFileSource implements ValueSource<RegularFile, ValueSourceParameters.None> {
+                @Override
+                RegularFile obtain() {
+                    return null
+                }
+            }
+            def taskB = tasks.register("b", FileProducer) {
+                output = file("b.txt")
+                content = "b"
+            }
+            tasks.register("c", InputFileTask) {
+                inFile = providers.of(NoFileSource, {}).orElse(taskB.output)
+                outFile = file("out.txt")
+            }
+        """
+
+        when:
+        run("c")
+
+        then:
+        result.assertTasksExecuted(":b", ":c")
+        file("out.txt").text == "b"
+    }
+
     def "input file property with value of orElse provider whose original value is missing and alternative value is constant does not imply dependency on task"() {
         taskTypeWithOutputFileProperty()
         taskTypeWithInputFileProperty()
