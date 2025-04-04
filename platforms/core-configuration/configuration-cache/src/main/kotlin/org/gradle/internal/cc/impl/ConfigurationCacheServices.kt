@@ -31,8 +31,6 @@ import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.BuildTreeModelControllerServices
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.cc.impl.problems.BuildNameProvider
-import org.gradle.internal.cc.impl.services.DefaultIsolatedProjectEvaluationListenerProvider
-import org.gradle.internal.cc.impl.services.IsolatedActionCodecsFactory
 import org.gradle.internal.cc.impl.services.RemoteScriptUpToDateChecker
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.configuration.problems.CommonReport
@@ -46,8 +44,6 @@ import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistrationProvider
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices
-import org.gradle.invocation.GradleLifecycleActionExecutor
-import org.gradle.invocation.IsolatedProjectEvaluationListenerProvider
 import java.io.File
 
 
@@ -71,7 +67,6 @@ class ConfigurationCacheServices : AbstractGradleModuleServices() {
             add(InputTrackingState::class.java)
             add(InstrumentedExecutionAccessListener::class.java)
             add(InstrumentedInputAccessListener::class.java)
-            add(IsolatedActionCodecsFactory::class.java)
             addProvider(IgnoredConfigurationInputsProvider)
             addProvider(RemoteScriptUpToDateCheckerProvider)
             addProvider(ExecutionAccessCheckerProvider)
@@ -85,11 +80,6 @@ class ConfigurationCacheServices : AbstractGradleModuleServices() {
             addProvider(TaskExecutionAccessCheckerProvider)
             add(ConfigurationCacheHost::class.java, DefaultConfigurationCacheHost::class.java)
             add(ConfigurationCacheBuildTreeIO::class.java, ConfigurationCacheIncludedBuildIO::class.java, DefaultConfigurationCacheIO::class.java)
-            add(
-                IsolatedProjectEvaluationListenerProvider::class.java,
-                GradleLifecycleActionExecutor::class.java,
-                DefaultIsolatedProjectEvaluationListenerProvider::class.java
-            )
         }
     }
 

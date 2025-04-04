@@ -45,4 +45,7 @@ dependencies {
     pluginsRuntimeOnly(projects.unitTestFixtures) {
         because("This is required for gradleApi()")
     }
+    pluginsRuntimeOnly(projects.isolatedActionServices) {
+        because("This is a core extension module (see DynamicModulesClassPathProvider.GRADLE_EXTENSION_MODULES)")
+    }
 }
