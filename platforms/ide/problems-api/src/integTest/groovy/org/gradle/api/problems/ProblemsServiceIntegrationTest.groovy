@@ -169,14 +169,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                 offset == 1
                 length == 2
             }
-            contextualLocations.size() == 2
-            with((contextualLocations[0] as StackTraceLocation).fileLocation as LineInFileLocation) {
-                length == -1
-                column == -1
-                line == 13
-                path == buildFile.absolutePath
-            }
-            with(contextualLocations[1] as TaskLocation) {
+            with(contextualLocations[0] as TaskLocation) {
                 buildTreePath == ':reportProblem'
             }
         }
@@ -203,16 +196,8 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                 line == 1
                 path == 'test-location'
             }
-            contextualLocations.size() == 2
-            with((contextualLocations.get(0) as StackTraceLocation).fileLocation as LineInFileLocation) {
-                length == -1
-                column == -1
-                line == 13
-                path == buildFile.absolutePath
-            }
-            with(contextualLocations.get(1) as TaskLocation) {
-                it.buildTreePath == ':reportProblem'
-            }
+            contextualLocations.size() == 1
+            (contextualLocations.get(0) as TaskLocation).buildTreePath == ':reportProblem'
         }
     }
 
