@@ -113,7 +113,7 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
         @Override
         public void execute(Task task) {
             Sync sync = (Sync) task;
-            File destinationDir = sync.getDestinationDir();
+            File destinationDir = sync.getDestinationDir().get().getAsFile();
             if (destinationDir.isDirectory()) {
                 String[] children = destinationDir.list();
                 if (children == null) {

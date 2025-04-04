@@ -34,7 +34,6 @@ import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationCo
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationCreationRequest;
 import org.gradle.api.internal.artifacts.configurations.UsageDescriber;
 import org.gradle.api.internal.file.FileTreeInternal;
-import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.tasks.DefaultSourceSetOutput;
 import org.gradle.api.internal.tasks.JvmConstants;
@@ -52,7 +51,6 @@ import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.ReportingExtension;
-import org.gradle.api.tasks.Copy;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskProvider;
@@ -245,11 +243,20 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
     private void createProcessResourcesTask(final SourceSet sourceSet, final SourceDirectorySet resourceSet, final Project target) {
         TaskProvider<ProcessResources> processResources = target.getTasks().register(sourceSet.getProcessResourcesTaskName(), ProcessResources.class, resourcesTask -> {
             resourcesTask.setDescription("Processes " + resourceSet + ".");
-            new DslObject(resourcesTask.getRootSpec()).getConventionMapping().map("destinationDir", (Callable<File>) () -> sourceSet.getOutput().getResourcesDir());
+            resourcesTask.getRootSpec().getDestinationDir().convention(
+                target.getObjects().directoryProperty().fileProvider(target.provider(() -> sourceSet.getOutput().getResourcesDir()))
+            );
             resourcesTask.from(resourceSet);
         });
         DefaultSourceSetOutput output = Cast.uncheckedCast(sourceSet.getOutput());
-        output.setResourcesContributor(processResources.map(Copy::getDestinationDir), processResources);
+        // We use getLocationOnly(), since SourceSetOutput can query
+        // directory before processResources task runs which triggers an error
+        Provider<File> outputDirectory = processResources.flatMap(
+            task -> task.getDestinationDir()
+                .getLocationOnly()
+                .map(Directory::getAsFile)
+        );
+        output.setResourcesContributor(outputDirectory, processResources);
     }
 
     private void createClassesTask(final SourceSet sourceSet, Project target) {

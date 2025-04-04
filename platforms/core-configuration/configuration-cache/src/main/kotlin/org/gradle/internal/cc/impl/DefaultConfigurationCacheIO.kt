@@ -642,7 +642,6 @@ class DefaultConfigurationCacheIO internal constructor(
             fileLookup = service(),
             propertyFactory = service(),
             filePropertyFactory = service(),
-            fileResolver = service(),
             instantiator = service(),
             fileSystemOperations = service(),
             taskNodeFactory = service(),

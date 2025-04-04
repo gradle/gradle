@@ -84,6 +84,14 @@ val reportResources = tasks.register<Copy>("reportResources") {
     into(layout.buildDirectory.file("generated-resources/report-resources/org/gradle/reporting"))
 }
 
+/**
+ * TODO: Remove this for Gradle 9.0
+ */
+@Suppress("unused")
+private
+val DirectoryProperty.parentFile get() =
+    get().asFile.parentFile
+
 sourceSets.main {
     output.dir(reportResources.map { it.destinationDir.parentFile.parentFile.parentFile })
 }

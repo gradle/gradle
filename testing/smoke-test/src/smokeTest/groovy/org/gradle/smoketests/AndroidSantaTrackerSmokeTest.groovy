@@ -33,7 +33,7 @@ class AndroidSantaTrackerDeprecationSmokeTest extends AndroidSantaTrackerSmokeTe
     def "check deprecation warnings produced by building Santa Tracker (agp=#agpVersion)"() {
 
         given:
-        AGP_VERSIONS.assumeCurrentJavaVersionIsSupportedBy(agpVersion)
+        AGP_VERSIONS.assumeAgpSupportsCurrentJavaVersionAndProviderApiChanges(agpVersion)
 
         and:
         def checkoutDir = temporaryFolder.createDir("checkout")
@@ -58,7 +58,7 @@ class AndroidSantaTrackerIncrementalCompilationSmokeTest extends AndroidSantaTra
     def "incremental Java compilation works for Santa Tracker (agp=#agpVersion)"() {
 
         given:
-        AGP_VERSIONS.assumeCurrentJavaVersionIsSupportedBy(agpVersion)
+        AGP_VERSIONS.assumeAgpSupportsCurrentJavaVersionAndProviderApiChanges(agpVersion)
 
         and:
         def checkoutDir = temporaryFolder.createDir("checkout")
@@ -112,7 +112,7 @@ class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
     def "can lint Santa-Tracker (agp=#agpVersion)"() {
 
         given:
-        AGP_VERSIONS.assumeCurrentJavaVersionIsSupportedBy(agpVersion)
+        AGP_VERSIONS.assumeAgpSupportsCurrentJavaVersionAndProviderApiChanges(agpVersion)
 
         and:
         def checkoutDir = temporaryFolder.createDir("checkout")

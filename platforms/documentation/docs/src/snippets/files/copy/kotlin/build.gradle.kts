@@ -150,7 +150,7 @@ tasks.register<Copy>("anotherCopyTask") {
     // Copy the contents of a Zip file
     from(zipTree("src/main/assets.zip"))
     // Determine the destination directory later
-    into({ getDestDir() })
+    into(providers.provider { "some-dir" })
 }
 // end::copy-task-2[]
 
@@ -159,8 +159,6 @@ tasks.named<Copy>("anotherCopyTask") {
     // This isn't a part of any snippet, but is necessary to make the build work.
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
-
-fun getDestDir() = file("some-dir")
 
 // tag::copy-method[]
 tasks.register("copyMethod") {
