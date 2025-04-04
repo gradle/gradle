@@ -87,8 +87,13 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
     }
 
     private static ProblemId id(Diagnostic<? extends JavaFileObject> diagnostic) {
-        String idName = diagnostic.getCode().replace('.', '-');
-        return ProblemId.create(idName, mapKindToDisplayName(diagnostic.getKind()), GradleCoreProblemGroup.compilation().java());
+        String code = diagnostic.getCode();
+        String message = diagnostic.getMessage(Locale.getDefault());
+        return ProblemId.create(
+            code == null ? "unknown" : code,
+            message == null ? "unknown" : message,
+            GradleCoreProblemGroup.compilation().java()
+        );
     }
 
     /**
@@ -307,22 +312,6 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
 
     private static String getPath(JavaFileObject fileObject) {
         return fileObject.getName();
-    }
-
-    private static String mapKindToDisplayName(Diagnostic.Kind kind) {
-        switch (kind) {
-            case ERROR:
-                return "Java compilation error";
-            case WARNING:
-            case MANDATORY_WARNING:
-                return "Java compilation warning";
-            case NOTE:
-                return "Java compilation note";
-            case OTHER:
-                return "Java compilation problem";
-            default:
-                return "Unknown java compilation problem";
-        }
     }
 
     private static Severity mapKindToSeverity(Diagnostic.Kind kind) {
