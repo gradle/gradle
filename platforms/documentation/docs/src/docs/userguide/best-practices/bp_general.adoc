@@ -178,3 +178,39 @@ include::sample[dir="snippets/bestPractices/avoidInternal/groovy",files="build.g
 === Tags
 
 `<<tags_reference.adoc#tag:upgrades,#upgrades>>`
+
+[[avoid_duplicate_dependencies]]
+== Avoid Declaring Dependencies Multiple Times
+
+You should avoid duplicating dependencies in your build scripts, whether with different versions or in different dependency configurations.
+
+=== Explanation
+
+Duplicating dependencies in build scripts can lead to several problems:
+
+* Conflicting versions may cause unexpected behavior or runtime errors due to version mismatches
+* Confusion during maintenance of build scripts and dependencies
+
+=== Example
+
+==== Don't Do This
+
+====
+include::sample[dir="snippets/bestPractices/avoidDuplicateDependencies/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/avoidDuplicateDependencies/groovy",files="build.gradle[tags=avoid-this]"]
+====
+
+<1> Dependency on library version `1.10.0`
+<2> Redundant declaration that can be removed
+
+==== Do This Instead
+
+====
+include::sample[dir="snippets/bestPractices/avoidDuplicateDependencies/kotlin",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/avoidDuplicateDependencies/groovy",files="build.gradle[tags=do-this]"]
+====
+
+<1> Declare dependency once
+
+=== Tags
+`#dependency-management`
