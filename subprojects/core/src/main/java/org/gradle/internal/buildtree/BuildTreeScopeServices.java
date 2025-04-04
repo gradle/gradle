@@ -21,6 +21,7 @@ import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FilePropertyFactory;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.FileCollectionObservationListener;
 import org.gradle.api.internal.initialization.BuildLogicBuildQueue;
@@ -47,6 +48,7 @@ import org.gradle.execution.TaskPathProjectEvaluator;
 import org.gradle.execution.TaskSelector;
 import org.gradle.execution.selection.BuildTaskSelector;
 import org.gradle.execution.selection.DefaultBuildTaskSelector;
+import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildOptionBuildOperationProgressEventsEmitter;
 import org.gradle.initialization.exception.DefaultExceptionAnalyser;
 import org.gradle.initialization.exception.ExceptionCollector;
@@ -69,7 +71,9 @@ import org.gradle.internal.instrumentation.reporting.DefaultMethodInterceptionRe
 import org.gradle.internal.instrumentation.reporting.ErrorReportingMethodInterceptionReportCollector;
 import org.gradle.internal.instrumentation.reporting.MethodInterceptionReportCollector;
 import org.gradle.internal.instrumentation.reporting.PropertyUpgradeReportConfig;
+import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.problems.DefaultProblemDiagnosticsFactory;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.PrivateService;
 import org.gradle.internal.service.Provides;
@@ -79,6 +83,7 @@ import org.gradle.internal.service.scopes.GradleModuleServices;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.problems.buildtree.ProblemDiagnosticsFactory;
 import org.gradle.problems.buildtree.ProblemReporter;
+import org.gradle.process.internal.ExecFactory;
 
 import java.util.List;
 
@@ -138,6 +143,26 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
+    protected ExecFactory decorateExecFactory(
+        ExecFactory execFactory,
+        FileResolver fileResolver,
+        FileCollectionFactory fileCollectionFactory,
+        Instantiator instantiator,
+        BuildCancellationToken buildCancellationToken,
+        ObjectFactory objectFactory,
+        JavaModuleDetector javaModuleDetector
+    ) {
+        return execFactory.forContext()
+            .withFileResolver(fileResolver)
+            .withFileCollectionFactory(fileCollectionFactory)
+            .withInstantiator(instantiator)
+            .withBuildCancellationToken(buildCancellationToken)
+            .withObjectFactory(objectFactory)
+            .withJavaModuleDetector(javaModuleDetector)
+            .build();
+    }
+
+    @Provides
     protected InternalOptions createInternalOptions(StartParameter startParameter) {
         return new DefaultInternalOptions(startParameter.getSystemPropertiesArgs());
     }
@@ -167,8 +192,13 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected FileCollectionFactory createFileCollectionFactory(FileCollectionFactory parent, ListenerManager listenerManager) {
-        return parent.forChildScope(listenerManager.getBroadcaster(FileCollectionObservationListener.class));
+    protected FileCollectionFactory createFileCollectionFactory(FileCollectionFactory parent, FileResolver fileResolver, ListenerManager listenerManager) {
+        return parent.forChildScope(listenerManager.getBroadcaster(FileCollectionObservationListener.class)).withResolver(fileResolver);
+    }
+
+    @Provides
+    protected FilePropertyFactory createFilePropertyFactory(FilePropertyFactory parent, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
+        return parent.forChildScope(fileResolver, fileCollectionFactory);
     }
 
     @Provides

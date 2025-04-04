@@ -21,9 +21,14 @@ import org.gradle.api.file.RegularFileProperty;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-@ServiceScope({Scope.Global.class, Scope.Project.class})
+@ServiceScope({Scope.Global.class, Scope.BuildTree.class, Scope.Project.class})
 public interface FilePropertyFactory {
     DirectoryProperty newDirectoryProperty();
 
     RegularFileProperty newFileProperty();
+
+    /**
+     * Creates a copy of this factory that uses the given resolver and fileCollectionFactory.
+     */
+    FilePropertyFactory forChildScope(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory);
 }

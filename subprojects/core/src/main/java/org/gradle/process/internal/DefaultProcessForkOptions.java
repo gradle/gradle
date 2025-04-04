@@ -38,9 +38,7 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
 
     public DefaultProcessForkOptions(ObjectFactory objectFactory, PathToFileResolver resolver) {
         this.resolver = resolver;
-        // TODO: Gradle 9.0 we should just use defaultWorkingDir.fileProvider(Providers.of(new File("."))) here,
-        //  but it seems ObjectFactory.directoryProperty() doesn't have the right fileResolver set up in some cases
-        DirectoryProperty defaultWorkingDir = objectFactory.directoryProperty().fileProvider(Providers.changing(() -> new File(".")));
+        DirectoryProperty defaultWorkingDir = objectFactory.directoryProperty().fileProvider(Providers.of(new File(".")));
         this.workingDir = objectFactory.directoryProperty().convention(defaultWorkingDir);
     }
 
