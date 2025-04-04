@@ -25,6 +25,8 @@ dependencies {
 
     testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation("junit:junit")
+
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 gradlePlugin {
