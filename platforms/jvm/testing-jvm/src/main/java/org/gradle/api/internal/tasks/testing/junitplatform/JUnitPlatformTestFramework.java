@@ -101,8 +101,8 @@ public class JUnitPlatformTestFramework implements TestFramework {
         validateOptions();
         return new JUnitPlatformTestClassProcessorFactory(new JUnitPlatformSpec(
             filter.toSpec(), options.getIncludeEngines(), options.getExcludeEngines(),
-            options.getIncludeTags(), options.getExcludeTags(), dryRun.get()
-        ));
+            options.getIncludeTags(), options.getExcludeTags(),
+            filter.getJunitPlatformSelectorPatterns(), dryRun.get()));
     }
 
     @Override
