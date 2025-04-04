@@ -89,7 +89,7 @@ public abstract class TestReport extends DefaultTask {
     /**
      * Sets the directory to write the HTML report to.
      *
-     * <strong>This method is {@code @Deprecated}, please use {@link #getTestResults()} instead to access the new collection property.</strong>
+     * <strong>This method is {@code @Deprecated}, please use {@link #getDestinationDirectory()} instead to access the new collection property.</strong>
      */
     @Deprecated
     public void setDestinationDir(File destinationDir) {
