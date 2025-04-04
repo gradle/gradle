@@ -35,7 +35,6 @@ import java.util.function.Supplier
 class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
     def testDir = testDirectoryProvider.testDirectory
 
-    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "requires daemon because of system property injection")
     def "reports build logic reading a system property set #mechanism.description via the Java API"() {
         buildFile << """
             // not declared
@@ -115,7 +114,6 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
         'Long.getLong("CI1", null)'       | "123"     | "123"
     }
 
-    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "requires daemon because of system property injection")
     def "reports buildSrc build logic and tasks reading a system property set #mechanism.description via the Java API"() {
         def buildSrcBuildFile = file("buildSrc/build.gradle")
         buildSrcBuildFile << """
@@ -139,7 +137,6 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
         mechanism << SystemPropertyInjection.all("CI", "false")
     }
 
-    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "requires daemon because of system property injection")
     def "build logic can read system property with no value without declaring access and loading fails when value set using #mechanism.description"() {
         file("buildSrc/src/main/java/SneakyPlugin.java") << """
             import ${Project.name};
