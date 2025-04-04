@@ -18,6 +18,7 @@ package org.gradle.internal.watch
 
 import com.google.common.collect.ImmutableSet
 import org.gradle.test.fixtures.Flaky
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.testdistribution.LocalOnly
 import org.apache.commons.io.FileUtils
 import org.gradle.cache.GlobalCacheLocations
@@ -35,6 +36,7 @@ import spock.lang.Issue
 
 @LocalOnly
 @Flaky(because = "https://github.com/gradle/gradle-private/issues/4642")
+@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "explicitly requests a daemon")
 class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchingIntegrationTest {
     @Rule
     public final RepositoryHttpServer server = new RepositoryHttpServer(temporaryFolder)

@@ -30,6 +30,7 @@ import org.gradle.util.GradleVersion
  * Tests that the Gradle daemon can or cannot be started with JVMs of certain versions.
  */
 @DoesNotSupportNonAsciiPaths(reason = "Java 6 seems to have issues with non-ascii paths")
+@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "explicitly requests a daemon")
 class SupportedBuildJvmVersionIntegrationTest extends AbstractIntegrationSpec implements DaemonJvmPropertiesFixture, JavaToolchainFixture {
 
     def setup() {

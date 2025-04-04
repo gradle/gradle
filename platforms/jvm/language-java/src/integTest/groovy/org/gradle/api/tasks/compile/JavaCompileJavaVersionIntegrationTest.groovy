@@ -39,6 +39,7 @@ class JavaCompileJavaVersionIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "requires use of specific JDK version")
     def "not up-to-date when default Java version changes"() {
         given:
         buildFile << """
@@ -74,6 +75,7 @@ class JavaCompileJavaVersionIntegrationTest extends AbstractIntegrationSpec {
         output.contains "Value of input property 'javaVersion' has changed for task ':compileJava'"
     }
 
+    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "requires use of specific JDK version")
     def "not up-to-date when java version for forking changes"() {
         given:
         def lowestLTS = AvailableJavaHomes.getLowestSupportedLTS()

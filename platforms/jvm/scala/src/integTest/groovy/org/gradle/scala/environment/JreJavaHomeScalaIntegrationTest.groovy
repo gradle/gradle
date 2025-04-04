@@ -33,7 +33,10 @@ class JreJavaHomeScalaIntegrationTest extends MultiVersionIntegrationSpec {
 
     @Rule public final ZincScalaCompileFixture zincScalaCompileFixture = new ZincScalaCompileFixture(executer, temporaryFolder)
 
-    @Requires(IntegTestPreconditions.BestJreAvailable)
+    @Requires(value = [
+        IntegTestPreconditions.BestJreAvailable,
+        IntegTestPreconditions.NotEmbeddedExecutor,
+    ], reason = "must run with a JRE")
     def "scala java cross compilation works when JAVA_HOME is set to JRE"() {
         given:
         def jreJavaHome = AvailableJavaHomes.bestJre

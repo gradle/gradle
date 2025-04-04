@@ -17,6 +17,8 @@
 package org.gradle.launcher.cli
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
 class CommandLineIntegrationLoggingSpec extends AbstractIntegrationSpec {
 
@@ -49,6 +51,7 @@ class CommandLineIntegrationLoggingSpec extends AbstractIntegrationSpec {
         'debug'     | ''          | ['-Dorg.gradle.logging.level=debug']
     }
 
+    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "explicitly requests a daemon")
     def "Set log level using org.gradle.logging.level in GRADLE_OPTS to #logLevel"() {
         setup:
         executer.requireIsolatedDaemons()
@@ -82,7 +85,7 @@ class CommandLineIntegrationLoggingSpec extends AbstractIntegrationSpec {
         'debug'     | ''          | ['-Dorg.gradle.logging.level=debug']
     }
 
-
+    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "explicitly requests a daemon")
     def "Command line switches override properly: #flags #options"() {
         setup:
         executer.requireIsolatedDaemons()

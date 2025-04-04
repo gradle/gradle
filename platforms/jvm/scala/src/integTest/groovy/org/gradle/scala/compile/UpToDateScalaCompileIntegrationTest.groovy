@@ -67,10 +67,11 @@ class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec implem
         changedVersion = defaultScalaVersion != newScalaVersion ? 'scala' : 'zinc'
     }
 
-    @Requires([
+    @Requires(value = [
         IntegTestPreconditions.Java8HomeAvailable,
-        IntegTestPreconditions.Java11HomeAvailable
-    ])
+        IntegTestPreconditions.Java11HomeAvailable,
+        IntegTestPreconditions.NotEmbeddedExecutor,
+    ], reason = "must run with specific JDK versions")
     def "compile is out of date when changing the java version"() {
         def jdk8 = AvailableJavaHomes.getJdk(VERSION_1_8)
         def jdk11 = AvailableJavaHomes.getJdk(VERSION_11)

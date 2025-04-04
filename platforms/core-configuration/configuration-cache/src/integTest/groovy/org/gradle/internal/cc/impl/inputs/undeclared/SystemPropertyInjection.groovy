@@ -16,7 +16,9 @@
 
 package org.gradle.internal.cc.impl.inputs.undeclared
 
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.cc.impl.AbstractConfigurationCacheIntegrationTest
+import org.junit.Assume
 
 abstract class SystemPropertyInjection extends BuildInputInjection {
     List<String> getGradleArgs() {
@@ -68,6 +70,7 @@ abstract class SystemPropertyInjection extends BuildInputInjection {
 
             @Override
             void setup(AbstractConfigurationCacheIntegrationTest test) {
+                Assume.assumeFalse("The embedded executer will fall back to forking a process", GradleContextualExecuter.embedded)
                 test.executer.requireDaemon().requireIsolatedDaemons()
                 test.executer.withCommandLineGradleOpts("-D${prop}=${value}")
             }
