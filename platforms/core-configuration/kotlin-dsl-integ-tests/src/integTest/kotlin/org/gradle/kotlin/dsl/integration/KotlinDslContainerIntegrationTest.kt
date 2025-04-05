@@ -22,22 +22,6 @@ import org.junit.Test
 
 class KotlinDslContainerIntegrationTest : AbstractKotlinIntegrationTest() {
     @Test
-    fun `TaskContainerScope String#invoke() extension is deprecated in Kotlin DSL`() {
-        withBuildScript("""
-            tasks {
-                "help"()
-            }
-        """)
-
-        executer.expectDocumentedDeprecationWarning(
-            "Task 'help' found by String.invoke() notation. This behavior has been deprecated. " +
-                "This behavior is scheduled to be removed in Gradle 9.0. " +
-                "The \"name\"() notation can cause confusion with methods provided by Kotlin or the JDK. Use named(String) instead. " +
-                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#string_invoke")
-        build("help")
-    }
-
-    @Test
     fun `NamedDomainObjectContainerScope String#invoke() extension is deprecated in Kotlin DSL`() {
         withBuildScript("""
             configurations {
