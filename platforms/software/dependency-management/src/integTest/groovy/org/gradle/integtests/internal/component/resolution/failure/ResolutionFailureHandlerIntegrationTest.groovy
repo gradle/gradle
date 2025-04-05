@@ -95,15 +95,15 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
           - blueSquareOpaqueElements
           - blueSquareTransparentElements
         All of them match the consumer attributes:
-          - Variant 'blueRoundTransparentElements' capability ':${temporaryFolder.getTestDirectory().getName()}:unspecified' declares attribute 'color' with value 'blue':
+          - Variant 'blueRoundTransparentElements' capability ':example:unspecified' declares attribute 'color' with value 'blue':
               - Unmatched attributes:
                   - Provides opacity 'transparent' but the consumer didn't ask for it
                   - Provides shape 'round' but the consumer didn't ask for it
-          - Variant 'blueSquareOpaqueElements' capability ':${temporaryFolder.getTestDirectory().getName()}:unspecified' declares attribute 'color' with value 'blue':
+          - Variant 'blueSquareOpaqueElements' capability ':example:unspecified' declares attribute 'color' with value 'blue':
               - Unmatched attributes:
                   - Provides opacity 'opaque' but the consumer didn't ask for it
                   - Provides shape 'square' but the consumer didn't ask for it
-          - Variant 'blueSquareTransparentElements' capability ':${temporaryFolder.getTestDirectory().getName()}:unspecified' declares attribute 'color' with value 'blue':
+          - Variant 'blueSquareTransparentElements' capability ':example:unspecified' declares attribute 'color' with value 'blue':
               - Unmatched attributes:
                   - Provides opacity 'transparent' but the consumer didn't ask for it
                   - Provides shape 'square' but the consumer didn't ask for it""")
@@ -133,7 +133,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Could not resolve com.squareup.okhttp3:okhttp:4.4.0.")
         assertFullMessageCorrect("""   > Could not resolve com.squareup.okhttp3:okhttp:4.4.0.
      Required by:
-         root project :
+         root project 'example'
       > The consumer was configured to find attribute 'org.gradle.category' with value 'documentation'. There are several available matching variants of com.squareup.okhttp3:okhttp:4.4.0
         The only attribute distinguishing these variants is 'org.gradle.docstype'. Add this attribute to the consumer's configuration to resolve the ambiguity:
           - Value: 'javadoc' selects variant: 'javadocElements'
@@ -164,7 +164,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Could not resolve root project :.")
         assertFullMessageCorrect("""   > Could not resolve root project :.
      Required by:
-         root project :
+         root project 'example'
       > No matching variant of root project : was found. The consumer was configured to find attribute 'color' with value 'green' but:
           - Variant 'default':
               - Incompatible because this component declares attribute 'color' with value 'blue' and the consumer needed attribute 'color' with value 'green'""")
@@ -226,7 +226,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
         failure.assertHasCause("Could not resolve root project :.")
         assertFullMessageCorrect("""     Required by:
-         root project :
+         root project 'example'
       > Configuration 'mismatch' in root project : does not match the consumer attributes
         Configuration 'mismatch':
           - Incompatible because this component declares attribute 'color' with value 'blue' and the consumer needed attribute 'color' with value 'green'
@@ -256,7 +256,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
         failure.assertHasCause("Could not resolve project :producer.")
         assertFullMessageCorrect("""     Required by:
-         root project :
+         root project 'example'
       > No matching variant of project :producer was found. The consumer was configured to find attribute 'color' with value 'green' but:
           - No variants exist.""")
 
@@ -284,7 +284,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
         failure.assertHasCause("Could not resolve root project :.")
         assertFullMessageCorrect("""Required by:
-         root project :
+         root project 'example'
       > A dependency was declared on configuration 'absent' of 'root project :' but no variant with that configuration name exists.""")
 
         and: "Helpful resolutions are provided"
@@ -316,8 +316,8 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
         failure.assertHasCause("Could not resolve root project :.")
         assertFullMessageCorrect("""     Required by:
-         root project :
-      > Multiple incompatible variants of org.example:${temporaryFolder.getTestDirectory().getName()}:1.0 were selected:
+         root project 'example'
+      > Multiple incompatible variants of org.example:example:1.0 were selected:
            - Variant blueElementsCapability1 has attributes {color=blue}
            - Variant greenElementsCapability2 has attributes {color=green}""")
 
@@ -328,7 +328,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
             fqid == 'dependency-variant-resolution:incompatible-multiple-nodes'
-            additionalData.asMap['requestTarget'] == "org.example:${testDirectory.name}:1.0"
+            additionalData.asMap['requestTarget'] == "org.example:example:1.0"
             additionalData.asMap['problemId'] == ResolutionFailureProblemId.INCOMPATIBLE_MULTIPLE_NODES.name()
             additionalData.asMap['problemDisplayName'] == "Incompatible nodes of a single component were selected"
         }
@@ -653,6 +653,10 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
     // region setup
     def setup() {
         enableProblemsApiCheck()
+
+        settingsKotlinFile << """
+            rootProject.name = "example"
+        """
     }
 
     private void setupConfigurationNotFound() {
@@ -956,7 +960,6 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
     private void setupNoGraphVariantsExistFailureForProject() {
         settingsKotlinFile << """
-            rootProject.name = "example"
             include("producer")
         """
 
