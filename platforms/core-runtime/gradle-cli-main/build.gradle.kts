@@ -24,6 +24,12 @@ description = "Java 6-compatible entry point of the `gradle` command. Bootstraps
 
 gradlebuildJava.usedForStartup()
 
+tasks.jar {
+    manifest {
+        attributes("Enable-Native-Access" to "ALL-UNNAMED")
+    }
+}
+
 app {
     mainClassName = "org.gradle.launcher.GradleMain"
 }
