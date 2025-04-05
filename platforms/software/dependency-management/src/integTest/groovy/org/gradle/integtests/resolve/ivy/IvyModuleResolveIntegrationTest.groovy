@@ -88,25 +88,29 @@ task retrieve(type: Sync) {
     def "fails when project dependency references a configuration that does not exist"() {
         ivyRepo.module('test', 'target', '1.0').publish()
 
+        settingsFile << """
+            rootProject.name = 'test'
+        """
+
         buildFile << """
-configurations {
-    compile
-}
-repositories {
-    ivy { url = "${ivyRepo.uri}" }
-}
-dependencies {
-    compile group: 'test', name: 'target', version: '1.0', configuration: 'x86_windows'
-}
-task retrieve(type: Sync) {
-  from configurations.compile
-  into 'libs'
-}
-"""
+            configurations {
+                compile
+            }
+            repositories {
+                ivy { url = "${ivyRepo.uri}" }
+            }
+            dependencies {
+                compile group: 'test', name: 'target', version: '1.0', configuration: 'x86_windows'
+            }
+            task retrieve(type: Sync) {
+              from configurations.compile
+              into 'libs'
+            }
+        """
 
         expect:
         fails 'retrieve'
-        failure.assertHasCause("Could not resolve test:target:1.0.\nRequired by:\n    root project :")
+        failure.assertHasCause("Could not resolve test:target:1.0.\nRequired by:\n    root project 'test'")
         failure.assertHasCause("A dependency was declared on configuration 'x86_windows' of 'test:target:1.0' but no variant with that configuration name exists.")
     }
 

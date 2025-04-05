@@ -114,19 +114,9 @@ include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencie
 
 This ensures that Gradle detects the conflict and fails with a clear error message:
 
-----
-> Could not resolve all files for configuration ':compileClasspath'.
-   > Could not resolve org.slf4j:log4j-over-slf4j:1.7.10.
-     Required by:
-         project :
-      > Module 'org.slf4j:log4j-over-slf4j' has been rejected:
-           Cannot select module with conflict on capability 'log4j:log4j:1.7.10' also provided by [log4j:log4j:1.2.16(compile)]
-   > Could not resolve log4j:log4j:1.2.16.
-     Required by:
-         project : > org.apache.zookeeper:zookeeper:3.4.9
-      > Module 'log4j:log4j' has been rejected:
-           Cannot select module with conflict on capability 'log4j:log4j:1.2.16' also provided by [org.slf4j:log4j-over-slf4j:1.7.10(compile)]
-----
+====
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-declaringCapabilities/tests",files="dependencyReport.out"]
+====
 
 [[sec:declaring-additional-capabilities-for-a-local-component]]
 == Declaring capabilities for a local component

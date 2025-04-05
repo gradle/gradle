@@ -916,17 +916,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public String getDisplayName() {
-        StringBuilder builder = new StringBuilder();
-        if (parent == null && gradle.isRootBuild()) {
-            builder.append("root project '");
-            builder.append(name);
-            builder.append('\'');
-        } else {
-            builder.append("project '");
-            builder.append(getIdentityPath());
-            builder.append("'");
-        }
-        return builder.toString();
+        return owner.getDisplayName().getDisplayName();
     }
 
     @Override
