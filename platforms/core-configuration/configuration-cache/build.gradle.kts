@@ -2,6 +2,7 @@ plugins {
     id("gradlebuild.distribution.implementation-kotlin")
     id("gradlebuild.kotlin-dsl-sam-with-receiver")
     id("gradlebuild.kotlin-experimental-contracts")
+    id("gradlebuild.jmh")
 }
 
 description = "Configuration cache implementation"

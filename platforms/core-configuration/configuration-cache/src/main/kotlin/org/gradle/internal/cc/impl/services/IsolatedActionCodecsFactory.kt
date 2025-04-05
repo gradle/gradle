@@ -63,8 +63,7 @@ class IsolatedActionCodecsFactory(
     val filePropertyFactory: FilePropertyFactory,
 
     private
-    val fileFactory: FileFactory
-
+    val fileFactory: FileFactory,
 ) {
     fun isolatedActionCodecs() = Bindings.of {
         allUnsupportedTypes()
