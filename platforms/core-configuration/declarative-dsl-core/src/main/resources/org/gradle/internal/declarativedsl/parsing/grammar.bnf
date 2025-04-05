@@ -26,6 +26,10 @@
     LB='{'
     RB='}'
 
+    NULL='null'
+    TRUE='true'
+    FALSE='false'
+
     space='regexp:\s+'
     comment='regexp://.*|/\*[^/*]*\*/'
     id='regexp:\p{Alpha}\w*'                                    // TODO: doesn't work with all unicode characters, no idea how to fix it ...
@@ -62,8 +66,8 @@ valueArgument ::= (simpleIdentifier EQ)? (functionChain | literalOrIdentifier)
 navigationSuffix ::= DOT simpleIdentifier {pin=1}
 
 literalOrIdentifier ::= literalConstant | simpleIdentifier | stringLiteral
-literalConstant ::= "null" | booleanLiteral | binaryLiteral | hexLiteral | integerLiteral | longLiteral
-booleanLiteral ::= "true" | "false" {pin=1}
+literalConstant ::= NULL | booleanLiteral | binaryLiteral | hexLiteral | integerLiteral | longLiteral
+booleanLiteral ::= TRUE | FALSE {pin=1}
 
 stringLiteral ::= string
 
