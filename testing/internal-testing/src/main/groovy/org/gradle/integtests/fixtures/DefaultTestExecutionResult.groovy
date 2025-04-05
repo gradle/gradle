@@ -21,6 +21,8 @@ import org.gradle.integtests.fixtures.TestClassExecutionResult.TestCase
 import org.gradle.test.fixtures.file.TestFile
 import org.hamcrest.Matcher
 
+import java.util.function.Consumer
+
 class DefaultTestExecutionResult implements TestExecutionResult {
 
     List<TestExecutionResult> results = []
@@ -240,6 +242,13 @@ class DefaultTestExecutionResult implements TestExecutionResult {
             this
         }
 
+        @Override
+        TestClassExecutionResult assertTestSkipped(String name, Consumer<SkippedExecutionResult> assertions) {
+            testClassResults*.assertTestSkipped(removeParentheses(name), assertions)
+            this
+        }
+
+        @Override
         TestClassExecutionResult assertTestSkipped(String name) {
             testClassResults*.assertTestSkipped(removeParentheses(name))
             this
