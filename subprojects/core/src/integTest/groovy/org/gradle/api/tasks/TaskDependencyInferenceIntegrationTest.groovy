@@ -18,6 +18,7 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
 class TaskDependencyInferenceIntegrationTest extends AbstractIntegrationSpec implements TasksWithInputsAndOutputs {
@@ -681,6 +682,73 @@ The following types/formats are supported:
             }
             tasks.register("c", InputFileTask) {
                 inFile = taskA.output.orElse(taskB.output)
+                outFile = file("out.txt")
+            }
+        """
+
+        when:
+        run("c")
+
+        then:
+        result.assertTasksExecuted(":b", ":c")
+        file("out.txt").text == "b"
+    }
+
+    @ToBeImplemented
+    def "input file property with value of orElse provider whose original value is a present value source and alternative value is task output file property does not imply dependency on task"() {
+        taskTypeWithOutputFileProperty()
+        taskTypeWithInputFileProperty()
+        buildFile  """
+            import org.gradle.api.provider.*
+
+            interface FileSpec extends ValueSourceParameters {
+                RegularFileProperty getFile()
+            }
+            abstract class SomeFileSource implements ValueSource<RegularFile, FileSpec> {
+                @Override
+                RegularFile obtain() {
+                    return parameters.file.get().tap {
+                        it.asFile.text = "a"
+                    }
+                }
+            }
+            def taskB = tasks.create("b", FileProducer) {
+                output = file("b.txt")
+                content = "b"
+            }
+            tasks.register("c", InputFileTask) {
+                inFile = providers.of(SomeFileSource, { parameters.file = file("a.txt") }).orElse(taskB.output)
+                outFile = file("out.txt")
+            }
+        """
+
+        when:
+        run("c")
+
+        then:
+        //TODO-RC this should be ":c" only
+        result.assertTasksExecuted(":b", ":c")
+        file("out.txt").text == "a"
+    }
+
+    def "input file property with value of orElse provider whose original value is a missing value source and alternative value is task output file property implies dependency on task"() {
+        taskTypeWithOutputFileProperty()
+        taskTypeWithInputFileProperty()
+        buildFile  """
+            import org.gradle.api.provider.*
+
+            abstract class NoFileSource implements ValueSource<RegularFile, ValueSourceParameters.None> {
+                @Override
+                RegularFile obtain() {
+                    return null
+                }
+            }
+            def taskB = tasks.register("b", FileProducer) {
+                output = file("b.txt")
+                content = "b"
+            }
+            tasks.register("c", InputFileTask) {
+                inFile = providers.of(NoFileSource, {}).orElse(taskB.output)
                 outFile = file("out.txt")
             }
         """
