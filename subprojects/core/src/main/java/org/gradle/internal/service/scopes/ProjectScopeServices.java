@@ -40,6 +40,7 @@ import org.gradle.api.internal.initialization.BuildLogicBuilder;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
+import org.gradle.api.internal.initialization.StandaloneDomainObjectContext;
 import org.gradle.api.internal.plugins.DefaultPluginManager;
 import org.gradle.api.internal.plugins.ImperativeOnlyPluginTarget;
 import org.gradle.api.internal.plugins.PluginInstantiator;
@@ -321,12 +322,12 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
             buildLogicBuilder
         );
 
-        return factory.createProjectScriptHandler(
+        return factory.create(
             project.getBuildScriptSource(),
             project.getClassLoaderScope(),
             fileResolver,
             fileCollectionFactory,
-            project
+            StandaloneDomainObjectContext.forProjectBuildscript(project)
         );
     }
 

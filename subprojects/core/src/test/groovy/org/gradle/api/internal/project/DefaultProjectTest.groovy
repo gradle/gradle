@@ -80,6 +80,7 @@ import org.gradle.groovy.scripts.EmptyScript
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.ClassLoaderScopeRegistryListener
 import org.gradle.internal.Actions
+import org.gradle.internal.Describables
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.management.DependencyResolutionManagementInternal
@@ -269,6 +270,7 @@ class DefaultProjectTest extends Specification {
 
         projectState = Mock(ProjectState)
         projectState.name >> 'root'
+        projectState.displayName >> Describables.of("displayname")
         project = defaultProject('root', projectState, null, rootDir, rootProjectClassLoaderScope)
         def child1ClassLoaderScope = rootProjectClassLoaderScope.createChild("project-child1", null)
         child1State = Mock(ProjectState)
@@ -551,7 +553,7 @@ class DefaultProjectTest extends Specification {
         project.project(Project.PATH_SEPARATOR + "unknownchild")
         then:
         def e = thrown(UnknownProjectException)
-        e.message == "Project with path ':unknownchild' could not be found in root project 'root'."
+        e.message == "Project with path ':unknownchild' could not be found in displayname."
     }
 
     def getProjectWithUnknownRelativePath() {
@@ -559,7 +561,7 @@ class DefaultProjectTest extends Specification {
         project.project("unknownchild")
         then:
         def e = thrown(UnknownProjectException)
-        e.message == "Project with path 'unknownchild' could not be found in root project 'root'."
+        e.message == "Project with path 'unknownchild' could not be found in displayname."
     }
 
     def getProjectWithEmptyPath() {
@@ -919,7 +921,7 @@ def scriptMethod(Closure closure) {
         project.name = "someNewName"
         then:
         def e = thrown(GroovyRuntimeException)
-        e.message == "Cannot set the value of read-only property 'name' for root project 'root' of type ${Project.name}."
+        e.message == "Cannot set the value of read-only property 'name' for displayname of type ${Project.name}."
     }
 
     def convertsAbsolutePathToAbsolutePath() {

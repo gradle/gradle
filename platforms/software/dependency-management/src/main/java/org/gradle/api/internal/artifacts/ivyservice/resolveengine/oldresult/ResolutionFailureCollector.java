@@ -17,10 +17,11 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.Describable;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.UnresolvedDependency;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultUnresolvedDependency;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
@@ -29,6 +30,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -38,12 +40,19 @@ import java.util.Map;
 import java.util.Set;
 
 public class ResolutionFailureCollector implements DependencyGraphVisitor {
-    private final Map<ComponentSelector, BrokenDependency> failuresByRevisionId = new LinkedHashMap<>();
-    private final ComponentSelectorConverter componentSelectorConverter;
-    private RootGraphNode root;
 
-    public ResolutionFailureCollector(ComponentSelectorConverter componentSelectorConverter) {
+    private final ComponentSelectorConverter componentSelectorConverter;
+    private final DomainObjectContext owner;
+
+    private final Map<ComponentSelector, BrokenDependency> failuresByRevisionId = new LinkedHashMap<>();
+    private @Nullable RootGraphNode root;
+
+    public ResolutionFailureCollector(
+        ComponentSelectorConverter componentSelectorConverter,
+        DomainObjectContext owner
+    ) {
         this.componentSelectorConverter = componentSelectorConverter;
+        this.owner = owner;
     }
 
     @Override
@@ -65,10 +74,11 @@ public class ResolutionFailureCollector implements DependencyGraphVisitor {
         if (extraFailures.isEmpty() && failuresByRevisionId.isEmpty()) {
             return ImmutableSet.of();
         }
+
         ImmutableSet.Builder<UnresolvedDependency> builder = ImmutableSet.builder();
         builder.addAll(extraFailures);
         for (Map.Entry<ComponentSelector, BrokenDependency> entry : failuresByRevisionId.entrySet()) {
-            Collection<List<ComponentIdentifier>> paths = DependencyGraphPathResolver.calculatePaths(entry.getValue().requiredBy, root);
+            Collection<List<Describable>> paths = DependencyGraphPathResolver.calculatePaths(entry.getValue().requiredBy, root, owner);
 
             ComponentSelector key = entry.getKey();
             ModuleVersionSelector moduleVersionSelector = componentSelectorConverter.getSelector(key);

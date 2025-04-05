@@ -103,9 +103,7 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FilePropertyFactory;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.initialization.StandaloneDomainObjectContext;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
@@ -178,64 +176,17 @@ public class DefaultDependencyManagementServices implements DependencyManagement
     }
 
     @Override
-    public DependencyResolutionServices newBuildscriptResolver(DomainObjectContext owner) {
-        return newDetachedResolver(
-            parent.get(FileResolver.class),
-            parent.get(FileCollectionFactory.class),
-            owner,
-            new AnonymousModule()
-        );
-    }
-
-    @Override
     public DependencyResolutionServices newDetachedResolver(
         FileResolver resolver,
         FileCollectionFactory fileCollectionFactory,
         DomainObjectContext owner
-    ) {
-        DependencyResolutionServices services = newDetachedResolver(
-            resolver,
-            fileCollectionFactory,
-            owner,
-            new AnonymousModule()
-        );
-
-        // We restrict this so that detached resolvers only represent adhoc root components that do not expose variants.
-        services.getConfigurationContainer().configureEach(configuration -> {
-            if (configuration.isCanBeConsumed()) {
-                throw new InvalidUserCodeException("Cannot create consumable configurations in detached resolvers");
-            }
-        });
-
-        return services;
-    }
-
-    @Override
-    public DependencyResolutionServices newProjectBuildscriptResolver(
-        FileResolver resolver,
-        FileCollectionFactory fileCollectionFactory,
-        ProjectInternal project
-    ) {
-        return newDetachedResolver(
-            resolver,
-            fileCollectionFactory,
-            StandaloneDomainObjectContext.forProjectBuildscript(project),
-            project.getServices().get(DependencyMetaDataProvider.class).getModule()
-        );
-    }
-
-    private DependencyResolutionServices newDetachedResolver(
-        FileResolver resolver,
-        FileCollectionFactory fileCollectionFactory,
-        DomainObjectContext owner,
-        Module identity
     ) {
         ServiceRegistry services = ServiceRegistryBuilder.builder()
             .parent(parent)
             .provider(registration -> {
                 registration.add(FileResolver.class, resolver);
                 registration.add(FileCollectionFactory.class, fileCollectionFactory);
-                registration.add(DependencyMetaDataProvider.class, () -> identity);
+                registration.add(DependencyMetaDataProvider.class, AnonymousModule::new);
                 registration.add(ProjectFinder.class, new UnknownProjectFinder("Project dependencies cannot be declared here."));
                 registration.add(DomainObjectContext.class, owner);
             })
@@ -243,7 +194,16 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             .provider(new DependencyResolutionScopeServices(owner))
             .build();
 
-        return services.get(DependencyResolutionServices.class);
+        DependencyResolutionServices dms = services.get(DependencyResolutionServices.class);
+
+        // We restrict this so that detached resolvers only represent adhoc root components that do not expose variants.
+        dms.getConfigurationContainer().configureEach(configuration -> {
+            if (configuration.isCanBeConsumed()) {
+                throw new InvalidUserCodeException("Cannot create consumable configurations in detached resolvers");
+            }
+        });
+
+        return dms;
     }
 
     @Override
