@@ -203,10 +203,9 @@ In previous versions of Gradle, special handling would apply when the `ear`, `wa
 
 ==== `kotlinDslPluginOptions.jvmTarget` has been removed
 
-Previously, you could use `kotlinDslPluginOptions.jvmTarget` to configure which JVM target should be used for compiling code when using the `kotlin-dsl` plugin.
+The `kotlinDslPluginOptions.jvmTarget` property, which was previously used to configure the JVM target for code compiled with the `kotlin-dsl` plugin, has been removed in Gradle 9.0.
 
-Starting with Gradle 9.0, `kotlinDslPluginOptions.jvmTarget` has been removed.
-You should <<kotlin_dsl#sec:kotlin-dsl_plugin,configure a Java Toolchain>> instead.
+To set the target JVM version going forward, you should <<kotlin_dsl#sec:kotlin-dsl_plugin,configure a Java Toolchain>> instead.
 
 [[changes_8.14]]
 == Upgrading from 8.13 and earlier
