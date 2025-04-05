@@ -16,22 +16,21 @@
 
 plugins {
     id("gradlebuild.distribution.implementation-kotlin")
+    id("gradlebuild.kotlin-dsl-sam-with-receiver")
+    id("gradlebuild.kotlin-experimental-contracts")
 }
 
-description = "Configuration cache internal API shared between :configuration-cache and codecs"
+description = "Configuration Cache serialization based isolation for object graphs"
 
 dependencies {
-    api(projects.configurationProblemsBase)
-    api(projects.core)
-    api(projects.coreApi)
     api(projects.graphSerialization)
-    api(projects.stdlibJavaExtensions)
-    api(projects.loggingApi)
 
     api(libs.kotlinStdlib)
-    api(libs.inject)
 
     implementation(projects.baseServices)
-    implementation(projects.serviceLookup)
+    implementation(projects.configurationCacheBase)
+    implementation(projects.configurationProblemsBase)
+    implementation(projects.loggingApi)
+    implementation(projects.serialization)
     implementation(projects.stdlibKotlinExtensions)
 }

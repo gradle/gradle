@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.impl.serialize
+package org.gradle.internal.serialize.codecs.core
 
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.BuildIdentifierSerializer
-import org.gradle.internal.serialize.codecs.core.JavaRecordCodec
 import org.gradle.internal.serialize.codecs.guava.guavaTypes
 import org.gradle.internal.serialize.codecs.stdlib.stdlibTypes
 import org.gradle.internal.serialize.graph.codecs.BindingsBuilder
 
 
-internal
 fun BindingsBuilder.baseTypes() {
     stdlibTypes()
     guavaTypes()

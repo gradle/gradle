@@ -120,7 +120,8 @@ public class DynamicModulesClassPathProvider implements ClassPathProvider {
         "gradle-dependency-management",
         "gradle-software-diagnostics",
         "gradle-plugin-use",
-        "gradle-instrumentation-declarations"
+        "gradle-instrumentation-declarations",
+        "gradle-isolation-actions"
     };
 
     private static final String[] GRADLE_OPTIONAL_EXTENSION_MODULES = {

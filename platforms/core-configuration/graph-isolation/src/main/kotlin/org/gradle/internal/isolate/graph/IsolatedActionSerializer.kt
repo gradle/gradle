@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.impl.isolation
+package org.gradle.internal.isolate.graph
 
 import org.gradle.api.IsolatedAction
-import org.gradle.internal.cc.base.logger
 import org.gradle.internal.cc.base.exceptions.ConfigurationCacheError
-import org.gradle.internal.cc.impl.problems.AbstractProblemsListener
-import org.gradle.internal.cc.impl.services.IsolatedActionCodecsFactory
+import org.gradle.internal.cc.base.logger
+import org.gradle.internal.cc.base.problems.AbstractProblemsListener
 import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.extensions.stdlib.invert
 import org.gradle.internal.extensions.stdlib.uncheckedCast
@@ -31,6 +30,7 @@ import org.gradle.internal.serialize.graph.BeanStateWriterLookup
 import org.gradle.internal.serialize.graph.ClassDecoder
 import org.gradle.internal.serialize.graph.ClassEncoder
 import org.gradle.internal.serialize.graph.CloseableWriteContext
+import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.DefaultReadContext
 import org.gradle.internal.serialize.graph.DefaultWriteContext
 import org.gradle.internal.serialize.graph.IsolateOwner
@@ -51,7 +51,6 @@ import java.util.IdentityHashMap
  *
  * @param G type of the root object stored in [graph]
  */
-internal
 class SerializedIsolatedActionGraph<G>(
     /**
      * The serialized graph.
@@ -69,11 +68,15 @@ class SerializedIsolatedActionGraph<G>(
 )
 
 
-internal
+interface IsolationCodecsProvider {
+    fun isolationCodecs(): Codec<Any?>
+}
+
+
 class IsolatedActionSerializer(
     private val owner: IsolateOwner,
     private val beanStateWriterLookup: BeanStateWriterLookup,
-    private val isolatedActionCodecs: IsolatedActionCodecsFactory
+    private val isolatedActionCodecs: IsolationCodecsProvider
 ) {
     fun <G : Any> serialize(action: G): SerializedIsolatedActionGraph<G> {
         val outputStream = ByteArrayOutputStream()
@@ -105,7 +108,7 @@ class IsolatedActionSerializer(
         outputStream: OutputStream,
         classEncoder: ClassEncoder,
     ): CloseableWriteContext = DefaultWriteContext(
-        codec = isolatedActionCodecs.isolatedActionCodecs(),
+        codec = isolatedActionCodecs.isolationCodecs(),
         encoder = KryoBackedEncoder(outputStream),
         beanStateWriterLookup = beanStateWriterLookup,
         isIntegrityCheckEnabled = false,
@@ -117,11 +120,10 @@ class IsolatedActionSerializer(
 }
 
 
-internal
 class IsolatedActionDeserializer(
     private val owner: IsolateOwner,
     private val beanStateReaderLookup: BeanStateReaderLookup,
-    private val isolatedActionCodecs: IsolatedActionCodecsFactory
+    private val isolatedActionCodecs: IsolationCodecsProvider
 ) {
     fun <G : Any> deserialize(action: SerializedIsolatedActionGraph<G>): G =
         readContextFor(action).useToRun {
@@ -136,7 +138,7 @@ class IsolatedActionDeserializer(
     fun readContextFor(
         action: SerializedIsolatedActionGraph<*>
     ) = DefaultReadContext(
-        codec = isolatedActionCodecs.isolatedActionCodecs(),
+        codec = isolatedActionCodecs.isolationCodecs(),
         decoder = KryoBackedDecoder(action.graph.inputStream()),
         beanStateReaderLookup = beanStateReaderLookup,
         isIntegrityCheckEnabled = false,
@@ -167,7 +169,7 @@ class EnvironmentDecoder(
     val environment: Map<Int, Any>
 ) : ClassDecoder {
     override fun Decoder.decodeClass(): Class<*> =
-        environment[readSmallInt()]?.uncheckedCast()!!
+        environment[readSmallInt()]!!.uncheckedCast()
 }
 
 
