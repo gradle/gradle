@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.support.expectedKotlinDslPluginsVersion
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.IntegTestPreconditions.NotEmbeddedExecutor
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
@@ -29,6 +29,7 @@ import org.junit.Test
 /**
  * Assert that the cross-version protocol between `:kotlin-dsl-plugins` and `:kotlin-dsl-provider-plugins` is not broken.
  */
+@Suppress("FunctionName")
 class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
 
     override val forceLocallyBuiltKotlinDslPlugins = false
@@ -36,7 +37,7 @@ class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
     private val oldestSupportedKotlinDslPluginVersion = "4.1.3"
 
     @Test
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class)
+    @Requires(NotEmbeddedExecutor::class)
     fun `can run with oldest supported version of kotlin-dsl plugin`() {
 
         withDefaultSettingsIn("buildSrc")
@@ -58,7 +59,9 @@ class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
 
             assertThat(
                 output,
-                containsString("This version of Gradle expects version '$expectedKotlinDslPluginsVersion' of the `kotlin-dsl` plugin but version '$oldestSupportedKotlinDslPluginVersion' has been applied to project ':buildSrc'. Let Gradle control the version of `kotlin-dsl` by removing any explicit `kotlin-dsl` version constraints from your build logic.")
+                containsString("This version of Gradle expects version '$expectedKotlinDslPluginsVersion' of the `kotlin-dsl` plugin " +
+                    "but version '$oldestSupportedKotlinDslPluginVersion' has been applied to project ':buildSrc'. " +
+                    "Let Gradle control the version of `kotlin-dsl` by removing any explicit `kotlin-dsl` version constraints from your build logic.")
             )
 
             assertThat(
@@ -69,20 +72,14 @@ class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    @Requires(
-        IntegTestPreconditions.NotEmbeddedExecutor::class,
-        reason = "Kotlin version leaks on the classpath when running embedded"
-    )
+    @Requires(NotEmbeddedExecutor::class, reason = "Kotlin version leaks on the classpath when running embedded")
     fun `can build plugin for oldest supported Kotlin language version using last published plugin`() {
 
         `can build plugin for oldest supported Kotlin language version`()
     }
 
     @Test
-    @Requires(
-        IntegTestPreconditions.NotEmbeddedExecutor::class,
-        reason = "Kotlin version leaks on the classpath when running embedded"
-    )
+    @Requires(NotEmbeddedExecutor::class, reason = "Kotlin version leaks on the classpath when running embedded")
     fun `can build plugin for oldest supported Kotlin language version using locally built plugin`() {
 
         doForceLocallyBuiltKotlinDslPlugins()
@@ -121,10 +118,7 @@ class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    @Requires(
-        IntegTestPreconditions.NotEmbeddedExecutor::class,
-        reason = "Kotlin version leaks on the classpath when running embedded"
-    )
+    @Requires(NotEmbeddedExecutor::class, reason = "Kotlin version leaks on the classpath when running embedded")
     fun `can build plugin for previous unsupported Kotlin language version`() {
 
         val previousKotlinLanguageVersion = "1.4"
