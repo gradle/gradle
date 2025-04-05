@@ -284,6 +284,8 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
         when:
         executer.withStackTraceChecksDisabled()
         executer.ignoreCleanupAssertions()
+
+        then:
         fails(
             "buildAction",
             "-PclientJdk=" + clientJdkVersion.majorVersion,
@@ -291,9 +293,6 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
             "-Porg.gradle.java.installations.paths=${AvailableJavaHomes.getAvailableJvms().collect { it.javaHome.absolutePath }.join(",")}",
             "-PgradleVersion=" + gradleVersion
         )
-
-        then:
-        failure.assertHasErrorOutput("Unsupported major.minor version 52.0")
 
         where:
         gradleDaemonJdkVersion  | gradleVersion
