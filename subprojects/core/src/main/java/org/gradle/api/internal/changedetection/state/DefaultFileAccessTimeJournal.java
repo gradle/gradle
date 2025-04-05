@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.api.JavaVersion;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.IndexedCache;
 import org.gradle.cache.IndexedCacheParameters;
@@ -34,7 +35,8 @@ import static org.gradle.internal.serialize.BaseSerializerFactory.LONG_SERIALIZE
 
 public class DefaultFileAccessTimeJournal implements FileAccessTimeJournal, Stoppable {
 
-    public static final String CACHE_KEY = "journal-1";
+    // Java 17 uses Unix domain sockets cache key
+    public static final String CACHE_KEY = JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_17) ? "journal-2" : "journal-1";
     public static final String FILE_ACCESS_CACHE_NAME = "file-access";
     public static final String FILE_ACCESS_PROPERTIES_FILE_NAME = FILE_ACCESS_CACHE_NAME + ".properties";
     public static final String INCEPTION_TIMESTAMP_KEY = "inceptionTimestamp";

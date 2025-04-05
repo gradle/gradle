@@ -401,7 +401,7 @@ public class DefaultFileLockManager implements FileLockManager {
          * <br><br>
          *
          * If acquiring the lock for the state region fails, we read information region and get the port (if present) and we send a ping request to the owner
-         * (see {@link FileLockContentionHandler#maybePingOwner(int, long, String, long, FileLockReleasedSignal)} how ping algorithm is done).
+         * (see {@link FileLockContentionHandler#maybePingOwner(String, int, long, String, long, FileLockReleasedSignal)} how ping algorithm is done).
          * We then repeat the process with exponential backoff, till we finally acquire the lock or timeout (by default in {@link DefaultFileLockManager#DEFAULT_LOCK_TIMEOUT}).
          */
         private FileLockOutcome lockStateRegion(final LockMode lockMode) throws IOException, InterruptedException {
@@ -424,7 +424,7 @@ public class DefaultFileLockManager implements FileLockManager {
                                 lastLockHolderPort = lockInfo.port;
                                 lastPingTime = 0;
                             }
-                            if (fileLockContentionHandler.maybePingOwner(lockInfo.port, lockInfo.lockId, displayName, backoff.getTimer().getElapsedMillis() - lastPingTime, backoff.getSignal())) {
+                            if (fileLockContentionHandler.maybePingOwner(lockInfo.pid, lockInfo.port, lockInfo.lockId, displayName, backoff.getTimer().getElapsedMillis() - lastPingTime, backoff.getSignal())) {
                                 lastPingTime = backoff.getTimer().getElapsedMillis();
                                 LOGGER.debug("The file lock for {} is held by a different Gradle process (pid: {}, lockId: {}). Pinged owner at port {}", displayName, lockInfo.pid, lockInfo.lockId, lockInfo.port);
                             }
