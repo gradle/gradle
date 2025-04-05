@@ -407,7 +407,7 @@ public abstract class CreateStartScripts extends ConventionTask {
         if (mainModule.isPresent()) {
             return new MainModule(mainModule.get(), mainClass.getOrNull());
         }
-        return new MainClass(mainClass.get());
+        return new MainClass(mainClass.getOrElse(""));
     }
 
     @Input
