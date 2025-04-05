@@ -23,7 +23,6 @@ import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.project.ProjectIdentity
-import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -69,7 +68,7 @@ class ProjectDependencyMetadataConverterTest extends AbstractDependencyDescripto
             dependencyProject.configurations.create(dependencyConfiguration)
         }
 
-        def dependency = new DefaultProjectDependency(dependencyProject, true, DefaultTaskDependencyFactory.withNoAssociatedProject())
+        def dependency = new DefaultProjectDependency(dependencyProject)
         dependency.setTargetConfiguration(dependencyConfiguration)
         return dependency
     }

@@ -63,9 +63,6 @@ task checkDeps {
         assert configuredDep.version == '1.1'
         assert configuredDep.transitive == false
 
-        deps = configurations.gradleStuff.dependencies
-        assert deps.findAll { it instanceof SelfResolvingDependency }.size() > 0 : "should include gradle api jars"
-
         deps = configurations.allowsCollections.dependencies
         assert deps.size() == 2
         assert deps.find { it instanceof ExternalDependency && it.group == 'org.mockito' }

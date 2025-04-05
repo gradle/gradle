@@ -29,10 +29,8 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal;
 import org.gradle.api.internal.project.ProjectIdentity;
-import org.gradle.api.tasks.TaskDependency;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -200,24 +198,6 @@ public class DelegatingProjectDependency implements ProjectDependencyInternal {
     @Override
     public void because(@Nullable String reason) {
         delegate.because(reason);
-    }
-
-    @Override
-    @Deprecated
-    public Set<File> resolve() {
-        return delegate.resolve();
-    }
-
-    @Override
-    @Deprecated
-    public Set<File> resolve(boolean transitive) {
-        return delegate.resolve(transitive);
-    }
-
-    @Override
-    @Deprecated
-    public TaskDependency getBuildDependencies() {
-        return delegate.getBuildDependencies();
     }
 
     @Override

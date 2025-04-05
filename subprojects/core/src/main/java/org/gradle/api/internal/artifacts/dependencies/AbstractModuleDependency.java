@@ -45,7 +45,7 @@ import java.util.Set;
 
 import static org.gradle.util.internal.ConfigureUtil.configureUsing;
 
-public abstract class AbstractModuleDependency extends AbstractDependency implements ModuleDependency {
+public abstract class AbstractModuleDependency implements ModuleDependency {
     private final static Logger LOG = Logging.getLogger(AbstractModuleDependency.class);
 
     private AttributesFactory attributesFactory;
@@ -54,13 +54,24 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
     private DefaultExcludeRuleContainer excludeRuleContainer = new DefaultExcludeRuleContainer();
     private Set<DependencyArtifact> artifacts = new LinkedHashSet<>();
     private ImmutableActionSet<ModuleDependency> onMutate = ImmutableActionSet.empty();
-    private AttributeContainerInternal attributes;
-    private ModuleDependencyCapabilitiesInternal moduleDependencyCapabilities;
+    private @Nullable AttributeContainerInternal attributes;
+    private @Nullable ModuleDependencyCapabilitiesInternal moduleDependencyCapabilities;
 
-    @Nullable
-    private String configuration;
+    private @Nullable String configuration;
+    private @Nullable String reason;
     private boolean transitive = true;
     private boolean endorsing;
+
+    @Nullable
+    @Override
+    public String getReason() {
+        return reason;
+    }
+
+    @Override
+    public void because(@Nullable String reason) {
+        this.reason = reason;
+    }
 
     @Override
     public boolean isTransitive() {
@@ -74,6 +85,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
         return this;
     }
 
+    @Nullable
     @Override
     public String getTargetConfiguration() {
         return configuration;
@@ -149,7 +161,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
     }
 
     protected void copyTo(AbstractModuleDependency target) {
-        super.copyTo(target);
+        target.because(reason);
         target.setArtifacts(new LinkedHashSet<>(getArtifacts()));
         target.setExcludeRuleContainer(new DefaultExcludeRuleContainer(getExcludeRules()));
         target.setTransitive(isTransitive());
@@ -305,7 +317,6 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
         this.attributes = attributes;
     }
 
-    @SuppressWarnings("unchecked")
     public void addMutationValidator(Action<? super ModuleDependency> action) {
         this.onMutate = onMutate.add(action);
     }
@@ -314,7 +325,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
         onMutate.execute(this);
     }
 
-    protected void validateMutation(Object currentValue, Object newValue) {
+    protected void validateMutation(@Nullable Object currentValue, @Nullable Object newValue) {
         if (!Objects.equal(currentValue, newValue)) {
             validateMutation();
         }
