@@ -29,9 +29,6 @@ import spock.lang.Issue
 
 import java.nio.file.Paths
 
-import static org.gradle.api.internal.DocumentationRegistry.BASE_URL
-import static org.gradle.api.internal.DocumentationRegistry.RECOMMENDATION
-
 // TODO: Move all of these tests to AbstractJavaCompilerIntegrationSpec
 // so that we can verify them for forking, in-process, and cli compilers.
 class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
@@ -1171,77 +1168,6 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds("compileJava")
-    }
-
-    def "CompileOptions.getAnnotationProcessorGeneratedSourcesDirectory is deprecated"() {
-        when:
-        buildFile << """
-            plugins {
-                id("java")
-            }
-            tasks.withType(JavaCompile) {
-                doLast {
-                    println(options.annotationProcessorGeneratedSourcesDirectory)
-                }
-            }
-        """
-        file("src/main/java/com/example/Main.java") << """
-            package com.example;
-            public class Main {}
-        """
-        expectAnnotationProcessorGeneratedSourcesDirectoryDeprecation()
-
-        then:
-        succeeds("compileJava")
-    }
-
-    private expectAnnotationProcessorGeneratedSourcesDirectoryDeprecation() {
-        executer.expectDocumentedDeprecationWarning("The CompileOptions.annotationProcessorGeneratedSourcesDirectory property has been deprecated. " +
-            "This is scheduled to be removed in Gradle 9.0. Please use the generatedSourceOutputDirectory property instead. ${getCompileOptionsLink()}")
-    }
-
-    def "CompileOptions.setAnnotationProcessorGeneratedSourcesDirectory(File) is deprecated"() {
-        when:
-        buildFile << """
-            plugins {
-                id("java")
-            }
-            tasks.withType(JavaCompile) {
-                options.annotationProcessorGeneratedSourcesDirectory = file("build/annotation-processor-out")
-            }
-        """
-        file("src/main/java/com/example/Main.java") << """
-            package com.example;
-            public class Main {}
-        """
-        expectAnnotationProcessorGeneratedSourcesDirectoryDeprecation()
-
-        then:
-        succeeds("compileJava")
-    }
-
-    def "CompileOptions.setAnnotationProcessorGeneratedSourcesDirectory(Provider<File>) is deprecated"() {
-        when:
-        buildFile << """
-            plugins {
-                id("java")
-            }
-            tasks.withType(JavaCompile) {
-                options.annotationProcessorGeneratedSourcesDirectory = provider(() -> file("build/annotation-processor-out"))
-            }
-        """
-        file("src/main/java/com/example/Main.java") << """
-            package com.example;
-            public class Main {}
-        """
-        expectAnnotationProcessorGeneratedSourcesDirectoryDeprecation()
-
-        then:
-        succeeds("compileJava")
-    }
-
-    private getCompileOptionsLink() {
-        String.format(RECOMMENDATION, "information", "${BASE_URL}/dsl/org.gradle.api.tasks.compile.CompileOptions.html#org.gradle.api.tasks.compile.CompileOptions:annotationProcessorGeneratedSourcesDirectory")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/18262")

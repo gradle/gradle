@@ -305,21 +305,4 @@ class ScalaPluginIntegrationTest extends MultiVersionIntegrationSpec {
         postBuildOutputDoesNotContain('Stopped 1 worker daemon')
     }
 
-    def "setting scalaDocOptions is deprecated"() {
-        buildFile << """
-            plugins {
-                id("scala")
-            }
-
-            ${mavenCentralRepository()}
-
-            tasks.scaladoc {
-                setScalaDocOptions(scalaDocOptions)
-            }
-        """
-        executer.expectDocumentedDeprecationWarning("The ScalaDoc.setScalaDocOptions(ScalaDocOptions) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Setting a new instance of scalaDocOptions is unnecessary. Please use the scalaDocOptions(Action) method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_nested_properties_setters")
-
-        expect:
-        succeeds("scaladoc")
-    }
 }

@@ -28,7 +28,6 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.HasInternalProtocol;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
@@ -104,29 +103,6 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * @return The state of the configuration
      */
     State getState();
-
-    /**
-     * An implementation of the namer interface for configurations that returns {@link #getName()}.
-     *
-     * @deprecated Use {@link Named.Namer#INSTANCE} instead (since {@link Configuration} now extends {@link Named}).
-     */
-    @Deprecated
-    class Namer implements org.gradle.api.Namer<Configuration> {
-
-        public Namer() {
-            DeprecationLogger.deprecateType(Namer.class)
-                .replaceWith("Named.Namer.INSTANCE")
-                .withContext("Configuration implements Named, so you can use Named.Namer.INSTANCE instead of Configuration.Namer")
-                .willBeRemovedInGradle9()
-                .withUpgradeGuideSection(8, "deprecated_namers")
-                .nagUser();
-        }
-
-        @Override
-        public String determineName(Configuration configuration) {
-            return Named.Namer.INSTANCE.determineName(configuration);
-        }
-    }
 
     /**
      * Returns true if this is a visible configuration. A visible configuration is usable outside the project it belongs
@@ -457,15 +433,6 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * @return this
      */
     Configuration withDependencies(Action<? super DependencySet> action);
-
-    /**
-     * Returns all the configurations belonging to the same configuration container as this
-     * configuration (including this configuration).
-     *
-     * @return All the configurations belonging to the configuration container that this set belongs to itself.
-     */
-    @Deprecated
-    Set<Configuration> getAll();
 
     /**
      * Returns a {@link ResolvableDependencies} instance, exposing the results of dependency resolution.

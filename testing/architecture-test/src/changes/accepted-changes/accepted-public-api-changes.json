@@ -90,8 +90,40 @@
         },
         {
             "type": "org.gradle.api.artifacts.Configuration",
+            "member": "Method org.gradle.api.artifacts.Configuration.getAll()",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.Configuration",
             "member": "Method org.gradle.api.artifacts.Configuration.getUploadTaskName()",
             "acceptation": "Removed deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.Configuration$Namer",
+            "member": "Class org.gradle.api.artifacts.Configuration$Namer",
+            "acceptation": "Removed deprecated class",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.Configuration$Namer",
+            "member": "Constructor org.gradle.api.artifacts.Configuration$Namer()",
+            "acceptation": "Removed deprecated class",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.Configuration$Namer",
+            "member": "Method org.gradle.api.artifacts.Configuration$Namer.determineName(org.gradle.api.artifacts.Configuration)",
+            "acceptation": "Removed deprecated class",
             "changes": [
                 "Method has been removed"
             ]
@@ -126,6 +158,22 @@
             "acceptation": "Removed deprecated method",
             "changes": [
                 "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.ResolveException",
+            "member": "Constructor org.gradle.api.artifacts.ResolveException(java.lang.String,java.lang.Iterable)",
+            "acceptation": "Public consturctor was deprecated",
+            "changes": [
+                "Constructor is less accessible"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.ResolveException",
+            "member": "Constructor org.gradle.api.artifacts.ResolveException(java.lang.String,java.lang.Throwable)",
+            "acceptation": "Removed deprecated constructor",
+            "changes": [
+                "Constructor has been removed"
             ]
         },
         {
@@ -171,6 +219,22 @@
         {
             "type": "org.gradle.api.artifacts.dsl.DependencyHandler",
             "member": "Method org.gradle.api.artifacts.dsl.DependencyHandler.module(java.lang.Object,groovy.lang.Closure)",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.dsl.RepositoryHandler",
+            "member": "Method org.gradle.api.artifacts.dsl.RepositoryHandler.jcenter()",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.dsl.RepositoryHandler",
+            "member": "Method org.gradle.api.artifacts.dsl.RepositoryHandler.jcenter(org.gradle.api.Action)",
             "acceptation": "Remove deprecated method",
             "changes": [
                 "Method has been removed"
@@ -594,6 +658,30 @@
         },
         {
             "type": "org.gradle.api.tasks.compile.CompileOptions",
+            "member": "Method org.gradle.api.tasks.compile.CompileOptions.setAnnotationProcessorGeneratedSourcesDirectory(org.gradle.api.provider.Provider)",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.CompileOptions",
+            "member": "Method org.gradle.api.tasks.compile.CompileOptions.setDebugOptions(org.gradle.api.tasks.compile.DebugOptions)",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.CompileOptions",
+            "member": "Method org.gradle.api.tasks.compile.CompileOptions.setForkOptions(org.gradle.api.tasks.compile.ForkOptions)",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.CompileOptions",
             "member": "Superclass [removed]",
             "acceptation": "Removed deprecated class",
             "changes": [
@@ -618,6 +706,14 @@
         },
         {
             "type": "org.gradle.api.tasks.compile.GroovyCompileOptions",
+            "member": "Method org.gradle.api.tasks.compile.GroovyCompileOptions.setForkOptions(org.gradle.api.tasks.compile.GroovyForkOptions)",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.GroovyCompileOptions",
             "member": "Superclass [removed]",
             "acceptation": "Removed deprecated class",
             "changes": [
@@ -636,6 +732,30 @@
             "type": "org.gradle.api.tasks.javadoc.Groovydoc",
             "member": "Method org.gradle.api.tasks.javadoc.Groovydoc.setAntGroovydoc(org.gradle.api.internal.tasks.AntGroovydoc)",
             "acceptation": "these methods were deprecated",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.javadoc.Javadoc",
+            "member": "Method org.gradle.api.tasks.javadoc.Javadoc.isVerbose()",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.javadoc.Javadoc",
+            "member": "Method org.gradle.api.tasks.javadoc.Javadoc.setVerbose(boolean)",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.scala.ScalaDoc",
+            "member": "Method org.gradle.api.tasks.scala.ScalaDoc.setScalaDocOptions(org.gradle.api.tasks.scala.ScalaDocOptions)",
+            "acceptation": "Remove deprecated method",
             "changes": [
                 "Method has been removed"
             ]
@@ -809,6 +929,22 @@
             ]
         },
         {
+            "type": "org.gradle.kotlin.dsl.ConfigurationDeprecatedExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.ConfigurationDeprecatedExtensionsKt.getAll$annotations(org.gradle.api.NamedDomainObjectProvider)",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ConfigurationDeprecatedExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.ConfigurationDeprecatedExtensionsKt.getAll(org.gradle.api.NamedDomainObjectProvider)",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.kotlin.dsl.DependencyHandlerExtensionsKt",
             "member": "Method org.gradle.kotlin.dsl.DependencyHandlerExtensionsKt.module$default(org.gradle.api.artifacts.dsl.DependencyHandler,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,int,java.lang.Object)",
             "acceptation": "Remove deprecated method",
@@ -909,6 +1045,22 @@
             "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_87iiq4r8d2anat7cruxlw9c13Kt",
             "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_87iiq4r8d2anat7cruxlw9c13Kt.fork(org.gradle.api.tasks.compile.CompileOptions,kotlin.Pair[])",
             "acceptation": "Removed deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.setForkOptions(org.gradle.api.tasks.scala.ScalaForkOptions)",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.setIncrementalOptions(org.gradle.api.tasks.scala.IncrementalCompileOptions)",
+            "acceptation": "Remove deprecated method",
             "changes": [
                 "Method has been removed"
             ]

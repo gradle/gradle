@@ -342,15 +342,6 @@ fun <T : Configuration> NamedDomainObjectProvider<T>.withDependencies(action: De
 
 
 /**
- * See [Configuration.all].
- */
-@Suppress("DEPRECATION")
-@Deprecated(DEPRECATION_MESSAGE, replaceWith = ReplaceWith("get().all"), level = DeprecationLevel.HIDDEN)
-val <T : Configuration> NamedDomainObjectProvider<T>.all: Set<Configuration>
-    get() = get().all
-
-
-/**
  * See [Configuration.getIncoming].
  */
 @Deprecated(DEPRECATION_MESSAGE, replaceWith = ReplaceWith("get().incoming"), level = DeprecationLevel.HIDDEN)

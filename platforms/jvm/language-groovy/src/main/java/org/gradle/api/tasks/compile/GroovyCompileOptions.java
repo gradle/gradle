@@ -27,7 +27,6 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.jspecify.annotations.Nullable;
 
@@ -267,23 +266,6 @@ public abstract class GroovyCompileOptions implements Serializable {
     @Nested
     public GroovyForkOptions getForkOptions() {
         return forkOptions;
-    }
-
-    /**
-     * Sets options for running the Groovy compiler in a separate process. These options only take effect
-     * if {@code fork} is set to {@code true}.
-     *
-     * @deprecated Setting a new instance of this property is unnecessary. This method will be removed in Gradle 9.0. Use {@link #forkOptions(Action)} instead.
-     */
-    @Deprecated
-    public void setForkOptions(GroovyForkOptions forkOptions) {
-        DeprecationLogger.deprecateMethod(GroovyCompileOptions.class, "setForkOptions(GroovyForkOptions)")
-            .replaceWith("forkOptions(Action)")
-            .withContext("Setting a new instance of forkOptions is unnecessary.")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "deprecated_nested_properties_setters")
-            .nagUser();
-        this.forkOptions = forkOptions;
     }
 
     /**
