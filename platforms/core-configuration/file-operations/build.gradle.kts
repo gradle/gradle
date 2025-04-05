@@ -51,6 +51,7 @@ dependencies {
     api(projects.native)
     api(projects.persistentCache)
     api(projects.resources)
+    api(projects.scopedPersistentCache)
     api(projects.serviceLookup)
 
     api(libs.commonsCompress)

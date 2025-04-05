@@ -34,30 +34,30 @@ errorprone {
 }
 
 dependencies {
-    shadedImplementation(libs.slf4jApi)
-
-    runtimeOnly(projects.coreApi)
-
-    implementation(projects.core)
-    implementation(projects.buildProcessServices)
-    implementation(projects.serviceProvider)
-    implementation(projects.serviceRegistryBuilder)
-
-    implementation(libs.guava)
-    implementation(libs.jsr305)
-
     api(projects.baseServices)
     api(projects.buildOperations)
     api(projects.classloaders)
     api(projects.concurrent)
     api(projects.enterpriseLogging)
-    api(projects.logging)
     api(projects.messaging)
     api(projects.stdlibJavaExtensions)
     api(projects.time)
     api(projects.wrapperShared)
 
     api(libs.jspecify)
+
+    implementation(projects.core)
+    implementation(projects.buildProcessServices)
+    implementation(projects.logging)
+    implementation(projects.serviceProvider)
+    implementation(projects.serviceRegistryBuilder)
+
+    implementation(libs.guava)
+    implementation(libs.jsr305)
+
+    shadedImplementation(libs.slf4jApi)
+
+    runtimeOnly(projects.coreApi)
 
     testFixturesImplementation(projects.coreApi)
     testFixturesImplementation(projects.core)

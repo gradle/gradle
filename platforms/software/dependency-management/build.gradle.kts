@@ -55,6 +55,7 @@ dependencies {
     api(projects.persistentCache)
     api(projects.problemsApi)
     api(projects.resources)
+    api(projects.scopedPersistentCache)
     api(projects.security)
     api(projects.serialization)
     api(projects.serviceLookup)

@@ -49,6 +49,7 @@ dependencies {
     implementation(projects.normalizationJava)
     implementation(projects.persistentCache)
     implementation(projects.resources)
+    implementation(projects.scopedPersistentCache)
     implementation(projects.serviceLookup)
     implementation(projects.serviceProvider)
     implementation(projects.snapshots)

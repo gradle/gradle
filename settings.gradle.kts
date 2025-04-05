@@ -164,6 +164,7 @@ val core = platform("core") {
         subproject("hashing")
         subproject("persistent-cache")
         subproject("request-handler-worker")
+        subproject("scoped-persistent-cache")
         subproject("snapshots")
         subproject("worker-main")
         subproject("workers")

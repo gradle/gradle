@@ -40,17 +40,18 @@ dependencies {
     api(libs.jspecify)
 
     implementation(projects.baseServices)
+    implementation(projects.buildOperations)
     implementation(projects.buildProcessServices)
     implementation(projects.concurrent)
     implementation(projects.fileCollections)
     implementation(projects.fileOperations)
     implementation(projects.fileTemp)
     implementation(projects.hashing)
-    implementation(projects.persistentCache)
-    implementation(projects.serviceRegistryBuilder)
-    implementation(projects.buildOperations)
     implementation(projects.messaging)
+    implementation(projects.persistentCache)
     implementation(projects.problemsApi)
+    implementation(projects.scopedPersistentCache)
+    implementation(projects.serviceRegistryBuilder)
     implementation(projects.workerMain)
 
     // The worker infrastructure should _not_ depend on :core. :core contains much

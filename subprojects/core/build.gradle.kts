@@ -95,6 +95,7 @@ dependencies {
     api(projects.processServices)
     api(projects.requestHandlerWorker)
     api(projects.resources)
+    api(projects.scopedPersistentCache)
     api(projects.serialization)
     api(projects.serviceLookup)
     api(projects.serviceProvider)
