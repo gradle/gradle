@@ -29,7 +29,7 @@ import java.lang.annotation.Target;
  * @since 8.9
  */
 @Incubating
-@Target({ElementType.METHOD})
+@Target({ElementType.METHOD, ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface SoftwareType {
     /**
@@ -37,7 +37,7 @@ public @interface SoftwareType {
      *
      * @since 8.9
      */
-    String name();
+    String name() default "";
 
     /**
      * The model type used to configure the software type.  Note that this class should be the same type or a super type of the return type

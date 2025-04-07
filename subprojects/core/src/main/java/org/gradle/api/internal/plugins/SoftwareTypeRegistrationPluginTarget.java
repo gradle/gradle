@@ -107,6 +107,7 @@ public class SoftwareTypeRegistrationPluginTarget implements PluginTarget {
         TypeMetadata softwareTypePluginImplMetadata = inspectionScheme.getMetadataStore().getTypeMetadata(softwareTypePluginImplType.getRawType());
         softwareTypePluginImplMetadata.visitValidationFailures(null, typeValidationContext);
 
+        /* TODO - Re-enable this validation for annotated field
         List<String> exposedSoftwareTypes = softwareTypePluginImplMetadata.getPropertiesMetadata().stream()
             .map(propertyMetadata -> propertyMetadata.getAnnotation(SoftwareType.class))
             .filter(Optional::isPresent)
@@ -135,6 +136,7 @@ public class SoftwareTypeRegistrationPluginTarget implements PluginTarget {
                     .solution("Split " + softwareTypePluginImplClass.getSimpleName() + " into multiple plugins, each exposing a single software type and register all plugins in " + registeringPlugin.getSimpleName() + " using the @RegistersSoftwareTypes annotation")
             );
         }
+        */
 
         if (!typeValidationContext.getProblems().isEmpty()) {
             throw new DefaultMultiCauseException(
