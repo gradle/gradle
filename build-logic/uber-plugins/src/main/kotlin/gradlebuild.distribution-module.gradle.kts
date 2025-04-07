@@ -39,7 +39,7 @@ pluginManager.withPlugin("groovy") {
     }
 }
 
-val apiStubElements = configurations.consumable("apiStubElements") {
+configurations.consumable("apiStubElements") {
     isVisible = false
     extendsFrom(configurations.named("implementation").get())
     extendsFrom(configurations.named("compileOnly").get())
@@ -49,8 +49,6 @@ val apiStubElements = configurations.consumable("apiStubElements") {
     }
 }
 
-// FIXME Publishing API stubs for mixed Java/Kotlin subprojects don't work currently;
-//       we only publish the Kotlin stubs for some reason
 pluginManager.withPlugin("gradlebuild.java-library") {
     val extractorClasspathConfig by configurations.creating
 
