@@ -21,7 +21,7 @@ Here you can find a brief explanation of all the tags used in the best practices
 
 `#inputs-and-outputs` :: Items that are related to Gradle <<writing_tasks.adoc#task_inputs_and_outputs,task inputs and outputs>>, the annotations used to declare them, and their proper use.
 
-`#kotlin-dsl` :: Items that explain the benefits of using the <<kotlin_dsl.adoc#kotlin_dsl,Kotlin DSL>> and how to adopt it effectively.
+`#kotlin-dsl` :: Items that explain the benefits of using the <<kotlin_dsl.adoc#kotdsl:kotlin_dsl,Kotlin DSL>> and how to adopt it effectively.
 
 `#plugins` :: Items that explain the proper way to <<custom_plugins.adoc#custom_plugins,write plugins>> in Gradle, and common footguns involved in plugin authoring.
 
