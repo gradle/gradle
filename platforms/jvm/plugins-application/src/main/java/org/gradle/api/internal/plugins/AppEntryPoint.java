@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.fixtures
+package org.gradle.api.internal.plugins;
 
-import static org.gradle.api.plugins.scala.ScalaBasePlugin.DEFAULT_ZINC_VERSION
-
-
-class ZincCoverage {
-    public static final List<String> ALL_VERSIONS = [DEFAULT_ZINC_VERSION, "1.8.1", "1.7.2", "1.6.0"]
+/**
+ * Describes how an application can be started.
+ *
+ * @implNote This is to be treated as a "sealed" interface. All usage points need updating if a new implementation is added.
+ */
+public interface AppEntryPoint {
 }

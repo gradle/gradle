@@ -40,47 +40,77 @@ The previous step will help you identify potential problems by issuing deprecati
 
 === Potential breaking changes
 
-==== Changes to Settings level defaults
+==== Changes to `Settings` defaults
 
-The `Settings.getDefaults()` incubating method introduced in 8.10 has been removed.
-Use`Settings.defaults(Action<SharedModelDefaults>)` method, taking a lambda, instead.
-The change is driven by the need to interpret such default values in the scope of individual projects and not at Settings level.
+The incubating `Settings.getDefaults()` method, introduced in Gradle 8.10, has been removed.
+Use the `Settings.defaults(Action<SharedModelDefaults>)` method instead, which accepts a lambda.
+
+This change allows default values to be interpreted in the context of individual projects rather than at the `Settings` level.
 
 ==== Upgrade to Guava 33.4.6
 
-Guava was updated from 32.1.2 to 33.4.6, which deprecates some core features like `Charsets`.
-See https://github.com/google/guava/releases for details.
+Guava has been updated from version 32.1.2 to 33.4.6.
+This release deprecates several core features, including `Charsets`.
+For full details, see the https://github.com/google/guava/releases[Guava release notes].
+
+==== `EclipseClasspath.baseSourceOutputDir` is now a `DirectoryProperty`
+
+The incubating `EclipseClasspath.baseSourceOutputDir` was previously declared as a `Property<File>`.
+It has now been correctly updated to a `DirectoryProperty` to reflect the intended type.
+
+==== Upgrade to Groovy 3.0.24
+
+Groovy has been updated to https://groovy-lang.org/changelogs/changelog-3.0.24.html[Groovy 3.0.24].
+
+Since the previous version was 3.0.22, this includes changes for https://groovy-lang.org/changelogs/changelog-3.0.23.html[Groovy 3.0.23] as well.
+
+==== Upgrade to JaCoCo 0.8.13
+
+JaCoCo has been updated to https://www.jacoco.org/jacoco/trunk/doc/changes.html[0.8.13].
 
 === Deprecations
 
 [[null-attribute-lookup]]
-==== Looking up attributes using null keys is deprecated ====
+==== Looking up attributes using `null` keys is deprecated
 
-Providing a `null` argument when retrieving attributes from a container using `link:{javadocPath}/org/gradle/api/attributes/AttributeContainer.html#getAttribute(org.gradle.api.attributes.Attribute)[getAttribute(Attribute)]` is now explicitly deprecated.
+Passing `null` to link:{javadocPath}/org/gradle/api/attributes/AttributeContainer.html#getAttribute(org.gradle.api.attributes.Attribute)[`getAttribute(Attribute)`] is now explicitly deprecated.
 
-Previously, a `null` lookup silently returned `null`. Now, it emits a deprecation warning.
-There should be no need to look up `null` values in an `AttributeContainer`.
+Previously, this would silently return `null`.
+Now, a deprecation warning is emitted.
+There should be no need to perform lookups with `null` keys in an `AttributeContainer`.
 
 [[deprecated_string_to_enum_coercion_for_rich_properties]]
-==== Groovy String to Enum coercion for Property types is deprecated
+==== Groovy string-to-enum coercion for Property types is deprecated
 
-Groovy supports link:https://groovy-lang.org/semantics.html#_string_to_enum_coercion[String to enum coercion].
-Assigning a string to a property of type `Property<T>` where `T` is an enum is deprecated.
+Groovy supports link:https://groovy-lang.org/semantics.html#_string_to_enum_coercion[string-to-enum coercion].
+Assigning a `String` to a `Property<T>` where `T` is an enum is now deprecated.
 This will become an error in Gradle 10.0.
 
-This behavior is only applicable to plugins written in Groovy and the Groovy DSL.
+This deprecation only affects plugins written in Groovy using the Groovy DSL.
 
 [[antgroovydoc]]
 ==== `Groovydoc.getAntGroovydoc()` and `org.gradle.api.internal.tasks.AntGroovydoc` have been deprecated
 
-This was an internal API that was inadvertently exposed. This will be removed in Gradle 9.0.
+These internal APIs were inadvertently exposed and are now deprecated.
+They will be removed in Gradle 9.0.
 
 [[deprecated_plugin_development_methods]]
-==== `GradlePluginDevelopmentExtension` constructor and `pluginSourceSet` method have been deprecated
+==== Deprecated methods in `GradlePluginDevelopmentExtension`
 
-The extension should only be created by the Gradle Plugin Development plugin. The main source set is the only supported source set for plugin development.
+The constructor for `GradlePluginDevelopmentExtension` and its `pluginSourceSet` method are now deprecated.
+
+These methods should not be used directly, they are intended to be configured solely by the Gradle Plugin Development plugin.
+Only the main source set is supported for plugin development.
 
 These methods will be removed in Gradle 9.0.
+
+[[deprecated_collection_methods_warn]]
+==== Deprecated collections in `IdeaModule` now emit warnings
+
+The `testResourcesDirs` and `testSourcesDirs` properties in `org.gradle.plugins.ide.idea.model.IdeaModule` were marked `@Deprecated` in Gradle 7.6, but no warnings were emitted until now.
+
+Gradle now emits deprecation warnings when these properties are used.
+They will be removed in Gradle 9.0.
 
 [[changes_8.13]]
 == Upgrading from 8.12 and earlier

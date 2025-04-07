@@ -100,7 +100,8 @@ class BrokenPlugin {
 
         then:
         failure.assertHasCause("Failed to apply plugin 'org.gradle.base'")
-        failure.assertHasCause("The plugin must be applied in a build script (or to the Project object), but was applied in a settings script (or to the Settings object)")
+        failureHasCause("Unexpected plugin type")
+        failureCauseContains("The plugin must be applied in a build script (or to the Project object), but was applied in a settings script (or to the Settings object)")
 
         and:
         verifyAll(receivedProblem(0)) {
@@ -128,7 +129,8 @@ class BrokenPlugin {
 
         then:
         failure.assertHasCause("Failed to apply plugin class 'SomePlugin'.")
-        failure.assertHasCause(errorMessage)
+        failureHasCause("Unexpected plugin type")
+        failureCauseContains(errorMessage)
 
         where:
         pluginTarget | targetFile        | errorMessage
@@ -159,7 +161,8 @@ class BrokenPlugin {
 
         then:
         failure.assertHasCause("Failed to apply plugin class 'SomePlugin'.")
-        failure.assertHasCause(errorMessage)
+        failureHasCause("Unexpected plugin type")
+        failureCauseContains(errorMessage)
 
         where:
         pluginTarget | targetFile        | errorMessage

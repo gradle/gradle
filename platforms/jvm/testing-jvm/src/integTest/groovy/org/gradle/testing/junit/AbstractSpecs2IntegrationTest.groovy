@@ -17,10 +17,13 @@
 package org.gradle.testing.junit
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 
 abstract class AbstractSpecs2IntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
 
+    @Requires(value = UnitTestPreconditions.Jdk23OrEarlier, reason = "2.11.12 is required for specs2 3.x, which is not compatible with running on JDK 24.")
     def 'can run Specs2 tests'() {
         given:
         buildFile << """
@@ -31,7 +34,7 @@ abstract class AbstractSpecs2IntegrationTest extends AbstractTestingMultiVersion
             ${mavenCentralRepository()}
 
             dependencies {
-                implementation 'org.scala-lang:scala-library:2.11.8'
+                implementation 'org.scala-lang:scala-library:2.11.12'
                 testImplementation 'org.specs2:specs2_2.11:3.7'
                 testImplementation 'org.specs2:specs2-junit_2.11:4.7.0'
                 ${testFrameworkDependencies}

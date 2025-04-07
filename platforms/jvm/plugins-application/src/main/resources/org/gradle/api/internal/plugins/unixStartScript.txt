@@ -254,7 +254,7 @@ set -- \\
 <% } %>        -classpath "\$CLASSPATH" \\
 <% if ( mainClassName.startsWith('--module ') ) {
      %>        --module-path "\$MODULE_PATH" \\
-<% } %>        ${mainClassName} \\
+<% } %>        ${mainClassName ?: entryPointArgs} \\
         "\$@"
 
 # Stop when "xargs" is not available.
