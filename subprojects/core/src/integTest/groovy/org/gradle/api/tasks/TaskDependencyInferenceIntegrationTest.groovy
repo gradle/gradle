@@ -698,7 +698,7 @@ The following types/formats are supported:
     def "input file property with value of orElse provider whose original value is a present value source and alternative value is task output file property does not imply dependency on task"() {
         taskTypeWithOutputFileProperty()
         taskTypeWithInputFileProperty()
-        buildFile  """
+        buildFile """
             import org.gradle.api.provider.*
 
             interface FileSpec extends ValueSourceParameters {
@@ -1107,5 +1107,45 @@ The following types/formats are supported:
         then:
         result.assertTasksExecuted(":a", ":b", ":c")
         file("out.txt").text == "a1=22,a2=25,b=10"
+    }
+
+    def "orElse implies dependencies of both lhs and rhs unconditionally"() {
+        taskTypeWithInputFileProperty()
+        taskTypeWithOutputFileProperty()
+        file("external.txt") << "External content"
+
+        buildFile """
+            def defaultProducer = tasks.register("defaultProducer", FileProducer) {
+                output = file("default.txt")
+                content = "Default content"
+            }
+
+            def mainProducer = tasks.register("mainProducer", FileProducer) {
+                output = file("main.txt")
+                content = "Main content"
+            }
+
+            tasks.register("consumer", InputFileTask) {
+                inFile = ${orElseLhs}.orElse($orElseRhs)
+                outFile = file("out.txt")
+            }
+        """
+
+        when:
+        run(["consumer", *args])
+
+        then:
+        executed(*expectedTasks)
+        file("out.txt").text == expectedOutput
+
+        where:
+        orElseLhs                                                                                            | orElseRhs                               | expectedTasks                                      | expectedOutput     | args
+        "mainProducer.flatMap { it.output }"                                                                 | "defaultProducer.flatMap { it.output }" | [":mainProducer", ":defaultProducer", ":consumer"] | "Main content"     | []
+        "mainProducer.map { null }"                                                                          | "defaultProducer.flatMap { it.output }" | [":defaultProducer", ":consumer"]                  | "Default content"  | []
+        "providers.gradleProperty('externalContent').flatMap { objects.fileProperty().fileValue(file(it)) }" | "defaultProducer.flatMap { it.output }" | [":defaultProducer", ":consumer"]                  | "External content" | ["-PexternalContent=external.txt"]
+        "providers.gradleProperty('externalContent').flatMap { objects.fileProperty().fileValue(file(it)) }" | "defaultProducer.flatMap { it.output }" | [":defaultProducer", ":consumer"]                  | "Default content"  | []
+        "providers.systemProperty('externalContent').flatMap { objects.fileProperty().fileValue(file(it)) }" | "defaultProducer.flatMap { it.output }" | [":defaultProducer", ":consumer"]                  | "External content" | ["-DexternalContent=external.txt"]
+        "providers.systemProperty('externalContent').flatMap { objects.fileProperty().fileValue(file(it)) }" | "defaultProducer.flatMap { it.output }" | [":defaultProducer", ":consumer"]                  | "Default content"  | []
+        // todo sopivalov add environmentVariable?
     }
 }

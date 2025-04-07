@@ -96,7 +96,7 @@ public interface ValueSupplier {
 
         static ValueProducer externalValue() {
             // At the moment, external values do not differ from values with an unknown producer.
-            return UNKNOWN_PRODUCER;
+            return NO_PRODUCER;
         }
 
         /**
