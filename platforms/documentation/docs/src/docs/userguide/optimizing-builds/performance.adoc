@@ -323,7 +323,7 @@ include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/kotlin",fil
 include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/groovy",files="build.gradle[tags=ad-hoc-task]"]
 ====
 
-For more details, see the <<incremental_build.adoc#incremental_build,incremental build documentation>> and the <<writing_tasks.adoc#task_input_and_outputs,writing tasks tutorial>>.
+For more details, see the <<incremental_build.adoc#incremental_build,incremental build documentation>> and the <<writing_tasks.adoc#task_inputs_and_outputs,writing tasks tutorial>>.
 
 When leveraging incremental builds on our reference project, the build (`./gradlew clean build build`) time is *5 seconds*:
 
@@ -861,7 +861,7 @@ include::sample[dir="snippets/performance/parallelTestExecution/groovy",files="b
 
 Gradle reuses this process within the duration the build, so the forking overhead is minimal.
 By forking memory-intensive compilation into a separate process, we minimize garbage collection in the main Gradle process.
-Less garbage collection means that Gradle's infrastructure can run faster, especially when you also use <<parallel_execution, parallel builds>>.
+Less garbage collection means that Gradle's infrastructure can run faster, especially when you also use <<sec:parallel_execution, parallel builds>>.
 
 Forking compilation rarely impacts the performance of small projects.
 But you should consider it if a single task compiles more than a thousand source files together.
