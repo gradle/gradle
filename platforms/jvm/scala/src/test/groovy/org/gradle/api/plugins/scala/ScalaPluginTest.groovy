@@ -34,7 +34,7 @@ class ScalaPluginTest extends AbstractProjectBuilderSpec {
 
     private final ScalaPlugin scalaPlugin = TestUtil.newInstance(ScalaPlugin)
 
-    def appliesTheJavaPluginToTheProject() {
+    def "applies the java plugin to the project"() {
         when:
         scalaPlugin.apply(project)
 
@@ -42,7 +42,7 @@ class ScalaPluginTest extends AbstractProjectBuilderSpec {
         project.getPlugins().hasPlugin(JavaPlugin)
     }
 
-    def addsScalaConventionToEachSourceSetAndAppliesMappings() {
+    def "adds scala convention to each source set and applies mappings"() {
         when:
         scalaPlugin.apply(project)
 
@@ -56,7 +56,7 @@ class ScalaPluginTest extends AbstractProjectBuilderSpec {
         testSourceSet.scala.srcDirs ==  toLinkedSet(project.file("src/test/scala"))
     }
 
-    def addsCompileTaskForEachSourceSet() {
+    def "adds compile task for each source set"() {
         when:
         scalaPlugin.apply(project)
 
@@ -112,7 +112,7 @@ class ScalaPluginTest extends AbstractProjectBuilderSpec {
         testTask not(dependsOn(JvmConstants.COMPILE_TEST_JAVA_TASK_NAME))
     }
 
-    def dependenciesOfJavaPluginTasksIncludeScalaCompileTasks() {
+    def "dependencies of java plugin tasks include scala compile tasks"() {
         when:
         scalaPlugin.apply(project)
 
@@ -124,7 +124,7 @@ class ScalaPluginTest extends AbstractProjectBuilderSpec {
         testTask dependsOn('compileTestScala', JvmConstants.COMPILE_TEST_JAVA_TASK_NAME, 'processTestResources')
     }
 
-    def addsScalaDocTasksToTheProject() {
+    def "adds scala doc tasks to the project"() {
         when:
         scalaPlugin.apply(project)
 
@@ -132,13 +132,13 @@ class ScalaPluginTest extends AbstractProjectBuilderSpec {
         def task = project.tasks[ScalaPlugin.SCALA_DOC_TASK_NAME]
         task instanceof ScalaDoc
         task dependsOn(JvmConstants.CLASSES_TASK_NAME, JvmConstants.COMPILE_JAVA_TASK_NAME, 'compileScala')
-        task.destinationDir == project.file("$project.docsDir/scaladoc")
+        task.destinationDir == project.java.docsDir.file("scaladoc").get().asFile
         task.source as List == project.sourceSets.main.scala as List // We take sources of main
         assertThat(task.classpath, FileCollectionMatchers.sameCollection(project.layout.files(project.sourceSets.main.output, project.sourceSets.main.compileClasspath)))
         task.title == project.extensions.getByType(ReportingExtension).apiDocTitle
     }
 
-    def configuresScalaDocTasksDefinedByTheBuildScript() {
+    def "configures scala doc tasks defined by the build script"() {
         when:
         scalaPlugin.apply(project)
 

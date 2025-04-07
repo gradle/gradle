@@ -45,8 +45,10 @@ class JavaCompileJavaVersionIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             apply plugin: "java"
 
-            sourceCompatibility = "1.8"
-            targetCompatibility = "1.8"
+            java {
+                sourceCompatibility = "1.8"
+                targetCompatibility = "1.8"
+            }
         """
 
         and:
@@ -116,8 +118,10 @@ class JavaCompileJavaVersionIntegrationTest extends AbstractIntegrationSpec {
         """
             apply plugin: "java"
 
-            sourceCompatibility = "1.8"
-            targetCompatibility = "1.8"
+            java {
+                sourceCompatibility = "1.8"
+                targetCompatibility = "1.8"
+            }
 
             compileJava {
                 options.with {

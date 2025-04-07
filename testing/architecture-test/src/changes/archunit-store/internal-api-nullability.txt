@@ -908,7 +908,6 @@ Class <org.gradle.api.plugins.internal.DefaultApplicationPluginConvention> is no
 Class <org.gradle.api.plugins.internal.DefaultBasePluginExtension> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (DefaultBasePluginExtension.java:0)
 Class <org.gradle.api.plugins.internal.DefaultJavaApplication> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (DefaultJavaApplication.java:0)
 Class <org.gradle.api.plugins.internal.DefaultJavaFeatureSpec> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (DefaultJavaFeatureSpec.java:0)
-Class <org.gradle.api.plugins.internal.DefaultJavaPluginConvention> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (DefaultJavaPluginConvention.java:0)
 Class <org.gradle.api.plugins.internal.DefaultJavaPluginExtension$DefaultJavaResolutionConsistency> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (DefaultJavaPluginExtension.java:0)
 Class <org.gradle.api.plugins.internal.DefaultJavaPluginExtension> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (DefaultJavaPluginExtension.java:0)
 Class <org.gradle.api.plugins.internal.HelpBuiltInCommand> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (HelpBuiltInCommand.java:0)
