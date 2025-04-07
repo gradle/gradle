@@ -21,6 +21,8 @@ import groovy.xml.slurpersupport.GPathResult
 import org.gradle.test.fixtures.file.TestFile
 import org.hamcrest.Matcher
 
+import java.util.function.Consumer
+
 import static org.hamcrest.CoreMatchers.hasItems
 import static org.hamcrest.CoreMatchers.not
 import static org.hamcrest.MatcherAssert.assertThat
@@ -170,6 +172,11 @@ class TestNgTestClassExecutionResult implements TestClassExecutionResult {
     }
 
     TestClassExecutionResult assertTestsSkipped(String... testNames) {
+        throw new UnsupportedOperationException()
+    }
+
+    @Override
+    TestClassExecutionResult assertTestSkipped(String name, Consumer<SkippedExecutionResult> assertions) {
         throw new UnsupportedOperationException()
     }
 
