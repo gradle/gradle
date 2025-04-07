@@ -15,6 +15,44 @@
 [[best_practices_general]]
 = General Gradle Best Practices
 
+[[use_kotlin_dsl]]
+== Use Kotlin DSL
+
+Prefer the Kotlin DSL (`build.gradle.kts`) over the traditional Groovy DSL (`build.gradle`) when authoring new builds or migrating existing ones.
+
+=== Explanation
+
+The Kotlin DSL offers several advantages over the Groovy DSL:
+
+* Strict typing: IDEs provide better auto-completion and navigation with the Kotlin DSL.
+* Improved readability: Code written in Kotlin is often easier to follow and understand.
+* Single-language stack: Projects that already use Kotlin for application or library code don’t need to introduce Groovy just for the build.
+* Better performance: Kotlin DSL builds are faster than equivalent Groovy DSL builds, especially in large projects.
+
+Since Gradle 8.0, link:https://blog.gradle.org/kotlin-dsl-is-now-the-default-for-new-gradle-builds[Kotlin DSL is the default] for new builds created with `gradle init`.
+
+=== Example
+
+==== Don't Do This
+
+====
+include::sample[dir="snippets/bestPractices/useKotlinDSL/groovy/avoid-this",files="build.gradle[tags=avoid-this]"]
+====
+
+==== Do This Instead
+
+====
+include::sample[dir="snippets/bestPractices/useKotlinDSL/kotlin/do-this",files="build.gradle.kts[tags=do-this]"]
+====
+
+=== References
+
+<<kotlin_dsl.adoc#kotdsl:kotlin_dsl,Kotlin DSL Primer>>
+
+=== Tags
+
+`#kotlin-dsl`
+
 [[use_the_plugins_block]]
 == Apply Plugins Using the `plugins` Block
 
