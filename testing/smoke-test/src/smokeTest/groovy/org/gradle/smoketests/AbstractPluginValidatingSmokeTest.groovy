@@ -17,7 +17,6 @@
 package org.gradle.smoketests
 
 import groovy.transform.SelfType
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 
 @SelfType(AbstractSmokeTest)
 abstract class AbstractPluginValidatingSmokeTest extends AbstractSmokeTest implements WithPluginValidation {
