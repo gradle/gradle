@@ -921,7 +921,7 @@ For additional tips specific to Android, check out the official resources from t
 * https://www.youtube.com/watch?v=7ll-rkLCtyk[Optimizing Gradle Builds for Android (Google I/O 2017 Talk)]
 
 [[improve_older_projects]]
-== 13. Improve the Performance of Older Gradle Releases
+== 13. Improve the performance of older Gradle releases
 
 We recommend using the latest Gradle version to benefit from the latest performance improvements, bug fixes, and features. However, we understand that some projects — especially long-lived or legacy codebases — may not be able to upgrade easily.
 
