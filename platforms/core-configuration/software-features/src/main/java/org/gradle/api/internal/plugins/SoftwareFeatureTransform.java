@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.plugins;
 
-/**
- * Marks a field as exposing a software feature.
- */
-public @interface SoftwareFeature {
+public interface SoftwareFeatureTransform<T, U, V> {
+    void transform(SoftwareFeatureApplicationContext context, T definition, U parentDefinition, V buildModel);
 }

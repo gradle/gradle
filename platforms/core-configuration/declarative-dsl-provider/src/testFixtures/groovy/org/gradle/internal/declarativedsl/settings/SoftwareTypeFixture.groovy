@@ -16,6 +16,7 @@
 
 package org.gradle.internal.declarativedsl.settings
 
+import org.gradle.api.internal.plugins.SoftwareFeatureBinding
 import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
 import org.gradle.api.internal.plugins.software.SoftwareType
 import org.gradle.test.fixtures.plugin.PluginBuilder
@@ -366,7 +367,6 @@ trait SoftwareTypeFixture {
             import org.gradle.api.Plugin;
             import org.gradle.api.initialization.Settings;
             import org.gradle.api.internal.SettingsInternal;
-            import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
             import ${RegistersSoftwareTypes.class.name};
 
             @RegistersSoftwareTypes({ ${softwareTypeImplPluginClassName.collect { it + ".class" }.join(", ")} })
@@ -384,6 +384,7 @@ trait SoftwareTypeFixture {
         String softwareType = "testSoftwareType",
         String conventions = testSoftwareTypeExtensionConventions
     ) {
+        def dslTypeClassName = publicTypeClassName ?: implementationTypeClassName
         return """
             package org.gradle.test;
 
@@ -394,19 +395,33 @@ trait SoftwareTypeFixture {
             import org.gradle.api.provider.Property;
             import org.gradle.api.tasks.Nested;
             import ${SoftwareType.class.name};
+            import ${SoftwareFeatureBinding.class.name};
             import javax.inject.Inject;
+
+            import static ${SoftwareFeatureBinding.class.name}.softwareType;
 
             abstract public class ${softwareTypePluginClassName} implements Plugin<Project> {
 
-                @SoftwareType(${SoftwareTypeArgumentBuilder.name(softwareType)
+                //@SoftwareType(${SoftwareTypeArgumentBuilder.name(softwareType)
                                     .modelPublicType(publicTypeClassName)
                                     .build()})
-                abstract public ${implementationTypeClassName} getTestSoftwareTypeExtension();
+                //abstract public ${implementationTypeClassName} getTestSoftwareTypeExtension();
+
+                public interface ModelType {
+                    Property<String> getId();
+                }
+
+                @SoftwareType
+                public static SoftwareFeatureDslBinding binding = softwareType(builder ->
+                    builder.bind("${softwareType}", ${dslTypeClassName}.class, ModelType.class, (context, definition, model) -> {
+                        System.out.println("Binding " + ${dslTypeClassName}.class.getSimpleName());
+                    })
+                );
 
                 @Override
                 public void apply(Project target) {
                     System.out.println("Applying " + getClass().getSimpleName());
-                    ${implementationTypeClassName} extension = getTestSoftwareTypeExtension();
+                    ${implementationTypeClassName} extension = target.getExtensions().getByType(${implementationTypeClassName}.class);
 
                     ${conventions == null ? "" : conventions}
                     target.getTasks().register("print${implementationTypeClassName}Configuration", DefaultTask.class, task -> {

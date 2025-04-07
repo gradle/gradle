@@ -22,8 +22,10 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
+import org.gradle.api.internal.plugins.SoftwareFeatureApplicationContext;
 import org.gradle.api.internal.plugins.software.SoftwareType;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
@@ -56,19 +58,27 @@ public class DefaultSoftwareFeatureApplicator implements SoftwareFeatureApplicat
     private final PluginManagerInternal pluginManager;
     private final Set<AppliedFeature> applied = new HashSet<>();
     private final ClassLoaderScope classLoaderScope;
+    private final ObjectFactory objectFactory;
 
-    public DefaultSoftwareFeatureApplicator(ModelDefaultsApplicator modelDefaultsApplicator, InspectionScheme inspectionScheme, InternalProblems problems, PluginManagerInternal pluginManager, ClassLoaderScope classLoaderScope) {
+    public DefaultSoftwareFeatureApplicator(ModelDefaultsApplicator modelDefaultsApplicator, InspectionScheme inspectionScheme, InternalProblems problems, PluginManagerInternal pluginManager, ClassLoaderScope classLoaderScope, ObjectFactory objectFactory) {
         this.modelDefaultsApplicator = modelDefaultsApplicator;
         this.inspectionScheme = inspectionScheme;
         this.problems = problems;
         this.pluginManager = pluginManager;
         this.classLoaderScope = classLoaderScope;
+        this.objectFactory = objectFactory;
     }
 
     @Override
     public <T> T applyFeatureTo(ExtensionAware target, SoftwareFeatureImplementation<T> softwareFeature) {
         AppliedFeature appliedFeature = new AppliedFeature(target, softwareFeature);
         if (!applied.contains(appliedFeature)) {
+            Class<? extends T> dslType = softwareFeature.getModelPublicType();
+            T dslObject = target.getExtensions().create(softwareFeature.getFeatureName(), dslType);
+            Object buildModelObject = ((ExtensionAware)dslObject).getExtensions().create("model", softwareFeature.getBuildModelType());
+            SoftwareFeatureApplicationContext context = objectFactory.newInstance(SoftwareFeatureApplicationContext.class);
+            softwareFeature.getBindingTransform().transform(context, dslObject, Cast.uncheckedCast(target), Cast.uncheckedCast(buildModelObject));
+
             pluginManager.apply(softwareFeature.getPluginClass());
             Plugin<Project> plugin = pluginManager.getPluginContainer().getPlugin(softwareFeature.getPluginClass());
             applyAndMaybeRegisterExtension(target, softwareFeature, plugin);

@@ -14,13 +14,17 @@
  * limitations under the License.
  */
 
-plugins {
-    id("gradlebuild.distribution.implementation-java")
-    id("gradlebuild.publish-public-libraries")
-}
+package org.gradle.api.internal.plugins;
 
-description = "Public API classes used by software features"
+import org.gradle.util.Path;
 
-dependencies {
-    implementation(projects.stdlibJavaExtensions)
+import java.util.Optional;
+
+public interface SoftwareFeatureBinding {
+    Class<?> getBindingTargetType();
+    Class<?> getDslType();
+    Optional<Class<?>> getImplementationType();
+    Class<?> getBuildModelType();
+    Path getPath();
+    SoftwareFeatureTransform<?, ?, ?> getTransform();
 }
