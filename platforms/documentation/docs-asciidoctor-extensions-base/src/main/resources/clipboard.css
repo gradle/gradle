@@ -1,4 +1,4 @@
-/* Custom clipboard CSS code */
+/* Custom CSS on top of external clipboard.js */
 .listingblock:hover .clipboard {
     display: block;
 }
