@@ -42,6 +42,11 @@ public interface JavaAppStartScriptGenerationDetails {
 
     String getMainClassName();
 
+    /**
+     * The default JVM options that are always passed to the application.
+     *
+     * @return the default JVM options
+     */
     List<String> getDefaultJvmOpts();
 
     /**

@@ -40,7 +40,7 @@ public class StartScriptGenerator {
     private String applicationName;
     private String optsEnvironmentVar;
     private String exitEnvironmentVar;
-    private String mainClassName;
+    private AppEntryPoint entryPoint;
     private Iterable<String> defaultJvmOpts = Collections.emptyList();
     private Iterable<String> classpath;
     private Iterable<String> modulePath = Collections.emptyList();
@@ -63,8 +63,30 @@ public class StartScriptGenerator {
         this.exitEnvironmentVar = exitEnvironmentVar;
     }
 
+    /**
+     * Sets the main class name to be used when generating the start script.
+     *
+     * <p>
+     * Mutually exclusive with {@link #setEntryPoint(AppEntryPoint)}.
+     * </p>
+     *
+     * @param mainClassName the main class name to be used when generating the start script
+     */
     public void setMainClassName(String mainClassName) {
-        this.mainClassName = mainClassName;
+        this.entryPoint = new MainClass(mainClassName);
+    }
+
+    /**
+     * Sets the entry point to be used when generating the start script.
+     *
+     * <p>
+     * Mutually exclusive with {@link #setMainClassName(String)}.
+     * </p>
+     *
+     * @param entryPoint the entry point to be used when generating the start script
+     */
+    public void setEntryPoint(AppEntryPoint entryPoint) {
+        this.entryPoint = entryPoint;
     }
 
     public void setDefaultJvmOpts(Iterable<String> defaultJvmOpts) {
@@ -102,7 +124,7 @@ public class StartScriptGenerator {
     }
 
     private JavaAppStartScriptGenerationDetails createStartScriptGenerationDetails() {
-        return new DefaultJavaAppStartScriptGenerationDetails(applicationName, optsEnvironmentVar, exitEnvironmentVar, mainClassName, CollectionUtils.toStringList(defaultJvmOpts), CollectionUtils.toStringList(classpath), CollectionUtils.toStringList(modulePath), scriptRelPath, appNameSystemProperty);
+        return new DefaultJavaAppStartScriptGenerationDetails(applicationName, optsEnvironmentVar, exitEnvironmentVar, entryPoint, CollectionUtils.toStringList(defaultJvmOpts), CollectionUtils.toStringList(classpath), CollectionUtils.toStringList(modulePath), scriptRelPath, appNameSystemProperty);
     }
 
     public void generateUnixScript(final File unixScript) {
