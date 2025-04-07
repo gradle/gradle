@@ -56,7 +56,6 @@ dependencies {
     implementation(libs.commonsLang)
     implementation(libs.commonsMath)
     implementation(projects.core)
-    implementation(libs.groovyAnt)
     implementation(libs.groovyJson)
     implementation(libs.hikariCP)
     implementation(libs.jacksonCore)

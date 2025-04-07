@@ -418,7 +418,7 @@ org.gradle.api.internal.tasks.CompileServices"""
         def inputFilesDir = tmpDir.createDir('inputFiles')
         def serviceType = 'java.util.spi.ToolProvider'
         def jarFile = inputFilesDir.file('lib1.jar')
-        def multiLineProviders = 'org.junit.JarToolProvider\norg.jetbrains.ide.JavadocToolProvider\nbsh.Main'
+        def multiLineProviders = 'com.fasterxml.jackson.core.ObjectCodec\njava.security.Provider'
         createJarFileWithProviderConfigurationFile(jarFile, serviceType, multiLineProviders)
 
         when:
@@ -434,7 +434,7 @@ org.gradle.api.internal.tasks.CompileServices"""
             JarEntry providerConfigJarEntry = jar.getJarEntry("META-INF/services/$serviceType")
             IoActions.withResource(jar.getInputStream(providerConfigJarEntry), new Action<InputStream>() {
                 void execute(InputStream inputStream) {
-                    assert inputStream.text == "org.gradle.internal.impldep.org.junit.JarToolProvider\norg.gradle.internal.impldep.bsh.Main"
+                    assert inputStream.text == "org.gradle.internal.impldep.com.fasterxml.jackson.core.ObjectCodec\njava.security.Provider"
                 }
             })
         }

@@ -32,7 +32,6 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val agp = "com.android.tools.build:gradle"
     val ansiControlSequenceUtil = "net.rubygrapefruit:ansi-control-sequence-util"
     val ant = "org.apache.ant:ant"
-    val antJunit = "org.apache.ant:ant-junit"
     val antLauncher = "org.apache.ant:ant-launcher"
     val asm = "org.ow2.asm:asm"
     val asmAnalysis = "org.ow2.asm:asm-analysis"

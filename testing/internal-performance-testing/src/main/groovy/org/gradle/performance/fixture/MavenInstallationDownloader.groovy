@@ -16,12 +16,14 @@
 
 package org.gradle.performance.fixture
 
-import groovy.ant.AntBuilder
 import groovy.json.JsonSlurper
 import groovy.util.logging.Slf4j
 import org.apache.commons.io.FileUtils
 import org.gradle.api.UncheckedIOException
+import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.testfixtures.internal.NativeServicesTestFixture
 
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
@@ -109,9 +111,7 @@ class MavenInstallationDownloader {
 
     private static File extractBinArchive(String mavenVersion, File binArchive) {
         def target = File.createTempDir("maven-install-$mavenVersion-", "")
-        def ant = new AntBuilder()
-        ant.mkdir(dir: target)
-        ant.unzip(src: binArchive, dest: target)
+        new TestFile(binArchive).unzipTo(target)
         mavenInstallDirectory(target, mavenVersion)
     }
 
@@ -121,7 +121,7 @@ class MavenInstallationDownloader {
         if (!OperatingSystem.current().isWindows()) {
             // We do this after the move because that "move" can fallback to a Java copy
             // that does not preserve permissions when java.io.tmpdir sits in a different filesystem).
-            new AntBuilder().chmod(file: MavenInstallation.findMvnExecutable(home), perm: "+x")
+            NativeServicesTestFixture.instance.get(FileSystem).chmod(MavenInstallation.findMvnExecutable(home), 0744)
         }
         home
     }

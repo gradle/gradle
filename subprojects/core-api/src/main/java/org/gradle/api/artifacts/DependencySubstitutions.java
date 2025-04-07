@@ -92,7 +92,7 @@ public interface DependencySubstitutions {
      * DSL-friendly mechanism to construct a dependency substitution for dependencies matching the provided selector.
      * <p>
      * Examples:
-     * <pre class='autoTested'>
+     * <pre>
      * configurations { main }
      * configurations.main.resolutionStrategy.dependencySubstitution {
      *   // Substitute project and module dependencies

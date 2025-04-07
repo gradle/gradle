@@ -1,5 +1,3 @@
-import gradle.kotlin.dsl.accessors._778da77713fdaa859ca70b363a1e5db6.testRuntimeOnly
-
 /*
  * Copyright 2020 the original author or authors.
  *
