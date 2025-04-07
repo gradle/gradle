@@ -49,6 +49,7 @@ import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.internal.attributes.AttributeDesugaring
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema
+import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.api.specs.Spec
 import org.gradle.internal.Describables
 import org.gradle.internal.component.external.descriptor.DefaultExclude
@@ -795,9 +796,9 @@ class DependencyGraphBuilderTest extends Specification {
         then:
         DefaultMultiCauseException e = thrown()
         e.cause instanceof ModuleVersionResolveException
-        e.cause.message.contains "project :root > group:a:1.0"
-        e.cause.message.contains "project :root > group:b:1.0"
-        !e.cause.message.contains("project :root > group:b:1.0 > group:a:1.0")
+        e.cause.message.contains "unknown > group:a:1.0"
+        e.cause.message.contains "unknown > group:b:1.0"
+        !e.cause.message.contains("unknown > group:b:1.0 > group:a:1.0")
     }
 
     def "reports failure to resolve version selector to module version"() {
@@ -822,8 +823,8 @@ class DependencyGraphBuilderTest extends Specification {
         then:
         DefaultMultiCauseException e = thrown()
         e.cause instanceof ModuleVersionResolveException
-        e.cause.message.contains "project :root > group:a:1.0"
-        e.cause.message.contains "project :root > group:b:1.0"
+        e.cause.message.contains "unknown > group:a:1.0"
+        e.cause.message.contains "unknown > group:b:1.0"
     }
 
     def "merges all failures for all dependencies with a given module version selector"() {
@@ -848,8 +849,8 @@ class DependencyGraphBuilderTest extends Specification {
         then:
         DefaultMultiCauseException e = thrown()
         e.cause instanceof ModuleVersionResolveException
-        e.cause.message.contains "project :root > group:a:1.0"
-        e.cause.message.contains "project :root > group:b:1.0"
+        e.cause.message.contains "unknown > group:a:1.0"
+        e.cause.message.contains "unknown > group:b:1.0"
     }
 
     def "reports shortest incoming paths for a missing module version"() {
@@ -875,9 +876,9 @@ class DependencyGraphBuilderTest extends Specification {
         then:
         DefaultMultiCauseException e = thrown()
         e.cause instanceof ModuleVersionNotFoundException
-        e.cause.message.contains "project :root > group:a:1.0"
-        e.cause.message.contains "project :root > group:b:1.0"
-        !e.cause.message.contains("project :root > group:b:1.0 > group:a:1.0")
+        e.cause.message.contains "unknown > group:a:1.0"
+        e.cause.message.contains "unknown > group:b:1.0"
+        !e.cause.message.contains("unknown > group:b:1.0 > group:a:1.0")
     }
 
     def "merges all dependencies with a given module version selector when reporting missing version"() {
@@ -902,8 +903,8 @@ class DependencyGraphBuilderTest extends Specification {
         then:
         DefaultMultiCauseException e = thrown()
         e.cause instanceof ModuleVersionNotFoundException
-        e.cause.message.contains "project :root > group:a:1.0"
-        e.cause.message.contains "project :root > group:b:1.0"
+        e.cause.message.contains "unknown > group:a:1.0"
+        e.cause.message.contains "unknown > group:b:1.0"
     }
 
     def "can handle a cycle in the incoming paths of a broken module"() {
@@ -928,7 +929,7 @@ class DependencyGraphBuilderTest extends Specification {
         then:
         DefaultMultiCauseException e = thrown()
         e.cause instanceof ModuleVersionNotFoundException
-        e.cause.message.contains "project :root > group:a:1.0 > group:b:1.0"
+        e.cause.message.contains "unknown > group:a:1.0 > group:b:1.0"
     }
 
     def "does not report a path through an evicted version"() {
@@ -964,7 +965,7 @@ class DependencyGraphBuilderTest extends Specification {
         DefaultMultiCauseException ex = thrown()
         ex.cause instanceof ModuleVersionNotFoundException
         !ex.cause.message.contains("group:a:1.1")
-        ex.cause.message.contains "project :root > group:a:1.2"
+        ex.cause.message.contains "unknown > group:a:1.2"
 
         and:
         result.components == ids(root, selected, d, e)
@@ -993,7 +994,7 @@ class DependencyGraphBuilderTest extends Specification {
         and:
         DefaultMultiCauseException e = thrown()
         e.cause instanceof ModuleVersionNotFoundException
-        e.cause.message.contains("project :root")
+        e.cause.message.contains("unknown")
     }
 
     def "does not fail when conflict resolution evicts a version that does not exist"() {
@@ -1267,7 +1268,7 @@ class DependencyGraphBuilderTest extends Specification {
             }
 
             throw new DefaultMultiCauseException("message", failures.values().collect {
-                it.failure.withIncomingPaths(DependencyGraphPathResolver.calculatePaths(it.requiredBy, root))
+                it.failure.withIncomingPaths(DependencyGraphPathResolver.calculatePaths(it.requiredBy, root, StandaloneDomainObjectContext.ANONYMOUS))
             })
         }
 

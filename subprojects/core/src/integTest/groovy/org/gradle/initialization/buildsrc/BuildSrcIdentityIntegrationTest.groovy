@@ -106,7 +106,7 @@ runtimeClasspath - Runtime classpath of source set 'main'.
 Searched in the following locations:
   - ${m.pom.file.displayUri}
 Required by:
-    project :buildSrc""")
+    project ':buildSrc'""")
         failure.assertHasResolutions(repositoryHint("Maven POM"),
             STACKTRACE_MESSAGE,
             INFO_DEBUG,

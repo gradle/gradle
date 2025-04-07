@@ -244,7 +244,7 @@ public class ResolutionExecutor {
         ResolutionParameters params,
         CalculatedValue<ResolverResults> futureCompleteResults
     ) {
-        ResolutionFailureCollector failureCollector = new ResolutionFailureCollector(componentSelectorConverter);
+        ResolutionFailureCollector failureCollector = new ResolutionFailureCollector(componentSelectorConverter, domainObjectContext);
         InMemoryResolutionResultBuilder resolutionResultBuilder = new InMemoryResolutionResultBuilder(params.getIncludeAllSelectableVariantResults());
         ResolvedLocalComponentsResultGraphVisitor localComponentsVisitor = new ResolvedLocalComponentsResultGraphVisitor(currentBuild, projectStateRegistry);
         DefaultResolvedArtifactsBuilder artifactsBuilder = new DefaultResolvedArtifactsBuilder(buildProjectDependencies);
@@ -312,7 +312,7 @@ public class ResolutionExecutor {
         ResolvedLocalComponentsResultGraphVisitor localComponentsVisitor = new ResolvedLocalComponentsResultGraphVisitor(currentBuild, projectStateRegistry);
 
         DefaultResolvedArtifactsBuilder artifactsBuilder = new DefaultResolvedArtifactsBuilder(buildProjectDependencies);
-        ResolutionFailureCollector failureCollector = new ResolutionFailureCollector(componentSelectorConverter);
+        ResolutionFailureCollector failureCollector = new ResolutionFailureCollector(componentSelectorConverter, domainObjectContext);
 
         ImmutableList.Builder<DependencyGraphVisitor> graphVisitors = ImmutableList.builder();
         graphVisitors.add(newModelBuilder);
