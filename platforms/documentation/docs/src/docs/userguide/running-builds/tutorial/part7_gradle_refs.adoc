@@ -61,4 +61,4 @@ For Gradle support:
 We recommend going through each section of the User Manual.
 
 [.text-right]
-**Next Step:** <<command_line_interface#command_line_interface,Running Gradle Builds>> >>
+**Next Step:** <<command_line_interface#command_line_interface_reference,Running Gradle Builds>> >>

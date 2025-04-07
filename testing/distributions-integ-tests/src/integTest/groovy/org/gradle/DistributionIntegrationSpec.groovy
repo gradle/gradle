@@ -345,7 +345,6 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         contentsDir.file('docs/userguide/userguide.html').assertContents(containsString("Gradle User Manual</h1>"))
         contentsDir.file('docs/userguide/userguide_single.html').assertIsFile()
         contentsDir.file('docs/userguide/userguide_single.html').assertContents(containsString("<h1>Gradle User Manual: Version ${version}</h1>"))
-        contentsDir.file('docs/userguide/userguide.pdf').assertIsFile()
 
         // DSL reference
         contentsDir.file('docs/dsl/index.html').assertIsFile()

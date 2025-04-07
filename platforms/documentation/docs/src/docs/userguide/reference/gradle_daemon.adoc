@@ -335,7 +335,7 @@ Both the CLI options and the task configuration allow to request a JDK that is `
 $ ./gradlew updateDaemonJvm --jvm-version=17 --native-image-capable
 ----
 
-See the <<toolchains.adoc#sec:native_image,toolchain documentation section>> for more information.
+See the <<toolchains.adoc#sec:native_graalvm_image,toolchain documentation section>> for more information.
 
 [[sec:detect_provision]]
 === Auto-detection and auto-provisioning

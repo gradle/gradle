@@ -94,18 +94,11 @@ asciidoctorj {
 }
 
 tasks.withType<AsciidoctorTask>().configureEach {
-    val task = this
     val doctorj = extensions.getByType<org.asciidoctor.gradle.jvm.AsciidoctorJExtension>()
-    if (task.name == "userguideSinglePagePdf") {
-        doctorj.docExtensions(
-            project.dependencies.create(project(":docs-asciidoctor-extensions-base"))
-        )
-    } else {
-        doctorj.docExtensions(
-            project.dependencies.create(project(":docs-asciidoctor-extensions")),
-            project.dependencies.create(files("src/main/resources"))
-        )
-    }
+    doctorj.docExtensions(
+        project.dependencies.create(project(":docs-asciidoctor-extensions")),
+        project.dependencies.create(files("src/main/resources"))
+    )
 }
 
 gradleDocumentation {
