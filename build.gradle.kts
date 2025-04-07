@@ -1,3 +1,5 @@
+intentional broken
+
 plugins {
     id("gradlebuild.root-build")
 
