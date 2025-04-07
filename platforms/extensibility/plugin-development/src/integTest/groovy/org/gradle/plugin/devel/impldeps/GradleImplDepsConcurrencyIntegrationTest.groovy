@@ -20,7 +20,7 @@ import org.gradle.api.Plugin
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 
-@Requires(UnitTestPreconditions.HighPerformance)
+//@Requires(UnitTestPreconditions.HighPerformance)
 class GradleImplDepsConcurrencyIntegrationTest extends BaseGradleImplDepsIntegrationTest {
 
     private static final int CONCURRENT_BUILDS_PROJECT_COUNT = 4
@@ -96,13 +96,15 @@ class GradleImplDepsConcurrencyIntegrationTest extends BaseGradleImplDepsIntegra
 
     static String gradleApiAndTestKitClassLoadingTestClass() {
         """
-            class MyTest extends groovy.test.GroovyTestCase {
+            class MyTest {
 
+                @org.junit.jupiter.api.Test
                 void testUsageOfGradleApiAndTestKitClasses() {
                     def classLoader = getClass().classLoader
                     classLoader.loadClass('${Plugin.class.getName()}')
                     classLoader.loadClass('org.gradle.testkit.runner.GradleRunner')
                 }
+
             }
         """
     }
