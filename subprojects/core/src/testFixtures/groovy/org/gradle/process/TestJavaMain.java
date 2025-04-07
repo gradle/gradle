@@ -17,7 +17,10 @@
 package org.gradle.process;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.Comparator;
 import java.util.Map;
 
@@ -34,22 +37,30 @@ public class TestJavaMain {
     }
 
     public static void main(String[] args) {
+        StringBuilder output = new StringBuilder();
         if (args.length > 0) {
-            System.out.println("ARGUMENTS: " + String.join(" ", args));
+            output.append("ARGUMENTS: ").append(String.join(" ", args)).append("\n");
         }
-        System.out.println("ENVIRONMENT:");
-        printMap(System.getenv(), "TEST_");
+        output.append("ENVIRONMENT:\n");
+        appendMap(output, System.getenv(), "TEST_");
 
-        System.out.println("PROPERTIES:");
-        printMap(System.getProperties(), "test.");
+        output.append("PROPERTIES:\n");
+        appendMap(output, System.getProperties(), "test.");
 
-        System.out.println("user.dir=" + System.getProperty("user.dir"));
+        output.append("user.dir=").append(System.getProperty("user.dir")).append("\n");
+        System.out.println(output);
+
+        try {
+            Files.write(new File(System.getProperty("user.dir"), "output.txt").toPath(), output.toString().getBytes(StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    private static void printMap(Map<?, ?> items, String prefix) {
-        items.entrySet().stream().filter(e -> String.valueOf(e.getKey()).startsWith(prefix)).sorted(comparingByStringifiedKey()).forEach(e -> {
-            System.out.printf("   %s=%s\n", e.getKey(), e.getValue());
-        });
+    private static void appendMap(StringBuilder output, Map<?, ?> items, String prefix) {
+        items.entrySet().stream()
+            .filter(e -> String.valueOf(e.getKey()).startsWith(prefix))
+            .sorted(comparingByStringifiedKey()).forEach(e -> output.append(String.format("   %s=%s\n", e.getKey(), e.getValue())));
     }
 
     private static Comparator<Map.Entry<?, ?>> comparingByStringifiedKey() {
