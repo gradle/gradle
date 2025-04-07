@@ -87,8 +87,13 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
     }
 
     private static ProblemId id(Diagnostic<? extends JavaFileObject> diagnostic) {
-        String idName = diagnostic.getCode().replace('.', '-');
-        return ProblemId.create(idName, mapKindToDisplayName(diagnostic.getKind()), GradleCoreProblemGroup.compilation().java());
+        String code = diagnostic.getCode();
+        String message = diagnostic.getMessage(Locale.getDefault());
+        return ProblemId.create(
+            code == null ? "unknown" : code,
+            message == null ? "unknown" : message,
+            GradleCoreProblemGroup.compilation().java()
+        );
     }
 
     /**
@@ -159,31 +164,49 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
 
     @VisibleForTesting
     void buildProblem(Diagnostic<? extends JavaFileObject> diagnostic, ProblemSpec spec) {
+        addSeverity(diagnostic, spec);
+        addLocations(diagnostic, spec);
+
+        String label = toFormattedLabel(diagnostic);
+        addContextualLabel(label, spec);
+
+        String details = toFormattedDetails(diagnostic);
+        // We cannot be sure that the compiler makes us a message, hence the defensiveness
+        if (details != null) {
+            addDetails(details, spec);
+            // NOTE: This is required to keep backward compatibility
+            // By default, when a compiler is called without a diagnostic listener
+            // the compiler will print the diagnostic message to the error stream
+            System.err.println(details);
+        }
+    }
+
+    /**
+     * Adds a contextual label to the problem spec.
+     * <p>
+     * This method will sanitize the label by splitting it into lines, and only using the first line.
+     *
+     * @param label the label to add
+     * @param spec the problem spec to add the label to
+     */
+    private static void addContextualLabel(String label, ProblemSpec spec) {
+        String[] lines = label.split(System.lineSeparator(), 2);
+        spec.contextualLabel(lines[0]);
+    }
+
+    private static void addDetails(String formattedMessage, ProblemSpec spec) {
+        spec.details(formattedMessage);
+    }
+
+    private static void addSeverity(Diagnostic<? extends JavaFileObject> diagnostic, ProblemSpec spec) {
         Severity severity = mapKindToSeverity(diagnostic.getKind());
         spec.severity(severity);
-        addFormattedMessage(spec, diagnostic);
-        addDetails(spec, diagnostic);
-        addLocations(spec, diagnostic);
         if (severity == Severity.ERROR) {
             spec.solution(CompilationFailedException.RESOLUTION_MESSAGE);
         }
     }
 
-    private void addFormattedMessage(ProblemSpec spec, Diagnostic<? extends JavaFileObject> diagnostic) {
-        String formatted = toFormattedMessage(diagnostic);
-        System.err.println(formatted);
-        spec.details(formatted);
-    }
-
-    private static void addDetails(ProblemSpec spec, Diagnostic<? extends JavaFileObject> diagnostic) {
-        String message = diagnostic.getMessage(Locale.getDefault());
-        String[] messageLines = message.split("\n");
-
-        // Contextual label is always the first line of the message
-        spec.contextualLabel(messageLines[0]);
-    }
-
-    private static void addLocations(ProblemSpec spec, Diagnostic<? extends JavaFileObject> diagnostic) {
+    private static void addLocations(Diagnostic<? extends JavaFileObject> diagnostic, ProblemSpec spec) {
         String resourceName = diagnostic.getSource() != null ? getPath(diagnostic.getSource()) : null;
         int line = clampLocation(diagnostic.getLineNumber());
         int column = clampLocation(diagnostic.getColumnNumber());
@@ -223,12 +246,49 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
         }
     }
 
-    private String toFormattedMessage(Diagnostic<? extends JavaFileObject> diagnostic) {
+    /**
+     * Using a {@link DiagnosticFormatter}, turns a diagnostic into a human-readable multi-line message.
+     * <p>
+     * This method uses an internal Java compiler API to get a formatter.
+     * <p>
+     * In some circumstances, getting the formatter can fail, after which we would use a
+     * fail-safe way of formatting the message.
+     * The drawback is that the formatters are not equal. Normally, we would get a {@code RichDiagnosticFormatter}
+     * instance that can simplify types, generics, and is the formatter normally used by {@code javac}.
+     * <p>
+     * The failsafe (normally {@code BasicDiagnosticFormatter}, however, uses a much simpler algorithm to format the message,
+     * and will make a different, more terse message.
+     **/
+    private String toFormattedDetails(Diagnostic<? extends JavaFileObject> diagnostic) {
         try {
             DiagnosticFormatter<JCDiagnostic> formatter = Log.instance(context).getDiagnosticFormatter();
+            // Note: this method uses a different formatter than #toFormattedLabel
             return formatter.format((JCDiagnostic) diagnostic, JavacMessages.instance(context).getCurrentLocale());
         } catch (Exception ex) {
-            // If for some reason the formatter fails, we can still get the message
+            LOGGER.info(FORMATTER_FALLBACK_MESSAGE);
+            return diagnostic.getMessage(Locale.getDefault());
+        }
+    }
+
+    /**
+     * Using a {@link DiagnosticFormatter}, turns a diagnostic into a human-readable label.
+     * <p>
+     * This method uses an internal Java compiler API to get a formatter.
+     * <p>
+     * In some circumstances, getting the formatter can fail, after which we would use a
+     * fail-safe way of formatting the message.
+     * The drawback is that the formatters are not equal. Normally, we would get a {@code RichDiagnosticFormatter}
+     * instance that can simplify types, generics, and is the formatter normally used by {@code javac}.
+     * <p>
+     * The failsafe (normally {@code BasicDiagnosticFormatter}, however, uses a much simpler algorithm to format the message,
+     * and will make a different, more terse message.
+     **/
+    private String toFormattedLabel(Diagnostic<? extends JavaFileObject> diagnostic) {
+        try {
+            DiagnosticFormatter<JCDiagnostic> formatter = Log.instance(context).getDiagnosticFormatter();
+            // Note: this method uses a different formatter than #toFormattedDetails
+            return formatter.formatMessage((JCDiagnostic) diagnostic, JavacMessages.instance(context).getCurrentLocale());
+        } catch (Exception ex) {
             LOGGER.info(FORMATTER_FALLBACK_MESSAGE);
             return diagnostic.getMessage(Locale.getDefault());
         }
@@ -252,22 +312,6 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
 
     private static String getPath(JavaFileObject fileObject) {
         return fileObject.getName();
-    }
-
-    private static String mapKindToDisplayName(Diagnostic.Kind kind) {
-        switch (kind) {
-            case ERROR:
-                return "Java compilation error";
-            case WARNING:
-            case MANDATORY_WARNING:
-                return "Java compilation warning";
-            case NOTE:
-                return "Java compilation note";
-            case OTHER:
-                return "Java compilation problem";
-            default:
-                return "Unknown java compilation problem";
-        }
     }
 
     private static Severity mapKindToSeverity(Diagnostic.Kind kind) {
