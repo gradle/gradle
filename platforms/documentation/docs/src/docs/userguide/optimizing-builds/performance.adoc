@@ -919,6 +919,7 @@ For additional tips specific to Android, check out the official resources from t
 
 * https://developer.android.com/studio/build/optimize-your-build.html[Optimize your build performance (Android Developer Guide)]
 * https://www.youtube.com/watch?v=7ll-rkLCtyk[Optimizing Gradle Builds for Android (Google I/O 2017 Talk)]
+
 [[improve_older_projects]]
 == 13. Improve the Performance of Older Gradle Releases
 
