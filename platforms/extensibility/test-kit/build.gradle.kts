@@ -56,6 +56,10 @@ dependencies {
     integTestDistributionRuntimeOnly(projects.distributionsBasics)
 }
 
+// Test kit should not be part of the public API
+// TODO Find a way to not register this and the task instead
+configurations.remove(configurations.apiStubElements.get())
+
 val generateTestKitPackageList by tasks.registering(PackageListGenerator::class) {
     classpath.from(sourceSets.main.map { it.runtimeClasspath })
     outputFile = layout.buildDirectory.file("runtime-api-info/test-kit-relocated.txt")

@@ -1,4 +1,3 @@
-import gradlebuild.basics.ClassFileContentsAttribute
 import gradlebuild.configureAsRuntimeJarClasspath
 import gradlebuild.modules.extension.ExternalModulesExtension
 import gradlebuild.packaging.tasks.ExtractJavaAbi
@@ -45,7 +44,8 @@ val apiStubElements = configurations.consumable("apiStubElements") {
     extendsFrom(configurations.named("implementation").get())
     extendsFrom(configurations.named("compileOnly").get())
     attributes {
-        attribute(ClassFileContentsAttribute.attribute, ClassFileContentsAttribute.STUBS)
+        // Only use the category attribute, to make sure this cannot be confused with anything else
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named("api-stubs"))
     }
 }
 
