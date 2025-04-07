@@ -14,13 +14,18 @@
  * limitations under the License.
  */
 
-plugins {
-    id("gradlebuild.distribution.implementation-java")
-    id("gradlebuild.publish-public-libraries")
-}
+package org.gradle.api.internal.plugins;
 
-description = "Public API classes used by software features"
+import org.gradle.api.Incubating;
 
-dependencies {
-    implementation(projects.stdlibJavaExtensions)
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+@Incubating
+@Target({ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface BindsSoftwareFeature {
+    Class<? extends SoftwareFeatureBindingRegistration> value();
 }

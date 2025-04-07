@@ -23,15 +23,23 @@ import org.gradle.api.NamedDomainObjectCollectionSchema;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.initialization.Settings;
+import org.gradle.api.internal.plugins.BindsSoftwareType;
+import org.gradle.api.internal.plugins.SoftwareFeatureBinding;
+import org.gradle.api.internal.plugins.SoftwareFeatureBindingRegistration;
+import org.gradle.api.internal.plugins.software.SoftwareFeature;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.internal.plugins.software.SoftwareType;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.internal.Cast;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
 import org.gradle.internal.properties.annotations.TypeMetadata;
+import org.gradle.internal.properties.annotations.TypeMetadataStore;
 import org.gradle.internal.properties.annotations.TypeMetadataWalker;
+import org.gradle.internal.reflect.annotations.TypeAnnotationMetadata;
 
 import javax.annotation.Nullable;
+import java.lang.reflect.Modifier;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -49,6 +57,7 @@ public class DefaultSoftwareFeatureRegistry implements SoftwareFeatureRegistry {
     @Nullable
     private Map<String, SoftwareFeatureImplementation<?>> softwareFeatureImplementations;
 
+    @SuppressWarnings("unused")
     private final InspectionScheme inspectionScheme;
 
     public DefaultSoftwareFeatureRegistry(InspectionScheme inspectionScheme) {
@@ -66,10 +75,15 @@ public class DefaultSoftwareFeatureRegistry implements SoftwareFeatureRegistry {
     private Map<String, SoftwareFeatureImplementation<?>> discoverSoftwareTypeImplementations() {
         final ImmutableMap.Builder<String, SoftwareFeatureImplementation<?>> softwareTypeImplementationsBuilder = ImmutableMap.builder();
         pluginClasses.forEach((registeringPluginClass, registeredPluginClasses) ->
-            registeredPluginClasses.forEach(pluginClass -> {
+            registeredPluginClasses.forEach( pluginClass -> {
                 TypeToken<?> pluginType = TypeToken.of(pluginClass);
-                TypeMetadataWalker.typeWalker(inspectionScheme.getMetadataStore(), SoftwareType.class)
-                    .walk(pluginType, new SoftwareTypeImplementationRecordingVisitor(pluginClass, registeringPluginClass, registeredTypes, softwareTypeImplementationsBuilder));
+                TypeMetadata pluginClassTypeMetadata = inspectionScheme.getMetadataStore().getTypeMetadata(pluginClass);
+                TypeAnnotationMetadata pluginClassAnnotationMetadata = pluginClassTypeMetadata.getTypeAnnotationMetadata();
+                Optional<BindsSoftwareType> bindsSoftwareTypeAnnotation = pluginClassAnnotationMetadata.getAnnotation(BindsSoftwareType.class);
+                if (bindsSoftwareTypeAnnotation.isPresent()) {
+                    BindsSoftwareType bindsSoftwareType = bindsSoftwareTypeAnnotation.get();
+                    SoftwareFeatureBindingRegistration softwareFeatureBindingRegistration = bindsSoftwareType.value().
+                }
             })
         );
         return softwareTypeImplementationsBuilder.build();
@@ -98,17 +112,56 @@ public class DefaultSoftwareFeatureRegistry implements SoftwareFeatureRegistry {
         );
     }
 
+    private void registerSoftwareTypeImplementations(Class<? extends Plugin<Project>> pluginClass, Class<? extends Plugin<Settings>> registeringPluginClass, ImmutableMap.Builder<String, SoftwareFeatureImplementation<?>> softwareFeatureImplementationBuilder) {
+        Arrays.stream(pluginClass.getDeclaredFields())
+            .filter(field -> field.isAnnotationPresent(SoftwareType.class) || field.isAnnotationPresent(SoftwareFeature.class))
+            .forEach(field -> {
+
+            if (field.getType().isAssignableFrom(SoftwareFeatureBinding.class)) {
+                if (!Modifier.isStatic(field.getModifiers())) {
+                    // throw new IllegalArgumentException("Method annotated with @SoftwareType must be static: " + method);
+                    return;
+                }
+                SoftwareFeatureBinding softwareFeatureDslBinding;
+                try {
+                    softwareFeatureDslBinding = Cast.uncheckedNonnullCast(field.get(pluginClass));
+                } catch (IllegalAccessException e) {
+                    throw new RuntimeException(e);
+                }
+
+                String softwareTypeName = softwareFeatureDslBinding.getPath().getName();
+                Class<? extends Plugin<Project>> existingPluginClass = registeredTypes.put(softwareTypeName, pluginClass);
+                if (existingPluginClass != null && existingPluginClass != pluginClass) {
+                    throw new IllegalArgumentException("Software type '" + softwareTypeName + "' is registered by both '" + pluginClass.getName() + "' and '" + existingPluginClass.getName() + "'");
+                }
+
+                softwareFeatureImplementationBuilder.put(
+                    softwareTypeName,
+                    new DefaultSoftwareFeatureImplementation<>(
+                        softwareFeatureDslBinding.getPath().getName(),
+                        softwareFeatureDslBinding.getDslType(),
+                        softwareFeatureDslBinding.getBindingTargetType(),
+                        softwareFeatureDslBinding.getBuildModelType(),
+                        pluginClass,
+                        registeringPluginClass,
+                        Cast.uncheckedCast(softwareFeatureDslBinding.getTransform())
+                    )
+                );
+            }
+        });
+    }
+
     private static class SoftwareTypeImplementationRecordingVisitor implements TypeMetadataWalker.StaticMetadataVisitor {
         private final Class<? extends Plugin<Project>> pluginClass;
         private final Class<? extends Plugin<Settings>> registeringPluginClass;
         private final Map<String, Class<? extends Plugin<Project>>> registeredTypes;
-        private final ImmutableMap.Builder<String, SoftwareFeatureImplementation<?>> softwareTypeImplementationsBuilder;
+        private final ImmutableMap.Builder<String, SoftwareTypeImplementation<?>> softwareTypeImplementationsBuilder;
 
         public SoftwareTypeImplementationRecordingVisitor(
-                Class<? extends Plugin<Project>> pluginClass,
-                Class<? extends Plugin<Settings>> registeringPluginClass,
-                Map<String, Class<? extends Plugin<Project>>> registeredTypes,
-                ImmutableMap.Builder<String, SoftwareFeatureImplementation<?>> softwareTypeImplementationsBuilder) {
+            Class<? extends Plugin<Project>> pluginClass,
+            Class<? extends Plugin<Settings>> registeringPluginClass,
+            Map<String, Class<? extends Plugin<Project>>> registeredTypes,
+            ImmutableMap.Builder<String, SoftwareTypeImplementation<?>> softwareTypeImplementationsBuilder) {
             this.pluginClass = pluginClass;
             this.registeringPluginClass = registeringPluginClass;
             this.registeredTypes = registeredTypes;
@@ -129,7 +182,7 @@ public class DefaultSoftwareFeatureRegistry implements SoftwareFeatureRegistry {
 
                 softwareTypeImplementationsBuilder.put(
                     softwareType.name(),
-                    new DefaultSoftwareFeatureImplementation<>(
+                    new DefaultSoftwareTypeImplementation<>(
                         softwareType.name(),
                         publicTypeOf(propertyMetadata, softwareType),
                         Cast.uncheckedNonnullCast(pluginClass),

@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.gradle.plugin.software.internal;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.initialization.Settings;
+import org.gradle.api.internal.plugins.SoftwareFeatureTransform;
 
 /**
  * Represents a resolved software type implementation including the public model type and the plugin that exposes it.
@@ -28,9 +29,15 @@ public interface SoftwareFeatureImplementation<T> {
 
     Class<? extends T> getModelPublicType();
 
+    Class<?> getBindingType();
+
+    Class<?> getBuildModelType();
+
     Class<? extends Plugin<Project>> getPluginClass();
 
     Class<? extends Plugin<Settings>> getRegisteringPluginClass();
+
+    SoftwareFeatureTransform<T, ?, ?> getBindingTransform();
 
     void addModelDefault(ModelDefault<?> modelDefault);
 

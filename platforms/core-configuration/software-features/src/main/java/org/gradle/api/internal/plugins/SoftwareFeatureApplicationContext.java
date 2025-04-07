@@ -14,13 +14,17 @@
  * limitations under the License.
  */
 
-plugins {
-    id("gradlebuild.distribution.implementation-java")
-    id("gradlebuild.publish-public-libraries")
-}
+package org.gradle.api.internal.plugins;
 
-description = "Public API classes used by software features"
+import org.gradle.api.Project;
+import org.gradle.api.file.ProjectLayout;
 
-dependencies {
-    implementation(projects.stdlibJavaExtensions)
+import javax.inject.Inject;
+
+public interface SoftwareFeatureApplicationContext {
+    @Inject
+    ProjectLayout getProjectLayout();
+
+    @Inject
+    Project getProject();
 }

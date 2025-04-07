@@ -15,7 +15,7 @@
  */
 
 plugins {
-    id("gradlebuild.distribution.implementation-java")
+    id("gradlebuild.distribution.implementation-kotlin")
 }
 
 description = "Implementation of Software Features and Types"

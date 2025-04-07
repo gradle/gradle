@@ -14,13 +14,8 @@
  * limitations under the License.
  */
 
-plugins {
-    id("gradlebuild.distribution.implementation-java")
-    id("gradlebuild.publish-public-libraries")
-}
+package org.gradle.api.internal.plugins;
 
-description = "Public API classes used by software features"
-
-dependencies {
-    implementation(projects.stdlibJavaExtensions)
+public interface SoftwareFeatureBindingBuilder extends DslBindingBuilder {
+    <T, U, V> SoftwareFeatureBindingBuilder bind(String name, Class<T> dslType, Class<U> bindingTargetType, Class<V> buildModelType, SoftwareFeatureTransform<T, U, V> transform);
 }

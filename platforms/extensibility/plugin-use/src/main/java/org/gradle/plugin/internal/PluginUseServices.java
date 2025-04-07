@@ -214,7 +214,7 @@ public class PluginUseServices extends AbstractGradleModuleServices {
             PluginManagerInternal pluginManager,
             ProjectInternal project
         ) {
-            return new DefaultSoftwareFeatureApplicator(modelDefaultsApplicator, pluginScheme.getInspectionScheme(), problems, pluginManager, project.getClassLoaderScope());
+            return new DefaultSoftwareFeatureApplicator(modelDefaultsApplicator, pluginScheme.getInspectionScheme(), problems, pluginManager, project.getClassLoaderScope(), project.getObjects());
         }
 
         @Provides

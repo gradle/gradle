@@ -19,7 +19,9 @@ package org.gradle.plugin.software.internal;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.initialization.Settings;
+import org.gradle.api.internal.plugins.SoftwareFeatureTransform;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -30,19 +32,28 @@ import java.util.Objects;
  */
 public class DefaultSoftwareFeatureImplementation<T> implements SoftwareFeatureImplementation<T> {
     private final String featureName;
-    private final Class<? extends T> modelPublicType;
+    private final Class<T> modelPublicType;
+    private final Class<?> bindingType;
+    private final Class<?> buildModelType;
     private final Class<? extends Plugin<Project>> pluginClass;
     private final Class<? extends Plugin<Settings>> registeringPluginClass;
     private final List<ModelDefault<?>> defaults = new ArrayList<>();
+    private final SoftwareFeatureTransform<T, ?, ?> bindingTransform;
 
     public DefaultSoftwareFeatureImplementation(String featureName,
-                                                Class<? extends T> modelPublicType,
+                                                Class<T> modelPublicType,
+                                                Class<?> bindingType,
+                                                Class<?> buildModelType,
                                                 Class<? extends Plugin<Project>> pluginClass,
-                                                Class<? extends Plugin<Settings>> registeringPluginClass) {
+                                                Class<? extends Plugin<Settings>> registeringPluginClass,
+                                                SoftwareFeatureTransform<T, ?, ?> bindingTransform) {
         this.featureName = featureName;
         this.modelPublicType = modelPublicType;
+        this.bindingType = bindingType;
+        this.buildModelType = buildModelType;
         this.pluginClass = pluginClass;
         this.registeringPluginClass = registeringPluginClass;
+        this.bindingTransform = bindingTransform;
     }
 
     @Override
@@ -51,8 +62,19 @@ public class DefaultSoftwareFeatureImplementation<T> implements SoftwareFeatureI
     }
 
     @Override
-    public Class<? extends T> getModelPublicType() {
+    public Class<T> getModelPublicType() {
         return modelPublicType;
+    }
+
+    @Override
+    public Class<?> getBuildModelType() {
+        return buildModelType;
+    }
+
+    @Override
+    @Nullable
+    public Class<?> getBindingType() {
+        return bindingType;
     }
 
     @Override
@@ -63,6 +85,11 @@ public class DefaultSoftwareFeatureImplementation<T> implements SoftwareFeatureI
     @Override
     public Class<? extends Plugin<Settings>> getRegisteringPluginClass() {
         return registeringPluginClass;
+    }
+
+    @Override
+    public SoftwareFeatureTransform<T, ?, ?> getBindingTransform() {
+        return bindingTransform;
     }
 
     @Override
