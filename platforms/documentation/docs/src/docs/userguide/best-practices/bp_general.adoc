@@ -36,13 +36,13 @@ Since Gradle 8.0, link:https://blog.gradle.org/kotlin-dsl-is-now-the-default-for
 ==== Don't Do This
 
 ====
-include::sample[dir="snippets/bestPractices/useKotlinDSL/groovy/avoid-this",files="build.gradle[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/useKotlinDSL/groovy",files="build.gradle[tags=avoid-this]"]
 ====
 
 ==== Do This Instead
 
 ====
-include::sample[dir="snippets/bestPractices/useKotlinDSL/kotlin/do-this",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/useKotlinDSL/kotlin",files="build.gradle.kts[tags=do-this]"]
 ====
 
 === References
