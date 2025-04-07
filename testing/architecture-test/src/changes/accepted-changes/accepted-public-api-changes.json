@@ -249,14 +249,6 @@
             ]
         },
         {
-            "type": "org.gradle.api.file.RelativePath",
-            "member": "Method org.gradle.api.file.RelativePath.getParent()",
-            "acceptation": "Method can return null values",
-            "changes": [
-                "From non-null returning to null returning breaking change"
-            ]
-        },
-        {
             "type": "org.gradle.api.plugins.BasePluginConvention",
             "member": "Class org.gradle.api.plugins.BasePluginConvention",
             "acceptation": "Remove deprecated API",
@@ -275,14 +267,6 @@
         {
             "type": "org.gradle.api.plugins.BasePluginConvention",
             "member": "Method org.gradle.api.plugins.BasePluginConvention.getArchivesBaseName()",
-            "acceptation": "Remove deprecated API",
-            "changes": [
-                "Method has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.api.plugins.BasePluginConvention",
-            "member": "Method org.gradle.api.plugins.BasePluginConvention.getDistsDirName()",
             "acceptation": "Remove deprecated API",
             "changes": [
                 "Method has been removed"
@@ -604,6 +588,30 @@
             "type": "org.gradle.api.tasks.Upload",
             "member": "Method org.gradle.api.tasks.Upload.upload()",
             "acceptation": "Removed deprecated class",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.AbstractCompile",
+            "member": "Method org.gradle.api.tasks.compile.AbstractCompile.getDestinationDir()",
+            "acceptation": "Removing @Deprecated property for Gradle 9.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.AbstractCompile",
+            "member": "Method org.gradle.api.tasks.compile.AbstractCompile.setDestinationDir(java.io.File)",
+            "acceptation": "Removing @Deprecated property for Gradle 9.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.AbstractCompile",
+            "member": "Method org.gradle.api.tasks.compile.AbstractCompile.setDestinationDir(org.gradle.api.provider.Provider)",
+            "acceptation": "Removing @Deprecated property for Gradle 9.0",
             "changes": [
                 "Method has been removed"
             ]

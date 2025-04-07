@@ -445,7 +445,7 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
                 // In the Kotlin plugin, the subclass manages its own field which will be used here.
                 // This was to support tasks that extended AbstractCompile and had their own getDestinationDir().
                 // We actually need to keep this as compile.getDestinationDir to maintain compatibility.
-                legacyValue = compile.getDestinationDir();
+                legacyValue = compile.getDestinationDirectory().getAsFile().get();
             } finally {
                 recursiveCall = false;
             }
