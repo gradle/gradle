@@ -729,6 +729,14 @@
             ]
         },
         {
+            "type": "org.gradle.api.tasks.diagnostics.DependencyInsightReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.getDependencySpec()",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.tasks.javadoc.Groovydoc",
             "member": "Method org.gradle.api.tasks.javadoc.Groovydoc.getAntGroovydoc()",
             "acceptation": "these methods were deprecated",

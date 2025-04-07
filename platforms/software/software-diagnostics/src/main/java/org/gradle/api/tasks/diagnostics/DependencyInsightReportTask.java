@@ -56,7 +56,6 @@ import org.gradle.api.tasks.diagnostics.internal.insight.DependencyInsightReport
 import org.gradle.api.tasks.diagnostics.internal.text.StyledTable;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.initialization.StartParameterBuildOptions;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.graph.GraphRenderer;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.logging.text.StyledTextOutput;
@@ -160,22 +159,6 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
             rootComponentProperty.set(configuration.getIncoming().getResolutionResult().getRootComponent());
         }
         return rootComponentProperty;
-    }
-
-    /**
-     * Selects the dependency (or dependencies if multiple matches found) to show the report for.
-     * @deprecated Not intended for public use.
-     */
-    @Internal
-    @Deprecated
-    public @Nullable Spec<DependencyResult> getDependencySpec() {
-        DeprecationLogger
-            .deprecateMethod(DependencyInsightReportTask.class, "getDependencySpec()")
-            .withContext("This method is not intended for public use.")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "dependency-insight-report-task-get-dependency-spec")
-            .nagUser();
-        return dependencySpec;
     }
 
     /**
