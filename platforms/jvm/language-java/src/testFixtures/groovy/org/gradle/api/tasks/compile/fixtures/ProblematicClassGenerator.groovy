@@ -29,6 +29,8 @@ class ProblematicClassGenerator {
 
         // Get the class name from the file name
         this.sourceFile << """\
+import java.util.List;
+
 public class ${className} {
 
 """
@@ -50,6 +52,16 @@ public class ${className} {
 public void error${errorIndex}() {
     // Missing semicolon will trigger an error
     String s = "Hello, World!"
+}
+"""
+    }
+
+    void addNotable() {
+        errorIndex += 1
+        sourceFile << """\
+public void notable${errorIndex}() {
+    Object someObject = "Hello, World!";
+    List<String> strings = (List<String>) someObject; // Unchecked cast
 }
 """
     }

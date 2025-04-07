@@ -34,6 +34,7 @@ class DaemonJvmPropertiesAccessorTest extends Specification {
         def properties = [
             "toolchainVersion": "12",
             "toolchainVendor": "BELLSOFT",
+            "toolchainNativeImageCapable": "true",
             "toolchainUrl.FREE_BSD.X86_64": "https://server?os=FREE_BSD&architecture=X86_64",
             "toolchainUrl.FREE_BSD.AARCH64": "https://server?os=FREE_BSD&architecture=AARCH64",
             "toolchainUrl.LINUX.X86_64": "https://server?os=LINUX&architecture=X86_64",
@@ -54,6 +55,7 @@ class DaemonJvmPropertiesAccessorTest extends Specification {
         then:
         propertiesAccessor.version == JavaLanguageVersion.of(12)
         propertiesAccessor.vendor == JvmVendorSpec.BELLSOFT
+        propertiesAccessor.nativeImageCapable
         def expectedDownloadUrlsBySupportedBuildPlatform = Stream.of(Architecture.X86_64, Architecture.AARCH64).flatMap(arch ->
             Stream.of(OperatingSystem.values()).map(os -> BuildPlatformFactory.of(arch, os)))
             .collect(Collectors.toSet()).collectEntries { buildPlatform ->

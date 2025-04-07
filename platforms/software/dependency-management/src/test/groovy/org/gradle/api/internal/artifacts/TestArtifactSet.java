@@ -20,10 +20,10 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
@@ -39,20 +39,20 @@ import java.util.Collection;
 public class TestArtifactSet implements ResolvedArtifactSet, ResolvedArtifactSet.Artifacts {
     public static final String DEFAULT_TEST_VARIANT = "test variant";
     private final DisplayName variantName;
-    private final AttributeContainer variant;
+    private final ImmutableAttributes variant;
     private final ImmutableSet<ResolvedArtifact> artifacts;
 
-    private TestArtifactSet(String variantName, AttributeContainer variant, Collection<? extends ResolvedArtifact> artifacts) {
+    private TestArtifactSet(String variantName, ImmutableAttributes variant, Collection<? extends ResolvedArtifact> artifacts) {
         this.variantName = Describables.of(variantName);
         this.variant = variant;
         this.artifacts = ImmutableSet.copyOf(artifacts);
     }
 
-    public static ResolvedArtifactSet create(String variantName, AttributeContainer variantAttributes, Collection<? extends ResolvedArtifact> artifacts) {
+    public static ResolvedArtifactSet create(String variantName, ImmutableAttributes variantAttributes, Collection<? extends ResolvedArtifact> artifacts) {
         return new TestArtifactSet(variantName, variantAttributes, artifacts);
     }
 
-    public static ResolvedArtifactSet create(AttributeContainer variantAttributes, Collection<? extends ResolvedArtifact> artifacts) {
+    public static ResolvedArtifactSet create(ImmutableAttributes variantAttributes, Collection<? extends ResolvedArtifact> artifacts) {
         return new TestArtifactSet(DEFAULT_TEST_VARIANT, variantAttributes, artifacts);
     }
 

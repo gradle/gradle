@@ -302,6 +302,10 @@ abstract class AbstractJavaCompilerIntegrationSpec extends AbstractIntegrationSp
         fails("compileJava")
 
         then:
+        releaseFlagAssertions()
+    }
+
+    void releaseFlagAssertions() {
         failureHasCause('Cannot specify --release via `CompileOptions.compilerArgs` when using `CompileOptions.release`.')
     }
 

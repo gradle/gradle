@@ -46,9 +46,9 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.api.tasks.util.internal.PatternSetFactory;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
-import org.gradle.internal.Factory;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
@@ -72,7 +72,7 @@ import java.util.regex.Pattern;
 @NonExtensible
 public class DefaultCopySpec implements CopySpecInternal {
     private static final NotationParser<Object, String> PATH_NOTATION_PARSER = PathNotationConverter.parser();
-    protected final Factory<PatternSet> patternSetFactory;
+    protected final PatternSetFactory patternSetFactory;
     protected final FileCollectionFactory fileCollectionFactory;
     protected final Instantiator instantiator;
     private final PropertyFactory propertyFactory;
@@ -93,11 +93,11 @@ public class DefaultCopySpec implements CopySpecInternal {
     private PatternFilterable preserve = new PatternSet();
 
     @Inject
-    public DefaultCopySpec(FileCollectionFactory fileCollectionFactory, PropertyFactory propertyFactory, Instantiator instantiator, Factory<PatternSet> patternSetFactory) {
-        this(fileCollectionFactory, propertyFactory, instantiator, patternSetFactory, patternSetFactory.create());
+    public DefaultCopySpec(FileCollectionFactory fileCollectionFactory, PropertyFactory propertyFactory, Instantiator instantiator, PatternSetFactory patternSetFactory) {
+        this(fileCollectionFactory, propertyFactory, instantiator, patternSetFactory, patternSetFactory.createPatternSet());
     }
 
-    public DefaultCopySpec(FileCollectionFactory fileCollectionFactory, PropertyFactory propertyFactory, Instantiator instantiator, Factory<PatternSet> patternSetFactory, PatternSet patternSet) {
+    public DefaultCopySpec(FileCollectionFactory fileCollectionFactory, PropertyFactory propertyFactory, Instantiator instantiator, PatternSetFactory patternSetFactory, PatternSet patternSet) {
         this.sourcePaths = fileCollectionFactory.configurableFiles();
         this.fileCollectionFactory = fileCollectionFactory;
         this.propertyFactory = propertyFactory;
@@ -108,7 +108,7 @@ public class DefaultCopySpec implements CopySpecInternal {
         this.dirPermissions = propertyFactory.property(ConfigurableFilePermissions.class);
     }
 
-    public DefaultCopySpec(FileCollectionFactory fileCollectionFactory, PropertyFactory propertyFactory, Instantiator instantiator, Factory<PatternSet> patternSetFactory, @Nullable String destPath, FileCollection source, PatternSet patternSet, Collection<? extends Action<? super FileCopyDetails>> copyActions, Collection<CopySpecInternal> children) {
+    public DefaultCopySpec(FileCollectionFactory fileCollectionFactory, PropertyFactory propertyFactory, Instantiator instantiator, PatternSetFactory patternSetFactory, @Nullable String destPath, FileCollection source, PatternSet patternSet, Collection<? extends Action<? super FileCopyDetails>> copyActions, Collection<CopySpecInternal> children) {
         this(fileCollectionFactory, propertyFactory, instantiator, patternSetFactory, patternSet);
         sourcePaths.from(source);
         destDir = destPath;
@@ -873,8 +873,7 @@ public class DefaultCopySpec implements CopySpecInternal {
         }
 
         public PatternSet getPatternSet() {
-            PatternSet patterns = patternSetFactory.create();
-            assert patterns != null;
+            PatternSet patterns = patternSetFactory.createPatternSet();
             patterns.setCaseSensitive(isCaseSensitive());
             patterns.include(this.getAllIncludes());
             patterns.includeSpecs(getAllIncludeSpecs());

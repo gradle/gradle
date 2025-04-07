@@ -102,6 +102,7 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
             getPropertiesFile().get().getAsFile(),
             getLanguageVersion().get(),
             jvmVendorCriteria,
+            getNativeImageCapable().getOrElse(false),
             getToolchainDownloadUrls().get()
         );
     }
@@ -109,13 +110,11 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
     @SuppressWarnings("Deprecated")
     private void handleDeprecatedJvmVendor() {
         if (jvmVendorDeprecated.isPresent()) {
-            String message = "Configuring 'jvmVendor' is no longer supported.";
-            throw problemsReporter.throwing(new IllegalStateException(message),
+            throw problemsReporter.throwing(new IllegalStateException("Configuring 'jvmVendor' is no longer supported."),
                 TASK_CONFIGURATION_PROBLEM_ID,
                 problemSpec -> {
                     problemSpec.documentedAt(Documentation.upgradeGuide(8, "deprecated_update_daemon_jvm").getUrl());
                     problemSpec.solution("Replace the usage of `UpdateDaemonJvm.jvmVendor` with 'vendor'");
-                    problemSpec.contextualLabel(message);
                 });
         }
     }
@@ -200,6 +199,17 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
     public List<String> getAvailableVendors() {
         return Arrays.stream(JvmVendor.KnownJvmVendor.values()).filter(e -> e!=JvmVendor.KnownJvmVendor.UNKNOWN).map(Enum::name).collect(Collectors.toList());
     }
+
+    /**
+     * Indicates it the native-image capability is required.
+     *
+     * @since 8.14
+     */
+    @Input
+    @Optional
+    @Incubating
+    @Option(option = "native-image-capable", description = "Indicates if the native-image capability is required.")
+    public abstract Property<Boolean> getNativeImageCapable();
 
     /**
      * The set of {@link BuildPlatform} for which download links should be generated.

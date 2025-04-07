@@ -193,7 +193,7 @@ class JavaToolchainIntegrationTest extends AbstractIntegrationSpec implements Ja
         fails ':build'
         failure.assertHasDescription("Could not determine the dependencies of task ':compileJava'.")
             .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'.")
-            .assertHasCause("Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=11, vendor=IBM, implementation=J9}. " +
+            .assertHasCause("Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=11, vendor=IBM, implementation=J9, nativeImageCapable=false}. " +
                 "Toolchain auto-provisioning is not enabled.")
     }
 
@@ -215,7 +215,7 @@ class JavaToolchainIntegrationTest extends AbstractIntegrationSpec implements Ja
         fails ':build'
         failure.assertHasDescription("Could not determine the dependencies of task ':compileJava'.")
             .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'.")
-            .assertHasCause("Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=11, vendor=IBM, implementation=J9}. " +
+            .assertHasCause("Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=11, vendor=IBM, implementation=J9, nativeImageCapable=false}. " +
                 "Toolchain auto-provisioning is not enabled.")
     }
 }

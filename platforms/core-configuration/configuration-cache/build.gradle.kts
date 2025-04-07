@@ -29,8 +29,8 @@ dependencies {
     api(projects.resources)
     api(projects.serviceLookup)
     api(projects.serviceProvider)
+    api(projects.snapshots)
     api(projects.stdlibJavaExtensions)
-    api(projects.snapshotsWorker)
 
     api(libs.groovy)
     api(libs.inject)
@@ -62,7 +62,6 @@ dependencies {
     implementation(projects.persistentCache)
     implementation(projects.problemsApi)
     implementation(projects.serialization)
-    implementation(projects.snapshots)
     implementation(projects.stdlibKotlinExtensions)
     implementation(projects.stdlibSerializationCodecs)
     implementation(projects.toolingApi)

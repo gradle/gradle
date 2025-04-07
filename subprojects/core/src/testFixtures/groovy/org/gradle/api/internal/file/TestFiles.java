@@ -26,11 +26,10 @@ import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.internal.resources.DefaultResourceHandler;
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
-import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.api.tasks.util.internal.PatternSetFactory;
 import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.cache.internal.TestDecompressionCoordinators;
 import org.gradle.initialization.DefaultBuildCancellationToken;
-import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.file.Deleter;
@@ -273,7 +272,7 @@ public class TestFiles {
     }
 
     @SuppressWarnings("deprecation")
-    public static Factory<PatternSet> getPatternSetFactory() {
+    public static PatternSetFactory getPatternSetFactory() {
         return PatternSets.getNonCachingPatternSetFactory();
     }
 

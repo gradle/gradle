@@ -62,11 +62,11 @@ import org.gradle.internal.service.scopes.WorkerSharedBuildSessionScopeServices;
 import org.gradle.internal.service.scopes.WorkerSharedGlobalScopeServices;
 import org.gradle.internal.service.scopes.WorkerSharedProjectScopeServices;
 import org.gradle.internal.service.scopes.WorkerSharedUserHomeScopeServices;
+import org.gradle.internal.snapshot.impl.IsolatableSerializerRegistry;
 import org.gradle.internal.state.ManagedFactoryRegistry;
 import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.process.internal.ExecFactory;
 import org.gradle.process.internal.worker.RequestHandler;
-import org.gradle.process.internal.worker.request.IsolatableSerializerRegistry;
 import org.gradle.process.internal.worker.request.RequestArgumentSerializers;
 
 import javax.annotation.Nonnull;
