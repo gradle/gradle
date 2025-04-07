@@ -1,5 +1,6 @@
 package org.gradle.internal.declarativedsl.analysis
 
+import org.gradle.declarative.dsl.schema.AssignmentAugmentationKind
 import org.gradle.declarative.dsl.schema.DataBuilderFunction
 import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.declarative.dsl.schema.DataParameter
@@ -14,6 +15,9 @@ import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.declarative.dsl.schema.VarargParameter
 import org.gradle.internal.declarativedsl.analysis.ExpectedTypeData.NoExpectedType
 import org.gradle.internal.declarativedsl.analysis.FunctionCallResolver.FunctionResolutionAndBinding
+import org.gradle.internal.declarativedsl.analysis.FunctionCallResolverImpl.ArgumentData
+import org.gradle.internal.declarativedsl.language.AugmentationOperatorKind
+import org.gradle.internal.declarativedsl.language.AugmentingAssignment
 import org.gradle.internal.declarativedsl.language.Expr
 import org.gradle.internal.declarativedsl.language.FunctionArgument
 import org.gradle.internal.declarativedsl.language.FunctionCall
@@ -26,6 +30,14 @@ interface FunctionCallResolver {
         context: AnalysisContext,
         functionCall: FunctionCall,
         expectedType: ExpectedTypeData
+    ): TypedOrigin?
+
+    fun doResolveAugmentation(
+        augmentedProperty: ObjectOrigin.PropertyReference,
+        rhsResolution: TypedOrigin,
+        context: AnalysisContext,
+        augmentationOperatorKind: AugmentationOperatorKind,
+        assignment: AugmentingAssignment,
     ): TypedOrigin?
 
     data class FunctionResolutionAndBinding(
@@ -48,7 +60,7 @@ class FunctionCallResolverImpl(
     val codeAnalyzer: CodeAnalyzer
 ) : FunctionCallResolver {
 
-    private
+    internal
     sealed interface ArgumentData {
         data class BoundArguments(
             val argumentResolution: Lazy<Map<FunctionArgument.SingleValueArgument, TypedOrigin>>
@@ -57,8 +69,61 @@ class FunctionCallResolverImpl(
         data object NoResolvedArguments : ArgumentData
     }
 
+    private val defaultArgumentResolutionStrategy = DefaultArgumentResolutionStrategy(expressionResolver)
+
     override fun doResolveFunctionCall(
         context: AnalysisContext,
+        functionCall: FunctionCall,
+        expectedType: ExpectedTypeData
+    ): TypedOrigin? {
+        return doFunctionCallResolution(context, DefaultFunctionLookupStrategy, defaultArgumentResolutionStrategy, functionCall, expectedType)
+    }
+
+    override fun doResolveAugmentation(
+        augmentedProperty: ObjectOrigin.PropertyReference,
+        rhsResolution: TypedOrigin,
+        context: AnalysisContext,
+        augmentationOperatorKind: AugmentationOperatorKind,
+        assignment: AugmentingAssignment,
+    ): TypedOrigin? {
+        val lhsArg = FunctionArgument.Positional(augmentedProperty.originElement as Expr, augmentedProperty.originElement.sourceData)
+        val rhsArg = FunctionArgument.Positional(rhsResolution.objectOrigin.originElement as Expr, rhsResolution.objectOrigin.originElement.sourceData)
+
+        return doFunctionCallResolution(
+            context,
+            AugmentationLookupStrategy(context.resolveRef(augmentedProperty.property.valueType), augmentationOperatorKind),
+            AugmentationArgumentResolutionStrategy(lhsArg, augmentedProperty, rhsArg, rhsResolution),
+            FunctionCall(
+                null,
+                augmentationOperatorKind.operatorToken, // name is irrelevant here
+                listOf(lhsArg, rhsArg),
+                assignment.sourceData
+            ),
+            ExpectedTypeData.ExpectedByProperty(augmentedProperty.property.valueType)
+        )
+    }
+
+    class AugmentationArgumentResolutionStrategy(
+        private val lhsArg: FunctionArgument.Positional,
+        private val augmentedProperty: ObjectOrigin.PropertyReference,
+        private val rhsArg: FunctionArgument.Positional,
+        private val rhsResolution: TypedOrigin
+    ) : ArgumentResolutionStrategy {
+        override fun resolveArgument(
+            context: AnalysisContext,
+            argument: FunctionArgument.SingleValueArgument,
+            expectedType: ExpectedTypeData
+        ): TypedOrigin? = when (argument) {
+            lhsArg -> TypedOrigin(augmentedProperty, context.resolveRef(augmentedProperty.property.valueType))
+            rhsArg -> rhsResolution
+            else -> null
+        }
+    }
+
+    private fun doFunctionCallResolution(
+        context: AnalysisContext,
+        lookupStrategy: LookupStrategy,
+        argumentResolutionStrategy: ArgumentResolutionStrategy,
         functionCall: FunctionCall,
         expectedType: ExpectedTypeData
     ): TypedOrigin? = with(context) {
@@ -66,29 +131,29 @@ class FunctionCallResolverImpl(
         // This prevents unwanted duplicate resolution side effects, e.g., in `id("com.example").version("1.0")`, resolving `id(...)` twice would otherwise record multiple objects produced by `id`.
         val lazyReceiverResolution = lazy {
             functionCall.receiver?.let { receiver ->
-                expressionResolver.doResolveExpression(context, receiver, NoExpectedType)
+                expressionResolver.doResolveExpression(context, receiver, NoExpectedType).also { receiverResolution ->
+                    if (receiverResolution == null && receiver.asChainOrNull() == null)
+                        errorCollector.collect(ResolutionError(functionCall, ErrorReason.UnresolvedFunctionCallReceiver(functionCall)))
+                }
             }
         }
 
         // First, try to resolve a single function. If there is just one, we can use its signature for expected types and generic type substitution.
-        val singleMatchingFunction = lookupSingleFunctionByName(lazyReceiverResolution, functionCall)
+        val singleMatchingFunction = lookupStrategy.optimisticSingleMatchLookup(context, lazyReceiverResolution, functionCall)
 
         val typeSubstitution = singleMatchingFunction?.let {
             // Type substitution in DCL is simplistic: it is only computed based on the expected type and does not infer types from arguments
             computeGenericTypeSubstitution((expectedType as? ExpectedTypeData.HasExpectedType)?.type, it.schemaFunction.returnValueType)
         } ?: emptyMap()
 
-        val expectedArgTypesNoSubstitution = expectedArgTypesForFunction(singleMatchingFunction).mapValues { (_, type) -> applyTypeSubstitution(resolveRef(type), typeSubstitution) }
+        val expectedArgTypes = expectedArgTypesForFunction(singleMatchingFunction).mapValues { (_, type) -> applyTypeSubstitution(resolveRef(type), typeSubstitution) }
 
         val lazyArgResolutions = lazy {
             var hasErrors = false
             val result = buildMap<FunctionArgument.SingleValueArgument, TypedOrigin> {
                 functionCall.args.filterIsInstance<FunctionArgument.SingleValueArgument>().forEach { arg ->
-                    val resolution = expressionResolver.doResolveExpression(
-                        context,
-                        arg.expr,
-                        expectedArgTypesNoSubstitution[arg]?.let { ExpectedTypeData.ExpectedByParameter(it.ref) }
-                            ?: NoExpectedType
+                    val resolution = argumentResolutionStrategy.resolveArgument(
+                        context, arg, expectedArgTypes[arg]?.let { ExpectedTypeData.ExpectedByParameter(it.ref) } ?: NoExpectedType
                     )
                     if (resolution == null) {
                         hasErrors = true
@@ -108,7 +173,7 @@ class FunctionCallResolverImpl(
             return null
         }
 
-        val overloads: List<FunctionResolutionAndBinding> = lookupFunctions(lazyReceiverResolution, functionCall, ArgumentData.BoundArguments(lazyArgResolutions), typeSubstitution)
+        val overloads: List<FunctionResolutionAndBinding> = lookupStrategy.lookup(context, lazyReceiverResolution, functionCall, ArgumentData.BoundArguments(lazyArgResolutions), typeSubstitution)
 
         val resultOriginOrNull = invokeIfSingleOverload(overloads, functionCall, lazyArgResolutions, typeSubstitution)
 
@@ -152,55 +217,200 @@ class FunctionCallResolverImpl(
         }
     }
 
+    private interface LookupStrategy {
+        fun lookup(
+            context: AnalysisContextView,
+            receiver: Lazy<TypedOrigin?>,
+            call: FunctionCall,
+            args: ArgumentData,
+            typeSubstitution: Map<TypeVariableUsage, DataType>
+        ): List<FunctionResolutionAndBinding>
+    }
+
     /**
      * Before we even have the argument types, we try to look the functions up by the name.
      * If there is a single matching overload, then its parameter types contribute to the expected argument types.
      * If there is more than one overload, the process stops, as the overload resolution needs argument types anyway.
      */
-    private fun AnalysisContext.lookupSingleFunctionByName(receiver: Lazy<TypedOrigin?>, functionCall: FunctionCall): FunctionResolutionAndBinding? =
-        lookupFunctions(receiver, functionCall, ArgumentData.NoResolvedArguments, emptyMap()).singleOrNull()
+    private fun LookupStrategy.optimisticSingleMatchLookup(
+        context: AnalysisContextView,
+        receiver: Lazy<TypedOrigin?>,
+        call: FunctionCall
+    ): FunctionResolutionAndBinding? = lookup(context, receiver, call, ArgumentData.NoResolvedArguments, emptyMap()).singleOrNull()
 
-    // TODO: check the resolution order with the Kotlin spec
-    private
-    fun AnalysisContext.lookupFunctions(
-        receiverResolution: Lazy<TypedOrigin?>,
-        functionCall: FunctionCall,
-        argResolutions: ArgumentData,
-        typeSubstitution: Map<TypeVariableUsage, DataType>
-    ): List<FunctionResolutionAndBinding> {
-        var hasErrorInReceiverResolution = false
-        val overloads: List<FunctionResolutionAndBinding> = buildList {
-            when (functionCall.receiver) {
-                is Expr -> {
-                    val receiver = receiverResolution.value
-                    if (receiver != null) {
-                        addAll(findMemberFunction(receiver.objectOrigin, functionCall, argResolutions, typeSubstitution))
-                    } else {
-                        hasErrorInReceiverResolution = true
+    private object DefaultFunctionLookupStrategy : LookupStrategy {
+        override fun lookup(
+            context: AnalysisContextView,
+            receiver: Lazy<TypedOrigin?>,
+            call: FunctionCall,
+            args: ArgumentData,
+            typeSubstitution: Map<TypeVariableUsage, DataType>
+        ): List<FunctionResolutionAndBinding> =
+            context.lookupNamedFunctionCall(receiver, call, args, typeSubstitution)
+
+        // TODO: check the resolution order with the Kotlin spec
+        private fun AnalysisContextView.lookupNamedFunctionCall(
+            receiverResolution: Lazy<TypedOrigin?>,
+            functionCall: FunctionCall,
+            argResolutions: ArgumentData,
+            typeSubstitution: Map<TypeVariableUsage, DataType>
+        ): List<FunctionResolutionAndBinding> {
+            val overloads: List<FunctionResolutionAndBinding> = buildList {
+                when (functionCall.receiver) {
+                    is Expr -> {
+                        val receiver = receiverResolution.value
+                        if (receiver != null) {
+                            addAll(findMemberFunction(receiver.objectOrigin, functionCall, argResolutions, typeSubstitution))
+                        }
+                    }
+
+                    null -> {
+                        for (scope in currentScopes.asReversed()) {
+                            val implicitThisReceiver = ObjectOrigin.ImplicitThisReceiver(scope.receiver, isCurrentScopeReceiver = scope === currentScopes.last())
+                            addAll(findMemberFunction(implicitThisReceiver, functionCall, argResolutions, typeSubstitution))
+                            if (isNotEmpty()) {
+                                break
+                            }
+                        }
                     }
                 }
+                if (isEmpty()) {
+                    addAll(findDataConstructor(functionCall, argResolutions, typeSubstitution))
+                }
+                if (isEmpty()) {
+                    addAll(findTopLevelFunction(functionCall, argResolutions, typeSubstitution))
+                }
+            }
+            return overloads
+        }
 
-                null -> {
-                    for (scope in currentScopes.asReversed()) {
-                        val implicitThisReceiver = ObjectOrigin.ImplicitThisReceiver(scope.receiver, isCurrentScopeReceiver = scope === currentScopes.last())
-                        addAll(findMemberFunction(implicitThisReceiver, functionCall, argResolutions, typeSubstitution))
-                        if (isNotEmpty()) {
-                            break
+        private
+        fun TypeRefContext.findMemberFunction(
+            receiver: ObjectOrigin,
+            functionCall: FunctionCall,
+            argResolution: ArgumentData,
+            typeSubstitution: Map<TypeVariableUsage, DataType>
+        ): List<FunctionResolutionAndBinding> {
+            val receiverType = getDataType(receiver) as? DataClass
+                ?: return emptyList()
+            val functionName = functionCall.name
+            val matchingMembers = receiverType.memberFunctions.filter { it.simpleName == functionName }
+            // TODO: support optional parameters?
+            // TODO: support at least minimal overload resolution?
+            val args = functionCall.args
+
+            // TODO: lambdas are handled in a special way and don't participate in signature matching now
+            val signatureSizeMatches = preFilterSignatures(matchingMembers, args)
+
+            return chooseMatchingOverloads(receiver, signatureSizeMatches, args, argResolution, typeSubstitution)
+        }
+
+        private
+        fun AnalysisContextView.findDataConstructor(
+            functionCall: FunctionCall,
+            argResolution: ArgumentData,
+            typeSubstitution: Map<TypeVariableUsage, DataType>
+        ): List<FunctionResolutionAndBinding> {
+            // TODO: no nested types for now
+            val candidateTypes = buildList<DataType> {
+                val receiverAsChain = functionCall.receiver?.asChainOrNull()
+                if (receiverAsChain != null) {
+                    val fqn = DefaultFqName(receiverAsChain.nameParts.joinToString("."), functionCall.name)
+                    val typeByFqn = schema.dataClassTypesByFqName[fqn]
+                    if (typeByFqn != null) {
+                        add(typeByFqn)
+                    }
+                } else if (functionCall.receiver == null) {
+                    val importedName = imports[functionCall.name]
+                    if (importedName != null) {
+                        val maybeType = schema.dataClassTypesByFqName[importedName]
+                        if (maybeType != null) {
+                            add(maybeType)
                         }
                     }
                 }
             }
-            if (isEmpty()) {
-                addAll(findDataConstructor(functionCall, argResolutions, typeSubstitution))
-            }
-            if (isEmpty()) {
-                addAll(findTopLevelFunction(functionCall, argResolutions, typeSubstitution))
-            }
-            if (isEmpty() && hasErrorInReceiverResolution) {
-                errorCollector.collect(ResolutionError(functionCall, ErrorReason.UnresolvedFunctionCallReceiver(functionCall)))
+            val constructors = candidateTypes
+                .flatMap { (it as? DataClass)?.constructors.orEmpty() }
+                .filter { it.parameters.size == functionCall.args.size }
+
+            return chooseMatchingOverloads(null, constructors, functionCall.args, argResolution, typeSubstitution)
+        }
+
+        private
+        fun AnalysisContextView.findTopLevelFunction(
+            functionCall: FunctionCall,
+            argResolution: ArgumentData,
+            typeSubstitution: Map<TypeVariableUsage, DataType>
+        ): List<FunctionResolutionAndBinding> {
+            val args = functionCall.args
+            val receiver = functionCall.receiver
+
+            // TODO: extension functions are not supported now; so it's either an FQN function reference or imported one
+            if (receiver is NamedReference && receiver.asChainOrNull() != null || receiver == null) {
+                val packageNameParts = receiver?.asChainOrNull()?.nameParts.orEmpty()
+                val candidates = buildList {
+                    val fqn = DefaultFqName(packageNameParts.joinToString("."), functionCall.name)
+                    schema.externalFunctionsByFqName[fqn]?.let { add(it) }
+
+                    if (receiver == null) {
+                        val maybeImport = imports[fqn.simpleName]
+                        if (maybeImport != null) {
+                            schema.externalFunctionsByFqName[maybeImport]?.let { add(it) }
+                        }
+                    }
+                }
+
+                val matchingOverloads =
+                    chooseMatchingOverloads(null, preFilterSignatures(candidates, args), args, argResolution, typeSubstitution)
+
+                // TODO: report overload ambiguity?
+                return matchingOverloads
+            } else {
+                return emptyList()
             }
         }
-        return overloads
+    }
+
+    private class AugmentationLookupStrategy(val lhsType: DataType, val operator: AugmentationOperatorKind) : LookupStrategy {
+        override fun lookup(
+            context: AnalysisContextView,
+            receiver: Lazy<TypedOrigin?>,
+            call: FunctionCall,
+            args: ArgumentData,
+            typeSubstitution: Map<TypeVariableUsage, DataType>
+        ): List<FunctionResolutionAndBinding> {
+            if (lhsType !is DataType.ClassDataType) {
+                return emptyList()
+            }
+
+            val candidates = context.schema.assignmentAugmentationsByTypeName[lhsType.name]?.filter { augmentation ->
+                augmentation.kind.matchesOperator(operator)
+            }?.map { it.function }.orEmpty()
+
+            return context.chooseMatchingOverloads(null, candidates, call.args, args, typeSubstitution)
+        }
+
+        private fun AssignmentAugmentationKind.matchesOperator(operatorKind: AugmentationOperatorKind) =
+            when (operatorKind) {
+                AugmentationOperatorKind.PlusAssign -> this is AssignmentAugmentationKind.Plus
+            }
+    }
+
+    private interface ArgumentResolutionStrategy {
+        fun resolveArgument(
+            context: AnalysisContext,
+            argument: FunctionArgument.SingleValueArgument,
+            expectedType: ExpectedTypeData
+        ): TypedOrigin?
+    }
+
+    private class DefaultArgumentResolutionStrategy(val expressionResolver: ExpressionResolver) : ArgumentResolutionStrategy {
+        override fun resolveArgument(
+            context: AnalysisContext,
+            argument: FunctionArgument.SingleValueArgument,
+            expectedType: ExpectedTypeData
+        ): TypedOrigin? = expressionResolver.doResolveExpression(context, argument.expr, expectedType)
     }
 
     private
@@ -385,67 +595,6 @@ class FunctionCallResolverImpl(
     }
 
     private
-    fun preFilterSignatures(
-        matchingMembers: List<SchemaFunction>,
-        args: List<FunctionArgument>,
-    ) = matchingMembers.filter { it.parameters.any { it is VarargParameter } || it.parameters.size >= args.filterIsInstance<FunctionArgument.SingleValueArgument>().size }
-
-    private
-    fun TypeRefContext.findMemberFunction(
-        receiver: ObjectOrigin,
-        functionCall: FunctionCall,
-        argResolution: ArgumentData,
-        typeSubstitution: Map<TypeVariableUsage, DataType>
-    ): List<FunctionResolutionAndBinding> {
-        val receiverType = getDataType(receiver) as? DataClass
-            ?: return emptyList()
-        val functionName = functionCall.name
-        val matchingMembers = receiverType.memberFunctions.filter { it.simpleName == functionName }
-        // TODO: support optional parameters?
-        // TODO: support at least minimal overload resolution?
-        val args = functionCall.args
-
-        // TODO: lambdas are handled in a special way and don't participate in signature matching now
-        val signatureSizeMatches = preFilterSignatures(matchingMembers, args)
-
-        return chooseMatchingOverloads(receiver, signatureSizeMatches, args, argResolution, typeSubstitution)
-    }
-
-    private
-    fun AnalysisContextView.findTopLevelFunction(
-        functionCall: FunctionCall,
-        argResolution: ArgumentData,
-        typeSubstitution: Map<TypeVariableUsage, DataType>
-    ): List<FunctionResolutionAndBinding> {
-        val args = functionCall.args
-        val receiver = functionCall.receiver
-
-        // TODO: extension functions are not supported now; so it's either an FQN function reference or imported one
-        if (receiver is NamedReference && receiver.asChainOrNull() != null || receiver == null) {
-            val packageNameParts = receiver?.asChainOrNull()?.nameParts.orEmpty()
-            val candidates = buildList {
-                val fqn = DefaultFqName(packageNameParts.joinToString("."), functionCall.name)
-                schema.externalFunctionsByFqName[fqn]?.let { add(it) }
-
-                if (receiver == null) {
-                    val maybeImport = imports[fqn.simpleName]
-                    if (maybeImport != null) {
-                        schema.externalFunctionsByFqName[maybeImport]?.let { add(it) }
-                    }
-                }
-            }
-
-            val matchingOverloads =
-                chooseMatchingOverloads(null, preFilterSignatures(candidates, args), args, argResolution, typeSubstitution)
-
-            // TODO: report overload ambiguity?
-            return matchingOverloads
-        } else {
-            return emptyList()
-        }
-    }
-
-    private
     fun newObjectInvocationResult(
         function: FunctionResolutionAndBinding,
         valueBinding: ParameterValueBinding,
@@ -459,163 +608,6 @@ class FunctionCallResolverImpl(
         null -> ObjectOrigin.NewObjectFromTopLevelFunction(
             function.schemaFunction, valueBinding, functionCall, newOperationId
         )
-    }
-
-    private
-    fun AnalysisContextView.findDataConstructor(
-        functionCall: FunctionCall,
-        argResolution: ArgumentData,
-        typeSubstitution: Map<TypeVariableUsage, DataType>
-    ): List<FunctionResolutionAndBinding> {
-        // TODO: no nested types for now
-        val candidateTypes = buildList<DataType> {
-            val receiverAsChain = functionCall.receiver?.asChainOrNull()
-            if (receiverAsChain != null) {
-                val fqn = DefaultFqName(receiverAsChain.nameParts.joinToString("."), functionCall.name)
-                val typeByFqn = schema.dataClassTypesByFqName[fqn]
-                if (typeByFqn != null) {
-                    add(typeByFqn)
-                }
-            } else if (functionCall.receiver == null) {
-                val importedName = imports[functionCall.name]
-                if (importedName != null) {
-                    val maybeType = schema.dataClassTypesByFqName[importedName]
-                    if (maybeType != null) {
-                        add(maybeType)
-                    }
-                }
-            }
-        }
-        val constructors = candidateTypes
-            .flatMap { (it as? DataClass)?.constructors.orEmpty() }
-            .filter { it.parameters.size == functionCall.args.size }
-
-        return chooseMatchingOverloads(null, constructors, functionCall.args, argResolution, typeSubstitution)
-    }
-
-    private
-    fun TypeRefContext.chooseMatchingOverloads(
-        receiver: ObjectOrigin?,
-        signatureSizeMatches: List<SchemaFunction>,
-        args: List<FunctionArgument>,
-        argResolution: ArgumentData,
-        typeSubstitution: Map<TypeVariableUsage, DataType>
-    ): List<FunctionResolutionAndBinding> = signatureSizeMatches.mapNotNull { candidate ->
-        val binding = bindFunctionParametersToArguments(
-            candidate.parameters,
-            args.filterIsInstance<FunctionArgument.SingleValueArgument>()
-        ) ?: return@mapNotNull null
-
-        (candidate.semantics as? FunctionSemantics.ConfigureSemantics)?.let { configureSemantics ->
-            if (!configureSemantics.configureBlockRequirement.isValidIfLambdaIsPresent(args.lastOrNull() is FunctionArgument.Lambda)) {
-                return@mapNotNull null
-            }
-        }
-
-        if (argResolution is ArgumentData.BoundArguments && !typeCheckFunctionCall(binding, argResolution.argumentResolution.value, typeSubstitution)) {
-            // TODO: return type mismatch in args
-            return@mapNotNull null
-        }
-
-        FunctionResolutionAndBinding(receiver, candidate, binding)
-    }
-
-    private
-    fun TypeRefContext.typeCheckFunctionCall(
-        binding: ParameterArgumentBinding,
-        argResolution: Map<FunctionArgument.SingleValueArgument, TypedOrigin>,
-        typeSubstitution: Map<TypeVariableUsage, DataType>
-    ): Boolean = binding.binding.all { (param, arg) ->
-        fun isSingleArgumentAssignable(
-            param: DataParameter,
-            arg: FunctionArgument.SingleValueArgument,
-        ) = arg in argResolution && checkIsAssignable(
-            argResolution.getValue(arg).inferredType,
-            resolveRef(param.type),
-            typeSubstitution
-        )
-
-        when (arg) {
-            is FunctionArgument.SingleValueArgument -> isSingleArgumentAssignable(param, arg)
-            is FunctionArgument.GroupedVarargs -> arg.elementArgs.all { isSingleArgumentAssignable(param, it) }
-        }
-
-        when (arg) {
-            is FunctionArgument.SingleValueArgument ->
-                isSingleArgumentAssignable(param, arg)
-
-            is FunctionArgument.GroupedVarargs -> {
-                val elementType = getElementTypeFromVarargType(param)
-                arg.elementArgs.all { singleArgument ->
-                    singleArgument in argResolution && checkIsAssignable(argResolution.getValue(singleArgument).inferredType, elementType, typeSubstitution)
-                }
-            }
-        }
-    }
-
-    private fun TypeRefContext.getElementTypeFromVarargType(param: DataParameter): DataType =
-        getElementTypeFromVarargType(resolveRef(param.type) as DataType.ParameterizedTypeInstance)
-
-    private fun TypeRefContext.getElementTypeFromVarargType(type: DataType.ParameterizedTypeInstance): DataType =
-        resolveRef((type.typeArguments.single() as ConcreteTypeArgument).type)
-
-    // TODO: performance optimization (?) Don't create the binding objects until a single candidate has been chosen
-    private
-    fun bindFunctionParametersToArguments(
-        parameters: List<DataParameter>,
-        arguments: List<FunctionArgument>,
-    ): ParameterArgumentBinding? {
-        fun findParameterByName(name: String): DataParameter? = parameters.find { it.name == name }
-        val lastPositionalArgIndex =
-            arguments.indices.lastOrNull { arguments[it] is FunctionArgument.Positional } ?: arguments.size
-
-        val varargParameter = parameters.singleOrNull { it is VarargParameter }
-        val indexOfVarargParameter = parameters.indexOf(varargParameter)
-
-        val bindingMap = mutableMapOf<DataParameter, FunctionArgument.ValueLikeArgument>()
-        arguments.forEachIndexed { argIndex, arg ->
-            if (argIndex < lastPositionalArgIndex && arg is FunctionArgument.Named && arg.name != parameters[argIndex].name) {
-                // TODO: report mixed positional and named arguments?
-                return@bindFunctionParametersToArguments null
-            }
-
-            if (arg is FunctionArgument.Named && parameters.none { it.name == arg.name }) {
-                // TODO: report non-matching candidate?
-                return@bindFunctionParametersToArguments null
-            }
-
-            val param = if (arg is FunctionArgument.Named) {
-                findParameterByName(arg.name) ?: return null
-                // TODO return a named argument that does not match any parameter
-            } else {
-                parameters.getOrNull(argIndex) ?: varargParameter.takeIf { argIndex >= indexOfVarargParameter }
-            }
-
-            if (param != varargParameter && param in bindingMap) {
-                // TODO: report arg conflict
-                return@bindFunctionParametersToArguments null
-            }
-
-            if (param != null && arg is FunctionArgument.SingleValueArgument) {
-                bindingMap[param] = if (param == varargParameter) {
-                    (bindingMap[param] as? FunctionArgument.GroupedVarargs)?.let {
-                        it.copy(it.elementArgs + arg)
-                    } ?: FunctionArgument.GroupedVarargs(listOf(arg))
-                } else arg
-            }
-        }
-
-        varargParameter?.let {
-            if (varargParameter !in bindingMap) {
-                bindingMap[varargParameter] = FunctionArgument.GroupedVarargs(emptyList())
-            }
-        }
-
-        return if (parameters.all { it.isDefault || it in bindingMap }) {
-            ParameterArgumentBinding(bindingMap)
-        } else {
-            null
-        }
     }
 
     private
@@ -648,3 +640,134 @@ class FunctionCallResolverImpl(
             providesConfigureBlock
         )
 }
+
+private
+fun preFilterSignatures(
+    matchingMembers: List<SchemaFunction>,
+    args: List<FunctionArgument>,
+) = matchingMembers.filter { it.parameters.any { it is VarargParameter } || it.parameters.size >= args.filterIsInstance<FunctionArgument.SingleValueArgument>().size }
+
+private
+fun TypeRefContext.chooseMatchingOverloads(
+    receiver: ObjectOrigin?,
+    signatureSizeMatches: List<SchemaFunction>,
+    args: List<FunctionArgument>,
+    argResolution: ArgumentData,
+    typeSubstitution: Map<TypeVariableUsage, DataType>
+): List<FunctionResolutionAndBinding> = signatureSizeMatches.mapNotNull { candidate ->
+    val binding = bindFunctionParametersToArguments(
+        candidate.parameters,
+        args.filterIsInstance<FunctionArgument.SingleValueArgument>()
+    ) ?: return@mapNotNull null
+
+    (candidate.semantics as? FunctionSemantics.ConfigureSemantics)?.let { configureSemantics ->
+        if (!configureSemantics.configureBlockRequirement.isValidIfLambdaIsPresent(args.lastOrNull() is FunctionArgument.Lambda)) {
+            return@mapNotNull null
+        }
+    }
+
+    if (argResolution is ArgumentData.BoundArguments && !typeCheckFunctionCall(binding, argResolution.argumentResolution.value, typeSubstitution)) {
+        // TODO: return type mismatch in args
+        return@mapNotNull null
+    }
+
+    FunctionResolutionAndBinding(receiver, candidate, binding)
+}
+
+// TODO: performance optimization (?) Don't create the binding objects until a single candidate has been chosen
+private
+fun bindFunctionParametersToArguments(
+    parameters: List<DataParameter>,
+    arguments: List<FunctionArgument>,
+): ParameterArgumentBinding? {
+    fun findParameterByName(name: String): DataParameter? = parameters.find { it.name == name }
+    val lastPositionalArgIndex =
+        arguments.indices.lastOrNull { arguments[it] is FunctionArgument.Positional } ?: arguments.size
+
+    val varargParameter = parameters.singleOrNull { it is VarargParameter }
+    val indexOfVarargParameter = parameters.indexOf(varargParameter)
+
+    val bindingMap = mutableMapOf<DataParameter, FunctionArgument.ValueLikeArgument>()
+    arguments.forEachIndexed { argIndex, arg ->
+        if (argIndex < lastPositionalArgIndex && arg is FunctionArgument.Named && arg.name != parameters[argIndex].name) {
+            // TODO: report mixed positional and named arguments?
+            return@bindFunctionParametersToArguments null
+        }
+
+        if (arg is FunctionArgument.Named && parameters.none { it.name == arg.name }) {
+            // TODO: report non-matching candidate?
+            return@bindFunctionParametersToArguments null
+        }
+
+        val param = if (arg is FunctionArgument.Named) {
+            findParameterByName(arg.name) ?: return null
+            // TODO return a named argument that does not match any parameter
+        } else {
+            parameters.getOrNull(argIndex) ?: varargParameter.takeIf { argIndex >= indexOfVarargParameter }
+        }
+
+        if (param != varargParameter && param in bindingMap) {
+            // TODO: report arg conflict
+            return@bindFunctionParametersToArguments null
+        }
+
+        if (param != null && arg is FunctionArgument.SingleValueArgument) {
+            bindingMap[param] = if (param == varargParameter) {
+                (bindingMap[param] as? FunctionArgument.GroupedVarargs)?.let {
+                    it.copy(it.elementArgs + arg)
+                } ?: FunctionArgument.GroupedVarargs(listOf(arg))
+            } else arg
+        }
+    }
+
+    varargParameter?.let {
+        if (varargParameter !in bindingMap) {
+            bindingMap[varargParameter] = FunctionArgument.GroupedVarargs(emptyList())
+        }
+    }
+
+    return if (parameters.all { it.isDefault || it in bindingMap }) {
+        ParameterArgumentBinding(bindingMap)
+    } else {
+        null
+    }
+}
+
+private
+fun TypeRefContext.typeCheckFunctionCall(
+    binding: ParameterArgumentBinding,
+    argResolution: Map<FunctionArgument.SingleValueArgument, TypedOrigin>,
+    typeSubstitution: Map<TypeVariableUsage, DataType>
+): Boolean = binding.binding.all { (param, arg) ->
+    fun isSingleArgumentAssignable(
+        param: DataParameter,
+        arg: FunctionArgument.SingleValueArgument,
+    ) = arg in argResolution && checkIsAssignable(
+        argResolution.getValue(arg).inferredType,
+        resolveRef(param.type),
+        typeSubstitution
+    )
+
+    when (arg) {
+        is FunctionArgument.SingleValueArgument -> isSingleArgumentAssignable(param, arg)
+        is FunctionArgument.GroupedVarargs -> arg.elementArgs.all { isSingleArgumentAssignable(param, it) }
+    }
+
+    when (arg) {
+        is FunctionArgument.SingleValueArgument ->
+            isSingleArgumentAssignable(param, arg)
+
+        is FunctionArgument.GroupedVarargs -> {
+            val elementType = getElementTypeFromVarargType(param)
+            arg.elementArgs.all { singleArgument ->
+                singleArgument in argResolution && checkIsAssignable(argResolution.getValue(singleArgument).inferredType, elementType, typeSubstitution)
+            }
+        }
+    }
+}
+
+private fun TypeRefContext.getElementTypeFromVarargType(param: DataParameter): DataType =
+    getElementTypeFromVarargType(resolveRef(param.type) as DataType.ParameterizedTypeInstance)
+
+private fun TypeRefContext.getElementTypeFromVarargType(type: DataType.ParameterizedTypeInstance): DataType =
+    resolveRef((type.typeArguments.single() as ConcreteTypeArgument).type)

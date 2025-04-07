@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.transform.TransformActionScheme
 import org.gradle.api.internal.artifacts.transform.TransformParameterScheme
 import org.gradle.api.internal.artifacts.transform.TransformStepNode
 import org.gradle.api.internal.artifacts.transform.TransformStepNodeFactory
+import org.gradle.api.internal.attributes.AttributeDesugaring
 import org.gradle.api.internal.attributes.AttributesFactory
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileFactory
@@ -37,11 +38,10 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.provider.PropertyFactory
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.problems.internal.InternalProblems
-import org.gradle.api.tasks.util.PatternSet
+import org.gradle.api.tasks.util.internal.PatternSetFactory
 import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.execution.plan.OrdinalGroupFactory
 import org.gradle.execution.plan.TaskNodeFactory
-import org.gradle.internal.Factory
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
@@ -163,9 +163,10 @@ class Codecs(
     parameterScheme: TransformParameterScheme,
     actionScheme: TransformActionScheme,
     attributesFactory: AttributesFactory,
+    attributeDesugaring: AttributeDesugaring,
     valueSourceProviderFactory: ValueSourceProviderFactory,
     calculatedValueContainerFactory: CalculatedValueContainerFactory,
-    patternSetFactory: Factory<PatternSet>,
+    patternSetFactory: PatternSetFactory,
     fileOperations: FileOperations,
     fileFactory: FileFactory,
     includedTaskGraph: BuildTreeWorkGraphController,
@@ -207,7 +208,7 @@ class Codecs(
             bind(SerializedLambdaParametersCheckingCodec)
 
             // Dependency management types
-            bind(ArtifactCollectionCodec(calculatedValueContainerFactory, artifactSetConverter))
+            bind(ArtifactCollectionCodec(calculatedValueContainerFactory, artifactSetConverter, attributeDesugaring))
             bind(ImmutableAttributesCodec(attributesFactory, managedFactoryRegistry))
             bind(AttributeContainerCodec(attributesFactory, managedFactoryRegistry))
             bind(ComponentVariantIdentifierCodec)
@@ -376,7 +377,7 @@ class Codecs(
         artifactSetConverter: ArtifactSetToFileCollectionFactory,
         fileOperations: FileOperations,
         fileFactory: FileFactory,
-        patternSetFactory: Factory<PatternSet>,
+        patternSetFactory: PatternSetFactory,
         fileLookup: FileLookup
     ) {
         bind(PathToFileResolverCodec(fileLookup))

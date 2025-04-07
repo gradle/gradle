@@ -57,7 +57,6 @@ dependencies {
     implementation(projects.publish)
     implementation(projects.serialization)
     implementation(projects.serviceLookup)
-    implementation(projects.snapshotsWorker)
     implementation(projects.stdlibKotlinExtensions)
 
     implementation(libs.asm)

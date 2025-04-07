@@ -24,6 +24,7 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.jvm.toolchain.JdkRepository
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.util.GradleVersion
 
 import java.nio.file.Files
 import java.nio.file.Path
@@ -95,7 +96,12 @@ class ProvisionedJdkReuseCrossVersionIntegrationTest extends CrossVersionIntegra
         previousJavaHome.startsWith(jdkDir)
 
         and:
-        jdkRepository.expectHead()
+        // the archive will not be reused because since 8.14 it has a different name
+        if (previous.version.baseVersion < GradleVersion.version("8.14")) {
+            jdkRepository.reset()
+        } else {
+            jdkRepository.expectHead()
+        }
 
         when:
         result = version current withGradleUserHomeDir userHome withTasks 'run' withArguments '-Porg.gradle.java.installations.auto-download=true' run()

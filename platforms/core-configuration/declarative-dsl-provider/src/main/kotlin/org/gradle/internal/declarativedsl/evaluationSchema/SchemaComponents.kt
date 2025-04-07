@@ -28,6 +28,8 @@ import org.gradle.internal.declarativedsl.evaluator.conversion.EvaluationAndConv
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeCustomAccessors
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeFunctionResolver
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimePropertyResolver
+import org.gradle.internal.declarativedsl.schemaBuilder.AugmentationsProvider
+import org.gradle.internal.declarativedsl.schemaBuilder.CompositeAugmentationsProvider
 import org.gradle.internal.declarativedsl.schemaBuilder.CompositeDefaultImportsProvider
 import org.gradle.internal.declarativedsl.schemaBuilder.CompositeFunctionExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.CompositePropertyExtractor
@@ -52,6 +54,7 @@ internal interface EvaluationSchemaBuilderResult {
     val topLevelFunctionDiscovery: List<TopLevelFunctionDiscovery>
     val propertyExtractors: List<PropertyExtractor>
     val functionExtractors: List<FunctionExtractor>
+    val augmentationsProviders: List<AugmentationsProvider>
 }
 
 internal interface ConversionSchemaBuilder : EvaluationSchemaBuilder {
@@ -145,6 +148,7 @@ interface AnalysisSchemaComponent {
     fun defaultImportsProvider(): List<DefaultImportsProvider> = listOf()
     fun propertyExtractors(): List<PropertyExtractor> = listOf()
     fun functionExtractors(): List<FunctionExtractor> = listOf()
+    fun augmentationsProviders(): List<AugmentationsProvider> = listOf()
 }
 
 /**
@@ -170,7 +174,8 @@ fun analysisSchema(
         propertyExtractor = CompositePropertyExtractor(builder.propertyExtractors),
         functionExtractor = CompositeFunctionExtractor(builder.functionExtractors),
         typeDiscovery = CompositeTypeDiscovery(builder.typeDiscoveries),
-        defaultImports = CompositeDefaultImportsProvider(builder.defaultImportsProviders).defaultImports()
+        defaultImports = CompositeDefaultImportsProvider(builder.defaultImportsProviders).defaultImports(),
+        augmentationsProvider = CompositeAugmentationsProvider(builder.augmentationsProviders)
     )
     return analysisSchema
 }
@@ -199,6 +204,9 @@ open class DefaultEvaluationSchemaBuilder : EvaluationSchemaBuilder, EvaluationS
 
     override val functionExtractors: List<FunctionExtractor>
         get() = analysisSchemaComponents.flatMap { it.functionExtractors() }
+
+    override val augmentationsProviders: List<AugmentationsProvider>
+        get() = analysisSchemaComponents.flatMap { it.augmentationsProviders() }
 }
 
 

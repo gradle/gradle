@@ -45,6 +45,7 @@ public class DaemonJvmPropertiesModifier {
         File propertiesFile,
         JavaLanguageVersion toolchainVersion,
         @Nullable String toolchainVendor,
+        boolean nativeImageCapable,
         Map<BuildPlatform, URI> downloadUrlsByPlatform
     ) {
         validateToolchainVersion(toolchainVersion);
@@ -53,6 +54,9 @@ public class DaemonJvmPropertiesModifier {
         daemonJvmProperties.put(DaemonJvmPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY, toolchainVersion.toString());
         if (toolchainVendor != null) {
             daemonJvmProperties.put(DaemonJvmPropertiesDefaults.TOOLCHAIN_VENDOR_PROPERTY, toolchainVendor);
+        }
+        if (nativeImageCapable) {
+            daemonJvmProperties.put(DaemonJvmPropertiesDefaults.TOOLCHAIN_NATIVE_IMAGE_CAPABLE_PROPERTY, "true");
         }
 
         downloadUrlsByPlatform.forEach((buildPlatform, uri) -> {

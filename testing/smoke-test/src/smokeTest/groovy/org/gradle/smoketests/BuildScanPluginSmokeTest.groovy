@@ -151,9 +151,9 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         "3.19.2"
     ]
 
-    // Current injection scripts support Develocity plugin 3.3 and above
+    // Current injection scripts support Develocity plugin 3.6.4 and above
     private static final List<String> SUPPORTED_BY_CI_INJECTION = SUPPORTED
-        .findAll { VersionNumber.parse("3.3") <= VersionNumber.parse(it) }
+        .findAll { VersionNumber.parse("3.6.4") <= VersionNumber.parse(it) }
 
     // This refers to GradleEnterprisePluginCheckInService and does not cover LegacyGradleEnterprisePluginCheckInService
     private static final VersionNumber FIRST_VERSION_SUPPORTING_CHECK_IN_SERVICE = VersionNumber.parse("3.4")

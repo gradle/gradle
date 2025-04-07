@@ -3,7 +3,7 @@
 package com.example
 
 import org.gradle.declarative.dsl.model.annotations.Adding
-import org.gradle.declarative.dsl.model.annotations.Builder
+import org.gradle.declarative.dsl.model.annotations.HasDefaultValue
 import org.gradle.declarative.dsl.model.annotations.Restricted
 
 
@@ -32,13 +32,14 @@ class Abc {
 
 
 class C(@get:Restricted var x: Int = 0) {
-    @Builder
+    @HasDefaultValue(false)
     fun d(newD: D): C {
         this.d = newD
         return this
     }
 
     @get:Restricted
+    @get:HasDefaultValue(false)
     var d: D = D()
 
     @get:Restricted

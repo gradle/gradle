@@ -28,6 +28,11 @@ import java.util.Map;
  * <p>
  * The information returned by {@code #getAsMap} is considered dynamic information and subject to change between Gradle versions.
  *
+ * <p>
+ * For an example to provide {@link org.gradle.tooling.events.problems.CustomAdditionalData}, see <a href="https://docs.gradle.org/current/samples/sample_problems_api_usage.html">here</a>.
+ *
+ * @see org.gradle.tooling.events.problems.CustomAdditionalData
+ *
  * @since 8.6
  */
 @Incubating

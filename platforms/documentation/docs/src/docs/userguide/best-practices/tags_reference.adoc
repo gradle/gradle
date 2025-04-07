@@ -3,13 +3,24 @@
 
 Here you can find a brief explanation of all the tags used in the best practices documentation.
 
+`#caching`
+
+Items that are related to using Gradle's various caching mechanisms, such as <<build_cache.adoc#sec:task_output_caching,caching tasks>>.
+
 `#inputs-and-outputs`
 
 Items that are related to Gradle <<writing_tasks.adoc#task_inputs_and_outputs,task inputs and outputs>>, the annotations used to declare them, and their proper use.
 
+`#plugins`
+Items that explain the proper way to <<custom_plugins.adoc#custom_plugins,write plugins>> in Gradle, and common footguns involved in plugin authoring.
+
 `#tasks`
 
-Practices that explain the proper way to <<writing_tasks.adoc#sec:sample_task,write tasks>> in Gradle, and common footguns involved in task authoring.
+Items that explain the proper way to <<writing_tasks.adoc#sec:sample_task,write tasks>> in Gradle, and common footguns involved in task authoring.
+
+`#structuring-builds`
+
+Items that explain the proper way to structure maintainable builds in Gradle.
 
 `#up-to-date-checking`
 

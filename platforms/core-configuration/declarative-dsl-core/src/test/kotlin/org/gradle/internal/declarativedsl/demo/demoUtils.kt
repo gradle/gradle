@@ -5,12 +5,8 @@ import org.gradle.internal.declarativedsl.analysis.OperationId
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 import org.gradle.internal.declarativedsl.analysis.ref
 import org.gradle.internal.declarativedsl.language.DataTypeInternal
-import org.gradle.internal.declarativedsl.objectGraph.AssignmentResolver
-import org.gradle.internal.declarativedsl.objectGraph.AssignmentResolver.AssignmentAdditionResult.AssignmentAdded
-import org.gradle.internal.declarativedsl.objectGraph.AssignmentResolver.AssignmentResolutionResult.Assigned
-import org.gradle.internal.declarativedsl.objectGraph.AssignmentTrace
-import org.gradle.internal.declarativedsl.objectGraph.AssignmentTraceElement
-import org.gradle.internal.declarativedsl.objectGraph.AssignmentTracer
+import org.gradle.internal.declarativedsl.objectGraph.PropertyLinksResolver
+import org.gradle.internal.declarativedsl.objectGraph.PropertyLinkTracer
 import org.gradle.internal.declarativedsl.objectGraph.ObjectReflection
 
 
@@ -33,38 +29,8 @@ fun printResolutionResults(
 }
 
 
-fun assignmentTrace(result: ResolutionResult) =
-    AssignmentTracer { AssignmentResolver() }.produceAssignmentTrace(result)
-
-
-fun printAssignmentTrace(trace: AssignmentTrace) {
-    trace.elements.forEach { element ->
-        when (element) {
-            is AssignmentTraceElement.UnassignedValueUsed -> {
-                val locationString = when (val result = element.assignmentAdditionResult) {
-                    is AssignmentResolver.AssignmentAdditionResult.Reassignment,
-                    is AssignmentAdded -> error("unexpected")
-                    is AssignmentResolver.AssignmentAdditionResult.UnresolvedValueUsedInLhs -> "lhs: ${result.value}"
-                    is AssignmentResolver.AssignmentAdditionResult.UnresolvedValueUsedInRhs -> "rhs: ${result.value}"
-                }
-                println("${element.lhs} !:= ${element.rhs} -- unassigned property in $locationString")
-            }
-            is AssignmentTraceElement.Reassignment -> {
-                println("${element.lhs} !:= ${element.rhs} -- reassignment")
-            }
-            is AssignmentTraceElement.RecordedAssignment -> {
-                val assigned = trace.resolvedAssignments.getValue(element.lhs) as Assigned
-                println("${element.lhs} := ${element.rhs} => ${assigned.objectOrigin}")
-            }
-        }
-    }
-}
-
-
-fun printResolvedAssignments(result: ResolutionResult) {
-    println("\nResolved assignments:")
-    printAssignmentTrace(assignmentTrace(result))
-}
+fun propertyLinkTrace(result: ResolutionResult) =
+    PropertyLinkTracer { PropertyLinksResolver() }.producePropertyLinkResolutionTrace(result)
 
 
 @Suppress("NestedBlockDepth")

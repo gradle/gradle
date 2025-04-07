@@ -311,7 +311,7 @@
     "name": "daemon-server-worker",
     "path": "platforms/core-execution/daemon-server-worker",
     "unitTests": true,
-    "functionalTests": true,
+    "functionalTests": false,
     "crossVersionTests": false
   },
   {
@@ -1229,13 +1229,6 @@
     "path": "platforms/core-execution/snapshots",
     "unitTests": true,
     "functionalTests": true,
-    "crossVersionTests": false
-  },
-  {
-    "name": "snapshots-worker",
-    "path": "platforms/core-execution/snapshots-worker",
-    "unitTests": false,
-    "functionalTests": false,
     "crossVersionTests": false
   },
   {

@@ -325,6 +325,18 @@ You can view the list of recognized vendors by running `./gradlew help --task up
 If the specified vendor is not one of the recognized equivalents, Gradle will match it exactly.
 For example, "MyCustomJVM" would require an exact match of the vendor name.
 
+[[sec:native_image]]
+==== Requesting a native-image capable JDK
+
+Both the CLI options and the task configuration allow to request a JDK that is `native-image` capable.
+
+[source, bash]
+----
+$ ./gradlew updateDaemonJvm --jvm-version=17 --native-image-capable
+----
+
+See the <<toolchains.adoc#sec:native_image,toolchain documentation section>> for more information.
+
 [[sec:detect_provision]]
 === Auto-detection and auto-provisioning
 

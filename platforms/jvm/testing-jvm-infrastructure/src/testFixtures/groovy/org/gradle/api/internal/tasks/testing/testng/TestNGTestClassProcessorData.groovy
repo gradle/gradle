@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.testng
 
-import org.gradle.api.tasks.testing.TestFailure
+
 import org.testng.ITestContext
 import org.testng.ITestListener
 import org.testng.ITestResult
@@ -92,19 +92,16 @@ public class ATestNGFactoryClass {
 }
 
 public class ATestNGClassWithBrokenConstructor {
-    static TestFailure failure = TestFailure.fromTestFrameworkFailure(new RuntimeException())
-    def ATestNGClassWithBrokenConstructor() { throw failure.rawFailure }
+    def ATestNGClassWithBrokenConstructor() { throw new RuntimeException("broken")}
     @Test public void test() {}
 }
 
 public class ATestNGClassWithBrokenSetupMethod {
-    static TestFailure failure = TestFailure.fromTestFrameworkFailure(new RuntimeException())
-    @BeforeMethod public void beforeMethod() { throw failure.rawFailure }
+    @BeforeMethod public void beforeMethod() { throw new RuntimeException("broken") }
     @Test public void test() {}
 }
 
 public class ATestNGClassWithBrokenDependencyMethod {
-    static TestFailure failure = TestFailure.fromTestFrameworkFailure(new RuntimeException())
-    @Test public void beforeMethod() { throw failure.rawFailure }
+    @Test public void beforeMethod() { throw new RuntimeException("broken") }
     @Test(dependsOnMethods = 'beforeMethod') public void test() {}
 }

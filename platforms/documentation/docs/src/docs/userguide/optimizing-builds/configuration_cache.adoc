@@ -595,6 +595,72 @@ This mechanism can be useful during migration, allowing you to temporarily opt o
 
 For more details, refer to the link:{javadocPath}/org/gradle/api/Task.html#notCompatibleWithConfigurationCache-java.lang.String-[method] documentation.
 
+[[config_cache:integrity_check]]
+=== Using integrity checks to debug store and load issues
+
+To reduce entry size and improve performance, Gradle performs minimal integrity checks when writing and reading data.
+However, this approach can make troubleshooting issues more difficult, especially when dealing with concurrency problems or serialization errors.
+An incorrectly stored object may not be detected immediately but could lead to misleading or misattributed errors when reading cached data later.
+
+To make debugging easier, Gradle provides an option to enable stricter integrity checks.
+This setting helps identify inconsistencies earlier but may slow down cache operations and significantly increase the cache entry size.
+To enable stricter integrity checks, add the following line to your `gradle.properties` file:
+
+[source,properties]
+.gradle.properties
+----
+org.gradle.configuration-cache.integrity-check=true
+----
+
+For example, let's look at a type that implements a custom serialization protocol incorrectly:
+
+[source,java]
+----
+include::{snippetsPath}/configurationCache/integrityChecks/common/buildSrc/src/main/java/User.java[tags=broken-type]
+----
+<1> `writeObject` serializes both fields.
+<2> `readObject` reads only the first field, leaving the remaining data in the stream.
+
+Such a type will cause problems when used as part of a task state, because the configuration cache will try to interpret the remaining unread part of the object as some new value:
+
+[source,java]
+----
+include::{snippetsPath}/configurationCache/integrityChecks/common/buildSrc/src/main/java/GreetTask.java[tags=task-with-broken-type]
+----
+
+When running without the integrity check, you may encounter cryptic failure messages, possibly accompanied by induced configuration cache problems:
+
+----
+❯ gradle --configuration-cache greet
+...
+* What went wrong:
+Index 4 out of bounds for length 3
+----
+
+These errors might not immediately point to the root cause, making debugging more challenging.
+It might be really hard to connect an invalid index error to a serialization issue, for example.
+
+Rerunning the build with the integrity check enabled provides a much more precise diagnostic, helping you pinpoint the source of the issue faster:
+
+----
+❯ gradle --configuration-cache -Dorg.gradle.configuration-cache.integrity-check=true greet
+...
+include::{snippetsPath}/configurationCache/integrityChecks/tests/fail.out[]
+----
+
+You can immediately see the name of the offending task and the field that contains the broken data.
+
+Keep in mind that this attribution is best-effort: it should be accurate in most cases, but in rare instances, it may be confused by certain byte patterns.
+
+[WARNING]
+====
+The integrity check relies on additional metadata stored within the cache. Therefore, it cannot be used to diagnose entries already corrupted prior to enabling the integrity check.
+====
+
+The current integrity checks primarily focus on identifying serialization protocol issues rather than general data corruption.
+Consequently, they are less effective against hardware-related problems, such as bit rot or damaged storage sectors.
+Due to these limitations and the performance overhead introduced by integrity checks, we recommend enabling them selectively as a troubleshooting measure rather than leaving them permanently enabled.
+
 [[config_cache:adoption]]
 == Configuration Cache Adoption Steps
 

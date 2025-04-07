@@ -1,0 +1,5 @@
+> Task :addGood1 FROM-CACHE
+> Task :addGood2 FROM-CACHE
+
+BUILD SUCCESSFUL in 0s
+2 actionable tasks: 2 from cache

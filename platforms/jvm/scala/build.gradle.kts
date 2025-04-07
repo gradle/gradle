@@ -67,6 +67,7 @@ dependencies {
 
     integTestImplementation(projects.jvmServices)
 
+    testFixturesImplementation(testFixtures(projects.core))
     testFixturesImplementation(testFixtures(projects.languageJvm))
 
     testRuntimeOnly(projects.distributionsCore) {

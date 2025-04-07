@@ -32,6 +32,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Artif
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionInternal;
@@ -62,6 +63,7 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
     private final TaskDependencyFactory taskDependencyFactory;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
     private final AttributesFactory attributesFactory;
+    private final AttributeDesugaring attributeDesugaring;
     private final Instantiator instantiator;
 
     public DefaultResolutionOutputs(
@@ -69,12 +71,14 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
         TaskDependencyFactory taskDependencyFactory,
         CalculatedValueContainerFactory calculatedValueContainerFactory,
         AttributesFactory attributesFactory,
+        AttributeDesugaring attributeDesugaring,
         Instantiator instantiator
     ) {
         this.resolutionAccess = resolutionAccess;
         this.taskDependencyFactory = taskDependencyFactory;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
         this.attributesFactory = attributesFactory;
+        this.attributeDesugaring = attributeDesugaring;
         this.instantiator = instantiator;
     }
 
@@ -124,7 +128,8 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
             resolutionAccess,
             taskDependencyFactory,
             calculatedValueContainerFactory,
-            attributesFactory
+            attributesFactory,
+            attributeDesugaring
         );
     }
 
@@ -142,6 +147,7 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
         private final TaskDependencyFactory taskDependencyFactory;
         private final CalculatedValueContainerFactory calculatedValueContainerFactory;
         private final AttributesFactory attributesFactory;
+        private final AttributeDesugaring attributeDesugaring;
 
         public DefaultArtifactView(
             boolean lenient,
@@ -152,7 +158,8 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
             ResolutionAccess resolutionAccess,
             TaskDependencyFactory taskDependencyFactory,
             CalculatedValueContainerFactory calculatedValueContainerFactory,
-            AttributesFactory attributesFactory
+            AttributesFactory attributesFactory,
+            AttributeDesugaring attributeDesugaring
         ) {
             this.lenient = lenient;
             this.componentFilter = componentFilter;
@@ -163,6 +170,7 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
             this.taskDependencyFactory = taskDependencyFactory;
             this.calculatedValueContainerFactory = calculatedValueContainerFactory;
             this.attributesFactory = attributesFactory;
+            this.attributeDesugaring = attributeDesugaring;
         }
 
         @Override
@@ -171,7 +179,8 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
                 getFiles(),
                 lenient,
                 resolutionAccess.getHost(),
-                calculatedValueContainerFactory
+                calculatedValueContainerFactory,
+                attributeDesugaring
             );
         }
 

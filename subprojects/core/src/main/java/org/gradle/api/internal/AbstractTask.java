@@ -72,6 +72,7 @@ import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.logging.LoggingManagerFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.logging.slf4j.ContextAwareTaskLogger;
@@ -560,7 +561,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private LoggingManagerInternal loggingManager() {
         if (loggingManager == null) {
-            loggingManager = services.getFactory(org.gradle.internal.logging.LoggingManagerInternal.class).create();
+            loggingManager = services.get(LoggingManagerFactory.class).createLoggingManager();
         }
         return loggingManager;
     }

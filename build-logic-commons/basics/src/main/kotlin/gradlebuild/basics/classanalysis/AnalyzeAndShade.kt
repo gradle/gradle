@@ -134,6 +134,17 @@ class JarAnalyzer(
                 private
                 fun visitClassFile(file: Path) {
                     try {
+                        if (file.endsWith("module-info.class")) {
+                            // We can't keep this info intact, ignore this.
+                            return
+                        }
+                        val outputPrefix = if (file.startsWith("/META-INF/versions")) {
+                            // Java 9 multi-release JAR entry, we must keep it nested in the output
+                            file.subpath(0, 3).toString()
+                        } else {
+                            ""
+                        }
+
                         val reader = ClassReader(Files.newInputStream(file))
                         val details = classes[reader.className]
                         details.visited = true
@@ -157,12 +168,12 @@ class JarAnalyzer(
                             ClassReader.EXPAND_FRAMES
                         )
 
-                        classesDir.resolve(details.outputClassFilename).apply {
+                        classesDir.resolve(outputPrefix).resolve(details.outputClassFilename).apply {
                             parentFile.mkdirs()
                             writeBytes(classWriter.toByteArray())
                         }
                     } catch (exception: Exception) {
-                        throw ClassAnalysisException("Could not transform class from ${file.toFile()}", exception)
+                        throw ClassAnalysisException("Could not transform class from $file", exception)
                     }
                 }
             }

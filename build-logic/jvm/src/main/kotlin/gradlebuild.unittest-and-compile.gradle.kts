@@ -358,7 +358,8 @@ fun Test.configureJvmForTest() {
             // Temporary workaround for smoke tests until we have the new API (`forDaemonProcesses`) available normally.
             val clazz = org.gradle.internal.jvm.JpmsConfiguration::class.java
             val jpmsArgs = try {
-                clazz.getDeclaredField("GRADLE_DAEMON_JPMS_ARGS").get(null)
+                val non24CompatibleArgs = clazz.getDeclaredField("GRADLE_DAEMON_JPMS_ARGS").get(null) as List<*>
+                non24CompatibleArgs + (if (jvmVersionForTest().canCompileOrRun(24)) listOf("--enable-native-access=ALL-UNNAMED") else emptyList<String>())
             } catch (ignored: NoSuchFieldException) {
                 clazz.getMethod("forDaemonProcesses", Int::class.java, Boolean::class.java).invoke(null, jvmVersionForTest().asInt(), true)
             }

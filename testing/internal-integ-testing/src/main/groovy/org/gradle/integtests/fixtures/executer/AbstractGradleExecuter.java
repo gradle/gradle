@@ -47,8 +47,8 @@ import org.gradle.internal.jvm.inspection.CachingJvmMetadataDetector;
 import org.gradle.internal.jvm.inspection.DefaultJvmMetadataDetector;
 import org.gradle.internal.jvm.inspection.DefaultJvmVersionDetector;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
+import org.gradle.internal.logging.LoggingManagerFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
-import org.gradle.internal.logging.services.DefaultLoggingManagerFactory;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.nativeintegration.console.TestOverrideConsoleDetector;
 import org.gradle.internal.nativeintegration.services.NativeServices;
@@ -425,10 +425,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             executer.withGradleVersionOverride(gradleVersionOverride);
         }
 
-        if (debug.isEnabled()){
+        if (debug.isEnabled()) {
             executer.startBuildProcessInDebugger(opts -> debug.copyTo(opts));
         }
-        if (debugLauncher.isEnabled()){
+        if (debugLauncher.isEnabled()) {
             executer.startLauncherInDebugger(opts -> debugLauncher.copyTo(opts));
         }
 
@@ -605,6 +605,18 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             gradleInvocation.implicitLauncherJvmArgs.add(debugLauncher.toDebugArgument());
         }
         gradleInvocation.implicitLauncherJvmArgs.add("-ea");
+
+        // Note: it's possible we shouldn't calculate _any_ implicit JVM args when requested to use only the specified ones, but to preserve behavior I only excluded the new flag here
+        if (useOnlyRequestedJvmOpts) {
+            return;
+        }
+
+        JavaVersion javaVersion = getJavaVersionFromJavaHome();
+        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_24)) {
+            // Remove known warning that occurs in the launcher. This can be fixed by refactoring the bin/gradle start script to pass the flag or by adding the flag to the launcher JAR
+            // and refactoring the start script to use that JAR instead of a main class.
+            gradleInvocation.implicitLauncherJvmArgs.add("--enable-native-access=ALL-UNNAMED");
+        }
     }
 
     protected static String joinAndQuoteJvmArgs(List<String> buildJvmArgs) {
@@ -1664,7 +1676,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
     private static ServiceRegistry newCommandLineProcessLogging() {
         ServiceRegistry loggingServices = LoggingServiceRegistry.newEmbeddableLogging();
-        LoggingManagerInternal rootLoggingManager = loggingServices.get(DefaultLoggingManagerFactory.class).getRoot();
+        LoggingManagerInternal rootLoggingManager = loggingServices.get(LoggingManagerFactory.class).getRoot();
         rootLoggingManager.attachSystemOutAndErr();
         return loggingServices;
     }
