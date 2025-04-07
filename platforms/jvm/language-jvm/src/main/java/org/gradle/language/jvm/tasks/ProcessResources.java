@@ -31,7 +31,7 @@ public abstract class ProcessResources extends Copy {
 
     @Override
     protected void copy() {
-        boolean cleanedOutputs = StaleOutputCleaner.cleanOutputs(getDeleter(), getOutputs().getPreviousOutputFiles(), getDestinationDir());
+        boolean cleanedOutputs = StaleOutputCleaner.cleanOutputs(getDeleter(), getOutputs().getPreviousOutputFiles(), getDestinationDir().get().getAsFile());
         super.copy();
         if (cleanedOutputs) {
             setDidWork(true);

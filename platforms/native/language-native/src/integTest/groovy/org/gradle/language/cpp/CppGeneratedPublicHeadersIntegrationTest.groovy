@@ -43,7 +43,7 @@ class CppGeneratedPublicHeadersIntegrationTest extends AbstractInstalledToolChai
                 library {
                     def generatorTask = tasks.register('generatePublicHeaders', Sync) {
                         from(rootProject.file('staging-includes'))
-                        into({ temporaryDir })
+                        into(layout.buildDirectory.dir('generatedPublicHeaders'))
                     }
 
                     publicHeaders.from(generatorTask)
@@ -70,7 +70,7 @@ class CppGeneratedPublicHeadersIntegrationTest extends AbstractInstalledToolChai
                 library {
                     def generatorTask = tasks.register('generatePublicHeaders', Sync) {
                         from(rootProject.file('staging-includes'))
-                        into({ temporaryDir })
+                        into(layout.buildDirectory.dir('generatedPublicHeaders'))
                     }
 
                     publicHeaders.from(generatorTask)

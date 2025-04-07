@@ -38,7 +38,7 @@ abstract class AbstractKotlinPluginAndroidSmokeTest extends AbstractSmokeTest im
     def "kotlin android on android-kotlin-example using #dsl DSL (kotlin=#kotlinPluginVersion, agp=#androidPluginVersion, workers=#parallel)"(String kotlinPluginVersion, String androidPluginVersion, boolean parallel) {
         given:
         AndroidHome.assertIsSet()
-        AGP_VERSIONS.assumeAgpSupportsCurrentJavaVersionAndKotlinVersion(androidPluginVersion, kotlinPluginVersion)
+        AGP_VERSIONS.assumeAgpSupportsCurrentJavaVersionAndProviderApiChangesAndKotlinVersion(androidPluginVersion, kotlinPluginVersion)
         this.kotlinPluginVersion = VersionNumber.parse(kotlinPluginVersion)
         useSample(getSampleName())
 

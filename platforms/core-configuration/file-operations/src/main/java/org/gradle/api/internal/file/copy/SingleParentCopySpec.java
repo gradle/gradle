@@ -17,6 +17,7 @@ package org.gradle.api.internal.file.copy;
 
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FileFactory;
 import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
@@ -25,27 +26,28 @@ import org.gradle.internal.reflect.Instantiator;
 public class SingleParentCopySpec extends DefaultCopySpec {
 
     private final CopySpecResolver parentResolver;
-
     private final PropertyFactory propertyFactory;
+    private final FileFactory fileFactory;
 
-    public SingleParentCopySpec(FileCollectionFactory fileCollectionFactory, PropertyFactory propertyFactory, Instantiator instantiator, Factory<PatternSet> patternSetFactory, CopySpecResolver parentResolver) {
-        super(fileCollectionFactory, propertyFactory, instantiator, patternSetFactory);
+    public SingleParentCopySpec(FileCollectionFactory fileCollectionFactory, PropertyFactory propertyFactory, FileFactory fileFactory, Instantiator instantiator, Factory<PatternSet> patternSetFactory, CopySpecResolver parentResolver) {
+        super(fileCollectionFactory, propertyFactory, fileFactory, instantiator, patternSetFactory);
         this.parentResolver = parentResolver;
         this.propertyFactory = propertyFactory;
+        this.fileFactory = fileFactory;
         getFilePermissions().convention(parentResolver.getFilePermissions());
         getDirPermissions().convention(parentResolver.getDirPermissions());
     }
 
     @Override
     public CopySpecInternal addChild() {
-        DefaultCopySpec child = instantiator.newInstance(SingleParentCopySpec.class, fileCollectionFactory, propertyFactory, instantiator, patternSetFactory, buildResolverRelativeToParent(parentResolver));
+        DefaultCopySpec child = instantiator.newInstance(SingleParentCopySpec.class, fileCollectionFactory, propertyFactory, fileFactory, instantiator, patternSetFactory, buildResolverRelativeToParent(parentResolver));
         addChildSpec(child);
         return child;
     }
 
     @Override
     protected CopySpecInternal addChildAtPosition(int position) {
-        DefaultCopySpec child = instantiator.newInstance(SingleParentCopySpec.class, fileCollectionFactory, propertyFactory, instantiator, patternSetFactory, buildResolverRelativeToParent(parentResolver));
+        DefaultCopySpec child = instantiator.newInstance(SingleParentCopySpec.class, fileCollectionFactory, propertyFactory, fileFactory, instantiator, patternSetFactory, buildResolverRelativeToParent(parentResolver));
         addChildSpec(position, child);
         return child;
     }
