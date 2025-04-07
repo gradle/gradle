@@ -150,7 +150,7 @@ include::sample[dir="snippets/bestPractices/useCacheabilityAnnotations-do/groovy
 
 == Don't resolve Configurations before Task Execution
 
-Resolving configuration before task execution phase can lead to incorrect results and slows gradle build performance.
+Resolving configuration before the task execution phase can lead to incorrect results and slower builds.
 
 Once configuration is resolved it can't be resolved again, and it can lose some information when it is resolved too early.
 Calling manual resolution via link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#resolve()[resolve] method returns a set of Files that doesn't preserve references to the tasks that produced these files.
