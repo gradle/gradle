@@ -910,6 +910,73 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         "javaexec" | { File serverInfoFile -> javaExecSpecWithHttpServer(serverInfoFile) }
     }
 
+    @UnsupportedWithConfigurationCache(because = "Running external process at configuration time")
+    def "execOperations.#method in #location resolves relative path correctly"() {
+        settingsFile << "include 'a'"
+        testDirectory.file("a").mkdirs()
+        testDirectory.file("$subfolder/build/test/folder").mkdirs()
+        file("$subfolder/$location") << """
+            def execOperations = services.get(ExecOperations)
+            execOperations.${method} {
+                $configuration
+                it.workingDir = new File("build/test/folder")
+            }
+        """
+
+        when:
+        succeeds("help")
+
+        then:
+        outputContains("user.dir=${testDirectory.file("$subfolder/build/test/folder").absolutePath}")
+
+        where:
+        location          | method     | configuration                    | subfolder
+        "build.gradle"    | "exec"     | execSpecWithJavaExecutable()     | "a"
+        "build.gradle"    | "javaexec" | javaExecSpec()                   | "a"
+        "settings.gradle" | "exec"     | execSpecWithJavaExecutable("it") | "."
+        "settings.gradle" | "javaexec" | javaExecSpec("it")               | "."
+    }
+
+    def "providers.#method in build.gradle resolves relative path correctly"() {
+        settingsFile << "include 'a'"
+        testDirectory.file("a").mkdirs()
+        testDirectory.file("$subfolder/build/test/folder").mkdirs()
+        file("$subfolder/$location") << """
+            def provider = $service.${method} {
+                $configuration
+                it.workingDir = new File("build/test/folder")
+            }
+
+            abstract class MyExec extends DefaultTask {
+                @Internal
+                abstract Property<ExecResult> getExecResult()
+
+                @TaskAction
+                void doIt() {
+                    System.out.println("Exec exit value=" + execResult.get().getExitValue())
+                }
+            }
+
+            tasks.register("run", MyExec) {
+                execResult = provider.getResult()
+            }
+        """
+
+        when:
+        succeeds("run")
+
+        then:
+        testDirectory.file("$subfolder/build/test/folder/output.txt").exists()
+        testDirectory.file("$subfolder/build/test/folder/output.txt").text.contains(
+            "user.dir=${testDirectory.file("$subfolder/build/test/folder").absolutePath}"
+        )
+
+        where:
+        location          | method     | service                         | configuration                    | subfolder
+        "build.gradle"    | "exec"     | "project.providers"             | execSpecWithJavaExecutable()     | "a"
+        "build.gradle"    | "javaexec" | "project.providers"             | javaExecSpec()                   | "a"
+    }
+
     private static def execSpec(def owner = "") {
         "${prop(owner, "commandLine")}(${echoCommandLineArgs("Hello")});"
     }
