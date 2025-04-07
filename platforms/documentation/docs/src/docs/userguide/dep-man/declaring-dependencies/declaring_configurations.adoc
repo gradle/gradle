@@ -243,7 +243,7 @@ include::sample[dir="snippets/dependencyManagement/performingResolution-resoluti
 
 Now that we've created a _dependency scope_ configuration for declaring dependencies, and a _resolvable_ configuration for resolving those dependencies, we can use Gradle's <<dependency_resolution.adoc#dependency-resolution-basics,dependency resolution APIs>> to access the results of resolution.
 
-[[sub:resolving-unsafe-configuration-resolution-errors]]
+[[sub:unsafe-configuration-resolution-errors]]
 == Unsafe configuration resolution errors
 
 Resolving a configuration can have side effects on Gradle's project model.

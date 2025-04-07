@@ -84,7 +84,7 @@ To pass an option to a task, prefix the option name with `--` after the task nam
 $ gradle taskName --exampleOption=exampleValue
 ----
 
-Consult the <<command_line_interface.adoc#command_line_interface,Gradle Command Line Interface reference>> to learn more.
+Consult the <<command_line_interface.adoc#command_line_interface_reference,Gradle Command Line Interface reference>> to learn more.
 
 [.text-right]
 **Next Step:** <<settings_file_basics.adoc#settings_file_basics,Learn about the Settings file>> >>
