@@ -16,86 +16,74 @@
 
 package org.gradle.internal.jacoco.rules;
 
+import org.gradle.api.provider.Property;
 import org.gradle.testing.jacoco.tasks.rules.JacocoLimit;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 
-public class JacocoLimitImpl implements JacocoLimit {
+public abstract class JacocoLimitImpl implements JacocoLimit {
 
-    private String counter = "INSTRUCTION";
-    private String value = "COVEREDRATIO";
-    private BigDecimal minimum;
-    private BigDecimal maximum;
-
-    @Override
-    public String getCounter() {
-        return counter;
+    public JacocoLimitImpl() {
+        getCounter().convention("INSTRUCTION");
+        getValue().convention("COVEREDRATIO");
     }
 
     @Override
-    public void setCounter(String counter) {
-        this.counter = counter;
-    }
+    public abstract Property<String> getCounter();
 
     @Override
-    public String getValue() {
-        return value;
-    }
+    public abstract Property<String> getValue();
 
     @Override
-    public void setValue(String value) {
-        this.value = value;
-    }
+    public abstract Property<BigDecimal> getMinimum();
 
     @Override
-    public BigDecimal getMinimum() {
-        return minimum;
-    }
+    public abstract Property<BigDecimal> getMaximum();
 
-    @Override
-    public void setMinimum(BigDecimal minimum) {
-        this.minimum = minimum;
-    }
+    @NullMarked
+    public static class SerializableJacocoLimit implements Serializable {
+        private final String counter;
+        private final String value;
+        @Nullable
+        private final BigDecimal minimum;
+        @Nullable
+        private final BigDecimal maximum;
 
-    @Override
-    public BigDecimal getMaximum() {
-        return maximum;
-    }
-
-    @Override
-    public void setMaximum(BigDecimal maximum) {
-        this.maximum = maximum;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
+        public SerializableJacocoLimit(String counter, String value, @Nullable BigDecimal minimum, @Nullable BigDecimal maximum) {
+            this.counter = counter;
+            this.value = value;
+            this.minimum = minimum;
+            this.maximum = maximum;
         }
 
-        JacocoLimitImpl that = (JacocoLimitImpl) o;
+        public String getCounter() {
+            return counter;
+        }
 
-        if (counter != that.counter) {
-            return false;
+        public String getValue() {
+            return value;
         }
-        if (value != that.value) {
-            return false;
-        }
-        if (minimum != null ? !minimum.equals(that.minimum) : that.minimum != null) {
-            return false;
-        }
-        return maximum != null ? maximum.equals(that.maximum) : that.maximum == null;
-    }
 
-    @Override
-    public int hashCode() {
-        int result = counter != null ? counter.hashCode() : 0;
-        result = 31 * result + (value != null ? value.hashCode() : 0);
-        result = 31 * result + (minimum != null ? minimum.hashCode() : 0);
-        result = 31 * result + (maximum != null ? maximum.hashCode() : 0);
-        return result;
+        @Nullable
+        public BigDecimal getMinimum() {
+            return minimum;
+        }
+
+        @Nullable
+        public BigDecimal getMaximum() {
+            return maximum;
+        }
+
+        public static SerializableJacocoLimit of(JacocoLimit jacocoLimit) {
+            return new SerializableJacocoLimit(
+                jacocoLimit.getCounter().get(),
+                jacocoLimit.getValue().get(),
+                jacocoLimit.getMinimum().getOrNull(),
+                jacocoLimit.getMaximum().getOrNull()
+            );
+        }
     }
 }
