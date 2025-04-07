@@ -78,6 +78,11 @@ public abstract class AbstractDynamicObject implements DynamicObject {
     }
 
     @Override
+    public DynamicInvokeResult trySetPropertyWithoutInstrumentation(String name, @Nullable Object value) {
+        return DynamicInvokeResult.notFound();
+    }
+
+    @Override
     public MissingPropertyException getMissingProperty(String name) {
         Class<?> publicType = getPublicType();
         boolean includeDisplayName = hasUsefulDisplayName();
