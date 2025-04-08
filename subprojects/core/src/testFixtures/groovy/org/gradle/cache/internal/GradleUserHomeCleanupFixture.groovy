@@ -62,36 +62,12 @@ trait GradleUserHomeCleanupFixture implements VersionSpecificCacheCleanupFixture
         gradleUserHomeDir.file(WRAPPER_DISTRIBUTION_FILE_PATH)
     }
 
-    void disableCacheCleanupViaProperty() {
-        gradleUserHomeDir.mkdirs()
-        new File(gradleUserHomeDir, 'gradle.properties') << """
-            ${LegacyCacheCleanupEnablement.CACHE_CLEANUP_PROPERTY}=false
-        """.stripIndent()
-    }
-
     void disableCacheCleanupViaDsl() {
         setCleanupInterval("DISABLED")
     }
 
     void explicitlyEnableCacheCleanupViaDsl() {
         setCleanupInterval("DEFAULT")
-    }
-
-    void disableCacheCleanup(CleanupMethod method) {
-        switch (method) {
-            case CleanupMethod.PROPERTY:
-                disableCacheCleanupViaProperty()
-                break
-            case CleanupMethod.DSL:
-                disableCacheCleanupViaDsl()
-                break
-            case CleanupMethod.BOTH:
-                disableCacheCleanupViaProperty()
-                disableCacheCleanupViaDsl()
-                break
-            default:
-                throw new IllegalArgumentException()
-        }
     }
 
     void alwaysCleanupCaches() {

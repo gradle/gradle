@@ -120,17 +120,16 @@ abstract class AbstractBuildCacheCleanupIntegrationTest extends AbstractIntegrat
         "explicitly enabled"        | true
     }
 
-    def "cleans up entries even if gradle user home cache cleanup is disabled via #cleanupMethod"() {
+    def "cleans up entries even if gradle user home cache cleanup is disabled"() {
         def lastCleanupCheck = initializeHome()
 
-        disableCacheCleanup(cleanupMethod)
+        disableCacheCleanupViaDsl()
 
         when:
         def newTrashFile = temporaryFolder.file("0" * hashStringLength).createFile()
         def oldTrashFile = temporaryFolder.file("1" * hashStringLength).createFile()
         createBuildCacheEntry("0" * hashStringLength, newTrashFile, System.currentTimeMillis())
         createBuildCacheEntry("1" * hashStringLength, oldTrashFile, daysAgo(DEFAULT_RETENTION_PERIOD_DAYS + 1))
-        cleanupMethod.maybeExpectDeprecationWarning(executer)
         run()
 
         then:
@@ -147,9 +146,6 @@ abstract class AbstractBuildCacheCleanupIntegrationTest extends AbstractIntegrat
         existsBuildCacheEntry("0" * hashStringLength)
         existsBuildCacheEntry("1" * hashStringLength)
         assertCacheWasNotCleanedUpSince(lastCleanupCheck)
-
-        where:
-        cleanupMethod << CleanupMethod.values()
     }
 
     def "cleans up entries after #scenario"() {
