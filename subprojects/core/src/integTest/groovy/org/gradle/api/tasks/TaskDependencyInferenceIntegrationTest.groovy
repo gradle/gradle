@@ -18,7 +18,6 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
 class TaskDependencyInferenceIntegrationTest extends AbstractIntegrationSpec implements TasksWithInputsAndOutputs {
@@ -1096,7 +1095,7 @@ The following types/formats are supported:
         "providers.systemProperty('externalContent').flatMap { objects.fileProperty().fileValue(file(it)) }"      | [":defaultProducer", ":consumer"]                  | "Default content"  | []                                 | null
         "providers.environmentVariable('externalContent').flatMap { objects.fileProperty().fileValue(file(it)) }" | [":defaultProducer", ":consumer"]                  | "External content" | []                                 | { executer -> executer.withEnvironmentVars(["externalContent": "external.txt"]) }
         "providers.environmentVariable('externalContent').flatMap { objects.fileProperty().fileValue(file(it)) }" | [":defaultProducer", ":consumer"]                  | "Default content"  | []                                 | null
-        "providers.of(FileSource, { parameters.file = file('external.txt') }) "                                   | [":defaultProducer", ":consumer"]                  | "External content" | []                                 | null
-        "providers.of(FileSource, {}) "                                                                           | [":defaultProducer", ":consumer"]                  | "Default content"  | []                                 | null
+        "providers.of(FileSource, { parameters.file = file('external.txt') })"                                    | [":defaultProducer", ":consumer"]                  | "External content" | []                                 | null
+        "providers.of(FileSource, {})"                                                                            | [":defaultProducer", ":consumer"]                  | "Default content"  | []                                 | null
     }
 }
