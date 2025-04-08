@@ -43,7 +43,7 @@ class TestNGFailOnNoTestIntegrationTest extends TestNGTestFrameworkIntegrationTe
 
         expect:
         fails('test')
-        failure.assertHasCause("There are test sources present and no filters are applied, but the test task did not discover any tests to execute. This is likely due to a misconfiguration.  Please check your test configuration.")
+        failure.assertHasCause("There are test sources present and no filters are applied, but the test task did not discover any tests to execute. This is likely due to a misconfiguration. Please check your test configuration.")
     }
 
     def "test source and test task use different test frameworks"() {
@@ -64,6 +64,6 @@ class TestNGFailOnNoTestIntegrationTest extends TestNGTestFrameworkIntegrationTe
 
         expect:
         fails('test')
-        failure.assertHasCause("There are test sources present and no filters are applied, but the test task did not discover any tests to execute. This is likely due to a misconfiguration.  Please check your test configuration.")
+        failure.assertHasCause("There are test sources present and no filters are applied, but the test task did not discover any tests to execute. This is likely due to a misconfiguration. Please check your test configuration.")
     }
 }

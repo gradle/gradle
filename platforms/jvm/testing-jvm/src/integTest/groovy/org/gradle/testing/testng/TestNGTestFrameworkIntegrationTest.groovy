@@ -111,7 +111,7 @@ class TestNGTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegratio
         fails "test"
 
         then:
-        failure.assertHasCause("There are test sources present and no filters are applied, but the test task did not discover any tests to execute. This is likely due to a misconfiguration.  Please check your test configuration.")
+        failure.assertHasCause("There are test sources present and no filters are applied, but the test task did not discover any tests to execute. This is likely due to a misconfiguration. Please check your test configuration.")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/18566")

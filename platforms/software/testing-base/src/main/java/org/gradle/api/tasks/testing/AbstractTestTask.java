@@ -549,7 +549,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
             // - Otherwise, this is fine - the task should succeed with no warnings or errors
             if (testsAreNotFiltered()) {
                 if (testCountLogger.getTotalDiscoveredItems() == 0) {
-                    throw new TestExecutionException("There are test sources present and no filters are applied, but the test task did not discover any tests to execute. This is likely due to a misconfiguration.  Please check your test configuration.");
+                    throw new TestExecutionException("There are test sources present and no filters are applied, but the test task did not discover any tests to execute. This is likely due to a misconfiguration. Please check your test configuration.");
                 }
             } else if (shouldFailOnNoMatchingTests()) {
                 throw new TestExecutionException(createNoMatchingTestErrorMessage());

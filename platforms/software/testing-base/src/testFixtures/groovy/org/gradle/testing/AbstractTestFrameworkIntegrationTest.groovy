@@ -161,7 +161,7 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         fails "check"
 
         then:
-        failure.assertHasCause("There are test sources present and no filters are applied, but the test task did not discover any tests to execute. This is likely due to a misconfiguration.  Please check your test configuration.")
+        failure.assertHasCause("There are test sources present and no filters are applied, but the test task did not discover any tests to execute. This is likely due to a misconfiguration. Please check your test configuration.")
     }
 
     def "adding and removing tests remove old tests from reports"() {
