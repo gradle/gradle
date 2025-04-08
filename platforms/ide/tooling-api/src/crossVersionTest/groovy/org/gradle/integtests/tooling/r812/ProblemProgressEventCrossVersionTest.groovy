@@ -23,7 +23,6 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r85.CustomModel
-import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
@@ -43,7 +42,6 @@ import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk21
 import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk8
 import static org.gradle.integtests.tooling.r86.ProblemProgressEventCrossVersionTest.getProblemReportTaskString
 import static org.gradle.integtests.tooling.r86.ProblemsServiceModelBuilderCrossVersionTest.getBuildScriptSampleContent
-import static org.gradle.integtests.tooling.r89.ProblemProgressEventCrossVersionTest.buildFileLocation
 
 @ToolingApiVersion(">=8.12")
 @TargetGradleVersion(">=8.9")
@@ -66,12 +64,11 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
     @TargetGradleVersion(">=8.6")
     def "Failing executions produce problems"() {
         setup:
-        def nextMajor = Integer.parseInt(targetVersion.version.substring(0, targetVersion.version.indexOf("."))) + 1
         buildFile """
-            ${DeprecationLogger.class.name}.deprecate("foo").willBeRemovedInGradle${nextMajor}().undocumented().nagUser()
             task bar {}
             task baz {}
         """
+        settingsFile << 'rootProject.name = "root"'
 
         when:
         def listener = new ProblemProgressListener()
@@ -87,14 +84,8 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
         then:
         thrown(BuildException)
-        listener.problems.size() == 2
-        verifyAll(listener.problems[0]) {
-            definition.id.displayName.contains("foo")
-            definition.id.group.displayName in ["Deprecation", "deprecation"]
-            definition.id.group.name == "deprecation"
-            definition.severity == Severity.WARNING
-            locations(it).find { l -> l instanceof LineInFileLocation && l.path == buildFileLocation(buildFile, targetVersion) }
-        }
+        listener.problems.size() == 1
+        listener.problems[0].contextualLabel.contextualLabel == "Cannot locate tasks that match ':ba' as task 'ba' is ambiguous in root project 'root'. Candidates are: 'bar', 'baz'."
     }
 
     @TargetGradleVersion(">=8.9 <8.13")
