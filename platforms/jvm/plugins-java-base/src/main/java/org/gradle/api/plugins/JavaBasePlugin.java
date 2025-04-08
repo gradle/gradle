@@ -23,10 +23,8 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.LibraryElements;
-import org.gradle.api.file.Directory;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
-import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRole;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles;
@@ -77,7 +75,6 @@ import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -342,7 +339,6 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
                 return javaVersionSupplier.get();
             });
 
-            compile.getDestinationDirectory().convention(project.getProviders().provider(new BackwardCompatibilityOutputDirectoryConvention(compile)));
         });
     }
 
@@ -407,54 +403,6 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         JavaPluginExtension extension = project.getExtensions().getByType(JavaPluginExtension.class);
         return toolchainOverride.orElse(extension.getToolchain())
             .flatMap(spec -> toolMapper.apply(service, spec));
-    }
-
-    /**
-     * Convention to fall back to the 'destinationDir' output for backwards compatibility with plugins that extend AbstractCompile
-     * and override the deprecated methods.
-     */
-    private static class BackwardCompatibilityOutputDirectoryConvention implements Callable<Directory> {
-        private final AbstractCompile compile;
-        private boolean recursiveCall;
-
-        public BackwardCompatibilityOutputDirectoryConvention(AbstractCompile compile) {
-            this.compile = compile;
-        }
-
-        @SuppressWarnings("deprecation")
-        @Override
-        @Nullable
-        public Directory call() throws Exception {
-            Method getter = GeneratedSubclasses.unpackType(compile).getMethod("getDestinationDir");
-            if (getter.getDeclaringClass() == AbstractCompile.class) {
-                // Subclass has not overridden the getter, so ignore
-                return null;
-            }
-
-            // Subclass has overridden the getter, so call it
-
-            if (recursiveCall) {
-                // Already querying AbstractCompile.getDestinationDirectory()
-                // In that case, this convention should not be used.
-                return null;
-            }
-            recursiveCall = true;
-            File legacyValue;
-            try {
-                // This will call a subclass implementation of getDestinationDir(), which possibly will not call the overridden getter
-                // In the Kotlin plugin, the subclass manages its own field which will be used here.
-                // This was to support tasks that extended AbstractCompile and had their own getDestinationDir().
-                // We actually need to keep this as compile.getDestinationDir to maintain compatibility.
-                legacyValue = compile.getDestinationDirectory().getAsFile().get();
-            } finally {
-                recursiveCall = false;
-            }
-            if (legacyValue == null) {
-                return null;
-            } else {
-                return compile.getProject().getLayout().getProjectDirectory().dir(legacyValue.getAbsolutePath());
-            }
-        }
     }
 
     /**
