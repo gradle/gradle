@@ -942,7 +942,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         "build.gradle" | "javaexec" | javaExecSpec()
     }
 
-    def "providers.#method in build.gradle resolves relative path correctly"() {
+    def "providers.#method in a non-root build.gradle resolves relative path correctly"() {
         settingsFile << "include 'a'"
         testDirectory.file("a").mkdirs()
         testDirectory.file("a/build/test/folder").mkdirs()
