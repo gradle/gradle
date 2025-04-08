@@ -156,7 +156,7 @@ class TestUtil {
         return services().get(TestProblems)
     }
 
-    static ObjectFactory objectFactory(TestFile baseDir) {
+    static ObjectFactory objectFactory(File baseDir) {
         def fileResolver = TestFiles.resolver(baseDir)
         def fileCollectionFactory = TestFiles.fileCollectionFactory(baseDir)
         return createServices(fileResolver, fileCollectionFactory).get(ObjectFactory)
