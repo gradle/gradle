@@ -45,10 +45,7 @@ include::sample[dir="snippets/bestPractices/useLatestVersion/kotlin/avoid-this",
 include::sample[dir="snippets/bestPractices/useLatestVersion/groovy/avoid-this",files="build.gradle[tags=avoid-this]"]
 ====
 
-<1> *Declare a Repository*: To use the legacy plugin application syntax, you need to explicitly tell Gradle where to find a plugin.
-<2> *Declare a Plugin Dependency*: To use the legacy plugin application syntax with third-party plugins, you need to explicitly tell Gradle the full coordinates of the plugin.
-<3> *Apply a Core Plugin*: This is very similar using either method.
-<4> *Apply a Third-Party Plugin*: The syntax is the same as for core Gradle plugins, but the version is not present at the point of application in your buildscript.
+<1> Old and potentially buggy version of plugin.
 
 ==== Do This Instead
 
@@ -57,10 +54,7 @@ include::sample[dir="snippets/bestPractices/useLatestVersion/kotlin/do-this",fil
 include::sample[dir="snippets/bestPractices/useLatestVersion/groovy/do-this",files="build.gradle[tags=do-this]"]
 ====
 
-<1> *Apply a Core Plugin*: This is very similar using either method.
-<2> *Apply a Third-Party Plugin*: You specify the version using method chaining in the `plugins` block itself.
-
-
+<1> Latest known stable minor version of plugin.
 
 === References
 <<upgrading_version_8.adoc#upgrading_version_8,Upgrade Guide>>

@@ -1,7 +1,7 @@
 // tag::do-this[]
 plugins {
     id("java")
-    id("com.diffplug.spotless").version("7.0.3") // <1>
+    id("com.diffplug.spotless").version("7.0.3")    // <1>
 }
 
 repositories {
