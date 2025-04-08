@@ -42,7 +42,7 @@ The previous step will help you identify potential problems by issuing deprecati
 
 ==== Lowest supported Kotlin Gradle Plugin version change
 
-Starting with Gradle 9.0, the minimum supported Kotlin Gradle Plugin version is 1.9.21.
+Starting with Gradle 9.0, the minimum supported Kotlin Gradle Plugin version is 2.0.0.
 Earlier versions are no longer supported as they rely on Gradle APIs that have been removed.
 
 For Gradle 8.x, the minimum supported version was 1.6.10.
