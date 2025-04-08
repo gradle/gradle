@@ -17,6 +17,7 @@
 plugins {
     id("gradlebuild.public-api-jar")
     id("gradlebuild.publish-defaults")
+    id("signing")
 }
 
 group = "org.gradle.experimental"
@@ -63,6 +64,24 @@ publishing {
         maven {
             name = "test"
             url = testRepoLocation.get().asFile.toURI()
+        }
+    }
+}
+
+// Temporary solution as we cannot simply apply publish-public-libraries for now
+val pgpSigningKey: Provider<String> = providers.environmentVariable("PGP_SIGNING_KEY")
+val signArtifacts: Boolean = !pgpSigningKey.orNull.isNullOrEmpty()
+
+tasks.withType<Sign>().configureEach { isEnabled = signArtifacts }
+
+signing {
+    useInMemoryPgpKeys(
+        project.providers.environmentVariable("PGP_SIGNING_KEY").orNull,
+        project.providers.environmentVariable("PGP_SIGNING_KEY_PASSPHRASE").orNull
+    )
+    publishing.publications.configureEach {
+        if (signArtifacts) {
+            signing.sign(this)
         }
     }
 }
