@@ -20,6 +20,7 @@ import org.gradle.api.internal.tasks.testing.DefaultNestedTestSuiteDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultParameterizedTestDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestClassDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestDescriptor;
+import org.gradle.api.internal.tasks.testing.DefaultTestFailure;
 import org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
@@ -124,6 +125,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     @Override
     public void executionFinished(TestIdentifier testIdentifier, TestExecutionResult testExecutionResult) {
         if (testExecutionResult.getStatus() == ABORTED) {
+            testExecutionResult.getThrowable().ifPresent(throwable -> resultProcessor.failure(getId(testIdentifier), DefaultTestFailure.fromTestAssumptionFailure(throwable)));
             reportSkipped(testIdentifier);
             return;
         }

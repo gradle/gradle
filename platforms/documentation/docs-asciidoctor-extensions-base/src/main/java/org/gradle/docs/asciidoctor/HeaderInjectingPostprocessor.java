@@ -41,11 +41,4 @@ public class HeaderInjectingPostprocessor extends Postprocessor {
         }
         return output.replaceAll("<div id=\"header\">", headerHtml + "<div id=\"header\">");
     }
-
-    // This method is necessary to avoid https://github.com/asciidoctor/asciidoctorj-pdf/issues/7
-    // when generating PDFs.
-    // "(TypeError) cannot convert instance of class org.jruby.gen.RubyObject50 to class java.lang.String"
-    public Object process(Object document, Object output) {
-        return output;
-    }
 }

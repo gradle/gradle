@@ -16,27 +16,28 @@
 
 package org.gradle.integtests.fixtures.extensions
 
-
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.junit.Assume
 import org.junit.Rule
 import org.junit.rules.ExternalResource
+import spock.lang.Shared
 import spock.lang.Specification
 
 @FluidDependenciesResolveTest
 class MultiTestLifecycleSpec extends Specification {
 
-    private static final Lifecycle LIFECYCLE = new Lifecycle()
+    @Shared
+    private final Lifecycle lifecycle = new Lifecycle()
 
     @Rule
-    public final SampleRule rule = new SampleRule("myName")
+    public final SampleRule rule = new SampleRule(lifecycle)
 
     def setupSpec() {
-        LIFECYCLE.pushEvent("setup spec")
+        lifecycle.pushEvent("setup spec")
     }
 
     def cleanupSpec() {
-        LIFECYCLE.assertEvents([
+        lifecycle.assertEvents([
             "setup spec",
             "rule before", "setup", "simple test: isFluid: false", "cleanup", "rule after",
             "rule before", "setup", "simple test: isFluid: true", "cleanup", "rule after",
@@ -55,21 +56,21 @@ class MultiTestLifecycleSpec extends Specification {
     }
 
     def setup() {
-        LIFECYCLE.pushEvent("setup")
+        lifecycle.pushEvent("setup")
     }
 
     def cleanup() {
-        LIFECYCLE.pushEvent("cleanup")
+        lifecycle.pushEvent("cleanup")
     }
 
     def simple() {
-        LIFECYCLE.pushEvent("simple test: isFluid: ${FluidDependenciesResolveInterceptor.isFluid()}")
+        lifecycle.pushEvent("simple test: isFluid: ${FluidDependenciesResolveInterceptor.isFluid()}")
         expect:
         true
     }
 
     def "unrolled foo: #foo"() {
-        LIFECYCLE.pushEvent("unrolled test: $foo: isFluid: ${FluidDependenciesResolveInterceptor.isFluid()}")
+        lifecycle.pushEvent("unrolled test: $foo: isFluid: ${FluidDependenciesResolveInterceptor.isFluid()}")
         expect:
         true
 
@@ -79,7 +80,7 @@ class MultiTestLifecycleSpec extends Specification {
 
     @RequiredFeature(feature = FluidDependenciesResolveInterceptor.ASSUME_FLUID_DEPENDENCIES, value = "true")
     def "unrolled foo with required: #foo"() {
-        LIFECYCLE.pushEvent("unrolled test with required: $foo: isFluid: ${FluidDependenciesResolveInterceptor.isFluid()}")
+        lifecycle.pushEvent("unrolled test with required: $foo: isFluid: ${FluidDependenciesResolveInterceptor.isFluid()}")
         expect:
         true
 
@@ -88,7 +89,7 @@ class MultiTestLifecycleSpec extends Specification {
     }
 
     def "skipped test"() {
-        LIFECYCLE.pushEvent("skipped test: isFluid: ${FluidDependenciesResolveInterceptor.isFluid()}")
+        lifecycle.pushEvent("skipped test: isFluid: ${FluidDependenciesResolveInterceptor.isFluid()}")
         Assume.assumeTrue("can skip test", false)
 
         expect:
@@ -96,22 +97,22 @@ class MultiTestLifecycleSpec extends Specification {
     }
 
     static class SampleRule extends ExternalResource {
-        private final String name
+        private final Lifecycle lifecycle
 
         // We add a constructor parameter here, so this class can't be instantiated by the default constructor.
         // This way we can test if the class has been initialized correctly by Spock.
-        SampleRule(String name) {
-            this.name = name
+        SampleRule(Lifecycle lifecycle) {
+            this.lifecycle = lifecycle
         }
 
         @Override
         protected void before() throws Throwable {
-            LIFECYCLE.pushEvent("rule before")
+            lifecycle.pushEvent("rule before")
         }
 
         @Override
         protected void after() {
-            LIFECYCLE.pushEvent("rule after")
+            lifecycle.pushEvent("rule after")
         }
     }
 }
