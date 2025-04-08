@@ -203,7 +203,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private boolean canBeResolved;
     private boolean canBeDeclaredAgainst;
     private final boolean consumptionDeprecated;
-    private final boolean resolutionDeprecated;
     private final boolean declarationDeprecated;
     private boolean usageCanBeMutated = true;
     private final ConfigurationRole roleAtCreation;
@@ -315,7 +314,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         this.canBeResolved = roleAtCreation.isResolvable();
         this.canBeDeclaredAgainst = roleAtCreation.isDeclarable();
         this.consumptionDeprecated = roleAtCreation.isConsumptionDeprecated();
-        this.resolutionDeprecated = roleAtCreation.isResolutionDeprecated();
         this.declarationDeprecated = roleAtCreation.isDeclarationAgainstDeprecated();
         this.usageCanBeMutated = !lockUsage;
         this.roleAtCreation = roleAtCreation;
@@ -518,10 +516,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @Override
     public Set<File> resolve() {
-        if (!isProperUsage(ProperMethodUsage.RESOLVABLE)) {
-            throw new GradleException("Not allowed to resolve " + getDisplayName() + " as it is not a resolvable configuration.");
-        }
-
+        assertIsResolvable();
         return getFiles();
     }
 
@@ -549,7 +544,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     @Override
     public boolean contains(File file) {
         if (!isProperUsage(ProperMethodUsage.RESOLVABLE)) {
-            throw new GradleException("Not allowed to " + getDisplayName() + " contains a file as it is not a resolvable configuration.");
+            throw new GradleException("Not allowed to check if " + getDisplayName() + " contains a file as it is not a resolvable configuration.");
         }
 
         return getIntrinsicFiles().contains(file);
@@ -594,10 +589,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
      */
     @Override
     public ResolvedConfiguration getResolvedConfiguration() {
-        if (!isProperUsage(ProperMethodUsage.RESOLVABLE)) {
-            throw new GradleException("Not allowed to get resolved configuration on " + getDisplayName() + " as it is not a resolvable configuration.");
-        }
-
+        assertIsResolvable();
         return resolutionAccess.getResults().getValue().getLegacyResults().getResolvedConfiguration();
     }
 
@@ -666,7 +658,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     private ResolverResults resolveGraphIfRequired() {
         assertIsResolvable();
-        maybeEmitResolutionDeprecation();
 
         Optional<ResolverResults> currentState = currentResolveState.get();
         if (isFullyResolved(currentState)) {
@@ -1620,11 +1611,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     }
 
     @Override
-    public boolean isDeprecatedForResolution() {
-        return resolutionDeprecated;
-    }
-
-    @Override
     public boolean isDeprecatedForDeclarationAgainst() {
         return declarationDeprecated;
     }
@@ -1725,14 +1711,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         this.declarationAlternatives = ImmutableList.<String>builder()
             .addAll(declarationAlternatives)
             .addAll(Arrays.asList(alternativesForDeclaring))
-            .build();
-    }
-
-    @Override
-    public void addResolutionAlternatives(String... alternativesForResolving) {
-        this.resolutionAlternatives = ImmutableList.<String>builder()
-            .addAll(resolutionAlternatives)
-            .addAll(Arrays.asList(alternativesForResolving))
             .build();
     }
 
@@ -1953,7 +1931,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
             @Override
             boolean isDeprecated(ConfigurationInternal configuration) {
-                return configuration.isDeprecatedForResolution();
+                return false;
             }
         },
         DECLARABLE_AGAINST {

@@ -44,7 +44,7 @@ public abstract class UsageDescriber {
      */
     public static String describeRole(ConfigurationRole role) {
         return describeUsage(role.isConsumable(), role.isResolvable(), role.isDeclarable(),
-            role.isConsumptionDeprecated(), role.isResolutionDeprecated(), role.isDeclarationAgainstDeprecated());
+            role.isConsumptionDeprecated(), role.isDeclarationAgainstDeprecated());
     }
 
     /**
@@ -55,7 +55,7 @@ public abstract class UsageDescriber {
      */
     public static String describeCurrentUsage(DeprecatableConfiguration configuration) {
         return describeUsage(configuration.isCanBeConsumed(), configuration.isCanBeResolved(), configuration.isCanBeDeclared(),
-            configuration.isDeprecatedForConsumption(), configuration.isDeprecatedForResolution(), configuration.isDeprecatedForDeclarationAgainst());
+            configuration.isDeprecatedForConsumption(), configuration.isDeprecatedForDeclarationAgainst());
     }
 
     /**
@@ -65,18 +65,17 @@ public abstract class UsageDescriber {
      * @param isResolvable whether the configuration is resolvable
      * @param isDeclarable whether the configuration is declarable
      * @param isConsumptionDeprecated whether the configuration's consumable behavior is deprecated
-     * @param isResolutionDeprecated whether the configuration's resolvable behavior is deprecated
      * @param isDeclarationAgainstDeprecated whether the configuration's declarable behavior is deprecated
      * @return description of the given usage
      */
     public static String describeUsage(boolean isConsumable, boolean isResolvable, boolean isDeclarable,
-                                       boolean isConsumptionDeprecated, boolean isResolutionDeprecated, boolean isDeclarationAgainstDeprecated) {
+                                       boolean isConsumptionDeprecated, boolean isDeclarationAgainstDeprecated) {
         List<String> descriptions = new ArrayList<>();
         if (isConsumable) {
             descriptions.add("\t" + CONSUMABLE + describeDeprecation(isConsumptionDeprecated));
         }
         if (isResolvable) {
-            descriptions.add("\t" + RESOLVABLE + describeDeprecation(isResolutionDeprecated));
+            descriptions.add("\t" + RESOLVABLE);
         }
         if (isDeclarable) {
             descriptions.add("\t" + DECLARABLE_AGAINST + describeDeprecation(isDeclarationAgainstDeprecated));

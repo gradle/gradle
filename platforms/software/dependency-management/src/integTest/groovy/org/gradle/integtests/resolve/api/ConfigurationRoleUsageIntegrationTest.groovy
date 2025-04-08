@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.resolve.api
 
-
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ConfigurationUsageChangingFixture
@@ -39,7 +38,6 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
                     assert configurations.custom.canBeResolved
                     assert configurations.custom.canBeDeclared
                     assert !configurations.custom.deprecatedForConsumption
-                    assert !configurations.custom.deprecatedForResolution
                     assert !configurations.custom.deprecatedForDeclarationAgainst
                 }
             }
@@ -58,7 +56,6 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
                     assert canBeResolved
                     assert canBeDeclared
                     assert !deprecatedForConsumption
-                    assert !deprecatedForResolution
                     assert !deprecatedForDeclarationAgainst
                 }
             }
@@ -128,34 +125,6 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         expect:
         executer.expectDocumentedDeprecationWarning("The testConf configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use the anotherConf configuration instead. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
         succeeds 'help'
-    }
-
-    def "can add resolution alternatives to configuration deprecated for resolution"() {
-        given:
-        mavenRepo.module("org", "foo", "1.0").publish()
-        buildFile << """
-            configurations {
-                deps
-                migratingUnlocked("testConf", org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.LEGACY_TO_CONSUMABLE) {
-                    addResolutionAlternatives("anotherConf")
-                    extendsFrom(deps)
-                }
-            }
-
-            repositories { maven { url = "${mavenRepo.uri}" } }
-
-            dependencies {
-                deps "org:foo:1.0"
-            }
-
-            task resolve {
-                configurations.testConf.files
-            }
-        """
-
-        expect:
-        executer.expectDocumentedDeprecationWarning("The testConf configuration has been deprecated for resolution. This will fail with an error in Gradle 9.0. Please resolve the anotherConf configuration instead. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
-        succeeds 'resolve'
     }
 
     def "can prevent usage mutation of roleless configuration #configuration added by java plugin meant for resolution"() {
@@ -276,7 +245,6 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
                 assert configurations.custom.canBeResolved == $resolvable
                 assert configurations.custom.canBeDeclared == $declarable
                 assert configurations.custom.deprecatedForConsumption == $consumptionDeprecated
-                assert configurations.custom.deprecatedForResolution == $resolutionDeprecated
                 assert configurations.custom.deprecatedForDeclarationAgainst == $declarationAgainstDeprecated
             }
         """
@@ -285,10 +253,10 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         succeeds('checkConfUsage')
 
         where:
-        role                    | customRoleBasedConf               || consumable  | resolvable    | declarable | consumptionDeprecated | resolutionDeprecated  | declarationAgainstDeprecated
-        'consumable'            | "consumable('custom')"            || true        | false         | false             | false                 | false                 | false
-        'resolvable'            | "resolvable('custom')"            || false       | true          | false             | false                 | false                 | false
-        'dependencyScope'       | "dependencyScope('custom')"       || false       | false         | true              | false                 | false                 | false
+        role                    | customRoleBasedConf               || consumable  | resolvable    | declarable | consumptionDeprecated | declarationAgainstDeprecated
+        'consumable'            | "consumable('custom')"            || true        | false         | false      | false                 | false
+        'resolvable'            | "resolvable('custom')"            || false       | true          | false      | false                 | false
+        'dependencyScope'       | "dependencyScope('custom')"       || false       | false         | true       | false                 | false
     }
 
     def "can prevent usage mutation of role-based configuration #configuration added by java plugin meant for consumption"() {

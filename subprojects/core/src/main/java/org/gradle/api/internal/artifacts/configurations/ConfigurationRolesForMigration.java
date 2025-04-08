@@ -80,11 +80,11 @@ public final class ConfigurationRolesForMigration {
      */
     private static ConfigurationRole difference(ConfigurationRole initialRole, ConfigurationRole eventualRole) {
         Preconditions.checkArgument(
-            !initialRole.isConsumptionDeprecated() && !initialRole.isResolutionDeprecated() && !initialRole.isDeclarationAgainstDeprecated(),
+            !initialRole.isConsumptionDeprecated() && !initialRole.isDeclarationAgainstDeprecated(),
             "The initial role must not contain deprecated usages."
         );
         Preconditions.checkArgument(
-            !eventualRole.isConsumptionDeprecated() && !eventualRole.isResolutionDeprecated() && !eventualRole.isDeclarationAgainstDeprecated(),
+            !eventualRole.isConsumptionDeprecated() && !eventualRole.isDeclarationAgainstDeprecated(),
             "The eventual role must not contain deprecated usages."
         );
 
@@ -94,7 +94,6 @@ public final class ConfigurationRolesForMigration {
          * eventual role.
          */
         boolean consumptionDeprecated = initialRole.isConsumable() && !eventualRole.isConsumable();
-        boolean resolutionDeprecated = initialRole.isResolvable() && !eventualRole.isResolvable();
         boolean declarationAgainstDeprecated = initialRole.isDeclarable() && !eventualRole.isDeclarable();
 
         return new DefaultConfigurationRole(
@@ -103,7 +102,6 @@ public final class ConfigurationRolesForMigration {
             initialRole.isResolvable(),
             initialRole.isDeclarable(),
             consumptionDeprecated,
-            resolutionDeprecated,
             declarationAgainstDeprecated
         );
     }

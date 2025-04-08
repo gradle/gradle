@@ -35,7 +35,6 @@ public interface ConfigurationRole {
     boolean isResolvable();
     boolean isDeclarable();
     boolean isConsumptionDeprecated();
-    boolean isResolutionDeprecated();
     boolean isDeclarationAgainstDeprecated();
 
     /**

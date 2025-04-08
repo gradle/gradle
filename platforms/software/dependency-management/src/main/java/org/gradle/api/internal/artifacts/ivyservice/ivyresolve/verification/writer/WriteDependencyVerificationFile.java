@@ -53,7 +53,6 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.ExternalModuleComponentGraphResolveState;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
-import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -517,7 +516,7 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
     private static void resolveAllConfigurationsAndForceDownload(Project project) {
         ((ProjectInternal) project).getOwner().applyToMutableState(p ->
             p.getConfigurations().all(cnf -> {
-                if (((DeprecatableConfiguration) cnf).canSafelyBeResolved()) {
+                if (cnf.isCanBeResolved()) {
                     try {
                         resolveAndDownloadExternalFiles(cnf);
                     } catch (Exception e) {

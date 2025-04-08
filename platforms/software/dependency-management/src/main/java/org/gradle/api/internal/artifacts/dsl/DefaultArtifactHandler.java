@@ -81,7 +81,7 @@ public class DefaultArtifactHandler implements ArtifactHandler, MethodMixIn {
     private boolean isFullyDeprecated(DeprecatableConfiguration configuration) {
         return configuration.isDeprecatedForDeclarationAgainst() &&
             (!configuration.isCanBeConsumed() || configuration.isDeprecatedForConsumption()) &&
-            (!configuration.isCanBeResolved() || configuration.isDeprecatedForResolution());
+            !configuration.isCanBeResolved();
     }
 
     @Override

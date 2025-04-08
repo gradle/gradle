@@ -60,13 +60,6 @@ public interface DeprecatableConfiguration extends Configuration {
     void addDeclarationAlternatives(String... alternativesForDeclaring);
 
     /**
-     * Sets suggested configurations which can be used for dependency resolution instead of this configuration.
-     *
-     * <p>This property is only relevant if this configuration deprecated for resolution.</p>
-     */
-    void addResolutionAlternatives(String... alternativesForResolving);
-
-    /**
      * If this configuration is deprecated for consumption, emit a deprecation warning.
      */
     default void maybeEmitConsumptionDeprecation() {
@@ -93,27 +86,8 @@ public interface DeprecatableConfiguration extends Configuration {
         }
     }
 
-    /**
-     * If this configuration is deprecated for resolution, emit a deprecation warning.
-     */
-    default void maybeEmitResolutionDeprecation() {
-        if (isDeprecatedForResolution()) {
-            DeprecationLogger.deprecateConfiguration(getName())
-                .forResolution()
-                .replaceWith(getResolutionAlternatives())
-                .willBecomeAnErrorInGradle9()
-                .withUserManual("declaring_dependencies", "sec:deprecated-configurations")
-                .nagUser();
-        }
-    }
-
     boolean isDeprecatedForConsumption();
-    boolean isDeprecatedForResolution();
     boolean isDeprecatedForDeclarationAgainst();
-
-    default boolean canSafelyBeResolved() {
-        return isCanBeResolved() && !isDeprecatedForResolution();
-    }
 
     /**
      * Prevents any calls to methods that change this configuration's allowed usage (e.g. {@link #setCanBeConsumed(boolean)},

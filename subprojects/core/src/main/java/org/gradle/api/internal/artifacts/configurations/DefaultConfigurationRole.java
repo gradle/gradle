@@ -28,7 +28,6 @@ public final class DefaultConfigurationRole implements ConfigurationRole {
     private final boolean resolvable;
     private final boolean declarable;
     private final boolean consumptionDeprecated;
-    private final boolean resolutionDeprecated;
     private final boolean declarationDeprecated;
 
     public DefaultConfigurationRole(
@@ -37,7 +36,6 @@ public final class DefaultConfigurationRole implements ConfigurationRole {
         boolean resolvable,
         boolean declarable,
         boolean consumptionDeprecated,
-        boolean resolutionDeprecated,
         boolean declarationDeprecated
     ) {
         this.name = name;
@@ -45,7 +43,6 @@ public final class DefaultConfigurationRole implements ConfigurationRole {
         this.resolvable = resolvable;
         this.declarable = declarable;
         this.consumptionDeprecated = consumptionDeprecated;
-        this.resolutionDeprecated = resolutionDeprecated;
         this.declarationDeprecated = declarationDeprecated;
     }
 
@@ -75,11 +72,6 @@ public final class DefaultConfigurationRole implements ConfigurationRole {
     }
 
     @Override
-    public boolean isResolutionDeprecated() {
-        return resolutionDeprecated;
-    }
-
-    @Override
     public boolean isDeclarationAgainstDeprecated() {
         return declarationDeprecated;
     }
@@ -97,14 +89,13 @@ public final class DefaultConfigurationRole implements ConfigurationRole {
             resolvable == that.resolvable &&
             declarable == that.declarable &&
             consumptionDeprecated == that.consumptionDeprecated &&
-            resolutionDeprecated == that.resolutionDeprecated &&
             declarationDeprecated == that.declarationDeprecated &&
             name.equals(that.name);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, consumable, resolvable, declarable, consumptionDeprecated, resolutionDeprecated, declarationDeprecated);
+        return Objects.hash(name, consumable, resolvable, declarable, consumptionDeprecated, declarationDeprecated);
     }
 
     @Override
