@@ -30,16 +30,15 @@ import static org.hamcrest.CoreMatchers.instanceOf
 class ProjectReportsPluginTest extends AbstractProjectBuilderSpec {
     private final ProjectReportsPlugin plugin = TestUtil.newInstance(ProjectReportsPlugin.class)
 
-    def appliesBaseReportingPluginAndAddsConventionObject() {
+    def "applies base reporting plugin"() {
         when:
         plugin.apply(project)
 
         then:
         project.plugins.hasPlugin(ReportingBasePlugin.class)
-        project.convention.getPlugin(ProjectReportsPluginConvention.class)
     }
 
-    def addsTasksToProject() {
+    def "adds tasks to project"() {
         when:
         plugin.apply(project);
 

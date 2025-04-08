@@ -66,6 +66,7 @@ Core Gradle plugins that still registered deprecated conventions have also been 
 |Plugin |Access |Type |Solution
 |`war` |`project.war` | `WarPluginConvention` | Configure the `war` task directly instead.
 |`base` | `project.distDirName`, `project.libsDirName`, `project.archivesBaseName` | `BasePluginConvention` | Replaced by `project.base` extension of type `BasePluginExtension`.
+| 'project-report' | `project.projectReports` | `ProjectReportPluginConvention` | Configure the report task (`TaskReportTask`, `PropertyReportTask`, `DependencyReportTask`, `HtmlDependencyReportTask`) directly.
 |===
 
 ==== Gradle API now uses JSpecify Nullability Annotations
