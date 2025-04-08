@@ -340,7 +340,7 @@ For the Scala plugin, compilation and Scaladoc generation are supported.
 ====
 
 [[sec:vendors]]
-==== Selecting toolchains by vendor
+=== Selecting toolchains by vendor
 
 In case your build has specific requirements from the used JRE/JDK, you may want to define the vendor for the toolchain as well.
 link:{javadocPath}/org/gradle/jvm/toolchain/JvmVendorSpec.html[`JvmVendorSpec`] has a list of well-known JVM vendors recognized by Gradle.
@@ -363,7 +363,7 @@ include::sample[dir="snippets/java/toolchain-filters/groovy/",files="build.gradl
 ====
 
 [[sec:native_graalvm_image]]
-==== Selecting toolchains that support GraalVM native image
+=== Selecting toolchains that support GraalVM native image
 
 If your project needs a toolchain with https://www.graalvm.org/latest/reference-manual/native-image/[GraalVM Native Image capability], you can configure the spec to request it:
 
@@ -375,7 +375,7 @@ include::sample[dir="snippets/java/toolchain-filters/groovy/",files="build.gradl
 Leaving that value unconfigured or set to `false` will not restrict the toolchain selection based on the Native Image capability.
 That means that a Native Image capable JDK can be selected if it matches the other criteria.
 
-==== Selecting toolchains by virtual machine implementation
+=== Selecting toolchains by virtual machine implementation
 
 If your project requires a specific implementation, you can filter based on the implementation as well.
 Currently available implementations to choose from are:
@@ -396,7 +396,7 @@ include::sample[dir="snippets/java/toolchain-filters/groovy/",files="build.gradl
 NOTE: The Java major version, the vendor (if specified) and implementation (if specified) will be tracked as an input for compilation and test execution.
 
 [[sec:configuring_toolchain_specifications]]
-==== Configuring toolchain specifications
+=== Configuring toolchain specifications
 
 Gradle allows configuring multiple properties that affect the selection of a toolchain, such as language version or vendor.
 Even though these properties can be configured independently, the configuration must follow certain rules in order to form a _valid_ specification.
