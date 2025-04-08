@@ -129,6 +129,14 @@
             ]
         },
         {
+            "type": "org.gradle.api.artifacts.Dependency",
+            "member": "Method org.gradle.api.artifacts.Dependency.contentEquals(org.gradle.api.artifacts.Dependency)",
+            "acceptation": "Removed deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.artifacts.LenientConfiguration",
             "member": "Method org.gradle.api.artifacts.LenientConfiguration.getArtifacts(org.gradle.api.specs.Spec)",
             "acceptation": "Removed deprecated method",
