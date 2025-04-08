@@ -34,7 +34,6 @@ import org.gradle.internal.component.external.model.ivy.IvyDependencyDescriptor
 import org.gradle.internal.component.external.model.maven.MavenDependencyDescriptor
 import org.gradle.internal.component.external.model.maven.MavenDependencyType
 import org.gradle.internal.component.model.GraphVariantSelector
-import org.gradle.internal.component.model.LocalComponentDependencyMetadata
 import org.gradle.internal.component.model.VariantGraphResolveState
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
@@ -271,13 +270,19 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
     }
 
     VariantGraphResolveState selectTargetConfiguration(ModuleComponentResolveMetadata immutable) {
-        def componentIdentifier = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("org.test", "consumer"), "1.0")
-        def consumerIdentifier = DefaultModuleVersionIdentifier.newId(componentIdentifier)
-        def componentSelector = newSelector(consumerIdentifier.module, new DefaultMutableVersionConstraint(consumerIdentifier.version))
-        def consumer = new LocalComponentDependencyMetadata(componentSelector, null, [] as List, [], false, false, true, false, false, null)
         def state = DependencyManagementTestUtil.modelGraphResolveFactory().stateFor(immutable)
         def variantSelector = new GraphVariantSelector(AttributeTestUtil.services(), DependencyManagementTestUtil.newFailureHandler())
 
-        return consumer.selectVariants(variantSelector, attributes, state, ImmutableAttributesSchema.EMPTY, [] as Set).variants[0]
+        if (state.getCandidatesForGraphVariantSelection().getVariantsForAttributeMatching().isEmpty()) {
+            return state.candidatesForGraphVariantSelection.getLegacyVariant()
+        }
+
+        return variantSelector.selectByAttributeMatching(
+            attributes,
+            [] as Set,
+            state,
+            ImmutableAttributesSchema.EMPTY,
+            []
+        )
     }
 }
