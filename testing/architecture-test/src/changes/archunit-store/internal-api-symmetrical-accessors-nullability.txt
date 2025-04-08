@@ -1,4 +1,3 @@
-Accessors for org.gradle.api.internal.artifacts.dependencies.AbstractModuleDependency.targetConfiguration don't use symmetrical @Nullable
 Accessors for org.gradle.api.internal.file.copy.CopySpecWrapper.dirMode don't use symmetrical @Nullable
 Accessors for org.gradle.api.internal.file.copy.CopySpecWrapper.fileMode don't use symmetrical @Nullable
 Accessors for org.gradle.api.internal.file.copy.DefaultCopySpec.dirMode don't use symmetrical @Nullable
