@@ -143,7 +143,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         compileJava instanceof JavaCompile
         TaskDependencyMatchers.dependsOn().matches(compileJava)
         compileJava.classpath.is(project.sourceSets.custom.compileClasspath)
-        compileJava.destinationDir == new File(project.buildDir, 'classes/java/custom')
+        compileJava.destinationDirectory.asFile.get() == new File(project.buildDir, 'classes/java/custom')
 
         def sources = compileJava.source
         sources.files == project.sourceSets.custom.java.files

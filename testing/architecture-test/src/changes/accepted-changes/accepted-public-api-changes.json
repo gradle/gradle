@@ -681,6 +681,30 @@
             ]
         },
         {
+            "type": "org.gradle.api.tasks.compile.AbstractCompile",
+            "member": "Method org.gradle.api.tasks.compile.AbstractCompile.getDestinationDir()",
+            "acceptation": "Removing @Deprecated property for Gradle 9.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.AbstractCompile",
+            "member": "Method org.gradle.api.tasks.compile.AbstractCompile.setDestinationDir(java.io.File)",
+            "acceptation": "Removing @Deprecated property for Gradle 9.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.AbstractCompile",
+            "member": "Method org.gradle.api.tasks.compile.AbstractCompile.setDestinationDir(org.gradle.api.provider.Provider)",
+            "acceptation": "Removing @Deprecated property for Gradle 9.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.tasks.compile.AbstractOptions",
             "member": "Class org.gradle.api.tasks.compile.AbstractOptions",
             "acceptation": "Removed deprecated class",
