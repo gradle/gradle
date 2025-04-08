@@ -61,7 +61,11 @@ import org.gradle.api.internal.project.ant.DefaultAntLoggingAdapterFactory;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.project.taskfactory.TaskIdentityFactory;
 import org.gradle.api.internal.project.taskfactory.TaskInstantiator;
+import org.gradle.api.internal.provider.DefaultProviderFactory;
 import org.gradle.api.internal.provider.PropertyHost;
+import org.gradle.api.internal.provider.ValueSourceProviderFactory;
+import org.gradle.api.internal.provider.sources.process.ExecSpecFactory;
+import org.gradle.api.internal.provider.sources.process.ProcessOutputProviderFactory;
 import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.internal.resources.DefaultResourceHandler;
 import org.gradle.api.internal.tasks.DefaultTaskContainerFactory;
@@ -73,6 +77,7 @@ import org.gradle.api.internal.tasks.TaskStatistics;
 import org.gradle.api.internal.tasks.properties.TaskScheme;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.util.internal.PatternSetFactory;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.configuration.project.DefaultProjectConfigurationActionContainer;
@@ -109,6 +114,8 @@ import org.gradle.normalization.internal.RuntimeClasspathNormalizationInternal;
 import org.gradle.plugin.software.internal.ModelDefaultsHandler;
 import org.gradle.plugin.software.internal.PluginScheme;
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
+import org.gradle.process.internal.DefaultExecSpecFactory;
+import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.process.internal.ExecFactory;
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry;
 import org.jspecify.annotations.Nullable;
@@ -205,6 +212,27 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
             .withJavaModuleDetector(javaModuleDetector)
             .withExternalProcessStartedListener(listenerManager.getBroadcaster(ExternalProcessStartedListener.class))
             .build();
+    }
+
+    @Provides
+    protected ExecSpecFactory createExecSpecFactory(ExecActionFactory execActionFactory) {
+        return new DefaultExecSpecFactory(execActionFactory);
+    }
+
+    @Provides
+    protected ProcessOutputProviderFactory createProcessOutputProviderFactory(Instantiator instantiator, ExecSpecFactory execSpecFactory) {
+        return new ProcessOutputProviderFactory(instantiator, execSpecFactory);
+    }
+
+    @Provides
+    protected ProviderFactory createProviderFactory(
+        Instantiator instantiator,
+        ValueSourceProviderFactory valueSourceProviderFactory,
+        ProcessOutputProviderFactory processOutputProviderFactory,
+        ListenerManager listenerManager,
+        ObjectFactory objectFactory
+    ) {
+        return instantiator.newInstance(DefaultProviderFactory.class, valueSourceProviderFactory, processOutputProviderFactory, listenerManager, objectFactory);
     }
 
     @Provides

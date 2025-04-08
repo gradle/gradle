@@ -937,7 +937,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         "settings.gradle" | "javaexec" | javaExecSpec("it")               | "."
     }
 
-    def "providers.#method in build.gradle resolves relative path correctly"() {
+    def "providers.#method in a non-root build.gradle resolves relative path correctly"() {
         settingsFile << "include 'a'"
         testDirectory.file("a").mkdirs()
         testDirectory.file("$subfolder/build/test/folder").mkdirs()
@@ -966,9 +966,9 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         succeeds("run")
 
         then:
-        testDirectory.file("$subfolder/build/test/folder/output.txt").exists()
-        testDirectory.file("$subfolder/build/test/folder/output.txt").text.contains(
-            "user.dir=${testDirectory.file("$subfolder/build/test/folder").absolutePath}"
+        testDirectory.file("a/build/test/folder/output.txt").exists()
+        testDirectory.file("a/build/test/folder/output.txt").text.contains(
+            "user.dir=${testDirectory.file("a/build/test/folder").absolutePath}"
         )
 
         where:
