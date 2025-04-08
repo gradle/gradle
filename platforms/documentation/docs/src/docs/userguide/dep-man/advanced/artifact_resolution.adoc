@@ -92,7 +92,7 @@ Let's look at the *metadata* for `org.jetbrains.kotlin:kotlin-stdlib:1.8.10` whi
 
 As we can see there are a number of *artifacts* available in the *metadata*:
 
-[cols="1,1"]
+[cols="1,2,2"]
 |===
 | Variant | Artifact(s) | Purpose
 

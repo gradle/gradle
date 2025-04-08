@@ -362,7 +362,7 @@ include::sample[dir="snippets/java/toolchain-filters/kotlin/",files="build.gradl
 include::sample[dir="snippets/java/toolchain-filters/groovy/",files="build.gradle[tags=toolchain-matching-vendor]"]
 ====
 
-[[sec:native_image]]
+[[sec:native_graalvm_image]]
 ==== Selecting toolchains that support GraalVM native image
 
 If your project needs a toolchain with https://www.graalvm.org/latest/reference-manual/native-image/[GraalVM Native Image capability], you can configure the spec to request it:

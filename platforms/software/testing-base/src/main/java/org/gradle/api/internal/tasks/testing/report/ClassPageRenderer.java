@@ -15,12 +15,12 @@
  */
 package org.gradle.api.internal.tasks.testing.report;
 
-import org.gradle.api.internal.tasks.testing.results.serializable.SerializableFailure;
-import org.gradle.internal.ErroringAction;
-import org.gradle.internal.html.SimpleHtmlWriter;
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
+import org.gradle.api.internal.tasks.testing.results.serializable.SerializableFailure;
 import org.gradle.api.tasks.testing.TestOutputEvent;
+import org.gradle.internal.ErroringAction;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.html.SimpleHtmlWriter;
 import org.gradle.internal.xml.SimpleMarkupWriter;
 import org.gradle.reporting.CodePanelRenderer;
 import org.gradle.util.internal.GUtil;
@@ -114,8 +114,28 @@ class ClassPageRenderer extends PageRenderer<ClassTestResults> {
     }
 
     @Override
+    protected void renderIgnoredTests(SimpleHtmlWriter htmlWriter) throws IOException {
+        for (TestResult test : getResults().getIgnored()) {
+            htmlWriter.startElement("div").attribute("class", "test")
+                .startElement("a").attribute("name", test.getId().toString()).characters("").endElement() //browsers dont understand <a name="..."/>
+                .startElement("h3").attribute("class", test.getStatusClass()).characters(test.getDisplayName()).endElement();
+            for (SerializableFailure failure : test.getFailures()) {
+                String message;
+                if (GUtil.isTrue(failure.getMessage()) && !failure.getStackTrace().contains(failure.getMessage())) {
+                    message = failure.getMessage() + SystemProperties.getInstance().getLineSeparator() + SystemProperties.getInstance().getLineSeparator() + failure.getStackTrace();
+                } else {
+                    message = failure.getStackTrace();
+                }
+                codePanelRenderer.render(message, htmlWriter);
+            }
+            htmlWriter.endElement();
+        }
+    }
+
+    @Override
     protected void registerTabs() {
         addFailuresTab();
+        addIgnoredTab();
         addTab("Tests", new ErroringAction<SimpleHtmlWriter>() {
             @Override
             public void doExecute(SimpleHtmlWriter writer) throws IOException {

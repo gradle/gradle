@@ -1,5 +1,5 @@
 ^/\*\s*$
-^ \* Copyright \d\d\d\d((\s*-\s*\d\d\d\d)|(,\s*\d\d\d\d)+)? the original author or authors.\s*$
+^ \* Copyright \d\d\d\d((\s*-\s*\d\d\d\d)|(,\s*\d\d\d\d)+)? (the original author or authors|Gradle and contributors)\.\s*$
 ^ \*\s*$
 ^ \* Licensed under the Apache License, Version 2\.0 \(the "License"\);\s*$
  * you may not use this file except in compliance with the License.
