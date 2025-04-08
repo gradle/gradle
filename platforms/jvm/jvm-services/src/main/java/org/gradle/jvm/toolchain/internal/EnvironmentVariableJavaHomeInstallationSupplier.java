@@ -16,19 +16,16 @@
 
 package org.gradle.jvm.toolchain.internal;
 
-import org.jspecify.annotations.Nullable;
-
 import java.io.File;
 import java.util.Collections;
-import java.util.Map;
 import java.util.Set;
 
 public class EnvironmentVariableJavaHomeInstallationSupplier implements InstallationSupplier {
 
-    private final @Nullable String javaHomePath;
+    private final ToolchainConfiguration buildOptions;
 
-    public EnvironmentVariableJavaHomeInstallationSupplier(Map<String, String> environment) {
-        this.javaHomePath = environment.get("JAVA_HOME");
+    public EnvironmentVariableJavaHomeInstallationSupplier(ToolchainConfiguration buildOptions) {
+        this.buildOptions = buildOptions;
     }
 
     @Override
@@ -38,6 +35,7 @@ public class EnvironmentVariableJavaHomeInstallationSupplier implements Installa
 
     @Override
     public Set<InstallationLocation> get() {
+        String javaHomePath = buildOptions.getEnvironmentVariableValue("JAVA_HOME");
         if (javaHomePath == null || javaHomePath.isEmpty()) {
             return Collections.emptySet();
         }
