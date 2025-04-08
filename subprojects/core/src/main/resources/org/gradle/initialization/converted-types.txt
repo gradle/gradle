@@ -1,6 +1,5 @@
 org.gradle.api.distribution.plugins.DistributionPlugin
 org.gradle.api.plugins.ApplicationPlugin
-org.gradle.api.plugins.ApplicationPluginConvention
 org.gradle.api.plugins.JavaLibraryDistributionPlugin
 org.gradle.api.plugins.quality.Checkstyle
 org.gradle.api.plugins.quality.CheckstylePlugin
