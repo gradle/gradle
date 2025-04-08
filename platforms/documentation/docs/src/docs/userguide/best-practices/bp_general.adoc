@@ -15,6 +15,59 @@
 [[best_practices_general]]
 = General Gradle Best Practices
 
+[[use_latest_minor_versions]]
+== Use the Latest Minor Version of Gradle and Plugins
+
+Stay on the latest minor version of the major Gradle release you're using, and regularly update your plugins to the latest compatible versions.
+
+=== Explanation
+
+Each new Gradle minor release includes important bug fixes, performance improvements, and deprecation warnings that help you prepare for future breaking changes.
+
+Staying current with minor versions helps you:
+
+* Benefit from performance and stability improvements.
+* Catch deprecations early, while fixes are still simple.
+* Avoid large, painful upgrades caused by skipping too many versions.
+
+Similarly, use the latest _compatible_ version for each plugin in your build:
+
+* Prefer the latest minor version: Stay on the latest `.Y` release of the major Gradle version you're using.
+* Test compatibility proactively: Run link:https://slack.engineering/shadow-jobs/[shadow jobs] or CI jobs to detect regressions early.
+* Upgrade Gradle first: Many plugin upgrades require features or fixes in newer Gradle versions.
+
+=== Example
+
+==== Don't Do This
+
+====
+include::sample[dir="snippets/bestPractices/useLatestVersion/kotlin/avoid-this",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/useLatestVersion/groovy/avoid-this",files="build.gradle[tags=avoid-this]"]
+====
+
+<1> *Declare a Repository*: To use the legacy plugin application syntax, you need to explicitly tell Gradle where to find a plugin.
+<2> *Declare a Plugin Dependency*: To use the legacy plugin application syntax with third-party plugins, you need to explicitly tell Gradle the full coordinates of the plugin.
+<3> *Apply a Core Plugin*: This is very similar using either method.
+<4> *Apply a Third-Party Plugin*: The syntax is the same as for core Gradle plugins, but the version is not present at the point of application in your buildscript.
+
+==== Do This Instead
+
+====
+include::sample[dir="snippets/bestPractices/useLatestVersion/kotlin/do-this",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/useLatestVersion/groovy/do-this",files="build.gradle[tags=do-this]"]
+====
+
+<1> *Apply a Core Plugin*: This is very similar using either method.
+<2> *Apply a Third-Party Plugin*: You specify the version using method chaining in the `plugins` block itself.
+
+
+
+=== References
+<<upgrading_version_8.adoc#upgrading_version_8,Upgrade Guide>>
+
+=== Tags
+`#plugins`
+
 [[use_the_plugins_block]]
 == Apply Plugins Using the `plugins` Block
 
