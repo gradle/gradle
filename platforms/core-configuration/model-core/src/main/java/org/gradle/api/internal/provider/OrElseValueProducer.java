@@ -58,19 +58,19 @@ class OrElseValueProducer implements ValueSupplier.ValueProducer {
     @Override
     public void visitProducerTasks(Action<? super Task> visitor) {
         try (EvaluationScopeContext ignored = EvaluationContext.current().open(owner)) {
-            if (mayHaveValue(left)) {
-                if (leftProducer.isKnown()) {
-                    leftProducer.visitProducerTasks(visitor);
-                }
-                return;
-            }
-            if (right != null && rightProducer.isKnown() && mayHaveValue(right)) {
-                rightProducer.visitProducerTasks(visitor);
-            }
+            // orElse behaves like a zip intentionally
+            visitProducerTasks(left, leftProducer, visitor);
+            visitProducerTasks(right, rightProducer, visitor);
         }
     }
 
-    private boolean mayHaveValue(ProviderInternal<?> provider) {
-        return !provider.calculateExecutionTimeValue().isMissing();
+    private static void visitProducerTasks(
+        @Nullable ProviderInternal<?> provider,
+        ValueSupplier.ValueProducer producer,
+        Action<? super Task> visitor
+    ) {
+        if (provider != null && producer.isKnown() && !provider.calculateExecutionTimeValue().isMissing()) {
+            producer.visitProducerTasks(visitor);
+        }
     }
 }

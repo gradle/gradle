@@ -694,73 +694,6 @@ The following types/formats are supported:
         file("out.txt").text == "b"
     }
 
-    @ToBeImplemented
-    def "input file property with value of orElse provider whose original value is a present value source and alternative value is task output file property does not imply dependency on task"() {
-        taskTypeWithOutputFileProperty()
-        taskTypeWithInputFileProperty()
-        buildFile """
-            import org.gradle.api.provider.*
-
-            interface FileSpec extends ValueSourceParameters {
-                RegularFileProperty getFile()
-            }
-            abstract class SomeFileSource implements ValueSource<RegularFile, FileSpec> {
-                @Override
-                RegularFile obtain() {
-                    return parameters.file.get().tap {
-                        it.asFile.text = "a"
-                    }
-                }
-            }
-            def taskB = tasks.create("b", FileProducer) {
-                output = file("b.txt")
-                content = "b"
-            }
-            tasks.register("c", InputFileTask) {
-                inFile = providers.of(SomeFileSource, { parameters.file = file("a.txt") }).orElse(taskB.output)
-                outFile = file("out.txt")
-            }
-        """
-
-        when:
-        run("c")
-
-        then:
-        //TODO-RC this should be ":c" only
-        result.assertTasksExecuted(":b", ":c")
-        file("out.txt").text == "a"
-    }
-
-    def "input file property with value of orElse provider whose original value is a missing value source and alternative value is task output file property implies dependency on task"() {
-        taskTypeWithOutputFileProperty()
-        taskTypeWithInputFileProperty()
-        buildFile  """
-            import org.gradle.api.provider.*
-
-            abstract class NoFileSource implements ValueSource<RegularFile, ValueSourceParameters.None> {
-                @Override
-                RegularFile obtain() {
-                    return null
-                }
-            }
-            def taskB = tasks.register("b", FileProducer) {
-                output = file("b.txt")
-                content = "b"
-            }
-            tasks.register("c", InputFileTask) {
-                inFile = providers.of(NoFileSource, {}).orElse(taskB.output)
-                outFile = file("out.txt")
-            }
-        """
-
-        when:
-        run("c")
-
-        then:
-        result.assertTasksExecuted(":b", ":c")
-        file("out.txt").text == "b"
-    }
-
     def "input file property with value of orElse provider whose original value is missing and alternative value is constant does not imply dependency on task"() {
         taskTypeWithOutputFileProperty()
         taskTypeWithInputFileProperty()
@@ -1109,7 +1042,7 @@ The following types/formats are supported:
         file("out.txt").text == "a1=22,a2=25,b=10"
     }
 
-    def "orElse implies dependencies of both lhs and rhs unconditionally"() {
+    def "orElse implies dependencies of lhs and rhs unconditionally"() {
         taskTypeWithInputFileProperty()
         taskTypeWithOutputFileProperty()
         file("external.txt") << "External content"
@@ -1125,27 +1058,45 @@ The following types/formats are supported:
                 content = "Main content"
             }
 
+            interface FileSpec extends ValueSourceParameters {
+                RegularFileProperty getFile()
+            }
+
+            abstract class FileSource implements ValueSource<RegularFile, FileSpec> {
+                @Override
+                RegularFile obtain() {
+                    return parameters.file.getOrNull()
+                }
+            }
+
             tasks.register("consumer", InputFileTask) {
-                inFile = ${orElseLhs}.orElse($orElseRhs)
+                inFile = ${orElseLhs}.orElse(defaultProducer.flatMap { it.output })
                 outFile = file("out.txt")
             }
         """
 
         when:
+        if (configureExecuter != null) {
+            configureExecuter(executer)
+        }
+
         run(["consumer", *args])
 
         then:
         executed(*expectedTasks)
-        file("out.txt").text == expectedOutput
+        file("out.txt").text == expectedContent
 
         where:
-        orElseLhs                                                                                            | orElseRhs                               | expectedTasks                                      | expectedOutput     | args
-        "mainProducer.flatMap { it.output }"                                                                 | "defaultProducer.flatMap { it.output }" | [":mainProducer", ":defaultProducer", ":consumer"] | "Main content"     | []
-        "mainProducer.map { null }"                                                                          | "defaultProducer.flatMap { it.output }" | [":defaultProducer", ":consumer"]                  | "Default content"  | []
-        "providers.gradleProperty('externalContent').flatMap { objects.fileProperty().fileValue(file(it)) }" | "defaultProducer.flatMap { it.output }" | [":defaultProducer", ":consumer"]                  | "External content" | ["-PexternalContent=external.txt"]
-        "providers.gradleProperty('externalContent').flatMap { objects.fileProperty().fileValue(file(it)) }" | "defaultProducer.flatMap { it.output }" | [":defaultProducer", ":consumer"]                  | "Default content"  | []
-        "providers.systemProperty('externalContent').flatMap { objects.fileProperty().fileValue(file(it)) }" | "defaultProducer.flatMap { it.output }" | [":defaultProducer", ":consumer"]                  | "External content" | ["-DexternalContent=external.txt"]
-        "providers.systemProperty('externalContent').flatMap { objects.fileProperty().fileValue(file(it)) }" | "defaultProducer.flatMap { it.output }" | [":defaultProducer", ":consumer"]                  | "Default content"  | []
-        // todo sopivalov add environmentVariable?
+        orElseLhs                                                                                                 | expectedTasks                                      | expectedContent    | args                               | configureExecuter
+        "mainProducer.flatMap { it.output }"                                                                      | [":mainProducer", ":defaultProducer", ":consumer"] | "Main content"     | []                                 | null
+        "mainProducer.map { null }"                                                                               | [":defaultProducer", ":consumer"]                  | "Default content"  | []                                 | null
+        "providers.gradleProperty('externalContent').flatMap { objects.fileProperty().fileValue(file(it)) }"      | [":defaultProducer", ":consumer"]                  | "External content" | ["-PexternalContent=external.txt"] | null
+        "providers.gradleProperty('externalContent').flatMap { objects.fileProperty().fileValue(file(it)) }"      | [":defaultProducer", ":consumer"]                  | "Default content"  | []                                 | null
+        "providers.systemProperty('externalContent').flatMap { objects.fileProperty().fileValue(file(it)) }"      | [":defaultProducer", ":consumer"]                  | "External content" | ["-DexternalContent=external.txt"] | null
+        "providers.systemProperty('externalContent').flatMap { objects.fileProperty().fileValue(file(it)) }"      | [":defaultProducer", ":consumer"]                  | "Default content"  | []                                 | null
+        "providers.environmentVariable('externalContent').flatMap { objects.fileProperty().fileValue(file(it)) }" | [":defaultProducer", ":consumer"]                  | "External content" | []                                 | { executer -> executer.withEnvironmentVars(["externalContent": "external.txt"]) }
+        "providers.environmentVariable('externalContent').flatMap { objects.fileProperty().fileValue(file(it)) }" | [":defaultProducer", ":consumer"]                  | "Default content"  | []                                 | null
+        "providers.of(FileSource, { parameters.file = file('external.txt') }) "                                   | [":defaultProducer", ":consumer"]                  | "External content" | []                                 | null
+        "providers.of(FileSource, {}) "                                                                           | [":defaultProducer", ":consumer"]                  | "Default content"  | []                                 | null
     }
 }
