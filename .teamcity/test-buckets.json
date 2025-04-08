@@ -2442,17 +2442,112 @@
 }, {
   "testCoverageUuid" : 43,
   "buckets" : [ {
-    "subprojects" : [ "kotlin-dsl-tooling-builders" ],
+    "subprojects" : [ "antlr", "base-diagnostics", "base-ide-plugins", "base-services", "base-services-groovy", "build-cache", "build-cache-base" ],
     "parallelizationMethod" : {
       "name" : "TestDistributionAlpine"
     }
   }, {
-    "subprojects" : [ "language-native" ],
+    "subprojects" : [ "build-cache-example-client", "build-cache-http", "build-cache-local", "build-cache-packaging", "build-cache-spi", "build-configuration", "build-events" ],
     "parallelizationMethod" : {
       "name" : "TestDistributionAlpine"
     }
   }, {
-    "subprojects" : [ "antlr", "base-diagnostics", "base-ide-plugins", "base-services", "base-services-groovy", "build-cache", "build-cache-base", "build-cache-example-client", "build-cache-http", "build-cache-local", "build-cache-packaging", "build-cache-spi", "build-configuration", "build-events", "build-init", "build-init-specs", "build-operations", "build-option", "build-process-services", "build-profile", "build-state", "cli", "client-services", "code-quality", "composite-builds", "concurrent", "configuration-cache", "configuration-cache-base", "configuration-problems-base", "core", "core-api", "daemon-protocol", "daemon-server-worker", "daemon-services", "declarative-dsl-core", "declarative-dsl-internal-utils", "declarative-dsl-provider", "declarative-dsl-tooling-builders", "dependency-management", "docs", "docs-asciidoctor-extensions-base", "ear", "enterprise", "execution", "execution-e2e-tests", "file-collections", "file-temp", "file-watching", "files", "flow-services", "functional", "gradle-cli", "hashing", "ide", "ide-native", "ide-plugins", "input-tracking", "instrumentation-agent-services", "instrumentation-reporting", "integ-test", "internal-instrumentation-api", "internal-instrumentation-processor", "internal-integ-testing", "internal-performance-testing", "internal-testing", "io", "ivy", "jacoco", "java-compiler-plugin", "java-platform", "jvm-services", "kotlin-dsl", "kotlin-dsl-integ-tests", "kotlin-dsl-plugins", "kotlin-dsl-provider-plugins", "language-groovy", "language-java", "language-jvm", "launcher", "logging", "logging-api", "maven", "messaging", "model-core", "model-groovy", "model-reflect", "native", "normalization-java", "persistent-cache", "platform-base", "platform-jvm", "platform-native", "plugin-development", "plugin-use", "plugins-application", "plugins-distribution", "plugins-groovy", "plugins-java", "plugins-java-base", "plugins-java-library", "plugins-jvm-test-fixtures", "plugins-jvm-test-suite", "plugins-test-report-aggregation", "plugins-version-catalog", "precondition-tester", "problems", "problems-api", "problems-rendering", "process-memory-services", "public-api-tests", "publish", "report-rendering", "reporting", "request-handler-worker", "resources", "resources-gcs", "resources-http", "resources-s3", "resources-sftp", "samples", "scala", "security", "serialization", "service-registry-builder", "service-registry-impl", "signing", "snapshots", "software-diagnostics", "stdlib-java-extensions", "stdlib-kotlin-extensions", "test-kit", "test-suites-base", "testing-base", "testing-base-infrastructure", "testing-jvm", "testing-jvm-infrastructure", "testing-native", "time", "toolchains-jvm", "toolchains-jvm-shared", "tooling-api", "tooling-api-builders", "tooling-native", "unit-test-fixtures", "version-control", "versioned-cache", "war", "worker-main", "workers", "wrapper-main", "wrapper-shared" ],
+    "subprojects" : [ "build-init", "build-init-specs", "build-operations", "build-option", "build-process-services", "build-profile", "build-state" ],
+    "parallelizationMethod" : {
+      "name" : "TestDistributionAlpine"
+    }
+  }, {
+    "subprojects" : [ "cli", "client-services", "code-quality", "composite-builds", "concurrent", "configuration-cache", "configuration-cache-base" ],
+    "parallelizationMethod" : {
+      "name" : "TestDistributionAlpine"
+    }
+  }, {
+    "subprojects" : [ "configuration-problems-base", "core", "core-api", "daemon-protocol", "daemon-server-worker", "daemon-services", "declarative-dsl-core" ],
+    "parallelizationMethod" : {
+      "name" : "TestDistributionAlpine"
+    }
+  }, {
+    "subprojects" : [ "declarative-dsl-internal-utils", "declarative-dsl-provider", "declarative-dsl-tooling-builders", "dependency-management", "docs", "docs-asciidoctor-extensions-base", "ear" ],
+    "parallelizationMethod" : {
+      "name" : "TestDistributionAlpine"
+    }
+  }, {
+    "subprojects" : [ "enterprise", "execution", "execution-e2e-tests", "file-collections", "file-temp", "file-watching", "files" ],
+    "parallelizationMethod" : {
+      "name" : "TestDistributionAlpine"
+    }
+  }, {
+    "subprojects" : [ "flow-services", "functional", "gradle-cli", "hashing", "ide", "ide-native", "ide-plugins" ],
+    "parallelizationMethod" : {
+      "name" : "TestDistributionAlpine"
+    }
+  }, {
+    "subprojects" : [ "input-tracking", "instrumentation-agent-services", "instrumentation-reporting", "integ-test", "internal-instrumentation-api", "internal-instrumentation-processor", "internal-integ-testing" ],
+    "parallelizationMethod" : {
+      "name" : "TestDistributionAlpine"
+    }
+  }, {
+    "subprojects" : [ "internal-performance-testing", "internal-testing", "io", "ivy", "jacoco", "java-compiler-plugin", "java-platform" ],
+    "parallelizationMethod" : {
+      "name" : "TestDistributionAlpine"
+    }
+  }, {
+    "subprojects" : [ "jvm-services", "kotlin-dsl", "kotlin-dsl-integ-tests", "kotlin-dsl-plugins", "kotlin-dsl-provider-plugins", "kotlin-dsl-tooling-builders", "language-groovy" ],
+    "parallelizationMethod" : {
+      "name" : "TestDistributionAlpine"
+    }
+  }, {
+    "subprojects" : [ "language-java", "language-jvm", "language-native", "launcher", "logging", "logging-api", "maven" ],
+    "parallelizationMethod" : {
+      "name" : "TestDistributionAlpine"
+    }
+  }, {
+    "subprojects" : [ "messaging", "model-core", "model-groovy", "model-reflect", "native", "normalization-java", "persistent-cache" ],
+    "parallelizationMethod" : {
+      "name" : "TestDistributionAlpine"
+    }
+  }, {
+    "subprojects" : [ "platform-base", "platform-jvm", "platform-native", "plugin-development", "plugin-use", "plugins-application", "plugins-distribution" ],
+    "parallelizationMethod" : {
+      "name" : "TestDistributionAlpine"
+    }
+  }, {
+    "subprojects" : [ "plugins-groovy", "plugins-java", "plugins-java-base", "plugins-java-library", "plugins-jvm-test-fixtures", "plugins-jvm-test-suite", "plugins-test-report-aggregation" ],
+    "parallelizationMethod" : {
+      "name" : "TestDistributionAlpine"
+    }
+  }, {
+    "subprojects" : [ "plugins-version-catalog", "precondition-tester", "problems", "problems-api", "problems-rendering", "process-memory-services", "public-api-tests" ],
+    "parallelizationMethod" : {
+      "name" : "TestDistributionAlpine"
+    }
+  }, {
+    "subprojects" : [ "publish", "report-rendering", "reporting", "request-handler-worker", "resources", "resources-gcs", "resources-http" ],
+    "parallelizationMethod" : {
+      "name" : "TestDistributionAlpine"
+    }
+  }, {
+    "subprojects" : [ "resources-s3", "resources-sftp", "samples", "scala", "security", "serialization", "service-registry-builder" ],
+    "parallelizationMethod" : {
+      "name" : "TestDistributionAlpine"
+    }
+  }, {
+    "subprojects" : [ "service-registry-impl", "signing", "snapshots", "software-diagnostics", "stdlib-java-extensions", "stdlib-kotlin-extensions", "test-kit" ],
+    "parallelizationMethod" : {
+      "name" : "TestDistributionAlpine"
+    }
+  }, {
+    "subprojects" : [ "test-suites-base", "testing-base", "testing-base-infrastructure", "testing-jvm", "testing-jvm-infrastructure", "testing-native", "time" ],
+    "parallelizationMethod" : {
+      "name" : "TestDistributionAlpine"
+    }
+  }, {
+    "subprojects" : [ "toolchains-jvm", "toolchains-jvm-shared", "tooling-api", "tooling-api-builders", "tooling-native", "unit-test-fixtures", "version-control" ],
+    "parallelizationMethod" : {
+      "name" : "TestDistributionAlpine"
+    }
+  }, {
+    "subprojects" : [ "versioned-cache", "war", "worker-main", "workers", "wrapper-main", "wrapper-shared" ],
     "parallelizationMethod" : {
       "name" : "TestDistributionAlpine"
     }
