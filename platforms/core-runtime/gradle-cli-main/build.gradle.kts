@@ -26,6 +26,7 @@ gradlebuildJava.usedForStartup()
 
 tasks.jar {
     manifest {
+        // Allow launcher to access JNI: https://openjdk.org/jeps/472
         attributes("Enable-Native-Access" to "ALL-UNNAMED")
     }
 }

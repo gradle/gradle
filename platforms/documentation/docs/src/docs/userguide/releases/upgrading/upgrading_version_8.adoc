@@ -40,6 +40,12 @@ The previous step will help you identify potential problems by issuing deprecati
 
 === Potential breaking changes
 
+==== The Gradle Wrapper is now an executable JAR
+
+The wrapper JAR has been changed to an executable JAR, which is a JAR with a `Main-Class` attribute.
+The wrapper scripts now start the wrapper JAR using `-jar` instead of `-classpath` and a main class argument, so when updating the wrapper scripts the wrapper JAR must be updated as well.
+This should happen automatically when running `gradle wrapper` or `gradlew wrapper`.
+
 ==== Changes to `Settings` defaults
 
 The incubating `Settings.getDefaults()` method, introduced in Gradle 8.10, has been removed.
