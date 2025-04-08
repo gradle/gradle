@@ -26,6 +26,14 @@ pluginManagement {
     includeBuild("build-logic-settings")
 }
 
+buildscript {
+    dependencies {
+        // update Gson to the desired version, needed here as org.gradle.toolchains.foojay-resolver-convention brings in an older version below
+        // https://github.com/gradle/foojay-toolchains/issues/99
+        classpath("com.google.code.gson:gson:2.12.1") // keep in sync with build-logic-commons/build-platform/build.gradle.kts
+    }
+}
+
 plugins {
     id("gradlebuild.build-environment")
     id("gradlebuild.configuration-cache-compatibility")
