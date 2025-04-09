@@ -180,7 +180,7 @@ fun Project.selectStringProperties(vararg propertyNames: String): Map<String, St
  * @see Provider.isPresent
  */
 private
-fun <T> Provider<T>.presence(): Provider<Boolean> =
+fun <T : Any> Provider<T>.presence(): Provider<Boolean> =
     map { true }.orElse(false)
 
 
