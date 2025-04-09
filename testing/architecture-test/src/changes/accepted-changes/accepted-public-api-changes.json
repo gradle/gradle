@@ -449,6 +449,14 @@
             ]
         },
         {
+            "type": "org.gradle.api.provider.Provider",
+            "member": "Method org.gradle.api.provider.Provider.forUseAtConfigurationTime()",
+            "acceptation": "Deprecated method removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.publish.maven.tasks.GenerateMavenPom",
             "member": "Method org.gradle.api.publish.maven.tasks.GenerateMavenPom.withCompileScopeAttributes(org.gradle.api.internal.attributes.ImmutableAttributes)",
             "acceptation": "Removed deprecated method",
