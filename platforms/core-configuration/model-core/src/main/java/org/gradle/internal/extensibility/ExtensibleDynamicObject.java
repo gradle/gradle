@@ -234,7 +234,7 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
         }
 
         @Override
-        public Map<String, ?> getProperties() {
+        public Map<String, ? extends @Nullable Object> getProperties() {
             return snapshotInheritable().getProperties();
         }
 

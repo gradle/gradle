@@ -1216,7 +1216,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
-    public Map<String, ?> getProperties() {
+    public Map<String, ? extends @Nullable Object> getProperties() {
         return dynamicLookupRoutine.getProperties(extensibleDynamicObject);
     }
 
