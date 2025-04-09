@@ -26,6 +26,7 @@ import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.JvmDebugSpec.JavaDebugOptionsBackedSpec;
+import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
@@ -116,23 +117,23 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
     }
 
     @Override
-    public Map<String, Object> getSystemProperties() {
+    public Map<String, @Nullable Object> getSystemProperties() {
         return options.getMutableSystemProperties();
     }
 
     @Override
-    public void setSystemProperties(Map<String, ?> properties) {
+    public void setSystemProperties(Map<String, ? extends @Nullable Object> properties) {
         options.setSystemProperties(properties);
     }
 
     @Override
-    public JavaForkOptions systemProperties(Map<String, ?> properties) {
+    public JavaForkOptions systemProperties(Map<String, ? extends @Nullable Object> properties) {
         options.systemProperties(properties);
         return this;
     }
 
     @Override
-    public JavaForkOptions systemProperty(String name, Object value) {
+    public JavaForkOptions systemProperty(String name, @Nullable Object value) {
         options.systemProperty(name, value);
         return this;
     }
