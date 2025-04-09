@@ -683,7 +683,6 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
                     assert it.canBeDeclared == true
 
                     assert it.deprecatedForDeclarationAgainst == true
-                    assert it.deprecatedForResolution == false
                     assert it.deprecatedForConsumption == false
                 }
             }

@@ -21,11 +21,13 @@ import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.junit.Assume
+import spock.lang.Ignore
 
 class DeclarativeAgpSmokeSpec extends AbstractIntegrationSpec {
 
     private final AndroidGradlePluginVersions agpVersions = new AndroidGradlePluginVersions()
 
+    @Ignore("AGP is using internal API: DeprecatableConfiguration.canSafelyBeResolved() for task ':lib:checkJetifier'")
     def 'a declarative project configures successfully with AGP'() {
         Assume.assumeTrue("Java version >= 11 required by AGP dependencies", Jvm.current().javaVersionMajor >= 11)
 
