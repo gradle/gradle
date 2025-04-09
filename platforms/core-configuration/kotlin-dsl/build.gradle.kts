@@ -23,7 +23,6 @@ dependencies {
     api(projects.hashing)
     api(projects.kotlinDslToolingModels)
     api(projects.loggingApi)
-    api(projects.serviceLookup)
     api(projects.stdlibJavaExtensions)
     api(projects.toolingApi)
 
@@ -56,6 +55,7 @@ dependencies {
     implementation(projects.persistentCache)
     implementation(projects.resources)
     implementation(projects.scopedPersistentCache)
+    implementation(projects.serviceLookup)
     implementation(projects.serviceProvider)
     implementation(projects.snapshots)
     implementation(projects.wrapperShared)
