@@ -301,7 +301,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      */
     @Override
     @ToBeReplacedByLazyProperty
-    public Map<String, Object> getSystemProperties() {
+    public Map<String, @Nullable Object> getSystemProperties() {
         return forkOptions.getSystemProperties();
     }
 
@@ -309,7 +309,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * {@inheritDoc}
      */
     @Override
-    public void setSystemProperties(Map<String, ?> properties) {
+    public void setSystemProperties(Map<String, ? extends @Nullable Object> properties) {
         forkOptions.setSystemProperties(properties);
     }
 
@@ -317,7 +317,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * {@inheritDoc}
      */
     @Override
-    public Test systemProperties(Map<String, ?> properties) {
+    public Test systemProperties(Map<String, ? extends @Nullable Object> properties) {
         forkOptions.systemProperties(properties);
         return this;
     }
@@ -326,7 +326,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * {@inheritDoc}
      */
     @Override
-    public Test systemProperty(String name, Object value) {
+    public Test systemProperty(String name, @Nullable Object value) {
         forkOptions.systemProperty(name, value);
         return this;
     }
