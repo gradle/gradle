@@ -16,12 +16,11 @@
 
 package org.gradle.kotlin.dsl.support.bytecode
 
-import com.google.common.annotations.VisibleForTesting
 import org.gradle.api.JavaVersion
 import org.objectweb.asm.Opcodes
 
 
-@VisibleForTesting
+internal
 object GradleJvmVersion {
 
     /**

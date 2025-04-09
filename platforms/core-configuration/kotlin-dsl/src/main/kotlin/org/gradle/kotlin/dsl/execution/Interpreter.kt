@@ -66,7 +66,7 @@ import java.lang.reflect.InvocationTargetException
  * @see ResidualProgram
  * @see ResidualProgramCompiler
  */
-@VisibleForTesting
+internal
 class Interpreter(val host: Host) {
 
     interface Host {
