@@ -72,14 +72,14 @@ public class GradleEnterpriseAutoAppliedPluginRegistry implements AutoAppliedPlu
             AutoAppliedDevelocityPlugin.VERSION,
             artifact,
             null,
-            develocityPluginCoordinates()
+            gradleEnterprisePluginCoordinates()
         );
     }
 
-    private static PluginCoordinates develocityPluginCoordinates() {
-        ModuleIdentifier moduleIdentifier = DefaultModuleIdentifier.newId(AutoAppliedDevelocityPlugin.GROUP, AutoAppliedDevelocityPlugin.NAME);
+    private static PluginCoordinates gradleEnterprisePluginCoordinates() {
+        ModuleIdentifier moduleIdentifier = DefaultModuleIdentifier.newId(AutoAppliedDevelocityPlugin.GROUP, AutoAppliedDevelocityPlugin.GRADLE_ENTERPRISE_PLUGIN_ARTIFACT_NAME);
         ModuleVersionSelector artifact = DefaultModuleVersionSelector.newSelector(moduleIdentifier, AutoAppliedDevelocityPlugin.VERSION);
-        return new PluginCoordinates(AutoAppliedDevelocityPlugin.ID, artifact);
+        return new PluginCoordinates(AutoAppliedDevelocityPlugin.GRADLE_ENTERPRISE_PLUGIN_ID, artifact);
     }
 
     private static String getScriptDisplayName() {
