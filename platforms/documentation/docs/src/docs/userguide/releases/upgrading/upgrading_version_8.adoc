@@ -64,6 +64,7 @@ Consider upgrading to the latest version of the Gradle Enterprise Plugin,
 or better yet, upgrade to the latest version of the link:https://docs.gradle.com/develocity/gradle-plugin[Develocity Plugin].
 
 For Gradle 8.x, the minimum supported version was 3.0.
+See link:https://docs.gradle.com/develocity/compatibility/#build_scans[compatibility matrix] for details.
 
 ==== Conventions removal
 
