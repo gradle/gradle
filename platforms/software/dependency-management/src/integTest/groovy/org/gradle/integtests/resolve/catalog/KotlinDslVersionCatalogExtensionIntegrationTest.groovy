@@ -134,6 +134,9 @@ class KotlinDslVersionCatalogExtensionIntegrationTest extends AbstractHttpDepend
         lib.artifact.expectGet()
 
         then:
+        7.times {
+            executer.expectDocumentedDeprecationWarning("Calling setCanBeConsumed(false) on configuration ':buildSrc:detachedConfiguration${it+1}' has been deprecated. This will fail with an error in Gradle 10.0. This configuration's role was set upon creation and its usage should not be changed. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#configurations_allowed_usage")
+        }
         succeeds ':checkDeps'
     }
 
