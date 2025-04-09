@@ -1,6 +1,5 @@
 package org.gradle.kotlin.dsl.fixtures
 
-import org.gradle.api.JavaVersion
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.logging.ConsoleRenderer
 import org.gradle.kotlin.dsl.support.normaliseLineSeparators
