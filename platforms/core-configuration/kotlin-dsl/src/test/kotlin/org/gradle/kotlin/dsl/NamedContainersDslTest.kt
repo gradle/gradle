@@ -162,12 +162,12 @@ class NamedContainersDslTest : AbstractDslTest() {
             """
             configurations {
 
-                val foo: NamedDomainObjectProvider<Configuration> = "foo"()
+                val foo: NamedDomainObjectProvider<Configuration> = named("foo")
                 val bar: NamedDomainObjectProvider<Configuration> = "bar" {
                     extendsFrom(foo.get())
                 }
 
-                val cabin: NamedDomainObjectProvider<Configuration>  = "cabin"()
+                val cabin: NamedDomainObjectProvider<Configuration>  = named("cabin")
                 val castle: NamedDomainObjectProvider<Configuration> = "castle" {
                     extendsFrom(cabin.get())
                 }
