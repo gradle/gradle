@@ -39,3 +39,5 @@ if [ -d "/opt/gradle-cache" ]; then
   echo "Setting READ_ONLY Gradle cache via env.GRADLE_RO_DEP_CACHE to use /opt/gradle-cache"
 fi
 
+# Print details of volumes to help us understand https://github.com/gradle/gradle-private/issues/4642
+df -T
