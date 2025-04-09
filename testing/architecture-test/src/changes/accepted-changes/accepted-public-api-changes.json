@@ -1250,6 +1250,14 @@
             ]
         },
         {
+            "type": "org.gradle.kotlin.dsl.NamedDomainObjectContainerScope",
+            "member": "Method org.gradle.kotlin.dsl.NamedDomainObjectContainerScope.invoke(java.lang.String)",
+            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.kotlin.dsl.PluginDependenciesSpecExtensionsKt",
             "member": "Class org.gradle.kotlin.dsl.PluginDependenciesSpecExtensionsKt",
             "acceptation": "Remove deprecated API",
