@@ -269,7 +269,7 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
             .build().output
 
         then:
-        output.contains("Gradle Enterprise plugin $version has been disabled as it is incompatible with Isolated Projects feature. Upgrade to Gradle Enterprise plugin 3.15 or newer to restore functionality.")
+        output.contains("Gradle Enterprise plugin $version has been disabled as it is incompatible with Isolated Projects. Upgrade to Gradle Enterprise plugin 3.15 or newer to restore functionality.")
         !output.contains("Build scan written to")
 
         where:

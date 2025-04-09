@@ -51,7 +51,7 @@ public class DevelocityPluginCompatibility {
 
     public static String getUnsupportedWithIsolatedProjectsMessage(String pluginVersion) {
         return String.format(
-            "Gradle Enterprise plugin %s has been disabled as it is incompatible with Isolated Projects feature. Upgrade to Gradle Enterprise plugin %s or newer to restore functionality.",
+            "Gradle Enterprise plugin %s has been disabled as it is incompatible with Isolated Projects. Upgrade to Gradle Enterprise plugin %s or newer to restore functionality.",
             pluginVersion,
             ISOLATED_PROJECTS_SUPPORTED_PLUGIN_VERSION
         );
