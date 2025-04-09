@@ -16,6 +16,9 @@
 
 package org.gradle.internal.scan.config;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 /**
  * A check-in service used by the Gradle Enterprise plugin versions until 3.4, none of which are supported anymore.
  * <p>
@@ -25,6 +28,7 @@ package org.gradle.internal.scan.config;
  *
  * @since 4.0
  */
+@ServiceScope(Scope.Build.class)
 public interface BuildScanConfigProvider {
 
     /**

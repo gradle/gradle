@@ -24,8 +24,6 @@ import org.gradle.internal.scan.config.BuildScanConfig;
 import org.gradle.internal.scan.config.BuildScanConfigProvider;
 import org.gradle.internal.scan.config.BuildScanPluginMetadata;
 import org.gradle.internal.scan.eob.BuildScanEndOfBuildNotifier;
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.internal.VersionNumber;
 
 import javax.inject.Inject;
@@ -37,7 +35,6 @@ import javax.inject.Inject;
  * <p>
  * More modern versions of the plugin use {@link org.gradle.internal.enterprise.GradleEnterprisePluginCheckInService}.
  */
-@ServiceScope(Scope.Build.class)
 public class LegacyGradleEnterprisePluginCheckInService implements BuildScanConfigProvider, BuildScanEndOfBuildNotifier {
 
     public static final String FIRST_GRADLE_ENTERPRISE_PLUGIN_VERSION_DISPLAY = "3.0";

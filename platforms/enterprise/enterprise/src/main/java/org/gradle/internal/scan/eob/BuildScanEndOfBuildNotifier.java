@@ -16,6 +16,8 @@
 
 package org.gradle.internal.scan.eob;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -25,6 +27,7 @@ import org.jspecify.annotations.Nullable;
  * <p>
  * We keep this service, because for the plugin versions 3.0+ we can gracefully avoid plugin application and report an unsupported message.
  */
+@ServiceScope(Scope.Build.class)
 public interface BuildScanEndOfBuildNotifier {
 
     interface BuildResult {
