@@ -90,6 +90,7 @@ The following members of the `org.gradle.util` package have been removed:
 * `CollectionUtils`
 
 
+[[jspecify]]
 ==== Gradle API now uses JSpecify Nullability Annotations
 
 The initial introduction of null safety in the Gradle API dates back to 2018 in Gradle 5.0.
@@ -113,6 +114,25 @@ In other words, it is still supported to use `javax.annotations` for nullability
 ==== Upgrade to Kotlin 2.1.20
 
 The embedded Kotlin has been updated from 2.0.21 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.1.20[Kotlin 2.1.20].
+
+Kotlin 2.1 removes support for targeting Kotlin language 1.4 and 1.5, it also deprecates using Kotlin language 1.7.
+See the Kotlin release notes for other potential breaking changes.
+
+==== The Kotlin DSL now uses the Kotlin language version 2.1
+
+Gradle 8.x used the Kotlin language version 1.8.
+Gradle 9.0 uses the Kotlin language version 2.1.
+See the Kotlin release notes for a description of the language changes and available new language features.
+
+Kotlin 2.1 combined with link:#jspecify[JSpecify] brings some new strictness in how nullability is handled when consuming the Gradle API from the Kotlin DSL.
+Here are some potential breaking changes.
+
+Unbounded generics for types that have generic bounds will now fail to compile.
+For example if you have a Kotlin extension function on `Provider<T>` whose signature is `fun <T> Provider<T>.some()` you must qualify `<T>` as either  `<T : Any>` because `T` isn't nullable on `Provider<T>`.
+
+The nullability of generic bounds is now handled strictly.
+For example, you can't use `Property<String?>` anymore because the `T` in `Property<T>` is not nullable.
+Another example is using a function from the Gradle API that takes a `Map<String, *>` parameter ; you could pass a map with nullable values before, you can't do that anymore.
 
 ==== Scala plugins no longer create unresolvable configurations
 
