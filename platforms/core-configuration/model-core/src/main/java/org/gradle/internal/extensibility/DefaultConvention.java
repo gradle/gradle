@@ -54,9 +54,7 @@ public class DefaultConvention implements org.gradle.api.plugins.Convention, Ext
     private final ExtraPropertiesExtension extraProperties = new DefaultExtraPropertiesExtension();
     private final InstanceGenerator instanceGenerator;
 
-    @Nullable
     private Map<String, Object> plugins;
-    @Nullable
     private IdentityHashMap<Object, BeanDynamicObject> dynamicObjects;
 
     public DefaultConvention(InstanceGenerator instanceGenerator) {
@@ -96,7 +94,6 @@ public class DefaultConvention implements org.gradle.api.plugins.Convention, Ext
 
     @Deprecated
     @Override
-    @Nullable
     public <T> T findPlugin(Class<T> type) throws IllegalStateException {
         logConventionDeprecation();
         if (plugins == null) {
@@ -182,7 +179,6 @@ public class DefaultConvention implements org.gradle.api.plugins.Convention, Ext
     }
 
     @Override
-    @Nullable
     public <T> T findByType(TypeOf<T> type) {
         return extensionsStorage.findByType(type);
     }
@@ -193,7 +189,6 @@ public class DefaultConvention implements org.gradle.api.plugins.Convention, Ext
     }
 
     @Override
-    @Nullable
     public Object findByName(String name) {
         return extensionsStorage.findByName(name);
     }
