@@ -383,7 +383,7 @@ secondaryAccess { three, true, true}"""
         @Restricted
         abstract class Extension @Inject constructor(private val objects: ObjectFactory) {
             val primaryAccess: Access
-            abstract val secondaryAccess: ListProperty<Access?>
+            abstract val secondaryAccess: ListProperty<Access>
 
             init {
                 this.primaryAccess = objects.newInstance(Access::class.java)
@@ -394,10 +394,10 @@ secondaryAccess { three, true, true}"""
             }
 
             @get:Restricted
-            abstract val id: Property<String?>
+            abstract val id: Property<String>
 
             @get:Restricted
-            abstract val referencePoint: Property<Point?>
+            abstract val referencePoint: Property<Point>
 
             @get:Restricted
             abstract val arguments: ListProperty<String>
@@ -435,13 +435,13 @@ secondaryAccess { three, true, true}"""
                 }
 
                 @get:Restricted
-                abstract val name: Property<String?>
+                abstract val name: Property<String>
 
                 @get:Restricted
-                abstract val read: Property<Boolean?>
+                abstract val read: Property<Boolean>
 
                 @get:Restricted
-                abstract val write: Property<Boolean?>
+                abstract val write: Property<Boolean>
             }
 
             class Point(val x: Int, val y: Int)
