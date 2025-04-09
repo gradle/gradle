@@ -16,16 +16,15 @@
 
 package org.gradle.internal.scan.config;
 
-import org.gradle.internal.scan.UsedByScanPlugin;
-
 /**
- * A service that provides the build scan configuration.
- *
+ * A check-in service used by the Gradle Enterprise plugin versions until 3.4, none of which are supported anymore.
+ * <p>
+ * We keep this service, because for the plugin versions 3.0+ we can gracefully avoid plugin application and report an unsupported message.
+ * <p>
  * Obtained via the root project's gradle object's service registry.
  *
  * @since 4.0
  */
-@UsedByScanPlugin("until 3.4")
 public interface BuildScanConfigProvider {
 
     /**

@@ -16,13 +16,15 @@
 
 package org.gradle.internal.scan.eob;
 
-import org.gradle.internal.scan.UsedByScanPlugin;
 import org.jspecify.annotations.Nullable;
 
 /**
  * Used by the scan plugin to register a listener to be notified about the build finishing.
+ * <p>
+ * The service is used by the Gradle Enterprise plugin versions until 3.4, none of which are supported anymore.
+ * <p>
+ * We keep this service, because for the plugin versions 3.0+ we can gracefully avoid plugin application and report an unsupported message.
  */
-@UsedByScanPlugin("until 3.4")
 public interface BuildScanEndOfBuildNotifier {
 
     interface BuildResult {
