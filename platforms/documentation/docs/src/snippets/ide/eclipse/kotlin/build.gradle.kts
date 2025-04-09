@@ -78,7 +78,8 @@ val functional by configurations.creating
 
 eclipse {
     classpath {
-        plusConfigurations += functional
+        // TODO k2-gradle9 replace with += once https://youtrack.jetbrains.com/issue/KT-68963 is fixed
+        plusConfigurations.add(functional)
     }
 }
 
