@@ -255,7 +255,7 @@ public abstract class JavaPlugin implements Plugin<Project> {
         project.getPluginManager().apply("org.gradle.jvm-test-suite"); // TODO: change to reference plugin class by name after project dependency cycles untangled; this will affect ApplyPluginBuildOperationIntegrationTest (will have to remove id)
         SourceSetContainer sourceSets = project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets();
 
-        JvmSoftwareComponentInternal javaComponent = createJavaComponent(projectInternal, sourceSets);
+        JvmSoftwareComponentInternal javaComponent = createJavaComponent(projectInternal);
 
         configurePublishing(project.getPlugins(), project.getExtensions(), javaComponent.getMainFeature().getSourceSet());
 
@@ -276,16 +276,12 @@ public abstract class JavaPlugin implements Plugin<Project> {
         configureBuild(project);
     }
 
-    private static JvmFeatureInternal createMainFeature(ProjectInternal project, SourceSetContainer sourceSets) {
-        SourceSet sourceSet = sourceSets.create(SourceSet.MAIN_SOURCE_SET_NAME);
-
+    private static JvmFeatureInternal createMainFeature(ProjectInternal project) {
         JvmFeatureInternal feature = new DefaultJvmFeature(
             JvmConstants.JAVA_MAIN_FEATURE_NAME,
-            sourceSet,
             Collections.emptySet(),
             project,
-            false,
-            false
+            null
         );
 
         // Create a source directories variant for the feature
@@ -294,12 +290,12 @@ public abstract class JavaPlugin implements Plugin<Project> {
         return feature;
     }
 
-    private static JvmSoftwareComponentInternal createJavaComponent(ProjectInternal project, SourceSetContainer sourceSets) {
+    private static JvmSoftwareComponentInternal createJavaComponent(ProjectInternal project) {
         DefaultJvmSoftwareComponent component = project.getObjects().newInstance(DefaultJvmSoftwareComponent.class, JvmConstants.JAVA_MAIN_COMPONENT_NAME);
         project.getComponents().add(component);
 
         // Create the main feature
-        JvmFeatureInternal mainFeature = createMainFeature(project, sourceSets);
+        JvmFeatureInternal mainFeature = createMainFeature(project);
         component.getFeatures().add(mainFeature);
 
         // TODO: This process of manually adding variants to the component should be handled automatically when adding the feature to the component.
