@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.buildconfiguration.tasks;
+package org.gradle.internal.buildconfiguration;
 
-import org.gradle.internal.buildconfiguration.DaemonJvmPropertiesDefaults;
 import org.gradle.platform.Architecture;
 import org.gradle.platform.BuildPlatform;
 import org.gradle.platform.BuildPlatformFactory;

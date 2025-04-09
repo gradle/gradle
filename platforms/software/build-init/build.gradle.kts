@@ -37,8 +37,10 @@ dependencies {
     api(projects.workers)
 
     implementation(projects.buildInitSpecsApi)
+    implementation(projects.daemonProtocol)
     implementation(projects.fileOperations)
     implementation(projects.loggingApi)
+    implementation(projects.native)
     implementation(projects.platformNative)
     implementation(projects.pluginsApplication) {
         because("Needs access to StartScriptGenerator.")
