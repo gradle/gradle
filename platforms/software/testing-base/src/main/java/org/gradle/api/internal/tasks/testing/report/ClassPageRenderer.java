@@ -29,6 +29,8 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.gradle.reporting.HtmlWriterTools.addClipboardCopyButton;
+
 class ClassPageRenderer extends PageRenderer<ClassTestResults> {
     private final CodePanelRenderer codePanelRenderer = new CodePanelRenderer();
     private final TestResultsProvider resultsProvider;
@@ -147,12 +149,13 @@ class ClassPageRenderer extends PageRenderer<ClassTestResults> {
             addTab("Standard output", new ErroringAction<SimpleHtmlWriter>() {
                 @Override
                 protected void doExecute(SimpleHtmlWriter htmlWriter) throws IOException {
-                    htmlWriter.startElement("span").attribute("class", "code")
+                    htmlWriter.startElement("span").attribute("class", "code code1")
                         .startElement("pre")
                         .characters("");
                     resultsProvider.writeAllOutput(classId, TestOutputEvent.Destination.StdOut, htmlWriter);
-                        htmlWriter.endElement()
-                    .endElement();
+                        htmlWriter.endElement();
+                    addClipboardCopyButton(htmlWriter);
+                    htmlWriter.endElement();
                 }
             });
         }
@@ -160,12 +163,13 @@ class ClassPageRenderer extends PageRenderer<ClassTestResults> {
             addTab("Standard error", new ErroringAction<SimpleHtmlWriter>() {
                 @Override
                 protected void doExecute(SimpleHtmlWriter element) throws Exception {
-                    element.startElement("span").attribute("class", "code")
+                    element.startElement("span").attribute("class", "code code2")
                     .startElement("pre")
                         .characters("");
                     resultsProvider.writeAllOutput(classId, TestOutputEvent.Destination.StdErr, element);
-                    element.endElement()
-                    .endElement();
+                    element.endElement();
+                    addClipboardCopyButton(element);
+                    element.endElement();
                 }
             });
         }
