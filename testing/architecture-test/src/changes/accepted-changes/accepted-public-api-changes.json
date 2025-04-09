@@ -1252,7 +1252,7 @@
         {
             "type": "org.gradle.kotlin.dsl.PluginDependenciesSpecExtensionsKt",
             "member": "Class org.gradle.kotlin.dsl.PluginDependenciesSpecExtensionsKt",
-            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
+            "acceptation": "Remove deprecated API",
             "changes": [
                 "Class has been removed"
             ]
@@ -1260,7 +1260,7 @@
         {
             "type": "org.gradle.kotlin.dsl.PluginDependenciesSpecExtensionsKt",
             "member": "Method org.gradle.kotlin.dsl.PluginDependenciesSpecExtensionsKt.getGradle-enterprise$annotations(org.gradle.plugin.use.PluginDependenciesSpec)",
-            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
+            "acceptation": "Remove deprecated API",
             "changes": [
                 "Method has been removed"
             ]
@@ -1268,7 +1268,7 @@
         {
             "type": "org.gradle.kotlin.dsl.PluginDependenciesSpecExtensionsKt",
             "member": "Method org.gradle.kotlin.dsl.PluginDependenciesSpecExtensionsKt.getGradle-enterprise(org.gradle.plugin.use.PluginDependenciesSpec)",
-            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
+            "acceptation": "Remove deprecated API",
             "changes": [
                 "Method has been removed"
             ]
