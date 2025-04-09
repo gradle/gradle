@@ -40,10 +40,6 @@ public class LegacyGradleEnterprisePluginCheckInService implements BuildScanConf
     public static final String FIRST_GRADLE_ENTERPRISE_PLUGIN_VERSION_DISPLAY = "3.0";
     public static final VersionNumber FIRST_GRADLE_ENTERPRISE_PLUGIN_VERSION = VersionNumber.parse(FIRST_GRADLE_ENTERPRISE_PLUGIN_VERSION_DISPLAY);
 
-    // Used just to test the mechanism
-    public static final String UNSUPPORTED_TOGGLE = "org.gradle.internal.unsupported-scan-plugin";
-    public static final String UNSUPPORTED_TOGGLE_MESSAGE = "Build scan support disabled by secret toggle";
-
     private static final VersionNumber FIRST_VERSION_AWARE_OF_UNSUPPORTED = VersionNumber.parse("1.11");
 
     private final GradleInternal gradle;
@@ -73,7 +69,7 @@ public class LegacyGradleEnterprisePluginCheckInService implements BuildScanConf
             throw new UnsupportedBuildScanPluginVersionException(GradleEnterprisePluginManager.OLD_SCAN_PLUGIN_VERSION_MESSAGE);
         }
 
-        String unsupportedReason = unsupportedReason(pluginVersion);
+        String unsupportedReason = DevelocityPluginCompatibility.getUnsupportedPluginMessage(pluginVersion);
         manager.unsupported();
         if (!isPluginAwareOfUnsupported(pluginBaseVersion)) {
             throw new UnsupportedBuildScanPluginVersionException(unsupportedReason);
@@ -93,14 +89,6 @@ public class LegacyGradleEnterprisePluginCheckInService implements BuildScanConf
 
     private static boolean isPluginAwareOfUnsupported(VersionNumber pluginVersion) {
         return pluginVersion.compareTo(FIRST_VERSION_AWARE_OF_UNSUPPORTED) >= 0;
-    }
-
-    private static String unsupportedReason(String pluginVersion) {
-        if (Boolean.getBoolean(UNSUPPORTED_TOGGLE)) {
-            return UNSUPPORTED_TOGGLE_MESSAGE;
-        } else {
-            return DevelocityPluginCompatibility.getUnsupportedPluginMessage(pluginVersion);
-        }
     }
 
     private static class Config implements BuildScanConfig {

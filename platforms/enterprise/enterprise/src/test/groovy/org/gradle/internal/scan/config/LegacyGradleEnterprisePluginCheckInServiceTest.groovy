@@ -23,55 +23,10 @@ import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.internal.enterprise.impl.legacy.LegacyGradleEnterprisePluginCheckInService
 import org.gradle.internal.enterprise.impl.legacy.UnsupportedBuildScanPluginVersionException
 import spock.lang.Specification
-import spock.util.environment.RestoreSystemProperties
 
 class LegacyGradleEnterprisePluginCheckInServiceTest extends Specification {
 
-    def "conveys configuration"() {
-        def version = LegacyGradleEnterprisePluginCheckInService.FIRST_GRADLE_ENTERPRISE_PLUGIN_VERSION_DISPLAY
-
-        expect:
-        with(config(version, scanEnabled, scanDisabled)) {
-            enabled == (scanEnabled && !scanDisabled)
-            disabled == scanDisabled
-        }
-
-        where:
-        scanEnabled | scanDisabled
-        false       | false
-        false       | true
-        true        | false
-        true        | true
-    }
-
-    @RestoreSystemProperties
-    def "can convey unsupported with artificial toggle"() {
-        def version = LegacyGradleEnterprisePluginCheckInService.FIRST_GRADLE_ENTERPRISE_PLUGIN_VERSION_DISPLAY
-        System.setProperty(LegacyGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE, "true")
-
-        expect:
-        with(config(version)) {
-            !enabled
-            !disabled
-            unsupportedMessage == LegacyGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE_MESSAGE
-        }
-
-        and:
-        with(config(version, true)) {
-            enabled
-            !disabled
-            unsupportedMessage == LegacyGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE_MESSAGE
-        }
-
-        where:
-        scanEnabled | scanDisabled
-        false       | false
-        false       | true
-        true        | false
-        true        | true
-    }
-
-    def "fails if plugin version is not supported"() {
+    def "fails if plugin is not aware of unsupported mechanism"() {
         when:
         // Earliest plugin version that does not cause an exception is 3.0
         config("2.4.2")
@@ -83,8 +38,6 @@ class LegacyGradleEnterprisePluginCheckInServiceTest extends Specification {
     def "conveys unsupported without failing"() {
         expect:
         with(config("3.13")) {
-            !enabled
-            !disabled
             unsupportedMessage == "Gradle Enterprise plugin 3.13 has been disabled as it is incompatible with this version of Gradle. Upgrade to Gradle Enterprise plugin 3.13.1 or newer to restore functionality."
         }
     }
