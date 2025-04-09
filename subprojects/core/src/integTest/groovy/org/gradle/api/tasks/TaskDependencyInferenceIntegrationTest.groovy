@@ -202,7 +202,7 @@ class TaskDependencyInferenceIntegrationTest extends AbstractIntegrationSpec imp
         run("c")
 
         then:
-        result.assertTasksExecuted(":a", ":c")
+        result.assertTasksExecuted(":a", ":b", ":c")
     }
 
     def "dependency declared using orElse provider whose original value is task output file property and alternative value is constant implies dependency on task"() {
@@ -642,7 +642,7 @@ The following types/formats are supported:
         run("c")
 
         then:
-        result.assertTasksExecuted(":a", ":c")
+        result.assertTasksExecuted(":a", ":b", ":c")
         file("out.txt").text == "a"
     }
 
