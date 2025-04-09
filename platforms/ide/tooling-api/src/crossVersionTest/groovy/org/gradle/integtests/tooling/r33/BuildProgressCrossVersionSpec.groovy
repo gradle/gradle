@@ -132,6 +132,9 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification implements W
         given:
         buildFile << """
             allprojects { apply plugin: 'java' }
+
+            // This just prevents Gradle from failing because there are test sources but no tests
+            test { include 'foo' }
 """
         file("src/main/java/Thing.java") << """class Thing { }"""
         file("src/test/java/Thing.java") << """class ThingTest { }"""
