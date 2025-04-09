@@ -31,6 +31,7 @@ public class DefaultTestFilter implements TestFilter {
     private final Set<String> includeTestNames = new HashSet<String>();
     private final Set<String> excludeTestNames = new HashSet<String>();
     private final Set<String> commandLineIncludeTestNames = new HashSet<String>();
+    private final Set<String> junitPlatformSelectorPatterns = new HashSet<String>();
     private boolean failOnNoMatching = true;
 
     private void validateName(String name) {
@@ -124,6 +125,20 @@ public class DefaultTestFilter implements TestFilter {
         }
         this.commandLineIncludeTestNames.clear();
         this.commandLineIncludeTestNames.addAll(testNamePatterns);
+        return this;
+    }
+
+    @Input
+    public Set<String> getJunitPlatformSelectorPatterns() {
+        return junitPlatformSelectorPatterns;
+    }
+
+    public TestFilter setJunitPlatformSelectorPatterns(Collection<String> selectorPatterns) {
+        for (String pattern : selectorPatterns) {
+            validateName(pattern);
+        }
+        this.junitPlatformSelectorPatterns.clear();
+        this.junitPlatformSelectorPatterns.addAll(selectorPatterns);
         return this;
     }
 
