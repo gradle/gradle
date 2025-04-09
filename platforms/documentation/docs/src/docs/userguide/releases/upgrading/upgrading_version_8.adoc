@@ -124,6 +124,10 @@ Gradle 8.x used the Kotlin language version 1.8.
 Gradle 9.0 uses the Kotlin language version 2.1.
 See the Kotlin release notes for a description of the language changes and available new language features.
 
+The Kotlin 2 compiler makes change in the way scripts are compiled.
+It is not possible to refer to the script object using `this@Build_gradle`, `this@Settings_gradle` or `this@Init_gradle` anymore.
+You must prefer using the target object instead, respectively `project`, `settings` and `gradle`.
+
 Kotlin 2.1 combined with link:#jspecify[JSpecify] brings some new strictness in how nullability is handled when consuming the Gradle API from the Kotlin DSL.
 Here are some potential breaking changes.
 
