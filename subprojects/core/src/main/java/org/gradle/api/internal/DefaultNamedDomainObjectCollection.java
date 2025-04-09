@@ -310,6 +310,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     @Override
+    @Nullable
     public T findByName(String name) {
         T value = findByNameWithoutRules(name);
         if (value != null) {

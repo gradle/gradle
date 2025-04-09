@@ -104,7 +104,7 @@ public class MutableStateAccessAwareDynamicObject extends AbstractDynamicObject 
     }
 
     @Override
-    public Map<String, ?> getProperties() {
+    public Map<String, ? extends @Nullable Object> getProperties() {
         onMutableStateAccess.run();
         return delegate.getProperties();
     }

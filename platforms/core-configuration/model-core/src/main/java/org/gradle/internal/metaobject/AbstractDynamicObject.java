@@ -149,7 +149,7 @@ public abstract class AbstractDynamicObject implements DynamicObject {
     }
 
     @Override
-    public Map<String, ?> getProperties() {
+    public Map<String, ? extends @Nullable Object> getProperties() {
         return Collections.emptyMap();
     }
 

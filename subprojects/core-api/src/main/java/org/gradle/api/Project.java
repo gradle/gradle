@@ -1444,7 +1444,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @return A map from property name to value.
      */
-    Map<String, ?> getProperties();
+    Map<String, ? extends @Nullable Object> getProperties();
 
     /**
      * <p>Returns the value of the given property.  This method locates a property as follows:</p>
