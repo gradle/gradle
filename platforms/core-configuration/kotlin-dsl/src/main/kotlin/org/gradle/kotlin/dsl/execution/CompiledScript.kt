@@ -16,11 +16,10 @@
 
 package org.gradle.kotlin.dsl.execution
 
-import com.google.common.annotations.VisibleForTesting
 import org.gradle.internal.classpath.ClassPath
 
 
-@VisibleForTesting
+internal
 interface CompiledScript {
     val program: Class<*>
     val classPath: ClassPath
