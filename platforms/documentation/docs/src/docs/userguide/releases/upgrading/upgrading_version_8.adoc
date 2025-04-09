@@ -118,6 +118,10 @@ The `testResourcesDirs` and `testSourcesDirs` properties in `org.gradle.plugins.
 Gradle now emits deprecation warnings when these properties are used.
 They will be removed in Gradle 9.0.
 
+==== `ForkOptions.getJavaHome()` and `ForkOptions.setJavaHome()` are no longer deprecated
+
+These methods were deprecated in Gradle 8.11, but are no longer deprecated.
+
 [[changes_8.13]]
 == Upgrading from 8.12 and earlier
 
