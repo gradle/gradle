@@ -54,9 +54,9 @@ public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterp
 
     // Used just for testing
     @VisibleForTesting
-    public static final String UNSUPPORTED_TOGGLE = "org.gradle.internal.unsupported-enterprise-plugin";
+    public static final String UNSUPPORTED_TOGGLE = "org.gradle.internal.unsupported-develocity-plugin";
     @VisibleForTesting
-    public static final String UNSUPPORTED_TOGGLE_MESSAGE = "Enterprise plugin unsupported due to secret toggle";
+    public static final String UNSUPPORTED_TOGGLE_MESSAGE = "Develocity plugin unsupported due to secret toggle";
 
     private static final String DISABLE_TEST_ACCELERATION_PROPERTY = "gradle.internal.testacceleration.disableImplicitApplication";
     private static final VersionNumber AUTO_DISABLE_TEST_ACCELERATION_SINCE_VERSION = VersionNumber.parse("3.14");
