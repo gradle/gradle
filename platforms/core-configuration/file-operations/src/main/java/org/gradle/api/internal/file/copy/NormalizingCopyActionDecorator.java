@@ -176,12 +176,6 @@ public class NormalizingCopyActionDecorator implements CopyAction {
         }
 
         @Override
-        @Deprecated
-        public void setMode(int mode) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
         public void permissions(Action<? super ConfigurableFilePermissions> configureAction) {
             throw new UnsupportedOperationException();
         }

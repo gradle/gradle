@@ -17,7 +17,6 @@
 package org.gradle.smoketests
 
 import groovy.transform.SelfType
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 
 @SelfType(AbstractSmokeTest)
 abstract class AbstractPluginValidatingSmokeTest extends AbstractSmokeTest implements WithPluginValidation {
@@ -46,10 +45,7 @@ abstract class AbstractPluginValidatingSmokeTest extends AbstractSmokeTest imple
         result
     }
 
-    @UnsupportedWithConfigurationCache(
-        because = "some plugins are not compatible with the configuration cache but it doesn't really matter because we get the results with the regular test suite"
-    )
-    def "performs static analysis of plugin #id version #version"() {
+    def "performs static analysis of plugin #id version #version"(String id, String version) {
         def extraPluginsBlock = getExtraPluginsRequiredForValidation(id, version).collect { pluginId, pluginVersion ->
             "                id '$pluginId'" + (pluginVersion ? "version '$pluginVersion'" : "")
         }.join('\n')
