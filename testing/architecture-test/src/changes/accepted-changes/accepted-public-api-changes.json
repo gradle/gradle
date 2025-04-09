@@ -1019,7 +1019,7 @@
         {
             "type": "org.gradle.jvm.application.tasks.CreateStartScripts",
             "member": "Method org.gradle.jvm.application.tasks.CreateStartScripts.getMainClassName()",
-            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
+            "acceptation": "Removed deprecated method",
             "changes": [
                 "Method has been removed"
             ]
@@ -1027,7 +1027,7 @@
         {
             "type": "org.gradle.jvm.application.tasks.CreateStartScripts",
             "member": "Method org.gradle.jvm.application.tasks.CreateStartScripts.setMainClassName(java.lang.String)",
-            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
+            "acceptation": "Removed deprecated method",
             "changes": [
                 "Method has been removed"
             ]
@@ -1252,7 +1252,7 @@
         {
             "type": "org.gradle.kotlin.dsl.NamedDomainObjectContainerScope",
             "member": "Method org.gradle.kotlin.dsl.NamedDomainObjectContainerScope.invoke(java.lang.String)",
-            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
+            "acceptation": "Removed deprecated method",
             "changes": [
                 "Method has been removed"
             ]
