@@ -186,4 +186,73 @@ class KotlinDslNullnessIntegrationTest : AbstractKotlinIntegrationTest() {
 
         result.assertTaskExecuted(":compileKotlin")
     }
+
+    @Test
+    fun `Property#set accepts null in script`() {
+        withBuildScript(
+            """
+            interface Some {
+                val some: Property<String>
+            }
+            val instance = objects.newInstance<Some>()
+            instance.some.set(null)
+            """.trimIndent()
+        )
+        build("help")
+    }
+
+    @Test
+    fun `Property#set accepts null in precompiled script`() {
+        withKotlinBuildSrc()
+        withFile(
+            "buildSrc/src/main/kotlin/my-plugin.gradle.kts",
+            """
+            interface Some {
+                val some: Property<String>
+            }
+            val instance = objects.newInstance<Some>()
+            instance.some.set(null)
+            """.trimIndent()
+        )
+        withBuildScript("""plugins { id("my-plugin") }""")
+        val result = build("help")
+        result.assertTaskExecuted(":buildSrc:compileKotlin")
+    }
+
+    @Test
+    fun `Property#set accepts null in kt file in kotlin-dsl project`() {
+        withKotlinBuildSrc()
+        withFile(
+            "buildSrc/src/main/kotlin/MyPlugin.kt",
+            """
+            import org.gradle.api.*
+            import org.gradle.api.provider.*
+            import org.gradle.kotlin.dsl.*
+            interface Some {
+                val some: Property<String>
+            }
+            class MyPlugin : Plugin<Project> {
+                override fun apply(project: Project) {
+                    val instance = project.objects.newInstance<Some>()
+                    instance.some.set(null)
+                }
+            }
+            """.trimIndent()
+        )
+        existing("buildSrc/build.gradle.kts").appendText(
+            """
+            gradlePlugin {
+                plugins {
+                    create("myPlugin") {
+                        id = "my-plugin"
+                        implementationClass = "MyPlugin"
+                    }
+                }
+            }
+            """.trimIndent()
+        )
+        withBuildScript("""plugins { id("my-plugin") }""")
+        val result = build("help")
+        result.assertTaskExecuted(":buildSrc:compileKotlin")
+    }
 }

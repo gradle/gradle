@@ -63,7 +63,6 @@ import org.jetbrains.kotlin.config.LanguageVersionSettingsImpl
 import org.jetbrains.kotlin.load.java.JavaTypeEnhancementState
 import org.jetbrains.kotlin.load.java.Jsr305Settings
 import org.jetbrains.kotlin.load.java.ReportLevel
-import org.jetbrains.kotlin.load.java.getDefaultReportLevelForAnnotation
 import org.jetbrains.kotlin.name.NameUtils
 import org.jetbrains.kotlin.samWithReceiver.SamWithReceiverComponentRegistrar
 import org.jetbrains.kotlin.samWithReceiver.SamWithReceiverConfigurationKeys
@@ -445,7 +444,7 @@ fun gradleKotlinDslLanguageVersionSettingsFor(compilerOptions: KotlinCompilerOpt
         JvmAnalysisFlags.jvmDefaultMode to JvmDefaultMode.ALL,
         JvmAnalysisFlags.javaTypeEnhancementState to JavaTypeEnhancementState(
             jsr305 = Jsr305Settings(globalLevel = ReportLevel.STRICT, migrationLevel = ReportLevel.STRICT),
-            getReportLevelForAnnotation = { fqName -> getDefaultReportLevelForAnnotation(fqName) }
+            getReportLevelForAnnotation = { ReportLevel.STRICT }
         ),
     ),
 )
