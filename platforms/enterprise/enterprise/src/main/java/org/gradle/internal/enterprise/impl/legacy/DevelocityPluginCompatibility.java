@@ -21,6 +21,12 @@ import org.gradle.util.internal.VersionNumber;
 
 /**
  * Information about the earliest supported Develocity plugin version.
+ * <p>
+ * Develocity plugin has followed and taken over the versioning of the Gradle Enterprise plugin.
+ * <ul>
+ * <li> Develocity plugin is published from 3.17 and later
+ * <li> Gradle Enterprise plugin (legacy) has been published for all supported versions until 4.0 (not including).
+ * </ul>
  */
 public class DevelocityPluginCompatibility {
 
