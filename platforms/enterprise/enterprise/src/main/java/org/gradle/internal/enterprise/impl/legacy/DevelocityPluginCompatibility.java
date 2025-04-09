@@ -30,10 +30,8 @@ public class DevelocityPluginCompatibility {
     @VisibleForTesting
     public static final VersionNumber MINIMUM_SUPPORTED_PLUGIN_VERSION_NUMBER = VersionNumber.parse(MINIMUM_SUPPORTED_PLUGIN_VERSION);
 
-    @VisibleForTesting
-    public static final String ISOLATED_PROJECTS_SUPPORTED_PLUGIN_VERSION = "3.15";
-    @VisibleForTesting
-    public static final VersionNumber ISOLATED_PROJECTS_SUPPORTED_PLUGIN_VERSION_NUMBER = VersionNumber.parse(ISOLATED_PROJECTS_SUPPORTED_PLUGIN_VERSION);
+    private static final String ISOLATED_PROJECTS_SUPPORTED_PLUGIN_VERSION = "3.15";
+    private static final VersionNumber ISOLATED_PROJECTS_SUPPORTED_PLUGIN_VERSION_NUMBER = VersionNumber.parse(ISOLATED_PROJECTS_SUPPORTED_PLUGIN_VERSION);
 
     public static boolean isUnsupportedPluginVersion(VersionNumber pluginBaseVersion) {
         return MINIMUM_SUPPORTED_PLUGIN_VERSION_NUMBER.compareTo(pluginBaseVersion) > 0;

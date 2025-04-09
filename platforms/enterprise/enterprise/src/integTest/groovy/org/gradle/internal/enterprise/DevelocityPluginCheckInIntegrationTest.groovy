@@ -23,7 +23,6 @@ import org.gradle.test.preconditions.IntegTestPreconditions
 
 import static org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE
 import static org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE_MESSAGE
-import static org.gradle.internal.enterprise.impl.legacy.DevelocityPluginCompatibility.ISOLATED_PROJECTS_SUPPORTED_PLUGIN_VERSION
 import static org.gradle.internal.enterprise.impl.legacy.DevelocityPluginCompatibility.MINIMUM_SUPPORTED_PLUGIN_VERSION
 
 class DevelocityPluginCheckInIntegrationTest extends AbstractIntegrationSpec {
@@ -106,18 +105,18 @@ class DevelocityPluginCheckInIntegrationTest extends AbstractIntegrationSpec {
         succeeds("t", "-Dorg.gradle.unsafe.isolated-projects=true")
 
         then:
-        output.contains("present: ${applied}")
+        output.contains("present: ${supported}")
 
         and:
-        if (applied) {
+        if (supported) {
             assert output.contains("develocityPlugin.checkIn.supported")
         } else {
             assert output.contains("develocityPlugin.checkIn.unsupported.reasonMessage = Gradle Enterprise plugin 3.13.1 has been disabled as it is incompatible with Isolated Projects feature. Upgrade to Gradle Enterprise plugin 3.15 or newer to restore functionality.")
         }
 
         where:
-        pluginVersion                              | applied
-        MINIMUM_SUPPORTED_PLUGIN_VERSION           | false
-        ISOLATED_PROJECTS_SUPPORTED_PLUGIN_VERSION | true
+        pluginVersion                    | supported
+        MINIMUM_SUPPORTED_PLUGIN_VERSION | false
+        '3.15'                           | true
     }
 }
