@@ -19,6 +19,7 @@ package org.gradle.internal.buildtree;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
+import org.gradle.api.internal.file.DefaultFilePropertyFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FilePropertyFactory;
 import org.gradle.api.internal.file.FileResolver;
@@ -34,6 +35,7 @@ import org.gradle.api.internal.project.taskfactory.TaskIdentityFactory;
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier;
 import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier;
 import org.gradle.api.internal.provider.PropertyFactory;
+import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
@@ -197,8 +199,8 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected FilePropertyFactory createFilePropertyFactory(FilePropertyFactory parent, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
-        return parent.forChildScope(fileResolver, fileCollectionFactory);
+    protected FilePropertyFactory createFilePropertyFactory(PropertyHost host, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
+        return new DefaultFilePropertyFactory(host, fileResolver, fileCollectionFactory);
     }
 
     @Provides

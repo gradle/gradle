@@ -27,8 +27,4 @@ public interface FilePropertyFactory {
 
     RegularFileProperty newFileProperty();
 
-    /**
-     * Creates a copy of this factory that uses the given resolver and fileCollectionFactory.
-     */
-    FilePropertyFactory forChildScope(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory);
 }

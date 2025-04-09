@@ -64,11 +64,6 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
     }
 
     @Override
-    public FilePropertyFactory forChildScope(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
-        return new DefaultFilePropertyFactory(host, fileResolver, fileCollectionFactory);
-    }
-
-    @Override
     public Directory dir(File dir) {
         dir = fileResolver.resolve(dir);
         return new FixedDirectory(dir, fileResolver.newResolver(dir), fileCollectionFactory);

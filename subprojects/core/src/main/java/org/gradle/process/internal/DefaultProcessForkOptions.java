@@ -24,7 +24,6 @@ import org.gradle.api.internal.file.DefaultFilePropertyFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory;
-import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
@@ -40,6 +39,8 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.gradle.api.internal.lambdas.SerializableLambdas.transformer;
+
 public class DefaultProcessForkOptions implements ProcessForkOptions {
     protected final PathToFileResolver resolver;
     private Object executable;
@@ -47,7 +48,10 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
     private Map<String, Object> environment;
 
     /**
-     * Don't use it! Kept for KGP binary compatibility, will be removed in Gradle 10.
+     * Don't use it! Kept for KGP binary compatibility for version <= 2.1.20.
+     * See: <a href="https://github.com/JetBrains/kotlin/blob/658a2010b15a22583f9841e1a2d4bddf1baac612/libraries/tools/kotlin-gradle-plugin/src/common/kotlin/org/jetbrains/kotlin/gradle/targets/js/testing/KotlinJsTest.kt#L158">KotlinJsTest.kt#L158</a>.
+     *
+     * We can remove it once we stop supporting that version.
      */
     @Deprecated
     public DefaultProcessForkOptions(PathToFileResolver resolver) {
@@ -99,7 +103,7 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
         if (dir instanceof DirectoryProperty) {
             workingDir.set((DirectoryProperty) dir);
         } else if (dir instanceof Provider) {
-            workingDir.fileProvider(((Provider<?>) dir).map(SerializableLambdas.transformer(file -> {
+            workingDir.fileProvider(((Provider<?>) dir).map(transformer(file -> {
                 if (file instanceof FileSystemLocation) {
                     return ((Directory) file).getAsFile();
                 } else if (file instanceof File) {

@@ -58,9 +58,10 @@ public class TestJavaMain {
     }
 
     private static void appendMap(StringBuilder output, Map<?, ?> items, String prefix) {
-        items.entrySet().stream().filter(e -> String.valueOf(e.getKey()).startsWith(prefix)).sorted(comparingByStringifiedKey()).forEach(e -> {
-            output.append(String.format("   %s=%s\n", e.getKey(), e.getValue()));
-        });
+        items.entrySet().stream()
+            .filter(e -> String.valueOf(e.getKey()).startsWith(prefix))
+            .sorted(comparingByStringifiedKey())
+            .forEach(e -> output.append(String.format("   %s=%s\n", e.getKey(), e.getValue())));
     }
 
     private static Comparator<Map.Entry<?, ?>> comparingByStringifiedKey() {
