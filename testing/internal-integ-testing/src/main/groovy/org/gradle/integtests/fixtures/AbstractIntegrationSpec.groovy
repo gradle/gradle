@@ -847,7 +847,7 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
 
     private List<ReceivedProblem> receivedProblems
 
-    private List<ReceivedProblem> getReceivedProblems() {
+    protected List<ReceivedProblem> getReceivedProblems() {
         if (receivedProblems == null) {
             receivedProblems = getCollectedProblems()
             // sometimes we receive problems in a non-deterministic order. To make the tests stable we sort them before performing the assertions.

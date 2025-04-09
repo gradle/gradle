@@ -184,6 +184,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     public Test() {
         ObjectFactory objectFactory = getObjectFactory();
         patternSet = getPatternSetFactory().createPatternSet();
+        testClassesDirs = objectFactory.fileCollection();
         classpath = objectFactory.fileCollection();
         // Create a stable instance to represent the classpath, that takes care of conventions and mutations applied to the property
         stableClasspath = objectFactory.fileCollection();

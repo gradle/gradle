@@ -13,9 +13,11 @@
 // limitations under the License.
 
 [[upgrading_version_8]]
-= Upgrading your build from Gradle 8.x to the latest
 
-This chapter provides the information you need to migrate your Gradle 8.x builds to the latest Gradle release.
+
+= Upgrading your build from Gradle 8.x to 9.0
+
+This chapter provides the information you need to migrate your Gradle 8.x builds to Gradle 9.0.
 For migrating from Gradle 4.x, 5.x, 6.x, or 7.x, see the <<upgrading_version_7.adoc#upgrading_version_7, older migration guide>> first.
 
 We recommend the following steps for all users:
@@ -66,6 +68,7 @@ Core Gradle plugins that still registered deprecated conventions have also been 
 |Plugin |Access |Type |Solution
 |`war` |`project.war` | `WarPluginConvention` | Configure the `war` task directly instead.
 |`base` | `project.distDirName`, `project.libsDirName`, `project.archivesBaseName` | `BasePluginConvention` | Replaced by `project.base` extension of type `BasePluginExtension`.
+| 'project-report' | `project.projectReports` | `ProjectReportPluginConvention` | Configure the report task (`TaskReportTask`, `PropertyReportTask`, `DependencyReportTask`, `HtmlDependencyReportTask`) directly.
 |===
 
 ==== Gradle API now uses JSpecify Nullability Annotations
@@ -96,7 +99,9 @@ Due to the way the configurations were created, they were unresolvable and produ
 These configurations are no longer created or used.
 
 ==== Gradle no longer implicitly builds certain artifacts when running assemble
-In previous versions of Gradle, the `assemble` task would implicitly build artifacts of any configuration where the `visible` flag was not set to `false`.  This behavior has been removed in Gradle 9.0.  If you have a custom configuration whose artifacts should be built when running `assemble`, you should add a dependency from the artifact to the `assemble` task.
+In previous versions of Gradle, the `assemble` task would implicitly build artifacts of any configuration where the `visible` flag was not set to `false`.
+This behavior has been removed in Gradle 9.0.
+If you have a custom configuration whose artifacts should be built when running `assemble`, you should add a dependency from the artifact to the `assemble` task.
 
 ====
 [.multi-language-sample]
@@ -144,7 +149,9 @@ tasks.named("assemble") {
 ====
 
 ==== Gradle no longer implicitly adds certain artifacts to the archives configuration
-In previous versions of Gradle, the `archives` configuration would implicitly include artifacts of any configuration where the `visible` flag was not set to `false`.  This behavior has been removed in Gradle 9.0.  If you have a custom configuration whose artifacts should be included in the `archives` configuration, you should add the artifact directly to the `archives` configuration.
+In previous versions of Gradle, the `archives` configuration would implicitly include artifacts of any configuration where the `visible` flag was not set to `false`.
+This behavior has been removed in Gradle 9.0.
+If you have a custom configuration whose artifacts should be included in the `archives` configuration, you should add the artifact directly to the `archives` configuration.
 
 ====
 [.multi-language-sample]
@@ -196,10 +203,36 @@ configurations {
 ====
 
 ==== The Ear and War plugins may build additional artifacts when running assemble
-In previous versions of Gradle, special handling would apply when the `ear`, `war` and `java` plugins were applied to a project in any combination. For example, if the `ear` plugin was applied, the war and jar artifacts would not be built when the `assemble` task executed.  Similarly, if the `war` plugin were applied, the jar artifact would not be built.  This special handling has been removed in Gradle 9.0.  This means that the artifacts for all plugins applied will be built when the `assemble` task is executed.  For example, if the `ear`, `war`, and `jar` plugins are applied to a project, the ear, war and jar artifacts will all be built when the `assemble` task is executed.
+In previous versions of Gradle, special handling would apply when the `ear`, `war` and `java` plugins were applied to a project in any combination.
+For example, if the `ear` plugin was applied, the war and jar artifacts would not be built when the `assemble` task executed.
+Similarly, if the `war` plugin were applied, the jar artifact would not be built.
+This special handling has been removed in Gradle 9.0.
+This means that the artifacts for all plugins applied will be built when the `assemble` task is executed.  For example, if the `ear`, `war`, and `jar` plugins are applied to a project, the ear, war and jar artifacts will all be built when the `assemble` task is executed.
 
 ==== The Ear and War plugins may add additional artifacts to the archives configuration
-In previous versions of Gradle, special handling would apply when the `ear`, `war` and `java` plugins were applied to a project in any combination. For example, if the `ear` plugin was applied, the war and jar artifacts would not be included in the `archives` configuration.  Similarly, if the `war` plugin were applied, the jar artifact would not be included in the `archives` configuration.  This special handling has been removed in Gradle 9.0.  This means that the artifacts for all plugins applied will be included in the `archives` configuration.  For example, if the `ear`, `war`, and `jar` plugins are applied to a project, the ear, war and jar artifacts will all be included in the `archives` configuration.
+In previous versions of Gradle, special handling would apply when the `ear`, `war` and `java` plugins were applied to a project in any combination.
+For example, if the `ear` plugin was applied, the war and jar artifacts would not be included in the `archives` configuration.
+Similarly, if the `war` plugin were applied, the jar artifact would not be included in the `archives` configuration.
+This special handling has been removed in Gradle 9.0.
+This means that the artifacts for all plugins applied will be included in the `archives` configuration.
+For example, if the `ear`, `war`, and `jar` plugins are applied to a project, the ear, war and jar artifacts will all be included in the `archives` configuration.
+
+==== Unix mode based file permissions removed ====
+
+A new API for defining file permissions has been added in Gradle 8.3, see:
+
+- link:{javadocPath}/org/gradle/api/file/FilePermissions.html[FilePermissions].
+- link:{javadocPath}/org/gradle/api/file/ConfigurableFilePermissions.html[ConfigurableFilePermissions].
+
+The new API has now been promoted to stable and the old methods have been deprecated in Gradle 8.8.
+In Gradle 9.0 these old methods have been completely removed:
+
+- `org.gradle.api.file.CopyProcessingSpec.getFileMode()`
+- `org.gradle.api.file.CopyProcessingSpec.setFileMode(Integer)`
+- `org.gradle.api.file.CopyProcessingSpec.getDirMode()`
+- `org.gradle.api.file.CopyProcessingSpec.setDirMode(Integer)`
+- `org.gradle.api.file.FileTreeElement.getMode()`
+- `org.gradle.api.file.FileCopyDetails.setMode(int)`
 
 ==== `kotlinDslPluginOptions.jvmTarget` has been removed
 
@@ -207,15 +240,28 @@ The `kotlinDslPluginOptions.jvmTarget` property, which was previously used to co
 
 To set the target JVM version going forward, you should <<kotlin_dsl#sec:kotlin-dsl_plugin,configure a Java Toolchain>> instead.
 
+
 ==== The `org.gradle.cache.cleanup` property no longer has an effect
 In previous versions of Gradle, the `org.gradle.cache.cleanup` property could be used to disable the Gradle cache cleanup process.
 This property has been removed in Gradle 9.0 and no longer has any effect.
 See the userguide section on link:directory_layout.html#dir:gradle_user_home:configure_cache_cleanup[cache cleanup] for information on disabling cache cleanup via an init script.
 
+==== The `test` task now fails when no tests are discovered
+When test sources are present and no filters are applied, if the `test` task executes but does not discover any tests, it will now fail with an error.
+This is to help prevent misconfigurations where the tests are written for one test framework but the test task is mistakenly configured to use another test framework.
+When filters are present, however, the value of `failOnNoMatchingTests` will determine whether the task fails or not when all tests are filtered out.
+
+
 [[changes_8.14]]
 == Upgrading from 8.13 and earlier
 
 === Potential breaking changes
+
+==== The Gradle Wrapper is now an executable JAR
+
+The wrapper JAR has been changed to an executable JAR, which is a JAR with a `Main-Class` attribute.
+The wrapper scripts now start the wrapper JAR using `-jar` instead of `-classpath` and a main class argument, so when updating the wrapper scripts the wrapper JAR must be updated as well.
+This should happen automatically when running `gradle wrapper` or `gradlew wrapper`.
 
 ==== Changes to `Settings` defaults
 

@@ -551,46 +551,6 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     /**
      * {@inheritDoc}
      */
-    @Internal
-    @Override
-    @Deprecated
-    public Integer getDirMode() {
-        return getMainSpec().getDirMode();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Internal
-    @Override
-    @Deprecated
-    public Integer getFileMode() {
-        return getMainSpec().getFileMode();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @Deprecated
-    public AbstractCopyTask setDirMode(@Nullable Integer mode) {
-        getMainSpec().setDirMode(mode);
-        return this;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @Deprecated
-    public AbstractCopyTask setFileMode(@Nullable Integer mode) {
-        getMainSpec().setFileMode(mode);
-        return this;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     @Override
     @Internal
     public Property<ConfigurableFilePermissions> getFilePermissions() {

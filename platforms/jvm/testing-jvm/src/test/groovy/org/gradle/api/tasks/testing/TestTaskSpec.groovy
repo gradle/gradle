@@ -199,7 +199,7 @@ class TestTaskSpec extends AbstractProjectBuilderSpec {
         def closure = Mock(Closure)
 
         given:
-        expectTestSuitePasses()
+        expectTestPasses()
 
         task.beforeSuite(closure)
 
@@ -216,7 +216,7 @@ class TestTaskSpec extends AbstractProjectBuilderSpec {
         def closure = Mock(Closure)
 
         given:
-        expectTestSuitePasses()
+        expectTestPasses()
 
         task.afterSuite(closure)
 

@@ -1,3 +1,6 @@
+import gradlebuild.basics.PublicKotlinDslApi
+import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
+
 plugins {
     id("gradlebuild.distribution.api-kotlin")
     id("gradlebuild.kotlin-dsl-dependencies-embedded")
@@ -153,4 +156,22 @@ strictCompile {
 }
 tasks.isolatedProjectsIntegTest {
     enabled = false
+}
+
+// Filter out what goes into the public API
+configure<KotlinJvmProjectExtension> {
+    val filterKotlinDslApi = tasks.register<Copy>("filterKotlinDslApi") {
+        dependsOn(target.compilations.named("main").flatMap { it.compileTaskProvider })
+        into(layout.buildDirectory.dir("generated/kotlin-abi-filtered"))
+        from(layout.buildDirectory.dir("generated/kotlin-abi")) {
+            include(PublicKotlinDslApi.includes)
+            include("META-INF/*.kotlin_module")
+            // We do not exclude inlined functions, they are needed for compilation
+        }
+    }
+
+    configurations.apiStubElements.configure {
+        outgoing.artifacts.clear()
+        outgoing.artifact(filterKotlinDslApi)
+    }
 }
