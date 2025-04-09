@@ -58,17 +58,17 @@ class CopyTaskChildSpecIntegrationTest extends AbstractIntegrationSpec implement
             def baseSpec = copySpec {
                 from("root") {
                     println(filePermissions.getOrNull() == null ? "DEFAULT" : filePermissions.get().toUnixNumeric())
-                    dirPermissions {unix(0755) }
+                    dirPermissions { unix(0755) }
                     println(dirPermissions.getOrNull() == null ? "DEFAULT" : dirPermissions.get().toUnixNumeric())
-                    dirPermissions {unix(0755) }
+                    dirPermissions { unix(0755) }
                 }
             }
 
             tasks.register("copy", Copy) {
                 println(filePermissions.getOrNull() == null ? "DEFAULT" : filePermissions.get().toUnixNumeric())
-                dirPermissions {unix(0755) }
+                dirPermissions { unix(0755) }
                 println(dirPermissions.getOrNull() == null ? "DEFAULT" : dirPermissions.get().toUnixNumeric())
-                dirPermissions {unix(0755) }
+                dirPermissions { unix(0755) }
                 into("build-output")
                 with baseSpec
             }

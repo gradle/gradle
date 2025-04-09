@@ -657,6 +657,11 @@ tasks.named<Test>("docsTest") {
             excludeTestsMatching("org.gradle.docs.samples.*.snippet-kotlin-dsl-accessors_*.sample")
         }
 
+        if (!javaVersion.isCompatibleWith(JavaVersion.VERSION_17)) {
+            // Spring Boot requires Java 17+
+            excludeTestsMatching("org.gradle.docs.samples.*.structuring-software-projects_*_build-server-application.sample")
+        }
+
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_12)) {
             excludeTestsMatching("org.gradle.docs.samples.*.snippet-test-kit-gradle-version_*_testKitFunctionalTestSpockGradleDistribution.sample")
         }

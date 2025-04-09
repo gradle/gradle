@@ -1,6 +1,30 @@
 {
     "acceptedApiChanges": [
         {
+            "type": "org.gradle.api.Task$Namer",
+            "member": "Class org.gradle.api.Task$Namer",
+            "acceptation": "Removed deprecated class",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.Task$Namer",
+            "member": "Constructor org.gradle.api.Task$Namer()",
+            "acceptation": "Removed deprecated class",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.Task$Namer",
+            "member": "Method org.gradle.api.Task$Namer.determineName(org.gradle.api.Task)",
+            "acceptation": "Removed deprecated class",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.artifacts.ClientModule",
             "member": "Class org.gradle.api.artifacts.ClientModule",
             "acceptation": "Removed deprecated class",
@@ -260,6 +284,54 @@
             "type": "org.gradle.api.artifacts.dsl.RepositoryHandler",
             "member": "Method org.gradle.api.artifacts.dsl.RepositoryHandler.jcenter(org.gradle.api.Action)",
             "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.file.CopyProcessingSpec",
+            "member": "Method org.gradle.api.file.CopyProcessingSpec.getDirMode()",
+            "acceptation": "API is being remove in Gradle 9.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.file.CopyProcessingSpec",
+            "member": "Method org.gradle.api.file.CopyProcessingSpec.getFileMode()",
+            "acceptation": "[API is being remove in Gradle 9.0]",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.file.CopyProcessingSpec",
+            "member": "Method org.gradle.api.file.CopyProcessingSpec.setDirMode(java.lang.Integer)",
+            "acceptation": "[API is being remove in Gradle 9.0]",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.file.CopyProcessingSpec",
+            "member": "Method org.gradle.api.file.CopyProcessingSpec.setFileMode(java.lang.Integer)",
+            "acceptation": "[API is being remove in Gradle 9.0]",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.file.FileCopyDetails",
+            "member": "Method org.gradle.api.file.FileCopyDetails.setMode(int)",
+            "acceptation": "[API is being remove in Gradle 9.0]",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.file.FileTreeElement",
+            "member": "Method org.gradle.api.file.FileTreeElement.getMode()",
+            "acceptation": "[API is being remove in Gradle 9.0]",
             "changes": [
                 "Method has been removed"
             ]
@@ -569,6 +641,22 @@
             ]
         },
         {
+            "type": "org.gradle.api.tasks.AbstractCopyTask",
+            "member": "Method org.gradle.api.tasks.AbstractCopyTask.setDirMode(java.lang.Integer)",
+            "acceptation": "[API is being remove in Gradle 9.0]",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.AbstractCopyTask",
+            "member": "Method org.gradle.api.tasks.AbstractCopyTask.setFileMode(java.lang.Integer)",
+            "acceptation": "[API is being remove in Gradle 9.0]",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.tasks.Upload",
             "member": "Class org.gradle.api.tasks.Upload",
             "acceptation": "Removed deprecated class",
@@ -676,6 +764,30 @@
             "type": "org.gradle.api.tasks.Upload",
             "member": "Method org.gradle.api.tasks.Upload.upload()",
             "acceptation": "Removed deprecated class",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.AbstractCompile",
+            "member": "Method org.gradle.api.tasks.compile.AbstractCompile.getDestinationDir()",
+            "acceptation": "Removing @Deprecated property for Gradle 9.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.AbstractCompile",
+            "member": "Method org.gradle.api.tasks.compile.AbstractCompile.setDestinationDir(java.io.File)",
+            "acceptation": "Removing @Deprecated property for Gradle 9.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.AbstractCompile",
+            "member": "Method org.gradle.api.tasks.compile.AbstractCompile.setDestinationDir(org.gradle.api.provider.Provider)",
+            "acceptation": "Removing @Deprecated property for Gradle 9.0",
             "changes": [
                 "Method has been removed"
             ]

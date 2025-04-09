@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import gradlebuild.basics.ClassFileContentsAttribute
 import gradlebuild.configureAsApiElements
 import gradlebuild.configureAsRuntimeJarClasspath
 
@@ -49,16 +48,23 @@ val externalRuntimeClasspath = configurations.resolvable("externalRuntimeClasspa
 val distribution = configurations.dependencyScope("distribution") {
     description = "Dependencies to extract the public Gradle API from"
 }
+
+// Resolvable configuration to get all projects having a runtime JAR
 val distributionClasspath = configurations.resolvable("distributionClasspath") {
     extendsFrom(distribution.get())
-    attributes {
-        attribute(ClassFileContentsAttribute.attribute, ClassFileContentsAttribute.STUBS)
-    }
+    configureAsRuntimeJarClasspath(objects)
 }
 
 val task = tasks.register<Jar>("jarGradleApi") {
+    // We use the resolvable configuration, but leverage withVariantReselection to obtain the subset of api stubs artifacts
+    // Some projects simply don't have one, which excludes them
     from(distributionClasspath.map { configuration ->
         configuration.incoming.artifactView {
+            withVariantReselection()
+            attributes {
+                attribute(Category.CATEGORY_ATTRIBUTE, objects.named("api-stubs"))
+            }
+            lenient(true)
             componentFilter { componentId -> componentId is ProjectComponentIdentifier }
         }.files
     }) {
