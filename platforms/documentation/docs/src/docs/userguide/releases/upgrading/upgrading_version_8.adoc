@@ -240,10 +240,17 @@ The `kotlinDslPluginOptions.jvmTarget` property, which was previously used to co
 
 To set the target JVM version going forward, you should <<kotlin_dsl#sec:kotlin-dsl_plugin,configure a Java Toolchain>> instead.
 
+
+==== The `org.gradle.cache.cleanup` property no longer has an effect
+In previous versions of Gradle, the `org.gradle.cache.cleanup` property could be used to disable the Gradle cache cleanup process.
+This property has been removed in Gradle 9.0 and no longer has any effect.
+See the userguide section on link:directory_layout.html#dir:gradle_user_home:configure_cache_cleanup[cache cleanup] for information on disabling cache cleanup via an init script.
+
 ==== The `test` task now fails when no tests are discovered
 When test sources are present and no filters are applied, if the `test` task executes but does not discover any tests, it will now fail with an error.
 This is to help prevent misconfigurations where the tests are written for one test framework but the test task is mistakenly configured to use another test framework.
 When filters are present, however, the value of `failOnNoMatchingTests` will determine whether the task fails or not when all tests are filtered out.
+
 
 [[changes_8.14]]
 == Upgrading from 8.13 and earlier
