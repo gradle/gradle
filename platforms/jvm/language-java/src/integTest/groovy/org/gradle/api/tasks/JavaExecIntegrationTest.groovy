@@ -287,6 +287,50 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped ":run"
     }
 
+    def "getAllJvmArgs respects user added jvm args"() {
+        given:
+        def allJvmArgsFile = file("allJvmArgs.txt")
+        buildFile """
+            tasks.named("run") {
+                jvmArgs "-Dfoo=bar"
+            }
+
+            def file = providers.gradleProperty('allJvmArgsFile').map {
+                layout.projectDirectory.file(it)
+            }
+            file.get().getAsFile().text = tasks.run.allJvmArgs.join(",")
+        """
+
+        when:
+        run "run", "-PallJvmArgsFile=$allJvmArgsFile.absolutePath"
+
+        then:
+        allJvmArgsFile.text.contains("-Dfoo=bar")
+    }
+
+    def "setAllJvmArgs respects user added jvm args"() {
+        given:
+        def allJvmArgsFile = file("allJvmArgs.txt")
+        buildFile """
+            tasks.named("run") {
+                jvmArgs "-Dfoo=bar"
+                setAllJvmArgs(["-Dfoo=42"])
+            }
+
+            def file = providers.gradleProperty('allJvmArgsFile').map {
+                layout.projectDirectory.file(it)
+            }
+            file.get().getAsFile().text = tasks.run.allJvmArgs.join(",")
+        """
+
+        when:
+        run "run", "-PallJvmArgsFile=$allJvmArgsFile.absolutePath"
+
+        then:
+        allJvmArgsFile.text.contains("-Dfoo=42")
+        !allJvmArgsFile.text.contains("-Dfoo=bar")
+    }
+
     private void assertOutputFileIs(String text) {
         assert file("out.txt").text == text
     }
