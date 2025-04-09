@@ -21,7 +21,6 @@ dependencies {
     api(libs.jspecify)
 
     implementation(projects.files)
-    implementation(projects.logging)
 
     implementation(libs.guava)
     implementation(libs.commonsIo)

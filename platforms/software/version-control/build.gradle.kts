@@ -11,7 +11,7 @@ dependencies {
     api(projects.coreApi)
     api(projects.dependencyManagement)
     api(projects.fileCollections)
-    api(projects.persistentCache)
+    api(projects.scopedPersistentCache)
     api(projects.serviceProvider)
     api(projects.stdlibJavaExtensions)
 
@@ -19,11 +19,12 @@ dependencies {
     api(libs.inject)
     api(libs.jspecify)
 
-    implementation(projects.serialization)
     implementation(projects.files)
     implementation(projects.functional)
     implementation(projects.hashing)
     implementation(projects.loggingApi)
+    implementation(projects.persistentCache)
+    implementation(projects.serialization)
 
     implementation(libs.guava)
     implementation(libs.jgitSsh) {

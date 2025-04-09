@@ -14,17 +14,17 @@ errorprone {
 }
 
 dependencies {
+    api(projects.baseServices)
     api(projects.classloaders)
     api(projects.stdlibJavaExtensions)
-    api(projects.logging)
     api(projects.toolingApi)
 
     api(libs.jspecify)
 
-    implementation(projects.baseServices)
     implementation(projects.core)
     implementation(projects.fileTemp)
     implementation(projects.io)
+    implementation(projects.logging)
     implementation(projects.wrapperShared)
     implementation(projects.buildProcessServices)
 

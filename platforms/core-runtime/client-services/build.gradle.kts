@@ -37,6 +37,7 @@ dependencies {
     api(projects.processServices)
     api(projects.resources)
     api(projects.resourcesHttp)
+    api(projects.scopedPersistentCache)
     api(projects.serialization)
     api(projects.serviceLookup)
     api(projects.serviceProvider)

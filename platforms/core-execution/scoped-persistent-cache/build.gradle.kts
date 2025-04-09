@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,17 +18,17 @@ plugins {
     id("gradlebuild.distribution.implementation-java")
 }
 
-description = "Versioned Gradle caches"
+description = """
+    Persistent caches following a scoped hierarchy, intended for use by Gradle itself.
+    This is separate from :persistent-cache which is consumed by the Maven cache plugin.
+    """
 
 dependencies {
     api(projects.baseServices)
     api(projects.persistentCache)
-    api(projects.scopedPersistentCache)
     api(projects.stdlibJavaExtensions)
 
     api(libs.jspecify)
 
-    implementation(libs.commonsIo)
     implementation(libs.guava)
-    implementation(libs.slf4jApi)
 }
