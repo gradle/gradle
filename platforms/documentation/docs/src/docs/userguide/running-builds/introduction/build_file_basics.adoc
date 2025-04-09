@@ -23,8 +23,8 @@ Every Gradle build comprises at least one _build script_.
 
 In the build file, two types of dependencies can be added:
 
-1. The libraries and/or plugins on which Gradle and the build script depend.
-2. The libraries on which the project sources (i.e., source code) depend.
+1. The libraries and/or *plugins* on which Gradle and the build script depend.
+2. The *libraries* on which the project sources (i.e., source code) depend.
 
 [[sec:build_script]]
 == Build scripts
@@ -32,6 +32,8 @@ In the build file, two types of dependencies can be added:
 The build script is either a `build.gradle` file written in Groovy or a `build.gradle.kts` file in Kotlin.
 
 The link:{groovyDslPath}/index.html[Groovy DSL^] and the link:{kotlinDslPath}/index.html[Kotlin DSL^] are the only accepted languages for Gradle scripts.
+
+In multi-project builds, each subproject typically has its own build file located in its root directory.
 
 Let's take a look at an example and break it down:
 
@@ -59,7 +61,7 @@ application {
 [source,groovy]
 ----
 plugins {
-    id 'application'                // <1>
+    id("application")               // <1>
 }
 
 application {
@@ -71,7 +73,8 @@ application {
 =====
 ====
 
-=== 1. Add plugins
+== 1. Add plugins
+
 Plugins extend Gradle's functionality and can contribute tasks to a project.
 
 Adding a plugin to a build is called _applying_ a plugin and makes additional functionality available.
@@ -88,7 +91,8 @@ The `application` plugin facilitates creating an executable JVM application.
 Applying the <<application_plugin.adoc#application_plugin,Application plugin>> also implicitly applies the <<java_plugin.adoc#java_plugin,Java plugin>>.
 The `java` plugin adds Java compilation along with testing and bundling capabilities to a project.
 
-=== 2. Use convention properties
+== 2. Use convention properties
+
 A plugin adds tasks to a project.
 It also adds properties and methods to a project.
 
@@ -105,7 +109,14 @@ application {
 
 In this example, the main class (i.e., the point where the program's execution begins) is `com.example.Main`.
 
-Consult the <<writing_build_scripts.adoc#writing_build_scripts,Writing Build Scripts>> page to learn more.
+Build scripts are evaluated during the configuration phase of a build, and they serve as the main entry point for defining a (sub)project’s build logic.
+In addition to applying plugins and setting convention properties, build scripts can:
+
+* Declare dependencies
+* Configure tasks
+* Reference shared settings (from version catalogs or convention plugins)
+
+To learn more about scripting the build file, see <<writing_build_scripts.adoc#writing_build_scripts,Writing Build Files>>.
 
 [.text-right]
 **Next Step:** <<dependency_management_basics.adoc#dependency_management_basics,Learn about Dependency Management>> >>
