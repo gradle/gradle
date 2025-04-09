@@ -32,12 +32,10 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
                     enabled = true
                     directory = '${cacheDir.absoluteFile.toURI().toString()}'
                     push = true
-                    removeUnusedEntriesAfterDays = 3
                 }
             }
         """
         executer.withBuildCacheEnabled()
-        executer.expectDocumentedDeprecationWarning "The DirectoryBuildCache.removeEntriesAfterDays property has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#directory_build_cache_retention_deprecated"
 
         when:
         succeeds("help")
@@ -51,7 +49,6 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
 
         result.local.className == 'org.gradle.caching.local.DirectoryBuildCache'
         result.local.config.location == cacheDir.absoluteFile.toString()
-        result.local.config."remove unused entries" == "after 3 days"
         result.local.type == 'directory'
         result.local.push == true
 

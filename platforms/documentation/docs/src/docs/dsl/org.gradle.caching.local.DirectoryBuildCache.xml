@@ -26,9 +26,6 @@
             <tr>
                 <td>directory</td>
             </tr>
-            <tr>
-                <td>removeUnusedEntriesAfterDays</td>
-            </tr>
         </table>
     </section>
     <section>
