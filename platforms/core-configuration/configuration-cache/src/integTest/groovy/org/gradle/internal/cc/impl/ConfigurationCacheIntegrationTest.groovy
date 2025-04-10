@@ -367,18 +367,21 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         """
 
         when:
+        expectStartParameterIsConfigurationCacheRequestedWarning()
         run "help"
         then:
         configurationCache.assertNoConfigurationCache()
         outputContains("isConfigurationCacheRequested=false")
 
         when:
+        expectStartParameterIsConfigurationCacheRequestedWarning()
         configurationCacheRun "help"
         then:
         configurationCache.assertStateStored()
         outputContains("isConfigurationCacheRequested=true")
 
         when:
+        expectStartParameterIsConfigurationCacheRequestedWarning()
         configurationCacheRun "help"
         then:
         configurationCache.assertStateLoaded()
@@ -389,10 +392,10 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         def configurationCache = newConfigurationCacheFixture()
 
         buildFile """
-            def startParameter = gradle.startParameter
+            def isConfigurationCacheRequested = services.get(BuildFeatures).configurationCache.requested.orElse(false).get()
             tasks.help {
                 doLast {
-                    println "isConfigurationCacheRequested=" + startParameter.isConfigurationCacheRequested()
+                    println "isConfigurationCacheRequested=" + isConfigurationCacheRequested
                 }
             }
         """
@@ -425,5 +428,15 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
 
         where:
         load << [true, false]
+    }
+
+    private def expectStartParameterIsConfigurationCacheRequestedWarning() {
+        executer.expectDocumentedDeprecationWarning(
+            "The StartParameter.isConfigurationCacheRequested property has been deprecated. " +
+                "This is scheduled to be removed in Gradle 9.0. " +
+                "Please use 'configurationCache.requested' property on 'BuildFeatures' service instead. " +
+                "Consult the upgrading guide for further information: " +
+                "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_startparameter_is_configuration_cache_requested",
+        )
     }
 }
