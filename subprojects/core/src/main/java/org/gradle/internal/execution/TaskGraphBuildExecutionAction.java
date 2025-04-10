@@ -15,24 +15,25 @@
  */
 package org.gradle.internal.execution;
 
+import com.google.common.collect.Streams;
 import org.gradle.TaskExecutionRequest;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.execution.BuildWorkExecutor;
 import org.gradle.execution.plan.FinalizedExecutionPlan;
 import org.gradle.execution.plan.Node;
-import org.gradle.execution.plan.TaskDependencyResolver;
+import org.gradle.execution.plan.TaskNode;
 import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.graph.DirectedGraph;
 import org.gradle.internal.graph.DirectedGraphRenderer;
 import org.gradle.internal.graph.GraphNodeRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
-import org.jspecify.annotations.Nullable;
 
 import java.io.StringWriter;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * A {@link BuildWorkExecutor} that does not execute any tasks, but prints the task graph instead.
@@ -49,7 +50,6 @@ public class TaskGraphBuildExecutionAction implements BuildWorkExecutor {
         StringWriter writer = new StringWriter();
 
         plan.getContents().getScheduledNodes().visitNodes((nodes, entryNodes) -> {
-            DirectedGraphRenderer<Node> renderer = new DirectedGraphRenderer<>(new NodeRenderer(), new NodesGraph());
             String invocation = gradle
                 .getStartParameter()
                 .getTaskRequests()
@@ -58,6 +58,7 @@ public class TaskGraphBuildExecutionAction implements BuildWorkExecutor {
                 .flatMap(List::stream)
                 .collect(Collectors.joining(" "));
 
+            DirectedGraphRenderer<TaskInfo> renderer = new DirectedGraphRenderer<>(new NodeRenderer(), new NodesGraph());
             renderer.renderTo(new RootNode(entryNodes, invocation), writer);
         });
         StyledTextOutput output = textOutputFactory.create(TaskGraphBuildExecutionAction.class);
@@ -65,29 +66,50 @@ public class TaskGraphBuildExecutionAction implements BuildWorkExecutor {
         return ExecutionResult.succeeded();
     }
 
-    private static class NodeRenderer implements GraphNodeRenderer<Node> {
+    private static class NodeRenderer implements GraphNodeRenderer<TaskInfo> {
 
         @Override
-        public void renderTo(Node node, StyledTextOutput output) {
-            String nodeId = node.toString();
-            output.withStyle(StyledTextOutput.Style.Identifier).text(nodeId);
-        }
-    }
+        public void renderTo(TaskInfo node, StyledTextOutput output) {
+            output
+                .withStyle(StyledTextOutput.Style.Identifier).text(node.getId());
 
-    private static class NodesGraph implements DirectedGraph<Node, Node> {
-
-        @Override
-        public void getNodeValues(Node node, Collection<? super Node> values, Collection<? super Node> connectedNodes) {
-            values.add(node);
-            for (Node child : node.getAllSuccessors()) {
-                if (!child.isDoNotIncludeInPlan()) {
-                    connectedNodes.add(child);
-                }
+            String description = node.getDescription();
+            if (!description.isEmpty()) {
+                output.text(" ");
+                output.withStyle(StyledTextOutput.Style.Description).text(description);
             }
         }
     }
 
-    private static class RootNode extends Node {
+    private static class NodesGraph implements DirectedGraph<TaskInfo, TaskInfo> {
+
+        @Override
+        public void getNodeValues(TaskInfo node, Collection<? super TaskInfo> values, Collection<? super TaskInfo> connectedNodes) {
+            values.add(node);
+            connectedNodes.addAll(node.getDependencies());
+        }
+    }
+
+    private static Stream<TaskInfo> extractTaskNodes(Collection<Node> collection, DependencyType type) {
+        return collection.stream()
+            .filter(node -> node instanceof TaskNode && !node.isDoNotIncludeInPlan())
+            .map(taskNode -> new DefaultTaskInfo((TaskNode) taskNode, type));
+    }
+
+    private enum DependencyType {
+        REGULAR,
+        FINALIZING
+    }
+
+    private interface TaskInfo {
+        String getId();
+
+        String getDescription();
+
+        Collection<TaskInfo> getDependencies();
+    }
+
+    private static class RootNode implements TaskInfo {
         private final Collection<Node> entryNodes;
         private final String invocationInfo;
 
@@ -97,24 +119,74 @@ public class TaskGraphBuildExecutionAction implements BuildWorkExecutor {
         }
 
         @Override
-        @SuppressWarnings("MissingSuperCall")
-        public Iterable<Node> getAllSuccessors() {
-            return entryNodes;
-        }
-
-        @Override
-        public @Nullable Throwable getNodeFailure() {
-            return null;
-        }
-
-        @Override
-        public void resolveDependencies(TaskDependencyResolver dependencyResolver) {
-            // should not be used
-        }
-
-        @Override
-        public String toString() {
+        public String getId() {
             return "Tasks graph for: " + invocationInfo;
+        }
+
+        @Override
+        public String getDescription() {
+            return "";
+        }
+
+        @Override
+        public Collection<TaskInfo> getDependencies() {
+            return extractTaskNodes(entryNodes, DependencyType.REGULAR)
+                .collect(Collectors.toList());
+        }
+    }
+
+    private static class DefaultTaskInfo implements TaskInfo {
+        private final TaskNode node;
+        private final DependencyType type;
+
+        DefaultTaskInfo(TaskNode node, DependencyType type) {
+            this.node = node;
+            this.type = type;
+        }
+
+        @Override
+        public String getId() {
+            return node.toString();
+        }
+
+        @Override
+        public String getDescription() {
+            StringBuilder description = new StringBuilder();
+            description.append("(");
+            description.append(node.getTask().getTaskIdentity().getTaskType().getCanonicalName());
+            if (type.equals(DependencyType.FINALIZING)) {
+                description.append(", finalizer");
+            }
+            if (!node.getTask().getEnabled()) {
+                description.append(", disabled");
+            }
+            description.append(")");
+            return description.toString();
+        }
+
+        @Override
+        public Collection<TaskInfo> getDependencies() {
+            return Streams.concat(
+                extractTaskNodes(node.getDependencySuccessors(), DependencyType.REGULAR),
+                extractTaskNodes(node.getFinalizers(), DependencyType.FINALIZING)
+            ).collect(Collectors.toList());
+        }
+
+        @Override
+        public int hashCode() {
+            return node.hashCode();
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            DefaultTaskInfo that = (DefaultTaskInfo) o;
+            return node.equals(that.node);
         }
     }
 }
