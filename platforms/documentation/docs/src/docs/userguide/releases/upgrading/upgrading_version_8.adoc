@@ -56,6 +56,16 @@ Earlier versions are no longer supported as they rely on Gradle APIs that have b
 
 For Gradle 8.x, the minimum supported version was 7.3.0.
 
+==== Lowest supported Gradle Enterprise Plugin version change
+
+Starting with Gradle 9.0, the minimum supported Gradle Enterprise Plugin version is 3.13.1.
+Earlier versions are no longer supported as they rely on Gradle APIs that have been removed.
+Consider upgrading to the latest version of the Gradle Enterprise Plugin,
+or better yet, upgrade to the latest version of the link:https://docs.gradle.com/develocity/gradle-plugin[Develocity Plugin].
+
+For Gradle 8.x, the minimum supported version was 3.0.
+See link:https://docs.gradle.com/develocity/compatibility/#build_scans[compatibility matrix] for details.
+
 ==== Conventions removal
 
 The "convention" concept, defined by the `org.gradle.api.plugins.Convention` type, has been deprecated since Gradle 8.2 and is now removed in Gradle 9.0.
