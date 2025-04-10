@@ -23,11 +23,13 @@ import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
 import org.gradle.process.JavaExecSpec;
 
+import javax.inject.Inject;
 
 public class DefaultExecOperations implements ExecOperations {
 
     private final ProcessOperations processOperations;
 
+    @Inject
     public DefaultExecOperations(ProcessOperations processOperations) {
         this.processOperations = processOperations;
     }
