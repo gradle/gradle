@@ -17,16 +17,23 @@
 package org.gradle.api.internal.configuration;
 
 import org.gradle.api.configuration.BuildFeature;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.provider.Provider;
+
+import java.util.function.Consumer;
 
 public class DefaultBuildFeature implements BuildFeature {
 
     private final Provider<Boolean> requested;
     private final Provider<Boolean> active;
+    private final Consumer<StartParameterInternal> disabler;
+    private final String key;
 
-    public DefaultBuildFeature(Provider<Boolean> requested, Provider<Boolean> active) {
+    public DefaultBuildFeature(String key, Provider<Boolean> requested, Provider<Boolean> active, Consumer<StartParameterInternal> disabler) {
         this.requested = requested;
         this.active = active;
+        this.disabler = disabler;
+        this.key = key;
     }
 
     @Override
@@ -37,5 +44,14 @@ public class DefaultBuildFeature implements BuildFeature {
     @Override
     public Provider<Boolean> getActive() {
         return active;
+    }
+
+    public void disable(StartParameterInternal startParameter) {
+        disabler.accept(startParameter);
+    }
+
+    @Override
+    public String toString() {
+        return key + " - requested " + requested + " - active: " + active;
     }
 }

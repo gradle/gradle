@@ -409,4 +409,41 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         configurationCache.assertNoConfigurationCache()
         outputContains("isConfigurationCacheRequested=true")
     }
+
+    def "can fallback to vintage"() {
+        given:
+        buildFile """
+
+        interface MyServiceAccess {
+            @Inject
+            BuildFeatures getBuildFeatures()
+        }
+
+        def services = project.objects.newInstance(MyServiceAccess)
+
+        println "configuration cache active: \${services.buildFeatures.configurationCache.active.get()}"
+
+        tasks.register("incompatible") {
+            gradle.notCompatibleWithFeature("configuration-cache")
+
+            doLast {
+                assert !services.buildFeatures.configurationCache.requested.get()
+                assert !services.buildFeatures.configurationCache.active.get()
+                println("Executing without configuration cache")
+            }
+        }
+        """
+
+        when:
+        run("incompatible", "--configuration-cache")
+
+        then:
+        def active = result.output.indexOf("configuration cache active: true")
+        def inactive = result.output.indexOf("configuration cache active: false")
+        def executing = result.output.indexOf("Executing without configuration cache")
+        active >= 0
+        active < inactive
+        inactive < executing
+        result.assertTaskExecuted(":incompatible")
+    }
 }

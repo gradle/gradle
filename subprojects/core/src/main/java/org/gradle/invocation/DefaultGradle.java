@@ -26,6 +26,7 @@ import org.gradle.api.IsolatedAction;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.UnknownDomainObjectException;
+import org.gradle.api.configuration.BuildFeatures;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.BuildScopeListenerRegistrationListener;
@@ -128,6 +129,12 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
         if (parent == null) {
             services.get(GradleEnterprisePluginManager.class).registerMissingPluginWarning(this);
         }
+    }
+
+    @Override
+    public void notCompatibleWithFeature(String featureKey) {
+        BuildFeatures buildFeatures = services.get(BuildFeatures.class);
+        buildFeatures.requireDisabled(featureKey);
     }
 
     @Override

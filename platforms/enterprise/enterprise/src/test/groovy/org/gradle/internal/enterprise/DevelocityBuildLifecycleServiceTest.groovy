@@ -33,8 +33,10 @@ class DevelocityBuildLifecycleServiceTest extends Specification {
         }
         def buildFeatures = Mock(BuildFeatures) {
             _ * getIsolatedProjects() >> new DefaultBuildFeature(
+                "",
                 TestUtil.providerFactory().provider { ipEnabled },
-                TestUtil.providerFactory().provider { ipEnabled }
+                TestUtil.providerFactory().provider { ipEnabled },
+                {}
             )
         }
         def service = new DefaultDevelocityBuildLifecycleService(gradle, buildFeatures)

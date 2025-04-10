@@ -160,12 +160,13 @@ public class LauncherServices extends AbstractGradleModuleServices {
                     virtualFileSystem,
                     new RunAsWorkerThreadBuildActionExecutor(
                         workerLeaseService,
-                        new RunAsBuildOperationBuildActionExecutor(
-                            new BuildTreeLifecycleBuildActionExecutor(buildModelServices, buildLayoutValidator, valueSnapshotter),
-                            buildOperationRunner,
-                            loggingBuildOperationProgressBroadcaster,
-                            buildOperationNotificationValve,
-                            problemContainer))));
+                        new RetryBuildActionExecutor(
+                            new RunAsBuildOperationBuildActionExecutor(
+                                new BuildTreeLifecycleBuildActionExecutor(buildModelServices, buildLayoutValidator, valueSnapshotter),
+                                buildOperationRunner,
+                                loggingBuildOperationProgressBroadcaster,
+                                buildOperationNotificationValve,
+                                problemContainer)))));
         }
 
         @Provides
