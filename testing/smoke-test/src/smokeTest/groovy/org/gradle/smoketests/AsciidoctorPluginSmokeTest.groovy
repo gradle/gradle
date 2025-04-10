@@ -129,6 +129,15 @@ class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
                     "This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release. " +
                     "Consult the upgrading guide for further information: ${BASE_URL}/userguide/upgrading_version_7.html#task_project"
             )
+
+            runner.expectDeprecationWarningIf(
+                versionNumber.major >= 4,
+                "The StartParameter.isConfigurationCacheRequested property has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 9.0. " +
+                    "Please use 'configurationCache.requested' property on 'BuildFeatures' service instead. " +
+                    "Consult the upgrading guide for further information: ${BASE_URL}/userguide/upgrading_version_8.html#deprecated_startparameter_is_configuration_cache_requested",
+                "https://github.com/asciidoctor/asciidoctor-gradle-plugin/issues/751"
+            )
         }
     }
 }
