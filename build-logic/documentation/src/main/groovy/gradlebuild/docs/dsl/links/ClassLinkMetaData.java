@@ -20,7 +20,7 @@ import gradlebuild.docs.dsl.source.model.EnumConstantMetaData;
 import gradlebuild.docs.dsl.source.model.MethodMetaData;
 import gradlebuild.docs.model.Attachable;
 import gradlebuild.docs.model.ClassMetaDataRepository;
-import org.gradle.util.CollectionUtils;
+import org.gradle.util.internal.CollectionUtils;
 
 import java.io.Serializable;
 import java.util.ArrayList;

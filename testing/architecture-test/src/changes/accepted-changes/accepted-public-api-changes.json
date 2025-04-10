@@ -1762,6 +1762,494 @@
             ]
         },
         {
+            "type": "org.gradle.util.CollectionUtils",
+            "member": "Class org.gradle.util.CollectionUtils",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.CollectionUtils",
+            "member": "Constructor org.gradle.util.CollectionUtils()",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.CollectionUtils",
+            "member": "Method org.gradle.util.CollectionUtils.addAll(java.util.Collection,java.lang.Iterable)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.CollectionUtils",
+            "member": "Method org.gradle.util.CollectionUtils.addAll(java.util.Collection,java.lang.Object[])",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.CollectionUtils",
+            "member": "Method org.gradle.util.CollectionUtils.any(java.lang.Iterable,org.gradle.api.specs.Spec)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.CollectionUtils",
+            "member": "Method org.gradle.util.CollectionUtils.any(java.lang.Object[],org.gradle.api.specs.Spec)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.CollectionUtils",
+            "member": "Method org.gradle.util.CollectionUtils.asCommandLine(java.lang.Iterable)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.CollectionUtils",
+            "member": "Method org.gradle.util.CollectionUtils.checkedCast(java.lang.Class,java.util.Collection)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.CollectionUtils",
+            "member": "Method org.gradle.util.CollectionUtils.collect(java.lang.Iterable,java.util.Collection,org.gradle.api.Transformer)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.CollectionUtils",
+            "member": "Method org.gradle.util.CollectionUtils.collect(java.lang.Iterable,org.gradle.api.Transformer)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.CollectionUtils",
+            "member": "Method org.gradle.util.CollectionUtils.collect(java.lang.Object[],org.gradle.api.Transformer)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.CollectionUtils",
+            "member": "Method org.gradle.util.CollectionUtils.collect(java.util.Set,org.gradle.api.Transformer)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.CollectionUtils",
+            "member": "Method org.gradle.util.CollectionUtils.collectArray(java.lang.Object[],java.lang.Class,org.gradle.api.Transformer)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.CollectionUtils",
+            "member": "Method org.gradle.util.CollectionUtils.collectArray(java.lang.Object[],java.lang.Object[],org.gradle.api.Transformer)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.CollectionUtils",
+            "member": "Method org.gradle.util.CollectionUtils.collectMap(java.lang.Iterable,org.gradle.api.Transformer)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.CollectionUtils",
+            "member": "Method org.gradle.util.CollectionUtils.collectMap(java.util.Map,java.lang.Iterable,org.gradle.api.Transformer)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.CollectionUtils",
+            "member": "Method org.gradle.util.CollectionUtils.collectMapValues(java.lang.Iterable,org.gradle.api.Transformer)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.CollectionUtils",
+            "member": "Method org.gradle.util.CollectionUtils.collectMapValues(java.util.Map,java.lang.Iterable,org.gradle.api.Transformer)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.CollectionUtils",
+            "member": "Method org.gradle.util.CollectionUtils.compact(java.util.List)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.CollectionUtils",
+            "member": "Method org.gradle.util.CollectionUtils.diffSetsBy(java.util.Set,java.util.Set,org.gradle.api.Transformer)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.CollectionUtils",
+            "member": "Method org.gradle.util.CollectionUtils.every(java.lang.Iterable,org.gradle.api.specs.Spec)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.CollectionUtils",
+            "member": "Method org.gradle.util.CollectionUtils.filter(java.lang.Iterable,java.util.Collection,org.gradle.api.specs.Spec)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.CollectionUtils",
+            "member": "Method org.gradle.util.CollectionUtils.filter(java.lang.Object[],org.gradle.api.specs.Spec)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.CollectionUtils",
+            "member": "Method org.gradle.util.CollectionUtils.filter(java.util.List,org.gradle.api.specs.Spec)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.CollectionUtils",
+            "member": "Method org.gradle.util.CollectionUtils.filter(java.util.Map,java.util.Map,org.gradle.api.specs.Spec)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.CollectionUtils",
+            "member": "Method org.gradle.util.CollectionUtils.filter(java.util.Map,org.gradle.api.specs.Spec)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.CollectionUtils",
+            "member": "Method org.gradle.util.CollectionUtils.filter(java.util.Set,org.gradle.api.specs.Spec)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.CollectionUtils",
+            "member": "Method org.gradle.util.CollectionUtils.findFirst(java.lang.Iterable,org.gradle.api.specs.Spec)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.CollectionUtils",
+            "member": "Method org.gradle.util.CollectionUtils.findFirst(java.lang.Object[],org.gradle.api.specs.Spec)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.CollectionUtils",
+            "member": "Method org.gradle.util.CollectionUtils.findSingle(java.lang.Iterable)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.CollectionUtils",
+            "member": "Method org.gradle.util.CollectionUtils.first(java.lang.Iterable)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.CollectionUtils",
+            "member": "Method org.gradle.util.CollectionUtils.flattenCollections(java.lang.Class,java.lang.Object[])",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.CollectionUtils",
+            "member": "Method org.gradle.util.CollectionUtils.flattenCollections(java.lang.Object[])",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.CollectionUtils",
+            "member": "Method org.gradle.util.CollectionUtils.groupBy(java.lang.Iterable,org.gradle.api.Transformer)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.CollectionUtils",
+            "member": "Method org.gradle.util.CollectionUtils.inject(java.lang.Object,java.lang.Iterable,org.gradle.api.Action)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.CollectionUtils",
+            "member": "Method org.gradle.util.CollectionUtils.intersection(java.util.Collection)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.CollectionUtils",
+            "member": "Method org.gradle.util.CollectionUtils.join(java.lang.String,java.lang.Iterable)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.CollectionUtils",
+            "member": "Method org.gradle.util.CollectionUtils.join(java.lang.String,java.lang.Object[])",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.CollectionUtils",
+            "member": "Method org.gradle.util.CollectionUtils.nonEmptyOrNull(java.lang.Iterable)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.CollectionUtils",
+            "member": "Method org.gradle.util.CollectionUtils.partition(java.lang.Iterable,org.gradle.api.specs.Spec)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.CollectionUtils",
+            "member": "Method org.gradle.util.CollectionUtils.replace(java.util.List,org.gradle.api.specs.Spec,org.gradle.api.Transformer)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.CollectionUtils",
+            "member": "Method org.gradle.util.CollectionUtils.single(java.lang.Iterable)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.CollectionUtils",
+            "member": "Method org.gradle.util.CollectionUtils.sort(java.lang.Iterable)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.CollectionUtils",
+            "member": "Method org.gradle.util.CollectionUtils.sort(java.lang.Iterable,java.util.Comparator)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.CollectionUtils",
+            "member": "Method org.gradle.util.CollectionUtils.stringize(java.lang.Iterable,java.util.Collection)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.CollectionUtils",
+            "member": "Method org.gradle.util.CollectionUtils.stringize(java.util.Collection)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.CollectionUtils",
+            "member": "Method org.gradle.util.CollectionUtils.toList(java.lang.Iterable)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.CollectionUtils",
+            "member": "Method org.gradle.util.CollectionUtils.toList(java.lang.Object[])",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.CollectionUtils",
+            "member": "Method org.gradle.util.CollectionUtils.toList(java.util.Enumeration)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.CollectionUtils",
+            "member": "Method org.gradle.util.CollectionUtils.toSet(java.lang.Iterable)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.CollectionUtils",
+            "member": "Method org.gradle.util.CollectionUtils.toStringList(java.lang.Iterable)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.CollectionUtils",
+            "member": "Method org.gradle.util.CollectionUtils.unpack(java.lang.Iterable)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.CollectionUtils$InjectionStep",
+            "member": "Class org.gradle.util.CollectionUtils$InjectionStep",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.CollectionUtils$InjectionStep",
+            "member": "Constructor org.gradle.util.CollectionUtils$InjectionStep(java.lang.Object,java.lang.Object)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.CollectionUtils$InjectionStep",
+            "member": "Method org.gradle.util.CollectionUtils$InjectionStep.getItem()",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.CollectionUtils$InjectionStep",
+            "member": "Method org.gradle.util.CollectionUtils$InjectionStep.getTarget()",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.CollectionUtils$SetDiff",
+            "member": "Class org.gradle.util.CollectionUtils$SetDiff",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.CollectionUtils$SetDiff",
+            "member": "Constructor org.gradle.util.CollectionUtils$SetDiff()",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.CollectionUtils$SetDiff",
+            "member": "Field common",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.CollectionUtils$SetDiff",
+            "member": "Field leftOnly",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.CollectionUtils$SetDiff",
+            "member": "Field rightOnly",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.util.DistributionLocator",
             "member": "Class org.gradle.util.DistributionLocator",
             "acceptation": "Deprecated in 8.x",

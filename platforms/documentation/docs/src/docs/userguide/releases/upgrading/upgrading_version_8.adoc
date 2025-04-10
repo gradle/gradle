@@ -82,6 +82,14 @@ Core Gradle plugins that still registered deprecated conventions have also been 
 |`ear` |`project.ear` | `EarPluginConvention` | Configure the `ear` task directly instead.
 |===
 
+
+==== Remove deprecated members of the `org.gradle.util` package
+
+The following members of the `org.gradle.util` package have been removed:
+
+* `CollectionUtils`
+
+
 ==== Gradle API now uses JSpecify Nullability Annotations
 
 The initial introduction of null safety in the Gradle API dates back to 2018 in Gradle 5.0.
