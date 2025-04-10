@@ -123,6 +123,16 @@ They will be removed in Gradle 9.0.
 
 These methods were deprecated in Gradle 8.11, but are no longer deprecated, as they do not yet have stable replacements.
 
+[[deprecated_startparameter_is_configuration_cache_requested]]
+==== Deprecated `StartParameter.isConfigurationCacheRequested` now emits warnings
+
+The `isConfigurationCacheRequested` property in `StartParameter` was marked `@Deprecated` in Gradle 8.5, but no warnings were emitted until now.
+
+Gradle now emits deprecation warnings when this property is used.
+It will be removed in Gradle 9.0.
+
+Since Gradle 8.5, the same information can be obtained via the `BuildFeatures` service using `configurationCache.requested` property.
+
 [[changes_8.13]]
 == Upgrading from 8.12 and earlier
 
