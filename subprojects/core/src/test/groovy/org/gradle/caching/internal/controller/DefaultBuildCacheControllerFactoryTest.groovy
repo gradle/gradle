@@ -34,6 +34,7 @@ import org.gradle.caching.internal.packaging.BuildCacheEntryPacker
 import org.gradle.caching.internal.services.DefaultBuildCacheControllerFactory
 import org.gradle.caching.local.DirectoryBuildCache
 import org.gradle.caching.local.internal.LocalBuildCacheService
+import org.gradle.internal.concurrent.ManagedExecutor
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.operations.NoOpBuildOperationProgressEventEmitter
 import org.gradle.internal.operations.TestBuildOperationRunner
@@ -68,7 +69,8 @@ class DefaultBuildCacheControllerFactoryTest extends Specification {
             Stub(OriginMetadataFactory),
             Stub(StringInterner),
             Stub(TemporaryFileProvider),
-            Stub(BuildCacheEntryPacker)
+            Stub(BuildCacheEntryPacker),
+            Stub(ManagedExecutor)
         ).createController(Path.path("test"), config, TestUtil.instantiatorFactory().inject())
         assert controllerType.isInstance(controller)
         controllerType.cast(controller)
