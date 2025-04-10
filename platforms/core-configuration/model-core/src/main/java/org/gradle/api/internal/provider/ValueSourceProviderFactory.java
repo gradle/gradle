@@ -34,7 +34,7 @@ import org.jspecify.annotations.Nullable;
  *
  * @since 6.1
  */
-@ServiceScope(Scope.Build.class)
+@ServiceScope({Scope.Build.class, Scope.Project.class})
 public interface ValueSourceProviderFactory {
 
     <T, P extends ValueSourceParameters> Provider<T> createProviderOf(

@@ -984,7 +984,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         given:
         settingsFile << "include 'a'"
         testDirectory.file("a/build/test/folder").mkdirs()
-        buildFile("a/build.gradle", """
+        file("a/build.gradle") << """
             import org.gradle.api.provider.*
 
             abstract class GreetValueSource implements ValueSource<String, ValueSourceParameters.None> {
@@ -1012,7 +1012,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
             tasks.register("run", MyTask) {
                 greeting = greetValueSource
             }
-        """)
+        """
 
         when:
         run("run")
