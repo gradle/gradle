@@ -54,8 +54,6 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         project.plugins.hasPlugin(ReportingBasePlugin)
         project.plugins.hasPlugin(BasePlugin)
         project.plugins.hasPlugin(JvmEcosystemPlugin)
-        project.convention.plugins.java instanceof JavaPluginConvention
-        project.extensions.sourceSets.is(project.convention.plugins.java.sourceSets)
         project.extensions.java instanceof JavaPluginExtension
     }
 
@@ -73,17 +71,17 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
 
         then:
         def ext = project.extensions.java
-        project.sourceCompatibility == JavaVersion.current()
-        project.targetCompatibility == JavaVersion.current()
+        project.java.sourceCompatibility == JavaVersion.current()
+        project.java.targetCompatibility == JavaVersion.current()
         ext.sourceCompatibility == JavaVersion.current()
         ext.targetCompatibility == JavaVersion.current()
 
         when:
-        project.sourceCompatibility = JavaVersion.VERSION_1_6
+        project.java.sourceCompatibility = JavaVersion.VERSION_1_6
 
         then:
-        project.sourceCompatibility == JavaVersion.VERSION_1_6
-        project.targetCompatibility == JavaVersion.VERSION_1_6
+        project.java.sourceCompatibility == JavaVersion.VERSION_1_6
+        project.java.targetCompatibility == JavaVersion.VERSION_1_6
         ext.sourceCompatibility == JavaVersion.VERSION_1_6
         ext.targetCompatibility == JavaVersion.VERSION_1_6
 
@@ -91,17 +89,17 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         ext.sourceCompatibility = JavaVersion.VERSION_1_8
 
         then:
-        project.sourceCompatibility == JavaVersion.VERSION_1_8
-        project.targetCompatibility == JavaVersion.VERSION_1_8
+        project.java.sourceCompatibility == JavaVersion.VERSION_1_8
+        project.java.targetCompatibility == JavaVersion.VERSION_1_8
         ext.sourceCompatibility == JavaVersion.VERSION_1_8
         ext.targetCompatibility == JavaVersion.VERSION_1_8
 
         when:
-        project.targetCompatibility = JavaVersion.VERSION_1_7
+        project.java.targetCompatibility = JavaVersion.VERSION_1_7
 
         then:
-        project.sourceCompatibility == JavaVersion.VERSION_1_8
-        project.targetCompatibility == JavaVersion.VERSION_1_7
+        project.java.sourceCompatibility == JavaVersion.VERSION_1_8
+        project.java.targetCompatibility == JavaVersion.VERSION_1_7
         ext.sourceCompatibility == JavaVersion.VERSION_1_8
         ext.targetCompatibility == JavaVersion.VERSION_1_7
 
@@ -109,8 +107,8 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         ext.targetCompatibility = JavaVersion.VERSION_1_6
 
         then:
-        project.sourceCompatibility == JavaVersion.VERSION_1_8
-        project.targetCompatibility == JavaVersion.VERSION_1_6
+        project.java.sourceCompatibility == JavaVersion.VERSION_1_8
+        project.java.targetCompatibility == JavaVersion.VERSION_1_6
         ext.sourceCompatibility == JavaVersion.VERSION_1_8
         ext.targetCompatibility == JavaVersion.VERSION_1_6
     }
@@ -284,17 +282,17 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
 
         then:
         def compile = project.task('customCompile', type: JavaCompile)
-        compile.sourceCompatibility == project.sourceCompatibility.toString()
+        compile.sourceCompatibility == project.java.sourceCompatibility.toString()
 
         def test = project.task('customTest', type: Test.class)
         test.workingDir == project.projectDir
-        test.reports.junitXml.outputLocation.get().asFile == new File(project.testResultsDir, 'customTest')
-        test.reports.html.outputLocation.get().asFile == new File(project.testReportDir, 'customTest')
+        test.reports.junitXml.outputLocation.get().asFile == new File(project.java.testResultsDir.getAsFile().get(), 'customTest')
+        test.reports.html.outputLocation.get().asFile == new File(project.java.testReportDir.getAsFile().get(), 'customTest')
         test.reports.junitXml.required.get()
         test.reports.html.required.get()
 
         def javadoc = project.task('customJavadoc', type: Javadoc)
-        javadoc.destinationDir == project.file("$project.docsDir/javadoc")
+        javadoc.destinationDir == project.java.docsDir.file("javadoc").get().asFile
         javadoc.title == project.extensions.getByType(ReportingExtension).apiDocTitle
     }
 

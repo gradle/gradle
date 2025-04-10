@@ -6,7 +6,7 @@ import org.springframework.boot.gradle.tasks.run.BootRun
 // tag::accessors[]
 plugins {
     java
-    id("org.springframework.boot") version "2.7.8"
+    id("org.springframework.boot") version "3.4.4"
 }
 
 // end::lazy[]

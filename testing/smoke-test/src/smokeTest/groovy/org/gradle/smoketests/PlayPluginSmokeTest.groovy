@@ -58,7 +58,6 @@ class PlayPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
             .expectDeprecationWarning(taskProjectDeprecation(7), "Follow-up not yet defined")
             .expectDeprecationWarning(BaseDeprecations.ABSTRACT_ARCHIVE_TASK_ARCHIVE_PATH_DEPRECATION, "https://github.com/gradle/gradle/issues/30530")
             .expectDeprecationWarning(BaseDeprecations.CONVENTION_TYPE_DEPRECATION, "https://github.com/gradle/gradle/issues/30530")
-            .expectDeprecationWarning(BaseDeprecations.JAVA_PLUGIN_CONVENTION_DEPRECATION, "https://github.com/gradle/gradle/issues/30530")
             .build()
 
         then:

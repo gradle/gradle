@@ -370,7 +370,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         task dependsOn(JvmConstants.CLASSES_TASK_NAME, JvmConstants.COMPILE_JAVA_TASK_NAME)
         task.source.files == project.sourceSets.main.allJava.files
         assertThat(task.classpath, sameCollection(project.layout.files(project.sourceSets.main.output, project.sourceSets.main.compileClasspath)))
-        task.destinationDir == project.file("$project.docsDir/javadoc")
+        task.destinationDir == project.java.docsDir.file("javadoc").get().asFile
         task.title == project.extensions.getByType(ReportingExtension).apiDocTitle
 
         when:
@@ -428,8 +428,9 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         task.classpath.files.empty
         task.testClassesDirs.empty
         task.workingDir == project.projectDir
-        task.reports.junitXml.outputLocation.get().asFile == new File(project.testResultsDir, 'customTest')
-        task.reports.html.outputLocation.get().asFile == new File(project.testReportDir, 'customTest')
+        task.reports.junitXml.outputLocation.get().asFile == project.java.testResultsDir.file('customTest').get().asFile
+        task.reports.html.outputLocation.get().asFile == project.java.testReportDir.file('customTest').get().asFile
+
         and:
         project.java.modularity.inferModulePath.set(true)
         task.modularity.inferModulePath.get() == true
