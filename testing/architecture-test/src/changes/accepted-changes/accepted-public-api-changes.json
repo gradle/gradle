@@ -969,6 +969,30 @@
             ]
         },
         {
+            "type": "org.gradle.api.tasks.GradleBuild",
+            "member": "Method org.gradle.api.tasks.GradleBuild.getBuildFile()",
+            "acceptation": "Remove deprecated feature",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.GradleBuild",
+            "member": "Method org.gradle.api.tasks.GradleBuild.setBuildFile(java.io.File)",
+            "acceptation": "Remove deprecated feature",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.GradleBuild",
+            "member": "Method org.gradle.api.tasks.GradleBuild.setBuildFile(java.lang.Object)",
+            "acceptation": "Remove deprecated feature",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.tasks.Upload",
             "member": "Class org.gradle.api.tasks.Upload",
             "acceptation": "Removed deprecated class",
