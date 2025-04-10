@@ -1626,6 +1626,308 @@
             ]
         },
         {
+            "type": "org.gradle.kotlin.dsl.InitScriptApi",
+            "member": "Class org.gradle.kotlin.dsl.InitScriptApi",
+            "acceptation": "Replace Kotlin DSL init script IDE template with K2 compatible one",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.InitScriptApi",
+            "member": "Constructor org.gradle.kotlin.dsl.InitScriptApi(org.gradle.api.invocation.Gradle)",
+            "acceptation": "Replace Kotlin DSL init script IDE template with K2 compatible one",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.InitScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.InitScriptApi.copy(kotlin.jvm.functions.Function1)",
+            "acceptation": "Replace Kotlin DSL init script IDE template with K2 compatible one",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.InitScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.InitScriptApi.copySpec()",
+            "acceptation": "Replace Kotlin DSL init script IDE template with K2 compatible one",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.InitScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.InitScriptApi.copySpec(kotlin.jvm.functions.Function1)",
+            "acceptation": "Replace Kotlin DSL init script IDE template with K2 compatible one",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.InitScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.InitScriptApi.delete(java.lang.Object[])",
+            "acceptation": "Replace Kotlin DSL init script IDE template with K2 compatible one",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.InitScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.InitScriptApi.delete(kotlin.jvm.functions.Function1)",
+            "acceptation": "Replace Kotlin DSL init script IDE template with K2 compatible one",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.InitScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.InitScriptApi.exec(kotlin.jvm.functions.Function1)",
+            "acceptation": "Replace Kotlin DSL init script IDE template with K2 compatible one",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.InitScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.InitScriptApi.file(java.lang.Object)",
+            "acceptation": "Replace Kotlin DSL init script IDE template with K2 compatible one",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.InitScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.InitScriptApi.file(java.lang.Object,org.gradle.api.PathValidation)",
+            "acceptation": "Replace Kotlin DSL init script IDE template with K2 compatible one",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.InitScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.InitScriptApi.fileTree(java.lang.Object)",
+            "acceptation": "Replace Kotlin DSL init script IDE template with K2 compatible one",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.InitScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.InitScriptApi.fileTree(java.lang.Object,kotlin.jvm.functions.Function1)",
+            "acceptation": "Replace Kotlin DSL init script IDE template with K2 compatible one",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.InitScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.InitScriptApi.files(java.lang.Object,kotlin.jvm.functions.Function1)",
+            "acceptation": "Replace Kotlin DSL init script IDE template with K2 compatible one",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.InitScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.InitScriptApi.files(java.lang.Object[])",
+            "acceptation": "Replace Kotlin DSL init script IDE template with K2 compatible one",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.InitScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.InitScriptApi.getFileOperations()",
+            "acceptation": "Replace Kotlin DSL init script IDE template with K2 compatible one",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.InitScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.InitScriptApi.getLogger$annotations()",
+            "acceptation": "Replace Kotlin DSL init script IDE template with K2 compatible one",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.InitScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.InitScriptApi.getLogger()",
+            "acceptation": "Replace Kotlin DSL init script IDE template with K2 compatible one",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.InitScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.InitScriptApi.getLogging$annotations()",
+            "acceptation": "Replace Kotlin DSL init script IDE template with K2 compatible one",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.InitScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.InitScriptApi.getLogging()",
+            "acceptation": "Replace Kotlin DSL init script IDE template with K2 compatible one",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.InitScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.InitScriptApi.getProcessOperations()",
+            "acceptation": "Replace Kotlin DSL init script IDE template with K2 compatible one",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.InitScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.InitScriptApi.getResources$annotations()",
+            "acceptation": "Replace Kotlin DSL init script IDE template with K2 compatible one",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.InitScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.InitScriptApi.getResources()",
+            "acceptation": "Replace Kotlin DSL init script IDE template with K2 compatible one",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.InitScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.InitScriptApi.initscript(kotlin.jvm.functions.Function1)",
+            "acceptation": "Replace Kotlin DSL init script IDE template with K2 compatible one",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.InitScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.InitScriptApi.javaexec(kotlin.jvm.functions.Function1)",
+            "acceptation": "Replace Kotlin DSL init script IDE template with K2 compatible one",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.InitScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.InitScriptApi.mkdir(java.lang.Object)",
+            "acceptation": "Replace Kotlin DSL init script IDE template with K2 compatible one",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.InitScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.InitScriptApi.relativePath(java.lang.Object)",
+            "acceptation": "Replace Kotlin DSL init script IDE template with K2 compatible one",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.InitScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.InitScriptApi.tarTree(java.lang.Object)",
+            "acceptation": "Replace Kotlin DSL init script IDE template with K2 compatible one",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.InitScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.InitScriptApi.uri(java.lang.Object)",
+            "acceptation": "Replace Kotlin DSL init script IDE template with K2 compatible one",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.InitScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.InitScriptApi.zipTree(java.lang.Object)",
+            "acceptation": "Replace Kotlin DSL init script IDE template with K2 compatible one",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinGradleScriptTemplateCompilationConfiguration",
+            "member": "Class org.gradle.kotlin.dsl.KotlinGradleScriptTemplateCompilationConfiguration",
+            "acceptation": "Replace Kotlin DSL init script IDE template with K2 compatible one",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinGradleScriptTemplateCompilationConfiguration",
+            "member": "Constructor org.gradle.kotlin.dsl.KotlinGradleScriptTemplateCompilationConfiguration()",
+            "acceptation": "Replace Kotlin DSL init script IDE template with K2 compatible one",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinInitScript",
+            "member": "Method org.gradle.kotlin.dsl.KotlinInitScript.apply(groovy.lang.Closure)",
+            "acceptation": "Replace Kotlin DSL init script IDE template with K2 compatible one",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinInitScript",
+            "member": "Method org.gradle.kotlin.dsl.KotlinInitScript.apply(java.util.Map)",
+            "acceptation": "Replace Kotlin DSL init script IDE template with K2 compatible one",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinInitScript",
+            "member": "Method org.gradle.kotlin.dsl.KotlinInitScript.getPluginManager()",
+            "acceptation": "Replace Kotlin DSL init script IDE template with K2 compatible one",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinInitScript",
+            "member": "Method org.gradle.kotlin.dsl.KotlinInitScript.getPlugins()",
+            "acceptation": "Replace Kotlin DSL init script IDE template with K2 compatible one",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinInitScript",
+            "member": "Superclass [removed]",
+            "acceptation": "Replace Kotlin DSL init script IDE template with K2 compatible one",
+            "changes": [
+                "Superclass has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinInitScriptTemplateCompilationConfiguration",
+            "member": "Class org.gradle.kotlin.dsl.KotlinInitScriptTemplateCompilationConfiguration",
+            "acceptation": "Replace Kotlin DSL init script IDE template with K2 compatible one",
+            "changes": [
+                "Interface has been added"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinInitScriptTemplateCompilationConfiguration",
+            "member": "Constructor org.gradle.kotlin.dsl.KotlinInitScriptTemplateCompilationConfiguration()",
+            "acceptation": "Replace Kotlin DSL init script IDE template with K2 compatible one",
+            "changes": []
+        },
+        {
             "type": "org.gradle.kotlin.dsl.NamedDomainObjectContainerScope",
             "member": "Method org.gradle.kotlin.dsl.NamedDomainObjectContainerScope.invoke(java.lang.String)",
             "acceptation": "Removed deprecated method",

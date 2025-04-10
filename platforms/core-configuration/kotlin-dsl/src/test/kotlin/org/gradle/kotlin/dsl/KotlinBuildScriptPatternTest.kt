@@ -65,7 +65,7 @@ class KotlinBuildScriptPatternTest(val script: Script) {
 
     @Test
     fun `recognizes init scripts from script templates`() {
-        checkScriptRecognizedBy(KotlinGradleScriptTemplate::class, ScriptType.INIT)
+        checkScriptRecognizedBy(KotlinInitScript::class, ScriptType.INIT)
     }
 
     @Test
@@ -80,11 +80,6 @@ class KotlinBuildScriptPatternTest(val script: Script) {
         checkScriptRecognizedByLegacy(KotlinSettingsScript::class, ScriptType.SETTINGS)
     }
 
-    @Test
-    fun `recognizes init scripts from legacy script templates`() {
-        @Suppress("DEPRECATION")
-        checkScriptRecognizedByLegacy(KotlinInitScript::class, ScriptType.INIT)
-    }
 
     private
     fun checkScriptRecognizedBy(scriptParserClass: KClass<*>, supportedScriptType: ScriptType) {
