@@ -65,11 +65,10 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
             plugins {
               id 'java-library'
             }
-            repositories.jcenter()
             task bar {}
             task baz {}
         """
-
+        settingsFile << 'rootProject.name = "root"'
 
         when:
         def listener = new ProblemProgressListener()
@@ -85,16 +84,8 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
         then:
         thrown(BuildException)
-        listener.problems.size() == 2
-        verifyAll(listener.problems[0]) {
-            definition.id.displayName == "The RepositoryHandler.jcenter() method has been deprecated."
-            definition.id.group.displayName == "Deprecation"
-            definition.id.group.name == "deprecation"
-            definition.severity == Severity.WARNING
-            locations.size() == (targetVersion < GradleVersion.version('8.13') ? 2 : 1)
-            (locations[0] as LineInFileLocation).path == buildFileLocation(buildFile, targetVersion)
-            additionalData.asMap['type'] == 'USER_CODE_DIRECT'
-        }
+        listener.problems.size() == 1
+        listener.problems[0].contextualLabel.contextualLabel == "Cannot locate tasks that match ':ba' as task 'ba' is ambiguous in root project 'root'. Candidates are: 'bar', 'baz'."
     }
 
     def "Problems expose details via Tooling API events with failure"() {
