@@ -226,7 +226,7 @@ class TaskServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
                 @TaskAction fun run() = println(if (executor != null) "got it \$number" else "\$number NOT IT")
             }
 
-            tasks.create<CustomTask>("myTask", 15)
+            tasks.register<CustomTask>("myTask", 15)
         """
 
         when:

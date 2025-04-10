@@ -316,6 +316,10 @@ configurations.compileClasspath.singleFile // equivalent to configurations.compi
 Gradle 8.0 then removed all of these extensions from the API, but the methods were still available for plugins compiled against older versions of Gradle.
 Gradle 9.0 finishes up their complete removal.
 
+==== TaskContainer.create/creating methods removed from the Kotlin DSL
+
+Eager task creation methods on link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html[the `TaskContainer` interface] have been removed in Gradle 9.0.
+
 [[changes_8.14]]
 == Upgrading from 8.13 and earlier
 

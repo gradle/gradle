@@ -2130,6 +2130,70 @@
             ]
         },
         {
+            "type": "org.gradle.kotlin.dsl.TaskContainerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.TaskContainerExtensionsKt.create(org.gradle.api.tasks.TaskContainer,java.lang.String,java.lang.Object[])",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.TaskContainerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.TaskContainerExtensionsKt.create(org.gradle.api.tasks.TaskContainer,java.lang.String,kotlin.jvm.functions.Function1)",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.TaskContainerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.TaskContainerExtensionsKt.creating(org.gradle.api.tasks.TaskContainer,java.lang.Class,kotlin.jvm.functions.Function1)",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.TaskContainerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.TaskContainerExtensionsKt.creating(org.gradle.api.tasks.TaskContainer,kotlin.jvm.functions.Function1)",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.TaskContainerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.TaskContainerExtensionsKt.creating(org.gradle.api.tasks.TaskContainer,kotlin.reflect.KClass)",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.TaskContainerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.TaskContainerExtensionsKt.creating(org.gradle.api.tasks.TaskContainer,kotlin.reflect.KClass,kotlin.jvm.functions.Function1)",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.TaskContainerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.TaskContainerExtensionsKt.getCreating$annotations(org.gradle.api.tasks.TaskContainer)",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.TaskContainerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.TaskContainerExtensionsKt.getCreating(org.gradle.api.tasks.TaskContainer)",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.kotlin.dsl.TaskContainerScope",
             "member": "Method org.gradle.kotlin.dsl.TaskContainerScope.invoke(java.lang.String)",
             "acceptation": "Removed deprecated method",
