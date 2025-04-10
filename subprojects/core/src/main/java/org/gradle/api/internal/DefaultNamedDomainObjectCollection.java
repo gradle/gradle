@@ -43,6 +43,7 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.evaluation.EvaluationScopeContext;
+import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.DynamicObject;
@@ -1039,11 +1040,18 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
 
         protected RuntimeException domainObjectCreationException(Throwable cause) {
-            return new IllegalStateException(String.format("Could not create domain object '%s' (%s)", getName(), getType().getSimpleName()), cause);
+            return new DomainObjectCreationException(DefaultNamedDomainObjectCollection.this.getDisplayName(), getName(), getType(), cause);
         }
     }
 
     private static RuntimeException domainObjectRemovedException(String name, Class<?> type) {
         return new IllegalStateException(String.format("The domain object '%s' (%s) for this provider is no longer present in its container.", name, type.getSimpleName()));
+    }
+
+    @Contextual
+    private static class DomainObjectCreationException extends IllegalStateException {
+        DomainObjectCreationException(String container, String name, Class<?> type, Throwable cause) {
+            super(String.format("Could not create domain object '%s' (%s) in %s", name, type.getSimpleName(), container), cause);
+        }
     }
 }
