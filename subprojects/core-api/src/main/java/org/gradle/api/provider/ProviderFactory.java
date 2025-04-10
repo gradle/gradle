@@ -52,6 +52,9 @@ public interface ProviderFactory {
      *
      * <p>The provider is live and will call the {@link Callable} each time its value is queried. The {@link Callable} may return {@code null}, in which case the provider is considered to have no value.
      *
+     * <h4>Configuration cache</h4>
+     * <p>The returned provider is always evaluated at store time.
+     *
      * @param value The {@code java.util.concurrent.Callable} use to calculate the value.
      * @return The provider. Never returns null.
      */
@@ -59,6 +62,10 @@ public interface ProviderFactory {
 
     /**
      * Creates a {@link Provider} whose value is fetched from the environment variable with the given name.
+     *
+     * <h4>Configuration cache</h4>
+     * <p>The returned provider is only evaluated at store time if its value was obtained at configuration time.
+     * In that case, the environment variable becomes a part of the configuration cache fingerprint.
      *
      * @param variableName The name of the environment variable.
      * @return The provider. Never returns null.
@@ -68,6 +75,11 @@ public interface ProviderFactory {
 
     /**
      * Creates a {@link Provider} whose value is fetched from the environment variable with the given name.
+     *
+     * <h4>Configuration cache</h4>
+     * <p>The returned provider is only evaluated at store time if its value was obtained at configuration time.
+     * In that case, the environment variable becomes a part of the configuration cache fingerprint.
+     * The {@code variableName} provider is serialized regardless.
      *
      * @param variableName The provider for the name of the environment variable; when the given provider has no value, the returned provider has no value.
      * @return The provider. Never returns null.
@@ -79,6 +91,10 @@ public interface ProviderFactory {
      * Creates a {@link Provider} whose value is a name-to-value map of the environment variables with the names starting with the given prefix.
      * The prefix comparison is case-sensitive. The returned map is immutable.
      *
+     * <h4>Configuration cache</h4>
+     * <p>The returned provider is only evaluated at store time if its value was obtained at configuration time.
+     * In that case, the environment variables become a part of the configuration cache fingerprint.
+     *
      * @param variableNamePrefix The prefix of the environment variable names
      * @return The provider. Never returns null.
      * @since 7.5
@@ -88,6 +104,11 @@ public interface ProviderFactory {
     /**
      * Creates a {@link Provider} whose value is a name-to-value map of the environment variables with the names starting with the given prefix.
      * The prefix comparison is case-sensitive. The returned map is immutable.
+     *
+     * <h4>Configuration cache</h4>
+     * <p>The returned provider is only evaluated at store time if its value was obtained at configuration time.
+     * In that case, the environment variables become a part of the configuration cache fingerprint.
+     * The {@code variableNamePrefix} provider is serialized regardless.
      *
      * @param variableNamePrefix The prefix of the environment variable names
      * @return The provider. Never returns null.
@@ -179,10 +200,8 @@ public interface ProviderFactory {
      *
      * @param file the file whose contents to read.
      * @return an interface that allows lazy access to the contents of the given file.
-     *
      * @see FileContents#getAsText()
      * @see FileContents#getAsBytes()
-     *
      * @since 6.1
      */
     FileContents fileContents(RegularFile file);
@@ -195,10 +214,8 @@ public interface ProviderFactory {
      *
      * @param file provider of the file whose contents to read.
      * @return an interface that allows lazy access to the contents of the given file.
-     *
      * @see FileContents#getAsText()
      * @see FileContents#getAsBytes()
-     *
      * @since 6.1
      */
     FileContents fileContents(Provider<RegularFile> file);
@@ -217,7 +234,6 @@ public interface ProviderFactory {
      * @param action the configuration of the external process with the output stream
      * pre-configured.
      * @return an interface that allows lazy access to the process' output.
-     *
      * @since 7.5
      */
     ExecOutput exec(Action<? super ExecSpec> action);
@@ -236,7 +252,6 @@ public interface ProviderFactory {
      * @param action the configuration of the external process with the output stream
      * pre-configured.
      * @return an interface that allows lazy access to the process' output.
-     *
      * @since 7.5
      */
     ExecOutput javaexec(Action<? super JavaExecSpec> action);
@@ -273,7 +288,6 @@ public interface ProviderFactory {
      * @param credentialsType type of credentials to be provided.
      * @param identity identity to be associated with the credentials.
      * @return The provider. Never returns null.
-     *
      * @since 6.6
      */
     <T extends Credentials> Provider<T> credentials(Class<T> credentialsType, String identity);
@@ -296,7 +310,6 @@ public interface ProviderFactory {
      * @param credentialsType type of credentials to be provided.
      * @param identity a provider returning the identity to be associated with the credentials.
      * @return The provider. Never returns null.
-     *
      * @since 6.6
      */
     <T extends Credentials> Provider<T> credentials(Class<T> credentialsType, Provider<String> identity);
