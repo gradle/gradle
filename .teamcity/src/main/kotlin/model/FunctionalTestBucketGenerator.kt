@@ -9,7 +9,6 @@ import common.VersionedSettingsBranch
 import configurations.ParallelizationMethod
 import java.io.File
 import java.util.LinkedList
-import java.util.SortedSet
 
 const val MASTER_CHECK_CONFIGURATION = "Gradle_Master_Check"
 const val MAX_PROJECT_NUMBER_IN_BUCKET = 11
@@ -32,46 +31,6 @@ fun main() {
     val generatedBucketsJson = File(System.getProperty("outputBucketSplitJson", "./test-buckets.json"))
 
     FunctionalTestBucketGenerator(model, testClassDataJson).generate(generatedBucketsJson)
-}
-
-class TestClassTime(
-    val sourceSet: String,
-    val buildTimeMs: Int,
-)
-
-data class TestCoverageAndBucketSplits(
-    val testCoverageUuid: Int,
-    val buckets: List<FunctionalTestBucket>,
-)
-
-data class FunctionalTestBucket(
-    val subprojects: SortedSet<String>,
-    val parallelizationMethod: ParallelizationMethod,
-) {
-    constructor(subprojectList: List<String>, parallelizationMethod: ParallelizationMethod) : this(
-        subprojectList.toSortedSet(),
-        parallelizationMethod,
-    )
-
-    constructor(jsonObject: Map<String, Any>) : this(
-        (jsonObject["subprojects"] as List<*>).map { it.toString() },
-        ParallelizationMethod.fromJson(jsonObject),
-    )
-
-    fun toBuildTypeBucket(gradleSubprojectProvider: GradleSubprojectProvider): SmallSubprojectBucket =
-        SmallSubprojectBucket(
-            subprojects.map { gradleSubprojectProvider.getSubprojectByName(it)!! },
-            parallelizationMethod,
-        )
-}
-
-class SubprojectTestClassTime(
-    val subProject: GradleSubproject,
-    testClassTimes: List<TestClassTime> = emptyList(),
-) {
-    val totalTime: Int = testClassTimes.sumOf { it.buildTimeMs }
-
-    override fun toString(): String = "SubprojectTestClassTime(subProject=${subProject.name}, totalTime=$totalTime)"
 }
 
 class FunctionalTestBucketGenerator(
