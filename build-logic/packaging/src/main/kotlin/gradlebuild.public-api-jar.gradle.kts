@@ -17,10 +17,6 @@
 import gradlebuild.basics.ClassFileContentsAttribute
 import gradlebuild.configureAsApiElements
 import gradlebuild.configureAsRuntimeJarClasspath
-import gradlebuild.packaging.GradleDistributionSpecs.srcDistributionSpec
-import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal
-import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration
-import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact
 
 plugins {
     id("gradlebuild.dependency-modules")
@@ -55,14 +51,14 @@ val distribution = configurations.dependencyScope("distribution") {
 }
 val distributionClasspath = configurations.resolvable("distributionClasspath") {
     extendsFrom(distribution.get())
-    attributes {
-        attribute(ClassFileContentsAttribute.attribute, ClassFileContentsAttribute.STUBS)
-    }
 }
 
 val jarGradleApi = tasks.register("jarGradleApi", Jar::class) {
     from(distributionClasspath.map { configuration ->
         configuration.incoming.artifactView {
+            attributes {
+                attribute(ClassFileContentsAttribute.attribute, ClassFileContentsAttribute.STUBS)
+            }
             componentFilter { componentId -> componentId is ProjectComponentIdentifier }
         }.files
     }) {
@@ -74,9 +70,25 @@ val jarGradleApi = tasks.register("jarGradleApi", Jar::class) {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
+
+open class ArchiveOperationsWrapper @Inject constructor(val archiveOperations: ArchiveOperations) {}
+
 val jarGradleSources = tasks.register("jarGradleSources", Jar::class) {
+    val archiveOperations = objects.newInstance(ArchiveOperationsWrapper::class.java).archiveOperations
+    from(distributionClasspath.map { configuration ->
+        configuration.incoming.artifactView {
+            withVariantReselection()
+            attributes {
+                attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, Usage.JAVA_RUNTIME))
+                attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category::class.java, Category.DOCUMENTATION))
+                attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling::class.java, Bundling.EXTERNAL))
+                attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType::class.java, DocsType.SOURCES))
+            }
+            componentFilter { componentId -> componentId is ProjectComponentIdentifier }
+        }.files.elements.map { jarList -> jarList.map { archiveOperations.zipTree(it) }  }
+    })
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     group = BasePlugin.BUILD_GROUP
-    with(srcDistributionSpec())
     archiveClassifier = "sources"
 }
 
