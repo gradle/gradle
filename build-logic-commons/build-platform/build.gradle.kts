@@ -33,7 +33,7 @@ dependencies {
         api("org.asciidoctor:asciidoctor-gradle-jvm:4.0.2")
         api("org.jetbrains.kotlin:kotlin-gradle-plugin") { version { strictly(kotlinVersion) } }
         api(kotlin("compiler-embeddable")) { version { strictly(kotlinVersion) } }
-        api("com.autonomousapps:dependency-analysis-gradle-plugin:1.33.0")
+        api("com.autonomousapps:dependency-analysis-gradle-plugin:2.12.0") // Hitting https://github.com/autonomousapps/dependency-analysis-gradle-plugin/issues/1364
         api("com.squareup.okio:okio:3.4.0") {
             because("Bump version brought in by dependency-analysis-gradle-plugin, to resolve CVE-2022-3635")
         }
