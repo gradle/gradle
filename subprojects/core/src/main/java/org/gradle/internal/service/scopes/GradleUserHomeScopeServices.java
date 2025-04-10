@@ -88,7 +88,6 @@ import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.remote.MessagingServer;
-import org.gradle.internal.service.PrivateService;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
@@ -209,7 +208,6 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
      * It's a @PrivateService since we don't want this service to accidentally be used in child scopes with incorrect FileResolver and ObjectFactory.
      */
     @Provides
-    @PrivateService
     protected ExecFactory createExecFactory(
         FileResolver fileResolver,
         FileCollectionFactory fileCollectionFactory,

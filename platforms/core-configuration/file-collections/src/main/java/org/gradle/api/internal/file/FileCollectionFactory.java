@@ -39,7 +39,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 
-@ServiceScope({Scope.Global.class, Scope.BuildTree.class, Scope.Build.class, Scope.Project.class})
+@ServiceScope({Scope.Global.class, Scope.BuildSession.class, Scope.BuildTree.class, Scope.Build.class, Scope.Project.class})
 public interface FileCollectionFactory {
     /**
      * Creates a copy of this factory that uses the given resolver to convert various types to File instances.

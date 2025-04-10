@@ -21,7 +21,7 @@ import org.gradle.api.file.RegularFileProperty;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-@ServiceScope({Scope.Global.class, Scope.BuildTree.class, Scope.Project.class})
+@ServiceScope({Scope.Global.class, Scope.BuildSession.class, Scope.Project.class})
 public interface FilePropertyFactory {
     DirectoryProperty newDirectoryProperty();
 

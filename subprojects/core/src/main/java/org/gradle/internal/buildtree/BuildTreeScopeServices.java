@@ -19,13 +19,11 @@ package org.gradle.internal.buildtree;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
-import org.gradle.api.internal.file.DefaultFilePropertyFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FilePropertyFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.FileCollectionObservationListener;
-import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.initialization.BuildLogicBuildQueue;
 import org.gradle.api.internal.initialization.DefaultBuildLogicBuildQueue;
 import org.gradle.api.internal.model.DefaultObjectFactory;
@@ -36,7 +34,6 @@ import org.gradle.api.internal.project.taskfactory.TaskIdentityFactory;
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier;
 import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier;
 import org.gradle.api.internal.provider.PropertyFactory;
-import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
@@ -64,7 +61,6 @@ import org.gradle.internal.buildoption.DefaultFeatureFlags;
 import org.gradle.internal.buildoption.DefaultInternalOptions;
 import org.gradle.internal.buildoption.FeatureFlags;
 import org.gradle.internal.buildoption.InternalOptions;
-import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.event.ScopedListenerManager;
@@ -87,7 +83,6 @@ import org.gradle.internal.service.scopes.GradleModuleServices;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.problems.buildtree.ProblemDiagnosticsFactory;
 import org.gradle.problems.buildtree.ProblemReporter;
-import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.process.internal.ExecFactory;
 
 import java.util.List;
@@ -148,26 +143,23 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected ExecFactory createExecFactory(
+    protected ExecFactory decorateExecFactory(
+        ExecFactory execFactory,
         FileResolver fileResolver,
         FileCollectionFactory fileCollectionFactory,
         Instantiator instantiator,
         BuildCancellationToken buildCancellationToken,
-        ExecutorFactory executorFactory,
-        TemporaryFileProvider temporaryFileProvider,
         ObjectFactory objectFactory,
         JavaModuleDetector javaModuleDetector
     ) {
-        return DefaultExecActionFactory.of(
-            fileResolver,
-            fileCollectionFactory,
-            instantiator,
-            executorFactory,
-            temporaryFileProvider,
-            buildCancellationToken,
-            objectFactory,
-            javaModuleDetector
-        );
+        return execFactory.forContext()
+            .withFileResolver(fileResolver)
+            .withFileCollectionFactory(fileCollectionFactory)
+            .withInstantiator(instantiator)
+            .withBuildCancellationToken(buildCancellationToken)
+            .withObjectFactory(objectFactory)
+            .withJavaModuleDetector(javaModuleDetector)
+            .build();
     }
 
     @Provides
@@ -200,13 +192,8 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected FileCollectionFactory createFileCollectionFactory(FileCollectionFactory parent, FileResolver fileResolver, ListenerManager listenerManager) {
-        return parent.forChildScope(listenerManager.getBroadcaster(FileCollectionObservationListener.class)).withResolver(fileResolver);
-    }
-
-    @Provides
-    protected FilePropertyFactory createFilePropertyFactory(PropertyHost host, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
-        return new DefaultFilePropertyFactory(host, fileResolver, fileCollectionFactory);
+    protected FileCollectionFactory createFileCollectionFactory(FileCollectionFactory parent, ListenerManager listenerManager) {
+        return parent.forChildScope(listenerManager.getBroadcaster(FileCollectionObservationListener.class));
     }
 
     @Provides
