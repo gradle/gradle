@@ -397,21 +397,13 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         for (Configuration extended : extendsFrom) {
             ConfigurationInternal other = Objects.requireNonNull(Cast.uncheckedCast(extended));
             if (!domainObjectContext.equals(other.getDomainObjectContext())) {
-
-                String message = String.format(
-                    "Configuration '%s' in %s extends configuration '%s' in %s.",
-                    this.getName(),
+                throw new InvalidUserDataException(String.format(
+                    "%s in %s cannot extend %s from %s. Configurations can only extend from configurations in the same context.",
+                    displayName.getCapitalizedDisplayName(),
                     this.domainObjectContext.getDisplayName(),
-                    other.getName(),
+                    other.getDisplayName(),
                     other.getDomainObjectContext().getDisplayName()
-                );
-
-                DeprecationLogger.deprecateBehaviour(message)
-                    .withAdvice("Configurations can only extend from configurations in the same project.")
-                    .willBeRemovedInGradle9()
-                    .withUpgradeGuideSection(8, "extending_configurations_in_same_project")
-                    .nagUser();
-
+                ));
             }
             if (other.getHierarchy().contains(this)) {
                 throw new InvalidUserDataException(String.format(
