@@ -389,6 +389,7 @@ Class <org.gradle.api.internal.filestore.TwoStageArtifactIdentifierFileStore> is
 Class <org.gradle.api.internal.java.DefaultJavaPlatformExtension> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (DefaultJavaPlatformExtension.java:0)
 Class <org.gradle.api.internal.java.WebApplication> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (WebApplication.java:0)
 Class <org.gradle.api.internal.jvm.ClassDirectoryBinaryNamingScheme> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (ClassDirectoryBinaryNamingScheme.java:0)
+Class <org.gradle.api.internal.jvm.JavaVersionParser> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (JavaVersionParser.java:0)
 Class <org.gradle.api.internal.notations.ComponentIdentifierParserFactory$ComponentIdentifierMapNotationConverter> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (ComponentIdentifierParserFactory.java:0)
 Class <org.gradle.api.internal.notations.ComponentIdentifierParserFactory$StringNotationConverter> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (ComponentIdentifierParserFactory.java:0)
 Class <org.gradle.api.internal.notations.ComponentIdentifierParserFactory> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (ComponentIdentifierParserFactory.java:0)

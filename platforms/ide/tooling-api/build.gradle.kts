@@ -67,7 +67,7 @@ dependencies {
     testFixturesImplementation(projects.baseServicesGroovy)
     testFixturesImplementation(projects.internalTesting)
     testFixturesImplementation(projects.internalIntegTesting)
-    testFixturesImplementation(testFixtures(projects.buildProcessServices))
+    testFixturesImplementation(testFixtures(projects.buildProcessStartup))
     testFixturesImplementation(libs.commonsIo)
     testFixturesImplementation(libs.slf4jApi)
 
@@ -76,7 +76,7 @@ dependencies {
 
     crossVersionTestImplementation(projects.jvmServices)
     crossVersionTestImplementation(projects.problems)
-    crossVersionTestImplementation(testFixtures(projects.buildProcessServices))
+    crossVersionTestImplementation(testFixtures(projects.buildProcessStartup))
     crossVersionTestImplementation(testFixtures(projects.problemsApi))
     crossVersionTestImplementation(libs.jettyWebApp)
     crossVersionTestImplementation(libs.commonsIo)

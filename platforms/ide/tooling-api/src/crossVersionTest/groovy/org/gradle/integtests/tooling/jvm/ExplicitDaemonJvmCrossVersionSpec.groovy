@@ -70,7 +70,7 @@ abstract class ExplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification
         then:
         def e = thrown(GradleConnectionException)
         e.message.startsWith("Could not execute build using ")
-        e.cause.message == "Gradle ${targetDist.version.version} requires Java 8 or later to run. Your build is currently configured to use Java ${jdk.majorVersion}."
+        e.cause.message == "Gradle requires JVM 8 or later to run. Your build is currently configured to use JVM ${jdk.majorVersion}."
 
         where:
         jdk << getUnsupportedJdks()
@@ -91,7 +91,7 @@ abstract class ExplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification
         then:
         def e = thrown(GradleConnectionException)
         e.message.startsWith("Could not fetch model of type 'GradleProject' using ")
-        e.cause.message == "Gradle ${targetDist.version.version} requires Java 8 or later to run. Your build is currently configured to use Java ${jdk.majorVersion}."
+        e.cause.message == "Gradle requires JVM 8 or later to run. Your build is currently configured to use JVM ${jdk.majorVersion}."
 
         where:
         jdk << getUnsupportedJdks()
@@ -112,7 +112,7 @@ abstract class ExplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification
         then:
         def e = thrown(GradleConnectionException)
         e.message.startsWith("Could not run build action using ")
-        e.cause.message == "Gradle ${targetDist.version.version} requires Java 8 or later to run. Your build is currently configured to use Java ${jdk.majorVersion}."
+        e.cause.message == "Gradle requires JVM 8 or later to run. Your build is currently configured to use JVM ${jdk.majorVersion}."
 
         where:
         jdk << getUnsupportedJdks()
@@ -133,7 +133,7 @@ abstract class ExplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification
         then:
         def e = thrown(GradleConnectionException)
         e.message.startsWith("Could not execute tests using ")
-        e.cause.message == "Gradle ${targetDist.version.version} requires Java 8 or later to run. Your build is currently configured to use Java ${jdk.majorVersion}."
+        e.cause.message == "Gradle requires JVM 8 or later to run. Your build is currently configured to use JVM ${jdk.majorVersion}."
 
         where:
         jdk << getUnsupportedJdks()

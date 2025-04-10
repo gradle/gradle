@@ -28,7 +28,6 @@ import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.fixtures.NoDebug
 import org.gradle.testkit.runner.fixtures.NonCrossVersion
 import org.gradle.tooling.GradleConnectionException
-import org.gradle.util.GradleVersion
 import spock.lang.Issue
 
 /**
@@ -66,7 +65,7 @@ abstract class GradleRunnerExplicitDaemonJvmIntegrationTest extends BaseGradleRu
         IllegalStateException e = thrown()
         e.message.startsWith("An error occurred executing build")
         e.cause instanceof GradleConnectionException
-        e.cause.cause.message == "Gradle ${GradleVersion.current().version} requires Java 8 or later to run. Your build is currently configured to use Java ${jdk.javaVersion.majorVersion}."
+        e.cause.cause.message == "Gradle requires JVM 8 or later to run. Your build is currently configured to use JVM ${jdk.javaVersionMajor}."
 
         where:
         jdk << AvailableJavaHomes.getUnsupportedDaemonJdks()
@@ -84,7 +83,7 @@ abstract class GradleRunnerExplicitDaemonJvmIntegrationTest extends BaseGradleRu
         IllegalStateException e = thrown()
         e.message.startsWith("An error occurred executing build")
         e.cause instanceof GradleConnectionException
-        e.cause.cause.message == "Gradle ${GradleVersion.current().version} requires Java 8 or later to run. Your build is currently configured to use Java ${jdk.javaVersion.majorVersion}."
+        e.cause.cause.message == "Gradle requires JVM 8 or later to run. Your build is currently configured to use JVM ${jdk.javaVersionMajor}."
 
         where:
         jdk << AvailableJavaHomes.getUnsupportedDaemonJdks()
@@ -102,7 +101,7 @@ abstract class GradleRunnerExplicitDaemonJvmIntegrationTest extends BaseGradleRu
         IllegalStateException e = thrown()
         e.message.startsWith("An error occurred executing build")
         e.cause instanceof GradleConnectionException
-        e.cause.cause.message == "Gradle ${GradleVersion.current().version} requires Java 8 or later to run. Your build is currently configured to use Java ${jdk.javaVersion.majorVersion}."
+        e.cause.cause.message == "Gradle requires JVM 8 or later to run. Your build is currently configured to use JVM ${jdk.javaVersionMajor}."
 
         where:
         jdk << AvailableJavaHomes.getUnsupportedDaemonJdks()

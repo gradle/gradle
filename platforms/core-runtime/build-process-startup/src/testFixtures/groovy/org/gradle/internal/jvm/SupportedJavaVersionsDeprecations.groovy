@@ -36,7 +36,7 @@ class SupportedJavaVersionsDeprecations {
     }
 
     static String getExpectedDaemonDeprecationWarning(GradleVersion gradleVersion, int futureMinimumDaemonJavaVersion) {
-        int currentMajorGradleVersion = Integer.parseInt(gradleVersion.version.split("\\.")[0])
+        int currentMajorGradleVersion = gradleVersion.getMajorVersion()
 
         "Executing Gradle on JVM versions ${futureMinimumDaemonJavaVersion - 1} and lower has been deprecated. " +
             "This will fail with an error in Gradle ${currentMajorGradleVersion + 1}.0. " +

@@ -25,7 +25,6 @@ import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
-import org.gradle.util.GradleVersion
 
 /**
  * Tests that the Gradle daemon can or cannot be started with JVMs of certain versions.
@@ -50,7 +49,7 @@ class SupportedBuildJvmVersionIntegrationTest extends AbstractIntegrationSpec im
 
         expect:
         fails("help")
-        failure.assertHasErrorOutput("Gradle requires Java 8 or later to run. You are currently using Java ${jdk.javaVersion}.")
+        failure.assertHasErrorOutput("Gradle requires JVM 8 or later to run. You are currently using JVM ${jdk.javaVersionMajor}.")
 
         where:
         jdk << AvailableJavaHomes.getUnsupportedDaemonJdks()
@@ -69,7 +68,7 @@ class SupportedBuildJvmVersionIntegrationTest extends AbstractIntegrationSpec im
 
         expect:
         fails(["help"] + (noDaemon ? ["--no-daemon"] : []))
-        failure.assertHasErrorOutput("Gradle requires Java 8 or later to run. You are currently using Java ${unsupportedJdk.javaVersion}.")
+        failure.assertHasErrorOutput("Gradle requires JVM 8 or later to run. You are currently using JVM ${unsupportedJdk.javaVersionMajor}.")
 
         where:
         noDaemon << [false, true]
@@ -107,7 +106,7 @@ class SupportedBuildJvmVersionIntegrationTest extends AbstractIntegrationSpec im
         fails(["help"] + (noDaemon ? ["--no-daemon"] : []))
 
         then:
-        failure.assertHasDescription("Gradle ${GradleVersion.current().version} requires Java 8 or later to run. Your build is currently configured to use Java ${unsupportedJdk.javaVersion.majorVersion}.")
+        failure.assertHasDescription("Gradle requires JVM 8 or later to run. Your build is currently configured to use JVM ${unsupportedJdk.javaVersionMajor}.")
 
         where:
         noDaemon << [false, true]
@@ -161,7 +160,7 @@ class SupportedBuildJvmVersionIntegrationTest extends AbstractIntegrationSpec im
         fails(["help"] + (noDaemon ? ["--no-daemon"] : []))
 
         then:
-        failure.assertHasDescription("Gradle ${GradleVersion.current().version} requires Java 8 or later to run. Your build is currently configured to use Java 7.")
+        failure.assertHasDescription("Gradle requires JVM 8 or later to run. Your build is currently configured to use JVM ${oldJvm.javaVersionMajor}.")
 
         where:
         noDaemon << [false, true]

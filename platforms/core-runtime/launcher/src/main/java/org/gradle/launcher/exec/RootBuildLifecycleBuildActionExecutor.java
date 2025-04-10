@@ -47,7 +47,7 @@ public class RootBuildLifecycleBuildActionExecutor implements BuildTreeActionExe
             int currentMajorGradleVersion = VersionNumber.parse(GradleVersion.current().getVersion()).getMajor();
             DeprecationLogger.deprecateAction(String.format("Executing Gradle on JVM versions %d and lower", SupportedJavaVersions.FUTURE_MINIMUM_DAEMON_JAVA_VERSION - 1))
                 .withContext(String.format("Use JVM %d or greater to execute Gradle. Projects can continue to use older JVM versions via toolchains.", SupportedJavaVersions.FUTURE_MINIMUM_DAEMON_JAVA_VERSION))
-                .willBecomeAnErrorInGradle(currentMajorGradleVersion + 1)
+                .willBecomeAnErrorInNextMajorGradleVersion()
                 .withUpgradeGuideSection(currentMajorGradleVersion, "minimum_daemon_jvm_version")
                 .nagUser();
         }
