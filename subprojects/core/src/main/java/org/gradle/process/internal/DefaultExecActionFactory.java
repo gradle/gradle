@@ -38,6 +38,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
 import org.gradle.process.JavaExecSpec;
+import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.util.concurrent.Executor;
@@ -87,29 +88,8 @@ public class DefaultExecActionFactory implements ExecFactory {
         ExecutorFactory executorFactory,
         TemporaryFileProvider temporaryFileProvider,
         BuildCancellationToken buildCancellationToken,
-        ObjectFactory objectFactory
-    ) {
-        return DefaultExecActionFactory.of(
-            fileResolver,
-            fileCollectionFactory,
-            instantiator,
-            executorFactory,
-            temporaryFileProvider,
-            buildCancellationToken,
-            objectFactory,
-            null
-        );
-    }
-
-    public static DefaultExecActionFactory of(
-        FileResolver fileResolver,
-        FileCollectionFactory fileCollectionFactory,
-        Instantiator instantiator,
-        ExecutorFactory executorFactory,
-        TemporaryFileProvider temporaryFileProvider,
-        BuildCancellationToken buildCancellationToken,
         ObjectFactory objectFactory,
-        @Nullable JavaModuleDetector javaModuleDetector
+        JavaModuleDetectorSupplier javaModuleDetectorSupplier
     ) {
         return new DefaultExecActionFactory(
             fileResolver,
@@ -119,7 +99,7 @@ public class DefaultExecActionFactory implements ExecFactory {
             temporaryFileProvider,
             buildCancellationToken,
             objectFactory,
-            javaModuleDetector,
+            javaModuleDetectorSupplier.get(),
             null
         );
     }
@@ -342,5 +322,17 @@ public class DefaultExecActionFactory implements ExecFactory {
                 externalProcessStartedListener
             );
         }
+    }
+
+    /**
+     * A supplier of {@link JavaModuleDetector}. Used to not add dependency to jvm-services and {@link JavaModuleDetector} in daemon-server-workers.
+     */
+    @NullMarked
+    @FunctionalInterface
+    public interface JavaModuleDetectorSupplier {
+        JavaModuleDetectorSupplier NO_JAVA_MODULE_DETECTOR = () -> null;
+
+        @Nullable
+        JavaModuleDetector get();
     }
 }

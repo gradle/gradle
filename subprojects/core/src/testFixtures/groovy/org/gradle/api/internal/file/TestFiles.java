@@ -52,6 +52,7 @@ import org.gradle.internal.vfs.impl.DefaultSnapshotHierarchy;
 import org.gradle.process.internal.ClientExecHandleBuilderFactory;
 import org.gradle.process.internal.DefaultClientExecHandleBuilderFactory;
 import org.gradle.process.internal.DefaultExecActionFactory;
+import org.gradle.process.internal.DefaultExecActionFactory.JavaModuleDetectorSupplier;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.process.internal.ExecFactory;
 import org.gradle.process.internal.JavaExecHandleFactory;
@@ -242,7 +243,8 @@ public class TestFiles {
             new DefaultExecutorFactory(),
             NativeServicesTestFixture.getInstance().get(TemporaryFileProvider.class),
             new DefaultBuildCancellationToken(),
-            objectFactory()
+            objectFactory(),
+            JavaModuleDetectorSupplier.NO_JAVA_MODULE_DETECTOR
         );
     }
 

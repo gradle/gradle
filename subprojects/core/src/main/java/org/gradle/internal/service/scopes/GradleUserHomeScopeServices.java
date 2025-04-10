@@ -204,9 +204,6 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
         return new DefaultGlobalCacheLocations(globalCaches);
     }
 
-    /**
-     * It's a @PrivateService since we don't want this service to accidentally be used in child scopes with incorrect FileResolver and ObjectFactory.
-     */
     @Provides
     protected ExecFactory createExecFactory(
         FileResolver fileResolver,
@@ -215,7 +212,8 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
         BuildCancellationToken buildCancellationToken,
         ExecutorFactory executorFactory,
         TemporaryFileProvider temporaryFileProvider,
-        ObjectFactory objectFactory
+        ObjectFactory objectFactory,
+        JavaModuleDetector javaModuleDetector
     ) {
         return DefaultExecActionFactory.of(
             fileResolver,
@@ -224,7 +222,8 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
             executorFactory,
             temporaryFileProvider,
             buildCancellationToken,
-            objectFactory
+            objectFactory,
+            () -> javaModuleDetector
         );
     }
 
