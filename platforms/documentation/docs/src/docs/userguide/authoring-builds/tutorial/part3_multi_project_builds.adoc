@@ -377,6 +377,7 @@ Our build for the root project `authoring-tutorial` now includes two subprojects
 You can build `lib` independent of `app`.
 However, to build `app`, Gradle will also build `lib`.
 
+[[step_3_understand_composite_builds]]
 == Step 3. Understand Composite Builds
 A composite build is simply a build that includes other builds.
 
