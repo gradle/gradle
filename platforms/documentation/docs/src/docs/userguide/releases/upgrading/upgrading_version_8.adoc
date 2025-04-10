@@ -376,6 +376,10 @@ They will no longer be available on the classpath or be available via `localGroo
 
 - `groovy-test`
 
+==== Applying a Kotlin DSL precompiled script plugin published with Gradle < 6.0 now fails
+
+Use a version of the plugin that was published with Gradle >= 6.0.
+
 [[changes_8.14]]
 == Upgrading from 8.13 and earlier
 

@@ -34,7 +34,6 @@ Class <org.gradle.kotlin.dsl.ProjectExtensionsKt$configure$1$1> extends/implemen
 Class <org.gradle.kotlin.dsl.ProjectExtensionsKt$the$1$1> extends/implements org.gradle.internal.Factory that is Gradle Internal API in (ProjectExtensions.kt:0)
 Class <org.gradle.kotlin.dsl.SettingsScriptApi> extends/implements org.gradle.kotlin.dsl.support.delegates.SettingsDelegate that is Gradle Internal API in (SettingsScriptApi.kt:0)
 Class <org.gradle.kotlin.dsl.TaskContainerScope> extends/implements org.gradle.kotlin.dsl.support.delegates.TaskContainerDelegate that is Gradle Internal API in (TaskContainerExtensions.kt:0)
-Class <org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript> extends/implements org.gradle.kotlin.dsl.support.delegates.ProjectDelegate that is Gradle Internal API in (PrecompiledProjectScript.kt:0)
 Class <org.gradle.language.base.sources.BaseLanguageSourceSet> extends/implements org.gradle.language.base.internal.AbstractLanguageSourceSet that is Gradle Internal API in (BaseLanguageSourceSet.java:0)
 Class <org.gradle.language.scala.tasks.AbstractScalaCompile> extends/implements org.gradle.api.internal.tasks.compile.HasCompileOptions that is Gradle Internal API in (AbstractScalaCompile.java:0)
 Class <org.gradle.platform.base.binary.BaseBinarySpec> extends/implements org.gradle.api.internal.AbstractBuildableComponentSpec, org.gradle.platform.base.internal.BinarySpecInternal that are Gradle Internal API in (BaseBinarySpec.java:0)

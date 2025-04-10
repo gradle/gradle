@@ -1666,6 +1666,102 @@
             ]
         },
         {
+            "type": "org.gradle.kotlin.dsl.precompile.PrecompiledInitScript",
+            "member": "Class org.gradle.kotlin.dsl.precompile.PrecompiledInitScript",
+            "acceptation": "Remove deprecated Kotlin DSL precompiled script templates",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.precompile.PrecompiledInitScript",
+            "member": "Constructor org.gradle.kotlin.dsl.precompile.PrecompiledInitScript(org.gradle.api.invocation.Gradle)",
+            "acceptation": "Remove deprecated Kotlin DSL precompiled script templates",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.precompile.PrecompiledInitScript",
+            "member": "Method org.gradle.kotlin.dsl.precompile.PrecompiledInitScript.getFileOperations()",
+            "acceptation": "Remove deprecated Kotlin DSL precompiled script templates",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.precompile.PrecompiledInitScript",
+            "member": "Method org.gradle.kotlin.dsl.precompile.PrecompiledInitScript.getProcessOperations()",
+            "acceptation": "Remove deprecated Kotlin DSL precompiled script templates",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript",
+            "member": "Class org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript",
+            "acceptation": "Remove deprecated Kotlin DSL precompiled script templates",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript",
+            "member": "Constructor org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript(org.gradle.api.Project)",
+            "acceptation": "Remove deprecated Kotlin DSL precompiled script templates",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript",
+            "member": "Method org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript.buildscript(kotlin.jvm.functions.Function1)",
+            "acceptation": "Remove deprecated Kotlin DSL precompiled script templates",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript",
+            "member": "Method org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript.plugins(kotlin.jvm.functions.Function1)",
+            "acceptation": "Remove deprecated Kotlin DSL precompiled script templates",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.precompile.PrecompiledSettingsScript",
+            "member": "Class org.gradle.kotlin.dsl.precompile.PrecompiledSettingsScript",
+            "acceptation": "Remove deprecated Kotlin DSL precompiled script templates",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.precompile.PrecompiledSettingsScript",
+            "member": "Constructor org.gradle.kotlin.dsl.precompile.PrecompiledSettingsScript(org.gradle.api.initialization.Settings)",
+            "acceptation": "Remove deprecated Kotlin DSL precompiled script templates",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.precompile.PrecompiledSettingsScript",
+            "member": "Method org.gradle.kotlin.dsl.precompile.PrecompiledSettingsScript.getFileOperations()",
+            "acceptation": "Remove deprecated Kotlin DSL precompiled script templates",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.precompile.PrecompiledSettingsScript",
+            "member": "Method org.gradle.kotlin.dsl.precompile.PrecompiledSettingsScript.getProcessOperations()",
+            "acceptation": "Remove deprecated Kotlin DSL precompiled script templates",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
             "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.setForkOptions(org.gradle.api.tasks.scala.ScalaForkOptions)",
             "acceptation": "Remove deprecated method",
