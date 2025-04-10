@@ -1,7 +1,6 @@
 package org.gradle.kotlin.dsl.provider
 
 import org.gradle.api.Action
-import org.gradle.api.initialization.Settings
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.precompile.v1.PrecompiledInitScript
 import org.gradle.kotlin.dsl.precompile.v1.PrecompiledProjectScript
@@ -40,7 +39,7 @@ class ScriptApiTest {
 
     @Test
     fun `IDE settings script template implements script api`() =
-        assertScriptApiOf<KotlinSettingsScriptTemplate>()
+        assertScriptApiOf<KotlinSettingsScript>()
 
     @Test
     fun `IDE init script template implements script api`() =
@@ -52,28 +51,11 @@ class ScriptApiTest {
         assertScriptApiOf<KotlinBuildScript>()
 
     @Test
-    fun `legacy IDE settings script template implements script api`() =
-        @Suppress("deprecation")
-        assertScriptApiOf<KotlinSettingsScript>()
-
-    @Test
     fun `IDE build script template is backwards compatible`() {
         @Suppress("deprecation")
         assertThat(
             KotlinBuildScript::class.declaredMembers.filter { it.isPublic }.missingMembersFrom(
                 KotlinProjectScriptTemplate::class
-            ),
-            equalTo(emptyList())
-        )
-    }
-
-
-    @Test
-    fun `IDE settings script template is backwards compatible`() {
-        @Suppress("deprecation")
-        assertThat(
-            KotlinSettingsScript::class.declaredMembers.filter { it.isPublic }.missingMembersFrom(
-                KotlinSettingsScriptTemplate::class
             ),
             equalTo(emptyList())
         )
@@ -110,19 +92,6 @@ class ScriptApiTest {
     @Test
     fun `precompiled init script template implements script api`() =
         assertScriptApiOf<PrecompiledInitScript>()
-
-    @Test
-    fun `settings script template is backward compatible`() {
-        @Suppress("deprecation")
-        assertThat(
-            SettingsScriptApi::class.declaredMembers.filter { it.isPublic }.missingMembersFrom(
-                CompiledKotlinSettingsPluginManagementBlock::class
-            ).missingMembersFrom(
-                Settings::class
-            ),
-            equalTo(emptyList())
-        )
-    }
 }
 
 

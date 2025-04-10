@@ -1928,6 +1928,46 @@
             "changes": []
         },
         {
+            "type": "org.gradle.kotlin.dsl.KotlinSettingsScript",
+            "member": "Method org.gradle.kotlin.dsl.KotlinSettingsScript.apply(groovy.lang.Closure)",
+            "acceptation": "Replace Kotlin DSL settings script IDE template with K2 compatible one",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinSettingsScript",
+            "member": "Method org.gradle.kotlin.dsl.KotlinSettingsScript.apply(java.util.Map)",
+            "acceptation": "Replace Kotlin DSL settings script IDE template with K2 compatible one",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinSettingsScript",
+            "member": "Method org.gradle.kotlin.dsl.KotlinSettingsScript.getPluginManager()",
+            "acceptation": "Replace Kotlin DSL settings script IDE template with K2 compatible one",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinSettingsScript",
+            "member": "Method org.gradle.kotlin.dsl.KotlinSettingsScript.getPlugins()",
+            "acceptation": "Replace Kotlin DSL settings script IDE template with K2 compatible one",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinSettingsScript",
+            "member": "Superclass [removed]",
+            "acceptation": "Replace Kotlin DSL settings script IDE template with K2 compatible one",
+            "changes": [
+                "Superclass has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.kotlin.dsl.NamedDomainObjectContainerScope",
             "member": "Method org.gradle.kotlin.dsl.NamedDomainObjectContainerScope.invoke(java.lang.String)",
             "acceptation": "Removed deprecated method",
@@ -1955,6 +1995,246 @@
             "type": "org.gradle.kotlin.dsl.PluginDependenciesSpecExtensionsKt",
             "member": "Method org.gradle.kotlin.dsl.PluginDependenciesSpecExtensionsKt.getGradle-enterprise(org.gradle.plugin.use.PluginDependenciesSpec)",
             "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.SettingsScriptApi",
+            "member": "Class org.gradle.kotlin.dsl.SettingsScriptApi",
+            "acceptation": "Replace Kotlin DSL settings script IDE template with K2 compatible one",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.SettingsScriptApi",
+            "member": "Constructor org.gradle.kotlin.dsl.SettingsScriptApi(org.gradle.api.initialization.Settings)",
+            "acceptation": "Replace Kotlin DSL settings script IDE template with K2 compatible one",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.SettingsScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.SettingsScriptApi.buildscript(kotlin.jvm.functions.Function1)",
+            "acceptation": "Replace Kotlin DSL settings script IDE template with K2 compatible one",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.SettingsScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.SettingsScriptApi.copy(kotlin.jvm.functions.Function1)",
+            "acceptation": "Replace Kotlin DSL settings script IDE template with K2 compatible one",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.SettingsScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.SettingsScriptApi.copySpec()",
+            "acceptation": "Replace Kotlin DSL settings script IDE template with K2 compatible one",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.SettingsScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.SettingsScriptApi.copySpec(kotlin.jvm.functions.Function1)",
+            "acceptation": "Replace Kotlin DSL settings script IDE template with K2 compatible one",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.SettingsScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.SettingsScriptApi.delete(java.lang.Object[])",
+            "acceptation": "Replace Kotlin DSL settings script IDE template with K2 compatible one",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.SettingsScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.SettingsScriptApi.delete(kotlin.jvm.functions.Function1)",
+            "acceptation": "Replace Kotlin DSL settings script IDE template with K2 compatible one",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.SettingsScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.SettingsScriptApi.exec(kotlin.jvm.functions.Function1)",
+            "acceptation": "Replace Kotlin DSL settings script IDE template with K2 compatible one",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.SettingsScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.SettingsScriptApi.file(java.lang.Object)",
+            "acceptation": "Replace Kotlin DSL settings script IDE template with K2 compatible one",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.SettingsScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.SettingsScriptApi.file(java.lang.Object,org.gradle.api.PathValidation)",
+            "acceptation": "Replace Kotlin DSL settings script IDE template with K2 compatible one",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.SettingsScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.SettingsScriptApi.fileTree(java.lang.Object)",
+            "acceptation": "Replace Kotlin DSL settings script IDE template with K2 compatible one",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.SettingsScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.SettingsScriptApi.fileTree(java.lang.Object,kotlin.jvm.functions.Function1)",
+            "acceptation": "Replace Kotlin DSL settings script IDE template with K2 compatible one",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.SettingsScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.SettingsScriptApi.files(java.lang.Object,kotlin.jvm.functions.Function1)",
+            "acceptation": "Replace Kotlin DSL settings script IDE template with K2 compatible one",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.SettingsScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.SettingsScriptApi.files(java.lang.Object[])",
+            "acceptation": "Replace Kotlin DSL settings script IDE template with K2 compatible one",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.SettingsScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.SettingsScriptApi.getFileOperations()",
+            "acceptation": "Replace Kotlin DSL settings script IDE template with K2 compatible one",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.SettingsScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.SettingsScriptApi.getLogger$annotations()",
+            "acceptation": "Replace Kotlin DSL settings script IDE template with K2 compatible one",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.SettingsScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.SettingsScriptApi.getLogger()",
+            "acceptation": "Replace Kotlin DSL settings script IDE template with K2 compatible one",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.SettingsScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.SettingsScriptApi.getLogging$annotations()",
+            "acceptation": "Replace Kotlin DSL settings script IDE template with K2 compatible one",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.SettingsScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.SettingsScriptApi.getLogging()",
+            "acceptation": "Replace Kotlin DSL settings script IDE template with K2 compatible one",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.SettingsScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.SettingsScriptApi.getProcessOperations()",
+            "acceptation": "Replace Kotlin DSL settings script IDE template with K2 compatible one",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.SettingsScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.SettingsScriptApi.getResources$annotations()",
+            "acceptation": "Replace Kotlin DSL settings script IDE template with K2 compatible one",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.SettingsScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.SettingsScriptApi.getResources()",
+            "acceptation": "Replace Kotlin DSL settings script IDE template with K2 compatible one",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.SettingsScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.SettingsScriptApi.javaexec(kotlin.jvm.functions.Function1)",
+            "acceptation": "Replace Kotlin DSL settings script IDE template with K2 compatible one",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.SettingsScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.SettingsScriptApi.mkdir(java.lang.Object)",
+            "acceptation": "Replace Kotlin DSL settings script IDE template with K2 compatible one",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.SettingsScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.SettingsScriptApi.pluginManagement(kotlin.jvm.functions.Function1)",
+            "acceptation": "Replace Kotlin DSL settings script IDE template with K2 compatible one",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.SettingsScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.SettingsScriptApi.relativePath(java.lang.Object)",
+            "acceptation": "Replace Kotlin DSL settings script IDE template with K2 compatible one",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.SettingsScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.SettingsScriptApi.tarTree(java.lang.Object)",
+            "acceptation": "Replace Kotlin DSL settings script IDE template with K2 compatible one",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.SettingsScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.SettingsScriptApi.uri(java.lang.Object)",
+            "acceptation": "Replace Kotlin DSL settings script IDE template with K2 compatible one",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.SettingsScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.SettingsScriptApi.zipTree(java.lang.Object)",
+            "acceptation": "Replace Kotlin DSL settings script IDE template with K2 compatible one",
             "changes": [
                 "Method has been removed"
             ]
