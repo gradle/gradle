@@ -302,6 +302,20 @@ We encourage you to use the https://plugins.gradle.org/plugin/com.gradle.develoc
 Reference a task or other domain object by its name using the `"name"()` notation is no longer possible in Gradle 9.
 Instead of using `"name"()` to reference a task or domain object, use `named("name")` or one of the other supported notations.
 
+==== Eager artifact configuration accessors have been removed from Kotlin DSL
+
+In Gradle 5.0 the type of artifact configuration accessors changed from `Configuration` to `NamedDomainObjectProvider<Configuration>`.
+The Kotlin DSL added specialized extension methods for `NamedDomainObjectProvider<Configuration>` to stay compatible with plugins compiled with the old, non-lazy form.
+
+For example:
+```
+configurations.compileClasspath.files // equivalent to configurations.compileClasspath.get().files
+configurations.compileClasspath.singleFile // equivalent to configurations.compileClasspath.get().singleFile
+```
+
+Gradle 8.0 then removed all of these extensions from the API, but the methods were still available for plugins compiled against older versions of Gradle.
+Gradle 9.0 finishes up their complete removal.
+
 [[changes_8.14]]
 == Upgrading from 8.13 and earlier
 
