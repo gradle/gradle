@@ -89,6 +89,28 @@ public class DefaultExecActionFactory implements ExecFactory {
         BuildCancellationToken buildCancellationToken,
         ObjectFactory objectFactory
     ) {
+        return DefaultExecActionFactory.of(
+            fileResolver,
+            fileCollectionFactory,
+            instantiator,
+            executorFactory,
+            temporaryFileProvider,
+            buildCancellationToken,
+            objectFactory,
+            null
+        );
+    }
+
+    public static DefaultExecActionFactory of(
+        FileResolver fileResolver,
+        FileCollectionFactory fileCollectionFactory,
+        Instantiator instantiator,
+        ExecutorFactory executorFactory,
+        TemporaryFileProvider temporaryFileProvider,
+        BuildCancellationToken buildCancellationToken,
+        ObjectFactory objectFactory,
+        @Nullable JavaModuleDetector javaModuleDetector
+    ) {
         return new DefaultExecActionFactory(
             fileResolver,
             fileCollectionFactory,
@@ -97,7 +119,7 @@ public class DefaultExecActionFactory implements ExecFactory {
             temporaryFileProvider,
             buildCancellationToken,
             objectFactory,
-            null,
+            javaModuleDetector,
             null
         );
     }

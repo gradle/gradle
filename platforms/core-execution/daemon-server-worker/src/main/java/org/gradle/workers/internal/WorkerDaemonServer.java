@@ -53,6 +53,7 @@ import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.CloseableServiceRegistry;
+import org.gradle.internal.service.PrivateService;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
@@ -224,6 +225,7 @@ public class WorkerDaemonServer implements RequestHandler<TransportableActionExe
         }
 
         @Provides
+        @PrivateService
         ExecFactory createExecFactory(
             FileResolver fileResolver,
             FileCollectionFactory fileCollectionFactory,

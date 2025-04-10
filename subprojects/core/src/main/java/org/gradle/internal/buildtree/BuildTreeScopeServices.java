@@ -25,6 +25,7 @@ import org.gradle.api.internal.file.FilePropertyFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.FileCollectionObservationListener;
+import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.initialization.BuildLogicBuildQueue;
 import org.gradle.api.internal.initialization.DefaultBuildLogicBuildQueue;
 import org.gradle.api.internal.model.DefaultObjectFactory;
@@ -63,6 +64,7 @@ import org.gradle.internal.buildoption.DefaultFeatureFlags;
 import org.gradle.internal.buildoption.DefaultInternalOptions;
 import org.gradle.internal.buildoption.FeatureFlags;
 import org.gradle.internal.buildoption.InternalOptions;
+import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.event.ScopedListenerManager;
@@ -85,6 +87,7 @@ import org.gradle.internal.service.scopes.GradleModuleServices;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.problems.buildtree.ProblemDiagnosticsFactory;
 import org.gradle.problems.buildtree.ProblemReporter;
+import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.process.internal.ExecFactory;
 
 import java.util.List;
@@ -145,23 +148,26 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected ExecFactory decorateExecFactory(
-        ExecFactory execFactory,
+    protected ExecFactory createExecFactory(
         FileResolver fileResolver,
         FileCollectionFactory fileCollectionFactory,
         Instantiator instantiator,
         BuildCancellationToken buildCancellationToken,
+        ExecutorFactory executorFactory,
+        TemporaryFileProvider temporaryFileProvider,
         ObjectFactory objectFactory,
         JavaModuleDetector javaModuleDetector
     ) {
-        return execFactory.forContext()
-            .withFileResolver(fileResolver)
-            .withFileCollectionFactory(fileCollectionFactory)
-            .withInstantiator(instantiator)
-            .withBuildCancellationToken(buildCancellationToken)
-            .withObjectFactory(objectFactory)
-            .withJavaModuleDetector(javaModuleDetector)
-            .build();
+        return DefaultExecActionFactory.of(
+            fileResolver,
+            fileCollectionFactory,
+            instantiator,
+            executorFactory,
+            temporaryFileProvider,
+            buildCancellationToken,
+            objectFactory,
+            javaModuleDetector
+        );
     }
 
     @Provides

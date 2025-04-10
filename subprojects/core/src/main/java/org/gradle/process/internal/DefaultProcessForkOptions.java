@@ -48,7 +48,7 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
     private Map<String, Object> environment;
 
     /**
-     * Don't use it! Kept for KGP binary compatibility for version <= 2.1.20.
+     * Don't use it! Kept for KGP binary compatibility for version lower than 2.1.20.
      * See: <a href="https://github.com/JetBrains/kotlin/blob/658a2010b15a22583f9841e1a2d4bddf1baac612/libraries/tools/kotlin-gradle-plugin/src/common/kotlin/org/jetbrains/kotlin/gradle/targets/js/testing/KotlinJsTest.kt#L158">KotlinJsTest.kt#L158</a>.
      *
      * We can remove it once we stop supporting that version.
