@@ -15,6 +15,7 @@
  */
 
 import com.google.gson.Gson
+import com.google.gson.Strictness
 import com.google.gson.reflect.TypeToken
 import com.google.gson.stream.JsonReader
 import gradlebuild.basics.isBundleGroovy4
@@ -103,7 +104,7 @@ fun readCapabilitiesFromJson() {
 
 fun readCapabilities(source: File): List<CapabilitySpec> {
     JsonReader(source.reader(Charsets.UTF_8)).use { reader ->
-        reader.isLenient = true
+        reader.strictness = Strictness.LENIENT
         return Gson().fromJson(reader)
     }
 }
