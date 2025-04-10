@@ -3961,7 +3961,6 @@ Class <org.gradle.plugins.ear.descriptor.internal.DefaultDeploymentDescriptor> i
 Class <org.gradle.plugins.ear.descriptor.internal.DefaultEarModule> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (DefaultEarModule.java:0)
 Class <org.gradle.plugins.ear.descriptor.internal.DefaultEarSecurityRole> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (DefaultEarSecurityRole.java:0)
 Class <org.gradle.plugins.ear.descriptor.internal.DefaultEarWebModule> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (DefaultEarWebModule.java:0)
-Class <org.gradle.plugins.ear.internal.DefaultEarPluginConvention> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (DefaultEarPluginConvention.java:0)
 Class <org.gradle.plugins.ide.eclipse.internal.AfterEvaluateHelper> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (AfterEvaluateHelper.java:0)
 Class <org.gradle.plugins.ide.eclipse.internal.EclipsePluginConstants> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (EclipsePluginConstants.java:0)
 Class <org.gradle.plugins.ide.eclipse.internal.EclipseProjectMetadata> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (EclipseProjectMetadata.java:0)

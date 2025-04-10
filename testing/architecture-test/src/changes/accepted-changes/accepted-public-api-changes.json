@@ -1530,6 +1530,118 @@
             ]
         },
         {
+            "type": "org.gradle.plugins.ear.EarPluginConvention",
+            "member": "Class org.gradle.plugins.ear.EarPluginConvention",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ear.EarPluginConvention",
+            "member": "Constructor org.gradle.plugins.ear.EarPluginConvention()",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ear.EarPluginConvention",
+            "member": "Method org.gradle.plugins.ear.EarPluginConvention.appDirName(java.lang.String)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ear.EarPluginConvention",
+            "member": "Method org.gradle.plugins.ear.EarPluginConvention.deploymentDescriptor(groovy.lang.Closure)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ear.EarPluginConvention",
+            "member": "Method org.gradle.plugins.ear.EarPluginConvention.deploymentDescriptor(groovy.lang.Closure)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ear.EarPluginConvention",
+            "member": "Method org.gradle.plugins.ear.EarPluginConvention.deploymentDescriptor(org.gradle.api.Action)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ear.EarPluginConvention",
+            "member": "Method org.gradle.plugins.ear.EarPluginConvention.getAppDirName()",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ear.EarPluginConvention",
+            "member": "Method org.gradle.plugins.ear.EarPluginConvention.getDeploymentDescriptor()",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ear.EarPluginConvention",
+            "member": "Method org.gradle.plugins.ear.EarPluginConvention.getGenerateDeploymentDescriptor()",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ear.EarPluginConvention",
+            "member": "Method org.gradle.plugins.ear.EarPluginConvention.getLibDirName()",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ear.EarPluginConvention",
+            "member": "Method org.gradle.plugins.ear.EarPluginConvention.libDirName(java.lang.String)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ear.EarPluginConvention",
+            "member": "Method org.gradle.plugins.ear.EarPluginConvention.setAppDirName(java.lang.String)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ear.EarPluginConvention",
+            "member": "Method org.gradle.plugins.ear.EarPluginConvention.setDeploymentDescriptor(org.gradle.plugins.ear.descriptor.DeploymentDescriptor)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ear.EarPluginConvention",
+            "member": "Method org.gradle.plugins.ear.EarPluginConvention.setLibDirName(java.lang.String)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.util.DistributionLocator",
             "member": "Class org.gradle.util.DistributionLocator",
             "acceptation": "Deprecated in 8.x",

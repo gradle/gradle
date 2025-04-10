@@ -27,7 +27,6 @@ org.gradle.nativeplatform.tasks.InstallExecutable
 org.gradle.nativeplatform.tasks.LinkExecutable
 org.gradle.nativeplatform.tasks.LinkSharedLibrary
 org.gradle.plugins.ear.Ear
-org.gradle.plugins.ear.EarPluginConvention
 org.gradle.plugins.ide.api.FileContentMerger
 org.gradle.plugins.ide.eclipse.EclipsePlugin
 org.gradle.plugins.ide.eclipse.EclipseWtpPlugin
