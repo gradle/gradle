@@ -40,11 +40,6 @@ class TestBuildCacheKey implements BuildCacheKeyInternal {
     }
 
     @Override
-    String getDisplayName() {
-        return getHashCode()
-    }
-
-    @Override
     HashCode getHashCodeInternal() {
         return hashCode
     }
