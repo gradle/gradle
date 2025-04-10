@@ -20,7 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFile;
-import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.file.copy.CopyActionExecuter;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.model.ReplacedBy;
@@ -49,7 +48,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     // Groovy will try to set the private fields if given the opportunity.
     // This makes it much more difficult for this to happen accidentally.
     private final DirectoryProperty archiveDestinationDirectory;
-    private final RegularFileProperty archiveFile;
+    private final Provider<RegularFile> archiveFile;
     private final Property<String> archiveName;
     private final Property<String> archiveBaseName;
     private final Property<String> archiveAppendix;
@@ -82,8 +81,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
             return name;
         }));
 
-        archiveFile = objectFactory.fileProperty();
-        archiveFile.convention(archiveDestinationDirectory.file(archiveName));
+        archiveFile = archiveDestinationDirectory.file(archiveName);
 
         archivePreserveFileTimestamps = objectFactory.property(Boolean.class).convention(true);
         archiveReproducibleFileOrder = objectFactory.property(Boolean.class).convention(false);
