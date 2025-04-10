@@ -46,17 +46,19 @@ import java.util.Set;
 import static org.gradle.util.internal.ConfigureUtil.configureUsing;
 
 public abstract class AbstractModuleDependency implements ModuleDependency {
+
     private final static Logger LOG = Logging.getLogger(AbstractModuleDependency.class);
 
+    // TODO: Require these to be provided upon construction
     private AttributesFactory attributesFactory;
     private NotationParser<Object, Capability> capabilityNotationParser;
     private ObjectFactory objectFactory;
+
     private DefaultExcludeRuleContainer excludeRuleContainer = new DefaultExcludeRuleContainer();
     private Set<DependencyArtifact> artifacts = new LinkedHashSet<>();
     private ImmutableActionSet<ModuleDependency> onMutate = ImmutableActionSet.empty();
     private @Nullable AttributeContainerInternal attributes;
     private @Nullable ModuleDependencyCapabilitiesInternal moduleDependencyCapabilities;
-
     private @Nullable String configuration;
     private @Nullable String reason;
     private boolean transitive = true;
@@ -85,9 +87,8 @@ public abstract class AbstractModuleDependency implements ModuleDependency {
         return this;
     }
 
-    @Nullable
     @Override
-    public String getTargetConfiguration() {
+    public @Nullable String getTargetConfiguration() {
         return configuration;
     }
 
@@ -136,7 +137,7 @@ public abstract class AbstractModuleDependency implements ModuleDependency {
     }
 
     @Override
-    public DependencyArtifact artifact(Closure configureClosure) {
+    public DependencyArtifact artifact(@SuppressWarnings("rawtypes") Closure configureClosure) {
         return artifact(configureUsing(configureClosure));
     }
 
@@ -181,47 +182,15 @@ public abstract class AbstractModuleDependency implements ModuleDependency {
         }
     }
 
-    protected boolean isKeyEquals(ModuleDependency dependencyRhs) {
-        if (getGroup() != null ? !getGroup().equals(dependencyRhs.getGroup()) : dependencyRhs.getGroup() != null) {
-            return false;
-        }
-        if (!getName().equals(dependencyRhs.getName())) {
-            return false;
-        }
-        if (getTargetConfiguration() != null ? !getTargetConfiguration().equals(dependencyRhs.getTargetConfiguration())
-            : dependencyRhs.getTargetConfiguration()!=null) {
-            return false;
-        }
-        if (getVersion() != null ? !getVersion().equals(dependencyRhs.getVersion())
-                : dependencyRhs.getVersion() != null) {
-            return false;
-        }
-        return true;
-    }
-
     protected boolean isCommonContentEquals(ModuleDependency dependencyRhs) {
-        if (!isKeyEquals(dependencyRhs)) {
-            return false;
-        }
-        if (isTransitive() != dependencyRhs.isTransitive()) {
-            return false;
-        }
-        if (isEndorsingStrictVersions() != dependencyRhs.isEndorsingStrictVersions()) {
-            return false;
-        }
-        if (!Objects.equal(getArtifacts(), dependencyRhs.getArtifacts())) {
-            return false;
-        }
-        if (!Objects.equal(getExcludeRules(), dependencyRhs.getExcludeRules())) {
-            return false;
-        }
-        if (!Objects.equal(getAttributes(), dependencyRhs.getAttributes())) {
-            return false;
-        }
-        if (!Objects.equal(getCapabilitySelectors(), dependencyRhs.getCapabilitySelectors())) {
-            return false;
-        }
-        return true;
+        return Objects.equal(getTargetConfiguration(), dependencyRhs.getTargetConfiguration()) &&
+            isTransitive() == dependencyRhs.isTransitive() &&
+            isEndorsingStrictVersions() == dependencyRhs.isEndorsingStrictVersions() &&
+            Objects.equal(getReason(), dependencyRhs.getReason()) &&
+            Objects.equal(getArtifacts(), dependencyRhs.getArtifacts()) &&
+            Objects.equal(getExcludeRules(), dependencyRhs.getExcludeRules()) &&
+            getAttributes().equals(dependencyRhs.getAttributes()) &&
+            getCapabilitySelectors().equals(dependencyRhs.getCapabilitySelectors());
     }
 
     @Override

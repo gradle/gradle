@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.dependencies;
 
-import com.google.common.base.Objects;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
@@ -37,14 +36,12 @@ import org.jspecify.annotations.Nullable;
 import java.util.List;
 
 public abstract class AbstractExternalModuleDependency extends AbstractModuleDependency implements ExternalModuleDependency {
+
     private final ModuleIdentifier moduleIdentifier;
     private boolean changing;
-    private final DefaultMutableVersionConstraint versionConstraint;
+    private final MutableVersionConstraint versionConstraint;
 
     public AbstractExternalModuleDependency(ModuleIdentifier module, String version, @Nullable String configuration) {
-        if (module == null) {
-            throw new InvalidUserDataException("Module must not be null!");
-        }
         this.moduleIdentifier = module;
         this.versionConstraint = new DefaultMutableVersionConstraint(version);
         if (configuration != null) {
@@ -53,11 +50,8 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
     }
 
     public AbstractExternalModuleDependency(ModuleIdentifier module, MutableVersionConstraint version, @Nullable String configuration) {
-        if (module == null) {
-            throw new InvalidUserDataException("Module must not be null!");
-        }
         this.moduleIdentifier = module;
-        this.versionConstraint = (DefaultMutableVersionConstraint) version;
+        this.versionConstraint = version;
         if (configuration != null) {
             setTargetConfiguration(configuration);
         }
@@ -68,21 +62,13 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
         target.setChanging(isChanging());
     }
 
-    protected boolean isContentEqualsFor(ExternalModuleDependency dependencyRhs) {
-        if (!isCommonContentEquals(dependencyRhs)) {
-            return false;
-        }
-        return changing == dependencyRhs.isChanging() &&
-                Objects.equal(getVersionConstraint(), dependencyRhs.getVersionConstraint());
-    }
-
     @Override
     public boolean matchesStrictly(ModuleVersionIdentifier identifier) {
         return new ModuleVersionSelectorStrictSpec(this).isSatisfiedBy(identifier);
     }
 
     @Override
-    public String getGroup() {
+    public @Nullable String getGroup() {
         return moduleIdentifier.getGroup();
     }
 
@@ -92,8 +78,10 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
     }
 
     @Override
-    public String getVersion() {
-        return Strings.emptyToNull(versionConstraint.getVersion());
+    public @Nullable String getVersion() {
+        String requiredVersion = versionConstraint.getRequiredVersion();
+        String version = requiredVersion.isEmpty() ? versionConstraint.getPreferredVersion() : requiredVersion;
+        return Strings.emptyToNull(version);
     }
 
     @Override
@@ -171,7 +159,11 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
         }
 
         AbstractExternalModuleDependency that = (AbstractExternalModuleDependency) o;
-        return isContentEqualsFor(that);
+
+        return moduleIdentifier.equals(that.moduleIdentifier) &&
+            versionConstraint.equals(that.versionConstraint) &&
+            changing == that.changing &&
+            isCommonContentEquals(that);
     }
 
     @Override
