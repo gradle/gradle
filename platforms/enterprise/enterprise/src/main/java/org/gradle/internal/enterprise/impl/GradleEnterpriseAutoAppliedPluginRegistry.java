@@ -47,14 +47,14 @@ public class GradleEnterpriseAutoAppliedPluginRegistry implements AutoAppliedPlu
 
     @Override
     public PluginRequests getAutoAppliedPlugins(Settings target) {
-        if (((StartParameterInternal) target.getStartParameter()).isUseEmptySettings() || !shouldApplyGradleEnterprisePlugin(target)) {
+        if (((StartParameterInternal) target.getStartParameter()).isUseEmptySettings() || !shouldApplyDevelocityPlugin(target)) {
             return PluginRequests.EMPTY;
         } else {
             return PluginRequests.of(createDevelocityPluginRequest());
         }
     }
 
-    private static boolean shouldApplyGradleEnterprisePlugin(Settings settings) {
+    private static boolean shouldApplyDevelocityPlugin(Settings settings) {
         Gradle gradle = settings.getGradle();
         StartParameter startParameter = gradle.getStartParameter();
         return startParameter.isBuildScan() && gradle.getParent() == null;

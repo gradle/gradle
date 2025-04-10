@@ -35,7 +35,7 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
     enum CI {
         TEAM_CITY(
             AbstractSmokeTest.TestedVersions.teamCityGradlePluginRef,
-            "https://raw.githubusercontent.com/etiennestuder/teamcity-build-scan-plugin/%s/agent/src/main/resources/build-scan-init.gradle"
+            "https://raw.githubusercontent.com/etiennestuder/teamcity-build-scan-plugin/%s/agent/src/main/resources/init-scripts/develocity-injection.init.gradle"
         ),
         JENKINS(
             AbstractSmokeTest.TestedVersions.jenkinsGradlePluginRef,
@@ -148,7 +148,8 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         "3.18.2",
         "3.19",
         "3.19.1",
-        "3.19.2"
+        "3.19.2",
+        "4.0"
     ]
 
     // Current injection scripts support Develocity plugin 3.6.4 and above
@@ -361,20 +362,12 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         file(initScript) << getCiInjectionScriptContent(ci)
 
         // URL is not relevant as long as it's valid due to the `-Dscan.dump` parameter
-        if (ci == CI.TEAM_CITY) { // TeamCity does not support the new style yet
-            file("gradle.properties") << """
-                systemProp.teamCityBuildScanPlugin.gradle-enterprise.plugin.version=$pluginVersion
-                systemProp.teamCityBuildScanPlugin.init-script.name=$initScript
-                systemProp.teamCityBuildScanPlugin.gradle-enterprise.url=http://localhost:5086
-            """.stripIndent()
-        } else {
-            file("gradle.properties") << """
-                systemProp.develocity.plugin.version=$pluginVersion
-                systemProp.develocity.injection.init-script-name=$initScript
-                systemProp.develocity.url=http://localhost:5086
-                systemProp.develocity.injection-enabled=true
-            """.stripIndent()
-        }
+        file("gradle.properties") << """
+            systemProp.develocity.plugin.version=$pluginVersion
+            systemProp.develocity.injection.init-script-name=$initScript
+            systemProp.develocity.url=http://localhost:5086
+            systemProp.develocity.injection-enabled=true
+        """.stripIndent()
 
         setupLocalBuildCache()
         setupJavaProject()
