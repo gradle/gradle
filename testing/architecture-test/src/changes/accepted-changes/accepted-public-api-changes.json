@@ -1019,7 +1019,7 @@
         {
             "type": "org.gradle.jvm.application.tasks.CreateStartScripts",
             "member": "Method org.gradle.jvm.application.tasks.CreateStartScripts.getMainClassName()",
-            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
+            "acceptation": "Removed deprecated method",
             "changes": [
                 "Method has been removed"
             ]
@@ -1027,7 +1027,7 @@
         {
             "type": "org.gradle.jvm.application.tasks.CreateStartScripts",
             "member": "Method org.gradle.jvm.application.tasks.CreateStartScripts.setMainClassName(java.lang.String)",
-            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
+            "acceptation": "Removed deprecated method",
             "changes": [
                 "Method has been removed"
             ]
@@ -1250,6 +1250,14 @@
             ]
         },
         {
+            "type": "org.gradle.kotlin.dsl.NamedDomainObjectContainerScope",
+            "member": "Method org.gradle.kotlin.dsl.NamedDomainObjectContainerScope.invoke(java.lang.String)",
+            "acceptation": "Removed deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.kotlin.dsl.PluginDependenciesSpecExtensionsKt",
             "member": "Class org.gradle.kotlin.dsl.PluginDependenciesSpecExtensionsKt",
             "acceptation": "Remove deprecated API",
@@ -1269,6 +1277,14 @@
             "type": "org.gradle.kotlin.dsl.PluginDependenciesSpecExtensionsKt",
             "member": "Method org.gradle.kotlin.dsl.PluginDependenciesSpecExtensionsKt.getGradle-enterprise(org.gradle.plugin.use.PluginDependenciesSpec)",
             "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.TaskContainerScope",
+            "member": "Method org.gradle.kotlin.dsl.TaskContainerScope.invoke(java.lang.String)",
+            "acceptation": "Removed deprecated method",
             "changes": [
                 "Method has been removed"
             ]

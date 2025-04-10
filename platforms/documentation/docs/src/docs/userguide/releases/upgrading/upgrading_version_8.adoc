@@ -296,6 +296,11 @@ plugins {
 
 We encourage you to use the https://plugins.gradle.org/plugin/com.gradle.develocity[latest released Develocity plugin version], even when using an older Gradle version.
 
+==== Referencing tasks and domain objects by `"name"()` is no longer supported in Kotlin DSL
+
+Reference a task or other domain object by its name using the `"name"()` notation is no longer possible in Gradle 9.
+Instead of using `"name"()` to reference a task or domain object, use `named("name")` or one of the other supported notations.
+
 [[changes_8.14]]
 == Upgrading from 8.13 and earlier
 
