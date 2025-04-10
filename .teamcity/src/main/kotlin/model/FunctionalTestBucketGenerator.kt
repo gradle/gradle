@@ -1,8 +1,8 @@
 package model
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
+import com.google.gson.reflect.TypeToken
 import common.Arch
 import common.Os
 import common.VersionedSettingsBranch
@@ -35,17 +35,9 @@ fun main() {
 }
 
 class TestClassTime(
-    val testClassAndSourceSet: TestClassAndSourceSet,
+    val sourceSet: String,
     val buildTimeMs: Int,
-) {
-    constructor(jsonObject: Map<String, Any>) : this(
-        TestClassAndSourceSet(
-            jsonObject["testClass"] as String,
-            jsonObject["sourceSet"] as String,
-        ),
-        (jsonObject["buildTimeMs"] as Number).toInt(),
-    )
-}
+)
 
 data class TestCoverageAndBucketSplits(
     val testCoverageUuid: Int,
@@ -86,7 +78,7 @@ class FunctionalTestBucketGenerator(
     private val model: CIBuildModel,
     testTimeDataJson: File,
 ) {
-    private val objectMapper = ObjectMapper().registerKotlinModule()
+    private val gson: Gson = GsonBuilder().setPrettyPrinting().create()
     private val buckets: Map<TestCoverage, List<SmallSubprojectBucket>> = buildBuckets(testTimeDataJson, model)
 
     fun generate(jsonFile: File) {
@@ -94,20 +86,15 @@ class FunctionalTestBucketGenerator(
             buckets.map {
                 TestCoverageAndBucketSplits(it.key.uuid, it.value.map { it.toJsonBucket() })
             }
-        jsonFile.writeText(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(output))
+        jsonFile.writeText(gson.toJson(output))
     }
 
     private fun buildBuckets(
         buildClassTimeJson: File,
         model: CIBuildModel,
     ): Map<TestCoverage, List<SmallSubprojectBucket>> {
-        val jsonObj: Map<String, Map<String, List<Map<String, Any>>>> = objectMapper.readValue(buildClassTimeJson.readText())
-        val buildProjectClassTimes: BuildProjectToSubprojectTestClassTimes =
-            jsonObj.mapValues { (_, subprojectMap) ->
-                subprojectMap.mapValues { (_, testClassTimes) ->
-                    testClassTimes.map { TestClassTime(it) }
-                }
-            }
+        val sType = object : TypeToken<BuildProjectToSubprojectTestClassTimes>() {}.type
+        val buildProjectClassTimes = gson.fromJson<BuildProjectToSubprojectTestClassTimes>(buildClassTimeJson.readText(), sType)
 
         val result = mutableMapOf<TestCoverage, List<SmallSubprojectBucket>>()
         for (stage in model.stages) {
@@ -147,9 +134,8 @@ class FunctionalTestBucketGenerator(
                 .map {
                     SubprojectTestClassTime(
                         model.subprojects.getSubprojectByName(it.key)!!,
-                        it.value.filter {
-                            it.testClassAndSourceSet.sourceSet !=
-                                "test"
+                        it.value.filter { tct ->
+                            tct.sourceSet != "test"
                         },
                     )
                 }.sortedBy { -it.totalTime }

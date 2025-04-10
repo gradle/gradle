@@ -199,11 +199,6 @@ class GradleVersionRangeCrossVersionTestBucket(
     }
 }
 
-data class TestClassAndSourceSet(
-    val testClass: String,
-    val sourceSet: String,
-)
-
 data class SmallSubprojectBucket(
     val subprojects: List<GradleSubproject>,
     val parallelizationMethod: ParallelizationMethod,
