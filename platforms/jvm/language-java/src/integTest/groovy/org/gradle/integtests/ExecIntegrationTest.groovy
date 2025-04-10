@@ -910,31 +910,35 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         "javaexec" | { File serverInfoFile -> javaExecSpecWithHttpServer(serverInfoFile) }
     }
 
-    @UnsupportedWithConfigurationCache(because = "Running external process at configuration time")
-    def "execOperations.#method in #location resolves relative path correctly"() {
+    def "execOperations.#method in build.gradle resolves relative path correctly"() {
         settingsFile << "include 'a'"
-        testDirectory.file("a").mkdirs()
-        testDirectory.file("$subfolder/build/test/folder").mkdirs()
-        file("$subfolder/$location") << """
-            def execOperations = services.get(ExecOperations)
-            execOperations.${method} {
-                $configuration
-                it.workingDir = new File("build/test/folder")
+        testDirectory.file("a/build/test/folder").mkdirs()
+        file("a/build.gradle") << """
+            interface ExecOperationsProvider {
+                @Inject
+                abstract ExecOperations getExec()
+            }
+            tasks.register("run") {
+                def execOperations = project.objects.newInstance(ExecOperationsProvider).getExec()
+                doLast {
+                    execOperations.${method} {
+                        $configuration
+                        workingDir = new File("build/test/folder")
+                    }
+                }
             }
         """
 
         when:
-        succeeds("help")
+        succeeds("run")
 
         then:
-        outputContains("user.dir=${testDirectory.file("$subfolder/build/test/folder").absolutePath}")
+        outputContains("user.dir=${testDirectory.file("a/build/test/folder").absolutePath}")
 
         where:
-        location          | method     | configuration                    | subfolder
-        "build.gradle"    | "exec"     | execSpecWithJavaExecutable()     | "a"
-        "build.gradle"    | "javaexec" | javaExecSpec()                   | "a"
-        "settings.gradle" | "exec"     | execSpecWithJavaExecutable("it") | "."
-        "settings.gradle" | "javaexec" | javaExecSpec("it")               | "."
+        method     | configuration
+        "exec"     | execSpecWithJavaExecutable()
+        "javaexec" | javaExecSpec()
     }
 
     def "providers.#method in a non-root build.gradle resolves relative path correctly"() {
