@@ -41,6 +41,7 @@ import static org.gradle.api.internal.cache.CacheConfigurationsInternal.DEFAULT_
 import static org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry.REUSE_USER_HOME_SERVICES
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 import static org.hamcrest.Matchers.containsString
+import static org.hamcrest.Matchers.matchesPattern
 
 class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyResolutionTest implements FileAccessTimeJournalFixture, ValidationMessageChecker, GradleUserHomeCleanupFixture {
     static final int HALF_DEFAULT_MAX_AGE_IN_DAYS = Math.max(1, DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES / 2 as int)
@@ -1357,9 +1358,11 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
         when:
         def outputDir = immutableOutputDir("lib1.jar", "0/lib1-green.jar")
-        def workspaceDir = outputDir.parentFile
         outputDir.file("tamper-tamper.txt").text = "Making a mess"
-        executer.expectDeprecationWarningWithMultilinePattern("""The contents of the immutable workspace '.*' have been modified. This behavior has been deprecated. This will fail with an error in Gradle 9.0. These workspace directories are not supposed to be modified once they are created. The modification might have been caused by an external process, or could be the result of disk corruption. The inconsistent workspace will be moved to '.*', and will be recreated.
+        fails "util:resolve"
+
+        then:
+        failure.assertThatCause(matchesPattern("""(?s)The contents of the immutable workspace '.*' have been modified\\. These workspace directories are not supposed to be modified once they are created\\. The modification might have been caused by an external process, or could be the result of disk corruption\\.
 outputDirectory:
  - transformed \\(Directory, [0-9a-f]+\\)
    - 0 \\(Directory, [0-9a-f]+\\)
@@ -1367,11 +1370,7 @@ outputDirectory:
    - tamper-tamper.txt \\(RegularFile, [0-9a-f]+\\)
 
 resultsFile:
- - results.bin \\(RegularFile, [0-9a-f]+\\)""")
-        run "util:resolve"
-
-        then:
-        output.count("Transformed") == 1
+ - results.bin \\(RegularFile, [0-9a-f]+\\).*"""))
     }
 
     def "long transformation chain works"() {
