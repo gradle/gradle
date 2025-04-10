@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,53 +16,51 @@
 
 package org.gradle.kotlin.dsl
 
+import org.gradle.api.Incubating
 import org.gradle.api.Project
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver
+import org.gradle.kotlin.dsl.support.DefaultKotlinScript
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
+import org.gradle.kotlin.dsl.support.defaultKotlinScriptHostForProject
 import org.gradle.kotlin.dsl.support.internalError
 import org.gradle.kotlin.dsl.support.invalidPluginsCall
 import org.gradle.plugin.use.PluginDependenciesSpec
-import kotlin.script.extensions.SamWithReceiverAnnotations
-import kotlin.script.templates.ScriptTemplateAdditionalCompilerArguments
+import kotlin.script.experimental.annotations.KotlinScript
+import kotlin.script.experimental.api.baseClass
+import kotlin.script.experimental.api.filePathPattern
+import kotlin.script.experimental.api.implicitReceivers
 import kotlin.script.templates.ScriptTemplateDefinition
 
 
+class KotlinBuildScriptTemplateCompilationConfiguration : KotlinDslStandaloneScriptCompilationConfiguration({
+    filePathPattern.put(".+(?<!(^|\\.)(init|settings))\\.gradle\\.kts")
+    baseClass(KotlinBuildScript::class)
+    implicitReceivers(Project::class)
+})
+
+
 /**
- * Legacy base class for Gradle Kotlin DSL standalone [Project] scripts IDE support, aka. build scripts.
+ * Base class for Gradle Kotlin DSL standalone [Project] scripts IDE support, aka. build scripts.
  *
- * @see KotlinProjectScriptTemplate
+ * @since 8.1
  */
+@Incubating
+@KotlinScript(
+    compilationConfiguration = KotlinBuildScriptTemplateCompilationConfiguration::class
+)
 @ScriptTemplateDefinition(
     resolver = KotlinBuildScriptDependenciesResolver::class,
-    scriptFilePattern = ".+(?<!(^|\\.)(init|settings))\\.gradle\\.kts",
 )
-@ScriptTemplateAdditionalCompilerArguments(
-    [
-        "-language-version", "2.1",
-        "-api-version", "2.1",
-        "-Xjvm-default=all",
-        "-Xjsr305=strict",
-        "-Xjspecify-annotations=strict",
-        "-Xskip-prerelease-check",
-        "-Xallow-unstable-dependencies",
-        "-P=plugin:org.jetbrains.kotlin.assignment:annotation=org.gradle.api.SupportsKotlinAssignmentOverloading",
-    ]
-)
-@SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
 @GradleDsl
-@Deprecated("Will be removed in Gradle 9.0")
 abstract class KotlinBuildScript(
     private val host: KotlinScriptHost<Project>
-) : @Suppress("DEPRECATION") org.gradle.kotlin.dsl.support.delegates.ProjectDelegate() {
-
-    override val delegate: Project
-        get() = host.target
+) : DefaultKotlinScript(defaultKotlinScriptHostForProject(host.target)) {
 
     /**
      * The [ScriptHandler] for this script.
      */
-    override fun getBuildscript(): ScriptHandler =
+    fun getBuildscript(): ScriptHandler =
         host.scriptHandler
 
     /**

@@ -25,7 +25,6 @@ import kotlin.reflect.full.findAnnotation
 import kotlin.script.experimental.annotations.KotlinScript
 import kotlin.script.experimental.api.ScriptCompilationConfiguration
 import kotlin.script.experimental.util.PropertiesCollection
-import kotlin.script.templates.ScriptTemplateDefinition
 
 
 @RunWith(Parameterized::class)
@@ -55,7 +54,7 @@ class KotlinBuildScriptPatternTest(val script: Script) {
 
     @Test
     fun `recognizes build scripts from script templates`() {
-        checkScriptRecognizedBy(KotlinProjectScriptTemplate::class, ScriptType.BUILD)
+        checkScriptRecognizedBy(KotlinBuildScript::class, ScriptType.BUILD)
     }
 
     @Test
@@ -68,20 +67,9 @@ class KotlinBuildScriptPatternTest(val script: Script) {
         checkScriptRecognizedBy(KotlinInitScript::class, ScriptType.INIT)
     }
 
-    @Test
-    fun `recognizes build scripts from legacy script templates`() {
-        @Suppress("DEPRECATION")
-        checkScriptRecognizedByLegacy(KotlinBuildScript::class, ScriptType.BUILD)
-    }
-
     private
     fun checkScriptRecognizedBy(scriptParserClass: KClass<*>, supportedScriptType: ScriptType) {
         assertScriptFilePatternMatches(filePathPatternFrom(scriptParserClass), supportedScriptType)
-    }
-
-    private
-    fun checkScriptRecognizedByLegacy(scriptParserClass: KClass<*>, supportedScriptType: ScriptType) {
-        assertScriptFilePatternMatches(scriptFilePatternFromLegacy(scriptParserClass), supportedScriptType)
     }
 
     private
@@ -94,10 +82,6 @@ class KotlinBuildScriptPatternTest(val script: Script) {
         val compilationConfig = compilationConfigConstructor.newInstance() as ScriptCompilationConfiguration
         return compilationConfig[PropertiesCollection.Key<String>("filePathPattern")]!!
     }
-
-    private
-    fun scriptFilePatternFromLegacy(scriptParserClass: KClass<*>): String =
-        scriptParserClass.findAnnotation<ScriptTemplateDefinition>()!!.scriptFilePattern
 
     private
     fun assertScriptFilePatternMatches(scriptFilePattern: String, supportedScriptType: ScriptType) {

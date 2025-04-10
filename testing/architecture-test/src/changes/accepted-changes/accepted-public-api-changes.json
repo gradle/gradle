@@ -1858,6 +1858,28 @@
             ]
         },
         {
+            "type": "org.gradle.kotlin.dsl.KotlinBuildScript",
+            "member": "Superclass [removed]",
+            "acceptation": "Replace Kotlin DSL project script IDE template with K2 compatible one",
+            "changes": [
+                "Superclass has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinBuildScriptTemplateCompilationConfiguration",
+            "member": "Class org.gradle.kotlin.dsl.KotlinBuildScriptTemplateCompilationConfiguration",
+            "acceptation": "Replace Kotlin DSL project script IDE template with K2 compatible one",
+            "changes": [
+                "Interface has been added"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinBuildScriptTemplateCompilationConfiguration",
+            "member": "Constructor org.gradle.kotlin.dsl.KotlinBuildScriptTemplateCompilationConfiguration()",
+            "acceptation": "Replace Kotlin DSL project script IDE template with K2 compatible one",
+            "changes": []
+        },
+        {
             "type": "org.gradle.kotlin.dsl.KotlinGradleScriptTemplateCompilationConfiguration",
             "member": "Class org.gradle.kotlin.dsl.KotlinGradleScriptTemplateCompilationConfiguration",
             "acceptation": "Replace Kotlin DSL init script IDE template with K2 compatible one",
@@ -1926,6 +1948,22 @@
             "member": "Constructor org.gradle.kotlin.dsl.KotlinInitScriptTemplateCompilationConfiguration()",
             "acceptation": "Replace Kotlin DSL init script IDE template with K2 compatible one",
             "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinProjectScriptTemplateCompilationConfiguration",
+            "member": "Class org.gradle.kotlin.dsl.KotlinProjectScriptTemplateCompilationConfiguration",
+            "acceptation": "Replace Kotlin DSL project script IDE template with K2 compatible one",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinProjectScriptTemplateCompilationConfiguration",
+            "member": "Constructor org.gradle.kotlin.dsl.KotlinProjectScriptTemplateCompilationConfiguration()",
+            "acceptation": "Replace Kotlin DSL project script IDE template with K2 compatible one",
+            "changes": [
+                "Constructor has been removed"
+            ]
         },
         {
             "type": "org.gradle.kotlin.dsl.KotlinSettingsScript",

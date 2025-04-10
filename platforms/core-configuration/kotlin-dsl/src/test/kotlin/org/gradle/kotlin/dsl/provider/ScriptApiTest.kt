@@ -35,7 +35,7 @@ class ScriptApiTest {
 
     @Test
     fun `IDE build script template implements script api`() =
-        assertScriptApiOf<KotlinProjectScriptTemplate>()
+        assertScriptApiOf<KotlinBuildScript>()
 
     @Test
     fun `IDE settings script template implements script api`() =
@@ -44,22 +44,6 @@ class ScriptApiTest {
     @Test
     fun `IDE init script template implements script api`() =
         assertScriptApiOf<KotlinInitScript>()
-
-    @Test
-    fun `legacy IDE build script template implements script api`() =
-        @Suppress("deprecation")
-        assertScriptApiOf<KotlinBuildScript>()
-
-    @Test
-    fun `IDE build script template is backwards compatible`() {
-        @Suppress("deprecation")
-        assertThat(
-            KotlinBuildScript::class.declaredMembers.filter { it.isPublic }.missingMembersFrom(
-                KotlinProjectScriptTemplate::class
-            ),
-            equalTo(emptyList())
-        )
-    }
 
     @Test
     fun `compiled init script template implements script api`() =
