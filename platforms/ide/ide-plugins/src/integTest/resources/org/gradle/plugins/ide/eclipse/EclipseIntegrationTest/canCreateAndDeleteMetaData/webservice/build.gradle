@@ -4,7 +4,7 @@ apply plugin: 'war'
 version = '2.5'
 
 dependencies {
-    providedCompile 'org.slf4j:slf4j-api:1.5.8'
+    providedCompile 'org.slf4j:slf4j-api:2.0.17'
     providedRuntime "commons-io:commons-io:1.2"
     implementation project(':api')
     runtimeOnly "commons-lang:commons-lang:2.5"
