@@ -32,6 +32,7 @@ import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.coerce.MethodArgumentsTransformer;
 import org.gradle.api.internal.coerce.PropertySetTransformer;
 import org.gradle.api.internal.coerce.StringToEnumTransformer;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.provider.support.LazyGroovySupport;
 import org.gradle.api.provider.HasConfigurableValue;
 import org.gradle.internal.Cast;
@@ -175,7 +176,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
     @Override
     public boolean hasUsefulDisplayName() {
         if (bean instanceof ModelObject) {
-            return ((ModelObject)bean).hasUsefulDisplayName();
+            return ((ModelObject) bean).hasUsefulDisplayName();
         }
         return !JavaPropertyReflectionUtil.hasDefaultToString(bean);
     }
@@ -416,7 +417,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
                             // Coerce the value to the type accepted by the property setter and invoke the setter directly
                             Class setterType = metaBeanProperty.getSetter().getParameterTypes()[0].getTheClass();
                             value = propertySetTransformer.transformValue(setterType, value);
-                            value = DefaultTypeTransformation.castToType(value, setterType);
+                            value = castToType(value, setterType);
                             metaBeanProperty.getSetter().invoke(bean, new Object[]{value});
                         }
                     } else {
@@ -452,6 +453,11 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             }
 
             return setOpaqueProperty(metaClass, name, value);
+        }
+
+        private Object castToType(Object value, Class<?> setterType) {
+            // Because a failed cast results in GroovyCastException.makeMessage call toString on the argument
+            return Providers.whileDisablingNagOnToString(() -> DefaultTypeTransformation.castToType(value, setterType));
         }
 
         private void trySetGetterOnlyProperty(String name, @Nullable Object value, MetaBeanProperty metaBeanProperty) {

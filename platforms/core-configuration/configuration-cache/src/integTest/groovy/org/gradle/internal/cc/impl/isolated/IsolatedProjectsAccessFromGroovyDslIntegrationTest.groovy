@@ -533,7 +533,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         "property" | "ext.foo = 1"   | "property('foo')"
         "property" | "ext.foo = 1"   | "findProperty('foo')"
         "property" | "ext.foo = 1"   | "getProperty('foo')"
-        "property" | "ext.foo = 1"   | "properties"
+        "property" | "ext.foo = 1"   | "properties.size"
         "method"   | "def foo() { }" | "foo()"
     }
 

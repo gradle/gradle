@@ -151,7 +151,7 @@ public class Collectors {
 
         @Override
         public String toString() {
-            return String.format("item(%s)", provider);
+            return String.format("item(%s)", provider.toDebugString());
         }
     }
 

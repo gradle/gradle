@@ -82,6 +82,12 @@ public abstract class Cached<T> {
             return EvaluationContext.current().evaluate(this, () -> Try.ofFailable(toCompute));
         }
 
+        @Nonnull
+        @Override
+        public String toDebugString() {
+            return toString();
+        }
+
         private Object writeReplace() {
             return new Fixed<>(result());
         }
