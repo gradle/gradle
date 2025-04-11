@@ -17,6 +17,8 @@
 package org.gradle.api.tasks.diagnostics
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Ignore
+import spock.lang.Issue
 
 class TaskGraphIntegrationTest extends AbstractIntegrationSpec {
 
@@ -325,5 +327,50 @@ Tasks graph for: consumeFile
 \\--- :consumeFile (org.gradle.api.DefaultTask)
      \\--- :generateFile (org.gradle.api.DefaultTask)
 """)
+    }
+
+    @Ignore
+    @Issue("https://github.com/gradle/gradle/issues/2517")
+    def "does not mix the output with included build"() {
+        given:
+        def taskCount = 500
+        settingsFile """
+            rootProject.name = 'root'
+            includeBuild "included"
+        """
+        settingsFile "included/settings.gradle", """
+            rootProject.name = "included"
+        """
+        buildFile 'included/build.gradle', """
+            tasks.register("task0")
+            for (int i = 1; i < $taskCount; i++) {
+                def j = i
+                tasks.register("task\$j"){
+                    dependsOn("task\${j - 1}")
+                }
+            }
+            tasks.register("fromIncluded") {
+                dependsOn("task${taskCount - 1}")
+            }
+        """
+        buildFile """
+            tasks.register("task0")
+            for (int i = 1; i < $taskCount; i++) {
+                def j = i
+                tasks.register("task\$j"){
+                    dependsOn("task\${j - 1}")
+                }
+            }
+            tasks.register("root") {
+                dependsOn(gradle.includedBuild("included").task(":fromIncluded"))
+                dependsOn("task${taskCount - 1}")
+            }
+        """
+
+        when:
+        succeeds(":included:fromIncluded", "root", "--task-graph")
+
+        then:
+        output.find(~/(?m):task\d+ (org.gradle.api.DefaultTask)\s*> Task /) == null
     }
 }

@@ -29,7 +29,6 @@ import org.gradle.internal.graph.GraphNodeRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 
-import java.io.StringWriter;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -47,7 +46,7 @@ public class TaskGraphBuildExecutionAction implements BuildWorkExecutor {
 
     @Override
     public ExecutionResult<Void> execute(GradleInternal gradle, FinalizedExecutionPlan plan) {
-        StringWriter writer = new StringWriter();
+        StyledTextOutput output = textOutputFactory.create(TaskGraphBuildExecutionAction.class);
 
         plan.getContents().getScheduledNodes().visitNodes((nodes, entryNodes) -> {
             String invocation = gradle
@@ -59,10 +58,8 @@ public class TaskGraphBuildExecutionAction implements BuildWorkExecutor {
                 .collect(Collectors.joining(" "));
 
             DirectedGraphRenderer<TaskInfo> renderer = new DirectedGraphRenderer<>(new NodeRenderer(), new NodesGraph());
-            renderer.renderTo(new RootNode(entryNodes, invocation), writer);
+            renderer.renderTo(new RootNode(entryNodes, invocation), output);
         });
-        StyledTextOutput output = textOutputFactory.create(TaskGraphBuildExecutionAction.class);
-        output.println(writer.toString());
         return ExecutionResult.succeeded();
     }
 
