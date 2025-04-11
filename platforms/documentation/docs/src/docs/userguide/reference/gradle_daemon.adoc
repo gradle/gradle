@@ -172,8 +172,6 @@ To find the PIDs for all Daemons regardless of Gradle version, see <<gradle_daem
 
 == Configuring the Daemon JVM
 
-NOTE: Daemon JVM discovery and criteria are <<feature_lifecycle.adoc#sec:incubating_state,incubating>> features and are subject to change in a future release.
-
 By default, the Gradle Daemon runs with the same JVM installation that started the build.
 Gradle defaults to the current shell path and `JAVA_HOME` environment variable to locate a usable JVM.
 

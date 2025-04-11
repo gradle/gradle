@@ -61,7 +61,6 @@ import org.gradle.process.internal.JvmOptions;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.GFileUtils;
-import org.gradle.util.internal.IncubationLogger;
 import org.jspecify.annotations.NonNull;
 
 import java.io.File;
@@ -108,7 +107,6 @@ public class DefaultDaemonStarter implements DaemonStarter {
         if (criteria instanceof DaemonJvmCriteria.Spec) {
             // Gradle daemon properties have been defined
             DaemonJvmCriteria.Spec daemonJvmCriteria = (DaemonJvmCriteria.Spec) criteria;
-            IncubationLogger.incubatingFeatureUsed("Daemon JVM discovery");
             JavaToolchainSpec daemonJvmToolchainSpec = getDaemonJvmToolchainSpec(daemonJvmCriteria);
             ProviderInternal<JavaToolchain> jvmInstallationMetadata = javaToolchainQueryService.apply(service -> service.findMatchingToolchain(daemonJvmToolchainSpec, JavaInstallationCapability.JDK_CAPABILITIES));
             JavaInfo resolvedJvm = Jvm.forHome(jvmInstallationMetadata.get().getInstallationPath().getAsFile());
