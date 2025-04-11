@@ -15,6 +15,54 @@
 [[best_practices_general]]
 = General Gradle Best Practices
 
+[[use_latest_minor_versions]]
+== Use the Latest Minor Version of Gradle
+
+Stay on the latest minor version of the major Gradle release you're using, and regularly update your plugins to the latest compatible versions.
+
+=== Explanation
+
+Gradle follows a fairly predictable, time-based release cadence.
+Only the latest minor version of the current and previous major release is actively supported.
+
+We recommend the following strategy:
+
+* Try upgrading directly to the latest minor version of your current major Gradle release.
+* If that fails, upgrade one minor version at a time to isolate regressions or compatibility issues.
+
+Each new minor version includes:
+
+* Performance and stability improvements.
+* Deprecation warnings that help you prepare for the next major release.
+* Fixes for known bugs and security vulnerabilities.
+
+Use the `wrapper` task to update your project:
+
+[source, bash]
+----
+./gradlew wrapper --gradle-version <version>
+----
+
+You can also install the latest Gradle versions easily using tools like link:https://sdkman.io/[SDKMAN!] or link:https://brew.sh/[Homebrew], depending on your platform.
+
+=== Plugin Compatibility
+
+Always use the latest compatible version of each plugin:
+
+* Upgrade Gradle before plugins.
+* Test plugin compatibility using link:https://slack.engineering/shadow-jobs/[shadow jobs].
+* Consult changelogs when updating.
+
+=== Stay Informed
+
+Subscribe to the Gradle link:https://newsletter.gradle.org/[newsletter] to stay informed about new Gradle releases, features, and plugins.
+
+=== References
+<<upgrading_version_8.adoc#upgrading_version_8,Upgrade Guide>>
+
+=== Tags
+`#plugins`
+
 [[use_the_plugins_block]]
 == Apply Plugins Using the `plugins` Block
 
