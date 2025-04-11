@@ -16,6 +16,7 @@
 
 package org.gradle.cache.internal.locklistener;
 
+import org.gradle.api.JavaVersion;
 import org.gradle.cache.FileLockReleasedSignal;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
@@ -23,7 +24,6 @@ import org.gradle.internal.concurrent.Stoppable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.DatagramPacket;
 import java.net.SocketAddress;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -50,7 +50,7 @@ import static org.gradle.cache.internal.locklistener.FileLockPacketType.LOCK_REL
  * There it provides an action that this handler can call to release the lock, in case a release is requested.
  * <p>
  * A Lock Requester will notice that a lock is held by a Lock Holder by failing to lock the lock file.
- * It then turns to this contention via {@link #maybePingOwner(int, long, String, long, FileLockReleasedSignal)}.
+ * It then turns to this contention via {@link FileLockContentionHandler#maybePingOwner(String, int, long, String, long, FileLockReleasedSignal)}.
  * <p>
  * Both Lock Holder and Lock Requester listen on a socket using {@link DefaultFileLockCommunicator}. The messages they
  * exchange contain only the lock id. If this contention handler receives such a message it determines if it
@@ -68,7 +68,7 @@ import static org.gradle.cache.internal.locklistener.FileLockPacketType.LOCK_REL
  * <p>
  * If this is the Lock Requester:
  *    the message is interpreted as confirmation and stored. No further messages are sent to the Lock Owner via
- *    {@link #maybePingOwner(int, long, String, long, FileLockReleasedSignal)}.
+ *    {@link FileLockContentionHandler#maybePingOwner(String, int, long, String, long, FileLockReleasedSignal)}.
  * <p>
  * As Lock Requester, the state of the request is always stored per lock (lockId) and Lock Holder (port). The Lock Holder
  * for a lock might change without acquiring the lock if several Lock Requester compete for the same lock.
@@ -81,8 +81,8 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
 
     private final Map<Long, ContendedAction> contendedActions = new HashMap<>();
     private final Map<Long, FileLockReleasedSignal> lockReleasedSignals = new HashMap<>();
-    private final Map<Long, Integer> unlocksRequestedFrom = new HashMap<>();
-    private final Map<Long, Integer> unlocksConfirmedFrom = new HashMap<>();
+    private final Map<Long, String> unlocksRequestedFrom = new HashMap<>();
+    private final Map<Long, String> unlocksConfirmedFrom = new HashMap<>();
 
     private final FileLockCommunicator communicator;
     private final InetAddressProvider inetAddressProvider;
@@ -94,14 +94,20 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
     private boolean stopped;
     private volatile boolean listenerFailed;
 
-    public DefaultFileLockContentionHandler(ExecutorFactory executorFactory, InetAddressProvider inetAddressProvider) {
-        this(new DefaultFileLockCommunicator(inetAddressProvider), inetAddressProvider, executorFactory);
+    public DefaultFileLockContentionHandler(ExecutorFactory executorFactory, InetAddressProvider inetAddressProvider, UnixDomainSocketFileCommunicatorProvider unixDomainSocketFileCommunicatorProvider) {
+        this(createFileLockCommunicator(inetAddressProvider, unixDomainSocketFileCommunicatorProvider), inetAddressProvider, executorFactory);
     }
 
     DefaultFileLockContentionHandler(FileLockCommunicator communicator, InetAddressProvider inetAddressProvider, ExecutorFactory executorFactory) {
         this.communicator = communicator;
         this.inetAddressProvider = inetAddressProvider;
         this.executorFactory = executorFactory;
+    }
+
+    private static FileLockCommunicator createFileLockCommunicator(InetAddressProvider inetAddressProvider, UnixDomainSocketFileCommunicatorProvider unixDomainSocketFileCommunicatorProvider) {
+        return JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_17)
+            ? unixDomainSocketFileCommunicatorProvider.getCommunicator()
+            : new DefaultFileLockCommunicator(inetAddressProvider);
     }
 
     private Runnable listener() {
@@ -131,16 +137,16 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
                             lock.unlock();
                         }
 
-                        Optional<DatagramPacket> received = communicator.receive();
+                        Optional<FileLockPacket> received = communicator.receive();
 
                         if (received.isPresent()) {
-                            DatagramPacket packet = received.get();
+                            FileLockPacket packet = received.get();
                             FileLockPacketPayload payload = communicator.decode(packet);
                             lock.lock();
                             try {
                                 ContendedAction contendedAction = contendedActions.get(payload.getLockId());
                                 if (contendedAction == null) {
-                                    acceptConfirmationAsLockRequester(payload, packet.getPort());
+                                    acceptConfirmationAsLockRequester(payload, packet.getOwnerId());
                                 } else {
                                     contendedAction.addRequester(packet.getSocketAddress());
                                     if (!contendedAction.running) {
@@ -173,18 +179,18 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
         unlockActionExecutor.execute(contendedAction);
     }
 
-    private void acceptConfirmationAsLockRequester(FileLockPacketPayload payload, Integer port) {
+    private void acceptConfirmationAsLockRequester(FileLockPacketPayload payload, String ownerId) {
         long lockId = payload.getLockId();
         if (payload.getType() == LOCK_RELEASE_CONFIRMATION) {
-            LOGGER.debug("Gradle process at port {} confirmed lock release for lock with id {}.", port, lockId);
+            LOGGER.debug("Gradle process at port {} confirmed lock release for lock with id {}.", ownerId, lockId);
             FileLockReleasedSignal signal = lockReleasedSignals.get(lockId);
             if (signal != null) {
                 LOGGER.debug("Triggering lock release signal for lock with id {}.", lockId);
                 signal.trigger();
             }
         } else {
-            LOGGER.debug("Gradle process at port {} confirmed unlock request for lock with id {}.", port, lockId);
-            unlocksConfirmedFrom.put(lockId, port);
+            LOGGER.debug("Gradle process at port {} confirmed unlock request for lock with id {}.", ownerId, lockId);
+            unlocksConfirmedFrom.put(lockId, ownerId);
         }
     }
 
@@ -215,21 +221,22 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
     }
 
     @Override
-    public boolean maybePingOwner(int port, long lockId, String displayName, long timeElapsed, FileLockReleasedSignal signal) {
-        if (Integer.valueOf(port).equals(unlocksConfirmedFrom.get(lockId))) {
+    public boolean maybePingOwner(String pid, int port, long lockId, String displayName, long timeElapsed, FileLockReleasedSignal signal) {
+        String ownerId = getCommunicator().createFileLockOwnerId(pid, port);
+        if (ownerId.equals(unlocksConfirmedFrom.get(lockId))) {
             //the unlock was confirmed we are waiting
             return false;
         }
-        if (Integer.valueOf(port).equals(unlocksRequestedFrom.get(lockId)) && timeElapsed < PING_DELAY) {
+        if (ownerId.equals(unlocksRequestedFrom.get(lockId)) && timeElapsed < PING_DELAY) {
             //the unlock was just requested but not yet confirmed, give it some more time
             return false;
         }
 
-        boolean pingSentSuccessfully = getCommunicator().pingOwner(inetAddressProvider.getCommunicationAddress(), port, lockId, displayName);
+        boolean pingSentSuccessfully = getCommunicator().pingOwner(inetAddressProvider.getCommunicationAddress(), pid, port, lockId, displayName);
         if (pingSentSuccessfully) {
             lock.lock();
             try {
-                unlocksRequestedFrom.put(lockId, port);
+                unlocksRequestedFrom.put(lockId, ownerId);
                 lockReleasedSignals.put(lockId, signal);
             } finally {
                 lock.unlock();

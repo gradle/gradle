@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.cache;
 
+import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
@@ -38,8 +39,9 @@ public class UserHomeScopedCompileCaches implements GeneralCompileCaches, Closea
     private final Cache<HashCode, ClassAnalysis> classAnalysisCache;
 
     public UserHomeScopedCompileCaches(GlobalScopedCacheBuilderFactory cacheBuilderFactory, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, StringInterner interner) {
+        String cacheKey = JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_17) ? "javaCompile-1" : "javaCompile";
         cache = cacheBuilderFactory
-            .createCacheBuilder("javaCompile")
+            .createCacheBuilder(cacheKey)
             .withDisplayName("Java compile cache")
             .withInitialLockMode(FileLockManager.LockMode.OnDemand)
             .open();
