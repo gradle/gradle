@@ -19,6 +19,7 @@ import org.apache.tools.ant.Main
 import org.gradle.api.Action
 import org.gradle.cli.CommandLineArgumentException
 import org.gradle.cli.CommandLineParser
+import org.gradle.initialization.layout.BuildLayoutFactory
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.logging.LoggingManagerFactory
 import org.gradle.internal.logging.LoggingManagerInternal
@@ -80,6 +81,8 @@ class DefaultCommandLineActionFactoryTest extends Specification {
         _ * loggingServices.get(StyledTextOutputFactory) >> textOutputFactory
         StyledTextOutput textOutput = new StreamingStyledTextOutput(outputs.stdErrPrintStream)
         _ * textOutputFactory.create(_, _) >> textOutput
+        BuildLayoutFactory buildLayoutFactory = new BuildLayoutFactory()
+        _ * basicServices.get(BuildLayoutFactory) >> buildLayoutFactory
 
         tmpDir.file("settings.gradle").touch() // To prevent layout from detecting files from gradle/gradle build
     }
