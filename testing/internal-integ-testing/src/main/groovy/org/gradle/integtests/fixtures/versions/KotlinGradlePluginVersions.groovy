@@ -132,6 +132,9 @@ class KotlinGradlePluginVersions {
         if (kotlinVersion.baseVersion < KOTLIN_2_0_0) {
             return JavaVersion.VERSION_21
         }
+        if (kotlinVersion.baseVersion < KOTLIN_2_1_20) {
+            return JavaVersion.VERSION_22
+        }
         return null
     }
 }
