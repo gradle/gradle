@@ -153,7 +153,7 @@ class Gradleception(
 
                 localGradle {
                     name = "QUICKCHECK_WITH_GRADLE_BUILT_BY_GRADLE"
-                    tasks = "clean sanityCheck test ${extraTasks.joinToString(" ")} -PflakyTests=exclude"
+                    tasks = "clean sanityCheck test ${extraTasks.joinToString(" ")} -PflakyTests=exclude --no-configuration-cache"
                     gradleHome = "%teamcity.build.checkoutDir%/dogfood-second"
                     gradleParams = defaultParameters
                 }
