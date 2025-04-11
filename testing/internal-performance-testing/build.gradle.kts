@@ -50,13 +50,12 @@ dependencies {
 
     implementation(projects.classloaders)
     implementation(projects.concurrent)
+    implementation(projects.core)
     implementation(projects.wrapperShared)
 
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
     implementation(libs.commonsMath)
-    implementation(projects.core)
-    implementation(libs.groovyAnt)
     implementation(libs.groovyJson)
     implementation(libs.hikariCP)
     implementation(libs.jacksonCore)

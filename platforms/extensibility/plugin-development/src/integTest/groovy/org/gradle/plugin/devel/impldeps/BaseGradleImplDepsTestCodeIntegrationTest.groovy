@@ -32,22 +32,19 @@ class BaseGradleImplDepsTestCodeIntegrationTest extends BaseGradleImplDepsIntegr
     }
 
     protected TestFile testCode() {
-        file("src/test/java/org/acme/BaseTestPluginTest.java") << """
-        package org.acme;
-        import org.gradle.testkit.runner.GradleRunner;
-        import org.junit.Test;
-        import static org.junit.Assert.assertTrue;
+        file("src/test/java/BaseTestPluginTest.java") << """
+            import org.gradle.testkit.runner.GradleRunner;
 
-        public abstract class BaseTestPluginTest {
-            GradleRunner runner() {
-                return GradleRunner.create();
-            }
+            public abstract class BaseTestPluginTest {
+                GradleRunner runner() {
+                    return GradleRunner.create();
+                }
 
-            @Test
-            void commonTest() {
-                assertTrue(true);
+                @org.junit.jupiter.api.Test
+                void commonTest() {
+                    assert true;
+                }
             }
-        }
         """
     }
 }

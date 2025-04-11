@@ -47,6 +47,21 @@ public class DependencyClassPathProvider implements ClassPathProvider {
         "gradle-unit-test-fixtures"
     );
 
+    public static final Set<String> GROOVY_MODULES = ImmutableSet.of(
+        "groovy",
+        "groovy-ant",
+        "groovy-astbuilder",
+        "groovy-console",
+        "groovy-datetime",
+        "groovy-dateutil",
+        "groovy-groovydoc",
+        "groovy-json",
+        "groovy-nio",
+        "groovy-sql",
+        "groovy-templates",
+        "groovy-xml"
+    );
+
     private final ModuleRegistry moduleRegistry;
     private final PluginModuleRegistry pluginModuleRegistry;
 
@@ -105,24 +120,11 @@ public class DependencyClassPathProvider implements ClassPathProvider {
     }
 
     private ClassPath localGroovy() {
-        Set<String> groovyModules = ImmutableSet.of(
-            "groovy-ant",
-            "groovy-astbuilder",
-            "groovy-console",
-            "groovy-datetime",
-            "groovy-dateutil",
-            "groovy-groovydoc",
-            "groovy-json",
-            "groovy-nio",
-            "groovy-sql",
-            "groovy-templates",
-            "groovy-test",
-            "groovy-xml",
-            "javaparser-core");
-        ClassPath groovy = moduleRegistry.getExternalModule("groovy").getClasspath();
-        for (String groovyModule : groovyModules) {
+        ClassPath groovy = ClassPath.EMPTY;
+        for (String groovyModule : GROOVY_MODULES) {
             groovy = groovy.plus(moduleRegistry.getExternalModule(groovyModule).getClasspath());
         }
+        groovy = groovy.plus(moduleRegistry.getExternalModule("javaparser-core").getClasspath());
         return groovy;
     }
 

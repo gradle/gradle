@@ -24,10 +24,12 @@ dependencies {
 
     testImplementation(libs.archunitJunit5)
     testImplementation(libs.guava)
-    testImplementation("org.junit.jupiter:junit-jupiter")
+    testImplementation(libs.junitJupiter)
     testImplementation(libs.assertj)
 
     testRuntimeOnly(projects.distributionsFull)
+
+    testRuntimeOnly(libs.junitPlatform)
 }
 
 val acceptedApiChangesDirectory = layout.projectDirectory.dir("src/changes/accepted-changes")

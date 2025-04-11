@@ -49,7 +49,6 @@ dependencies {
         api(libs.ansiControlSequenceUtil) { version { strictly("0.3") }}
         api(libs.ant)                   { version { strictly(antVersion) }}
         api(libs.antLauncher)           { version { strictly(antVersion) }}
-        api(libs.antJunit)              { version { strictly(antVersion) }}
         api(libs.asm)                   { version { strictly(asmVersion) }}
         api(libs.asmAnalysis)           { version { strictly(asmVersion) }}
         api(libs.asmCommons)            { version { strictly(asmVersion) }}
@@ -132,6 +131,7 @@ dependencies {
         api(libs.jspecify)              { version { strictly("1.0.0") }}
         api(libs.julToSlf4j)            { version { strictly(slf4jVersion) }}
         api(libs.junit)                 { version { strictly("4.13.2") }}
+        api(libs.junitJupiter)          { version { strictly(junit5Version) }}
         api(libs.junit5JupiterApi)      { version { strictly(junit5Version) }}
         api(libs.junit5Vintage)         { version { strictly(junit5Version) }}
         api(libs.junitPlatform)         { version { strictly("1.8.2") }}

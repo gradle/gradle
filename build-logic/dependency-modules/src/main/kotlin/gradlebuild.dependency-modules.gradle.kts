@@ -44,6 +44,9 @@ dependencies {
         )
         applyRule<DependencyRemovalByNameRule>("cglib:cglib", setOf("ant"))
 
+        // We do not support running junit from Ant. Don't bundle ant-junit.
+        applyRule<DependencyRemovalByNameRule>(libs.groovyAnt, setOf("ant-junit"))
+
         // SLF4J Simple is an implementation of the SLF4J API, which is not needed in Gradle
         applyRule<DependencyRemovalByNameRule>(libs.sshdCore, setOf("slf4j-simple"))
         applyRule<DependencyRemovalByNameRule>(libs.sshdScp, setOf("slf4j-simple"))
@@ -68,6 +71,10 @@ dependencies {
 
         // We only need a few utility classes of this module
         applyRule<DependencyRemovalByNameRule>("jcifs:jcifs", setOf("servlet-api"))
+
+        // Bsh moved coordinates. Depend on the new coordinates.
+        applyRule<DependencyRemovalByGroupRule>(libs.testng, setOf("org.beanshell"))
+        applyRule<DependencyAdditionRule>(libs.testng, libs.bsh)
 
         // Test dependencies - minify: remove unused transitive dependencies
         applyRule<DependencyRemovalByNameRule>(

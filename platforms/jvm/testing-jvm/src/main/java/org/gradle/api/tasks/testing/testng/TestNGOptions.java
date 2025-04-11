@@ -21,7 +21,7 @@ import groovy.lang.MissingPropertyException;
 import groovy.xml.MarkupBuilder;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.ProjectLayout;
-import org.gradle.api.internal.tasks.testing.testng.TestNGTestClassProcessor;
+import org.gradle.api.internal.tasks.testing.testng.TestNGTestRunner;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
@@ -53,7 +53,7 @@ import java.util.concurrent.Callable;
  * The TestNG specific test options.
  */
 public abstract class TestNGOptions extends TestFrameworkOptions {
-    public static final String DEFAULT_CONFIG_FAILURE_POLICY = TestNGTestClassProcessor.DEFAULT_CONFIG_FAILURE_POLICY;
+    public static final String DEFAULT_CONFIG_FAILURE_POLICY = TestNGTestRunner.DEFAULT_CONFIG_FAILURE_POLICY;
     private static final String DEFAULT_PARALLEL_MODE = null;
     private static final int DEFAULT_THREAD_COUNT = -1;
     private static final int DEFAULT_SUITE_THREAD_POOL_SIZE_DEFAULT = 1;

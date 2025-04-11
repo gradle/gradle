@@ -16,9 +16,10 @@
 
 package org.gradle.integtests.fixtures
 
-import groovy.ant.AntBuilder
 import org.gradle.internal.SystemProperties
 
+import java.nio.file.Files
+import java.nio.file.Paths
 import java.util.regex.Pattern
 
 class AutoTestedSamplesUtil {
@@ -27,17 +28,16 @@ class AutoTestedSamplesUtil {
     private static final Pattern LEADING_ASTERISK_PATTERN = Pattern.compile(/(?m)^\s*?\*/)
     private static final Pattern LITERAL_PATTERN = Pattern.compile(/\{@literal ([^}]+)}/)
 
-    String includes = '**/*.groovy **/*.java'
-
     void findSamples(String dir, Closure runner) {
         def sources = findDir(dir)
-        def ant = new AntBuilder()
 
-        def list = ant.fileScanner {
-            fileset(dir: sources, includes: includes)
-        }
-
-        list.each() { runSamplesFromFile(it, runner) }
+        Files.walk(Paths.get(sources))
+            .filter(Files::isRegularFile)
+            .filter(p -> {
+                String name = p.toString()
+                return name.endsWith(".java") || name.endsWith(".groovy")
+            })
+        .forEach { runSamplesFromFile(it.toFile(), runner) }
     }
 
     static String findDir(String dir) {

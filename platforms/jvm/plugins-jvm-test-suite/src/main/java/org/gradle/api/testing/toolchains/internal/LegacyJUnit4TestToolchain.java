@@ -31,6 +31,6 @@ import org.gradle.api.tasks.testing.Test;
 abstract public class LegacyJUnit4TestToolchain implements JvmTestToolchain<JvmTestToolchainParameters.None> {
     @Override
     public TestFramework createTestFramework(Test task) {
-        return new JUnitTestFramework(task, (DefaultTestFilter) task.getFilter(), true);
+        return new JUnitTestFramework(task, (DefaultTestFilter) task.getFilter());
     }
 }
