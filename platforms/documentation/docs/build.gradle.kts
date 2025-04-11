@@ -609,7 +609,6 @@ tasks.named("quickTest") {
 
 // TODO add some kind of test precondition support in sample test conf
 tasks.named<Test>("docsTest") {
-    maxParallelForks = 2
     // The org.gradle.samples plugin uses Exemplar to execute integration tests on the samples.
     // Exemplar doesn't know about that it's running in the context of the gradle/gradle build
     // so it uses the Gradle distribution from the running build. This is not correct, because
