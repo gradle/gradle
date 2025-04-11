@@ -98,6 +98,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     private Path identityPath;
     private Supplier<? extends ClassLoaderScope> classLoaderScope;
     private ClassLoaderScope baseProjectClassLoaderScope;
+    private volatile boolean stableProjectsCoordinatesBarrierCrossed;
 
     public DefaultGradle(@Nullable BuildState parent, StartParameter startParameter, ServiceRegistryFactory parentRegistry) {
         this.parent = parent;
@@ -216,6 +217,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
         defaultProject = null;
         projectsLoaded = false;
         includedBuilds = null;
+        stableProjectsCoordinatesBarrierCrossed = false;
         rootProjectActions.clear();
         isolatedProjectEvaluationListenerProvider.clear();
         buildListenerBroadcast.removeAll();
@@ -569,6 +571,16 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
             classLoaderScope = () -> getClassLoaderScopeRegistry().getCoreAndPluginsScope();
         }
         return classLoaderScope.get();
+    }
+
+    @Override
+    public void crossStableProjectsCoordinatesBarrier() {
+        stableProjectsCoordinatesBarrierCrossed = true;
+    }
+
+    @Override
+    public boolean isOverStableProjectsCoordinatesBarrier() {
+        return stableProjectsCoordinatesBarrierCrossed;
     }
 
     @Inject

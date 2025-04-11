@@ -84,7 +84,7 @@ internal
 class ProblemReportingCrossProjectModelAccess(
     private val delegate: CrossProjectModelAccess,
     private val problems: ProblemsListener,
-    private val coupledProjectsListener: CoupledProjectsListener,
+    private val crossProjectDependencyListener: CrossProjectDependencyListener,
     private val problemFactory: ProblemFactory,
     private val dynamicCallProblemReporting: DynamicCallProblemReporting,
     private val buildModelParameters: BuildModelParameters,
@@ -123,17 +123,17 @@ class ProblemReportingCrossProjectModelAccess(
     }
 
     override fun taskDependencyUsageTracker(referrerProject: ProjectInternal): TaskDependencyUsageTracker {
-        return ReportingTaskDependencyUsageTracker(referrerProject, coupledProjectsListener, problems, problemFactory)
+        return ReportingTaskDependencyUsageTracker(referrerProject, crossProjectDependencyListener, problems, problemFactory)
     }
 
     override fun taskGraphForProject(referrerProject: ProjectInternal, taskGraph: TaskExecutionGraphInternal): TaskExecutionGraphInternal {
-        return CrossProjectConfigurationReportingTaskExecutionGraph(taskGraph, referrerProject, problems, this, coupledProjectsListener, problemFactory)
+        return CrossProjectConfigurationReportingTaskExecutionGraph(taskGraph, referrerProject, problems, this, crossProjectDependencyListener, problemFactory)
     }
 
     override fun parentProjectDynamicInheritedScope(referrerProject: ProjectInternal): DynamicObject? {
         val parent = referrerProject.parent ?: return null
         return CrossProjectModelAccessTrackingParentDynamicObject(
-            parent, parent.inheritedScope, referrerProject, problems, coupledProjectsListener, problemFactory, dynamicCallProblemReporting
+            parent, parent.inheritedScope, referrerProject, problems, crossProjectDependencyListener, problemFactory, dynamicCallProblemReporting
         )
     }
 
@@ -143,7 +143,17 @@ class ProblemReportingCrossProjectModelAccess(
         access: CrossProjectModelAccessInstance,
         instantiator: Instantiator
     ): ProjectInternal = MutableStateAccessAwareProject.wrap(this, referrer) {
-        instantiator.newInstance(ProblemReportingProject::class.java, this, referrer, access, problems, coupledProjectsListener, problemFactory, buildModelParameters, dynamicCallProblemReporting)
+        instantiator.newInstance(
+            ProblemReportingProject::class.java,
+            this,
+            referrer,
+            access,
+            problems,
+            crossProjectDependencyListener,
+            problemFactory,
+            buildModelParameters,
+            dynamicCallProblemReporting
+        )
     }
 
     @Suppress("LargeClass")
@@ -152,7 +162,7 @@ class ProblemReportingCrossProjectModelAccess(
         referrer: ProjectInternal,
         private val access: CrossProjectModelAccessInstance,
         private val problems: ProblemsListener,
-        private val coupledProjectsListener: CoupledProjectsListener,
+        private val crossProjectDependencyListener: CrossProjectDependencyListener,
         private val problemFactory: ProblemFactory,
         private val buildModelParameters: BuildModelParameters,
         private val dynamicCallProblemReporting: DynamicCallProblemReporting,
@@ -180,6 +190,18 @@ class ProblemReportingCrossProjectModelAccess(
                 action = { tryInvokeMethod(name, *varargs) },
                 resultNotFoundExceptionProvider = { methodMissingException(name, *varargs) }
             )
+        }
+
+        override fun getVersion(): Any {
+            // TODO: this likely should be reported only once from inside a calculated value computation
+            crossProjectDependencyListener.onProjectDependency(referrer.owner, delegate.owner)
+            return super.getVersion()
+        }
+
+        override fun getGroup(): Any {
+            // TODO: this likely should be reported only once from inside a calculated value computation
+            crossProjectDependencyListener.onProjectDependency(referrer.owner, delegate.owner)
+            return super.getGroup()
         }
 
         override fun file(path: Any): File {
@@ -565,7 +587,7 @@ class ProblemReportingCrossProjectModelAccess(
 
         private
         fun onProjectsCoupled() {
-            coupledProjectsListener.onProjectReference(referrer.owner, delegate.owner)
+            crossProjectDependencyListener.onProjectCoupling(referrer.owner, delegate.owner)
             // Configure the target project, if it would normally be configured before the referring project
             if (delegate < referrer && delegate.parent != null && buildModelParameters.isInvalidateCoupledProjects) {
                 delegate.owner.ensureConfigured()

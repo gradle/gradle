@@ -175,7 +175,7 @@ class DefaultBuildModelControllerServices(
             return ProblemReportingCrossProjectModelAccess(
                 delegate,
                 problemsListener,
-                listenerManager.getBroadcaster(CoupledProjectsListener::class.java),
+                listenerManager.getBroadcaster(CrossProjectDependencyListener::class.java),
                 problemFactory,
                 dynamicCallProblemReporting,
                 buildModelParameters,
