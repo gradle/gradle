@@ -233,7 +233,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     }
 
     @Nullable
-    private static <T> Class<? extends T> loadFactory(ClassLoaderScope classLoaderScope, String className) {
+    private <T> Class<? extends T> loadFactory(String className) {
         Class<? extends T> clazz;
         try {
             clazz = Cast.uncheckedCast(classLoaderScope.getExportClassLoader().loadClass(className));
@@ -307,7 +307,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         Class<? extends ExternalModuleDependencyFactory> factory;
         synchronized (this) {
             factory = factories.computeIfAbsent(accessorsClassnameSuffix, n ->
-                loadFactory(classLoaderScope, ACCESSORS_PACKAGE + "." + ACCESSORS_CLASSNAME_PREFIX + accessorsClassnameSuffix)
+                loadFactory(ACCESSORS_PACKAGE + "." + ACCESSORS_CLASSNAME_PREFIX + accessorsClassnameSuffix)
             );
         }
         return factory;
@@ -316,7 +316,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     private void createProjectsExtension(ExtensionContainer container, DependencyResolutionManagementInternal drm, ProjectFinder projectFinder) {
         if (generatedProjectFactory == null) {
             synchronized (this) {
-                generatedProjectFactory = loadFactory(classLoaderScope, ROOT_PROJECT_ACCESSOR_FQCN);
+                generatedProjectFactory = loadFactory(ROOT_PROJECT_ACCESSOR_FQCN);
             }
         }
         if (generatedProjectFactory != null) {

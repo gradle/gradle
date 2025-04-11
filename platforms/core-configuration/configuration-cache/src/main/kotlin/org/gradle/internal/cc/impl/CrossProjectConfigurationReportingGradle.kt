@@ -270,6 +270,10 @@ class CrossProjectConfigurationReportingGradle private constructor(
     override fun projectsLoaded(action: Action<in Gradle>) =
         delegate.projectsLoaded(action)
 
+    override fun baseProjectClassLoaderLocked(action: Action<in GradleInternal>) {
+        delegate.baseProjectClassLoaderLocked(action)
+    }
+
     @Suppress("OVERRIDE_DEPRECATION", "DEPRECATION")
     override fun buildFinished(closure: Closure<*>) =
         // already reported as configuration cache problem, no need to override
@@ -300,6 +304,10 @@ class CrossProjectConfigurationReportingGradle private constructor(
 
     override fun getConfigurationTargetIdentifier(): ConfigurationTargetIdentifier =
         delegate.configurationTargetIdentifier
+
+    override fun executeRootProjectActions() {
+        delegate.executeRootProjectActions()
+    }
 
     override fun isRootBuild(): Boolean =
         delegate.isRootBuild

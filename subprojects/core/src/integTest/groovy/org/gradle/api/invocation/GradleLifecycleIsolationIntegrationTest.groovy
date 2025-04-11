@@ -142,7 +142,7 @@ class GradleLifecycleIsolationIntegrationTest extends AbstractIntegrationSpec {
         fails("help")
 
         then:
-        failure.assertHasCause("Failed to isolate 'GradleLifecycle' action: cannot serialize Gradle script object references as these are not supported with the configuration cache.")
+        failure.assertHasDescription("Failed to isolate 'GradleLifecycle' action: cannot serialize Gradle script object references as these are not supported with the configuration cache.")
 
 //        outputContains("project name = root")
 //        outputContains("project name = a")

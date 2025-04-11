@@ -156,15 +156,17 @@ public class DefaultPluginRegistry implements PluginRegistry {
     @Nullable
     @Override
     public PluginImplementation<?> lookup(PluginId pluginId) {
-        PluginImplementation<?> lookup;
         if (parent != null) {
-            lookup = parent.lookup(pluginId);
+            PluginImplementation<?> lookup = parent.lookup(pluginId);
             if (lookup != null) {
                 return lookup;
             }
         }
 
-        return lookup(pluginId, classLoaderScope.getLocalClassLoader());
+        // Only allow lookups in the current scope after it's been locked
+        return classLoaderScope.isLocked()
+            ? lookup(pluginId, classLoaderScope.getLocalClassLoader())
+            : null;
     }
 
     @Nullable
