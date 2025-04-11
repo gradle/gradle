@@ -82,9 +82,11 @@ Always use the latest compatible version of each plugin:
 Subscribe to the Gradle link:https://newsletter.gradle.org/[newsletter] to stay informed about new Gradle releases, features, and plugins.
 
 === References
+
 <<upgrading_version_8.adoc#upgrading_version_8,Upgrade Guide>>
 
 === Tags
+
 `#plugins`
 
 [[use_the_plugins_block]]
@@ -125,9 +127,11 @@ include::sample[dir="snippets/bestPractices/usePluginsBlock/groovy/do-this",file
 <2> *Apply a Third-Party Plugin*: You specify the version using method chaining in the `plugins` block itself.
 
 === References
+
 <<plugins.adoc#sec:using_plugins,Using Plugins>>
 
 === Tags
+
 `#structuring-builds`
 
 == Do Not Use Internal APIs
@@ -164,4 +168,5 @@ include::sample[dir="snippets/bestPractices/avoidInternal/groovy",files="build.g
 <2> Implementing your own version of `toMap()` that only uses public APIs is a lot more robust.
 
 === Tags
+
 `#upgrades`
