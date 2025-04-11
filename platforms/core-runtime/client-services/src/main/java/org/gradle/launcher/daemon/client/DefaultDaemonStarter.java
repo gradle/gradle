@@ -32,6 +32,7 @@ import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.JpmsConfiguration;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.jvm.inspection.JavaInstallationCapability;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.lazy.Lazy;
@@ -81,17 +82,15 @@ public class DefaultDaemonStarter implements DaemonStarter {
     private final DaemonParameters daemonParameters;
     private final DaemonRequestContext daemonRequestContext;
     private final DaemonGreeter daemonGreeter;
-    private final JvmVersionValidator versionValidator;
     private final JvmVersionDetector jvmVersionDetector;
     private final Lazy<JavaToolchainQueryService> javaToolchainQueryService;
     private final PropertyFactory propertyFactory;
 
-    public DefaultDaemonStarter(DaemonDir daemonDir, DaemonParameters daemonParameters, DaemonRequestContext daemonRequestContext, DaemonGreeter daemonGreeter, JvmVersionValidator versionValidator, JvmVersionDetector jvmVersionDetector, Lazy<JavaToolchainQueryService> javaToolchainQueryService, PropertyFactory propertyFactory) {
+    public DefaultDaemonStarter(DaemonDir daemonDir, DaemonParameters daemonParameters, DaemonRequestContext daemonRequestContext, DaemonGreeter daemonGreeter, JvmVersionDetector jvmVersionDetector, Lazy<JavaToolchainQueryService> javaToolchainQueryService, PropertyFactory propertyFactory) {
         this.daemonDir = daemonDir;
         this.daemonParameters = daemonParameters;
         this.daemonRequestContext = daemonRequestContext;
         this.daemonGreeter = daemonGreeter;
-        this.versionValidator = versionValidator;
         this.jvmVersionDetector = jvmVersionDetector;
         this.javaToolchainQueryService = javaToolchainQueryService;
         this.propertyFactory = propertyFactory;
@@ -145,7 +144,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
             throw new IllegalStateException("Unable to construct a bootstrap classpath when starting the daemon");
         }
 
-        versionValidator.validate(majorJavaVersion);
+        UnsupportedJavaRuntimeException.assertIsSupportedDaemonJvmVersion(majorJavaVersion);
 
         List<String> daemonArgs = new ArrayList<>();
         daemonArgs.addAll(getPriorityArgs(daemonRequestContext.getPriority()));

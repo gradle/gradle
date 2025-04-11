@@ -137,7 +137,7 @@ public abstract class AvailableJavaHomes {
      */
     public static List<Jvm> getUnsupportedDaemonJdks() {
         return getJdks(
-            IntStream.range(1, SupportedJavaVersions.MINIMUM_JAVA_VERSION)
+            IntStream.range(1, SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION)
                 .mapToObj(JavaVersion::toVersion)
                 .toArray(JavaVersion[]::new)
         );
@@ -150,7 +150,7 @@ public abstract class AvailableJavaHomes {
     public static Jvm getUnsupportedDaemonJdk() {
         return getAvailableJdk(element -> {
             int majorVersion = Integer.parseInt(element.getLanguageVersion().getMajorVersion());
-            return majorVersion < SupportedJavaVersions.MINIMUM_JAVA_VERSION;
+            return majorVersion < SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION;
         });
     }
 
@@ -161,8 +161,8 @@ public abstract class AvailableJavaHomes {
     public static Jvm getDeprecatedDaemonJdk() {
         return getAvailableJdk(element -> {
             int majorVersion = Integer.parseInt(element.getLanguageVersion().getMajorVersion());
-            return majorVersion >= SupportedJavaVersions.MINIMUM_JAVA_VERSION &&
-                majorVersion < SupportedJavaVersions.FUTURE_MINIMUM_JAVA_VERSION;
+            return majorVersion >= SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION &&
+                majorVersion < SupportedJavaVersions.FUTURE_MINIMUM_DAEMON_JAVA_VERSION;
             }
         );
     }
@@ -174,7 +174,7 @@ public abstract class AvailableJavaHomes {
     public static Jvm getNonDeprecatedDaemonJdk() {
         return getAvailableJdk(element -> {
             int majorVersion = Integer.parseInt(element.getLanguageVersion().getMajorVersion());
-            return majorVersion > SupportedJavaVersions.FUTURE_MINIMUM_JAVA_VERSION;
+            return majorVersion > SupportedJavaVersions.FUTURE_MINIMUM_DAEMON_JAVA_VERSION;
         });
     }
 

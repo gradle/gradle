@@ -16,8 +16,6 @@
 
 package org.gradle.internal.jvm;
 
-import org.gradle.util.GradleVersion;
-
 /**
  * An exception thrown when using an invalid JVM for running Gradle.
  */
@@ -31,22 +29,21 @@ public class UnsupportedJavaRuntimeException extends RuntimeException {
      * Assert the current JVM is capable of running the daemon for current Gradle version.
      */
     public static void assertUsingSupportedDaemonVersion() throws UnsupportedJavaRuntimeException {
-        assertIsSupportedDaemonJvmVersion(Jvm.current().getJavaVersionMajor(), "You are currently using Java %d.");
+        assertIsSupportedDaemonJvmVersion(Jvm.current().getJavaVersionMajor(), "You are currently using JVM %d.");
     }
 
     /**
      * Assert the given JVM version is capable of running the daemon for the current Gradle version.
      */
     public static void assertIsSupportedDaemonJvmVersion(int majorVersion) {
-        assertIsSupportedDaemonJvmVersion(majorVersion, "Your build is currently configured to use Java %d.");
+        assertIsSupportedDaemonJvmVersion(majorVersion, "Your build is currently configured to use JVM %d.");
     }
 
     private static void assertIsSupportedDaemonJvmVersion(int majorVersion, String message) {
-        if (majorVersion < SupportedJavaVersions.MINIMUM_JAVA_VERSION) {
+        if (majorVersion < SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION) {
             throw new UnsupportedJavaRuntimeException(String.format(
-                "Gradle %s requires Java %d or later to run. " + message,
-                GradleVersion.current().getVersion(),
-                SupportedJavaVersions.MINIMUM_JAVA_VERSION,
+                "Gradle requires JVM %d or later to run. " + message,
+                SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION,
                 majorVersion
             ));
         }

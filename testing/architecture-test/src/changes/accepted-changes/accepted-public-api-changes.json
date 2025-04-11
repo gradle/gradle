@@ -2979,6 +2979,15 @@
         },
         {
             "type": "org.gradle.util.GradleVersion",
+            "member": "Method org.gradle.util.GradleVersion.getMajorVersion()",
+            "acceptation": "No need to incubate",
+            "changes": [
+                "Method added to public class",
+                "Abstract method has been added to this class"
+            ]
+        },
+        {
+            "type": "org.gradle.util.GradleVersion",
             "member": "Method org.gradle.util.GradleVersion.getNextMajor()",
             "acceptation": "Deprecated in 8.x",
             "changes": [

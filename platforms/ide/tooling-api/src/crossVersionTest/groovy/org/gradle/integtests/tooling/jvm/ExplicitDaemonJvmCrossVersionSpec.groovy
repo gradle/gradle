@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.tooling.fixture.DaemonJvmPropertiesFixture
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.internal.jvm.Jvm
+import org.gradle.internal.jvm.SupportedJavaVersionsDeprecations
 import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
@@ -70,7 +70,7 @@ abstract class ExplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification
         then:
         def e = thrown(GradleConnectionException)
         e.message.startsWith("Could not execute build using ")
-        e.cause.message == "Gradle ${targetDist.version.version} requires Java 8 or later to run. Your build is currently configured to use Java ${jdk.majorVersion}."
+        e.cause.message == "Gradle requires JVM 8 or later to run. Your build is currently configured to use JVM ${jdk.majorVersion}."
 
         where:
         jdk << getUnsupportedJdks()
@@ -91,7 +91,7 @@ abstract class ExplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification
         then:
         def e = thrown(GradleConnectionException)
         e.message.startsWith("Could not fetch model of type 'GradleProject' using ")
-        e.cause.message == "Gradle ${targetDist.version.version} requires Java 8 or later to run. Your build is currently configured to use Java ${jdk.majorVersion}."
+        e.cause.message == "Gradle requires JVM 8 or later to run. Your build is currently configured to use JVM ${jdk.majorVersion}."
 
         where:
         jdk << getUnsupportedJdks()
@@ -112,7 +112,7 @@ abstract class ExplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification
         then:
         def e = thrown(GradleConnectionException)
         e.message.startsWith("Could not run build action using ")
-        e.cause.message == "Gradle ${targetDist.version.version} requires Java 8 or later to run. Your build is currently configured to use Java ${jdk.majorVersion}."
+        e.cause.message == "Gradle requires JVM 8 or later to run. Your build is currently configured to use JVM ${jdk.majorVersion}."
 
         where:
         jdk << getUnsupportedJdks()
@@ -133,7 +133,7 @@ abstract class ExplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification
         then:
         def e = thrown(GradleConnectionException)
         e.message.startsWith("Could not execute tests using ")
-        e.cause.message == "Gradle ${targetDist.version.version} requires Java 8 or later to run. Your build is currently configured to use Java ${jdk.majorVersion}."
+        e.cause.message == "Gradle requires JVM 8 or later to run. Your build is currently configured to use JVM ${jdk.majorVersion}."
 
         where:
         jdk << getUnsupportedJdks()
@@ -150,7 +150,7 @@ abstract class ExplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification
 
         captureJavaHome()
         configureBuild(jdk.majorVersion, jdk.javaHome)
-        expectDocumentedDeprecationWarning("Executing Gradle on JVM versions 16 and lower has been deprecated. This will fail with an error in Gradle 9.0. Use JVM 17 or greater to execute Gradle. Projects can continue to use older JVM versions via toolchains. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#minimum_daemon_jvm_version")
+        expectDocumentedDeprecationWarning(SupportedJavaVersionsDeprecations.expectedDaemonDeprecationWarning)
 
          when:
         succeeds { connection ->
@@ -170,7 +170,7 @@ abstract class ExplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification
 
         captureJavaHome()
         configureBuild(jdk.majorVersion, jdk.javaHome)
-        expectDocumentedDeprecationWarning("Executing Gradle on JVM versions 16 and lower has been deprecated. This will fail with an error in Gradle 9.0. Use JVM 17 or greater to execute Gradle. Projects can continue to use older JVM versions via toolchains. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#minimum_daemon_jvm_version")
+        expectDocumentedDeprecationWarning(SupportedJavaVersionsDeprecations.expectedDaemonDeprecationWarning)
 
         when:
         succeeds { connection ->
@@ -189,7 +189,7 @@ abstract class ExplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification
         def jdk = asJavaInfo(AvailableJavaHomes.deprecatedDaemonJdk)
 
         configureBuild(jdk.majorVersion, jdk.javaHome)
-        expectDocumentedDeprecationWarning("Executing Gradle on JVM versions 16 and lower has been deprecated. This will fail with an error in Gradle 9.0. Use JVM 17 or greater to execute Gradle. Projects can continue to use older JVM versions via toolchains. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#minimum_daemon_jvm_version")
+        expectDocumentedDeprecationWarning(SupportedJavaVersionsDeprecations.expectedDaemonDeprecationWarning)
 
         when:
         def javaHome = succeeds { connection ->
@@ -211,7 +211,7 @@ abstract class ExplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification
         writeTestFiles()
         captureJavaHome()
         configureBuild(jdk.majorVersion, jdk.javaHome)
-        expectDocumentedDeprecationWarning("Executing Gradle on JVM versions 16 and lower has been deprecated. This will fail with an error in Gradle 9.0. Use JVM 17 or greater to execute Gradle. Projects can continue to use older JVM versions via toolchains. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#minimum_daemon_jvm_version")
+        expectDocumentedDeprecationWarning(SupportedJavaVersionsDeprecations.expectedDaemonDeprecationWarning)
 
         when:
         succeeds { connection ->

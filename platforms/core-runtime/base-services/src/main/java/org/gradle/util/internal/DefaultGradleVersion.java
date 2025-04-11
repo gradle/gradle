@@ -183,6 +183,11 @@ public final class DefaultGradleVersion extends GradleVersion {
         return version;
     }
 
+    @Override
+    public int getMajorVersion() {
+        return majorPart;
+    }
+
     public String getBuildTimestamp() {
         return buildTime;
     }
