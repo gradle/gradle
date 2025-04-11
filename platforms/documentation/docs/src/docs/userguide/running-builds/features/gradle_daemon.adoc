@@ -90,7 +90,7 @@ $ gradle <task> --daemon
 
 This flag overrides any settings that disable the Daemon in your project or user `gradle.properties` files.
 
-To enable the Daemon by default in older Gradle versions, add the following setting to the `gradle.properties` file in the project root or your Gradle User Home (`GRADLE_USER_HOME`:
+To enable the Daemon by default in older Gradle versions, add the following setting to the `gradle.properties` file in the project root or your Gradle User Home (<<directory_layout.adoc#dir:gradle_user_home,`GRADLE_USER_HOME`>>):
 
 ====
 .gradle.properties
@@ -169,6 +169,49 @@ This terminates all Daemon processes started with the same version of Gradle use
 
 You can also kill Daemons manually with your operating system.
 To find the PIDs for all Daemons regardless of Gradle version, see <<gradle_daemon.adoc#find_all_daemons,Find Daemons>>.
+
+== Troubleshooting the Daemon
+
+The Gradle Daemon is a long-lived background process, as such, it can sometimes encounter issues.
+
+If builds start behaving unexpectedly, try stopping and restarting the Daemon:
+
+----
+$ gradle --stop
+----
+
+If you see a warning like: `Multiple Gradle daemons might be spawned because the Gradle JDK and JAVA_HOME locations are different`.
+
+Gradle is telling you that it's using more than one Java version across your environment.
+This can lead to multiple daemons being started, increasing memory usage unnecessarily.
+
+To resolve this, make sure your Java versions match across:
+
+1. Your environment (`JAVA_HOME`)
+2. Your build script (if using toolchains)
+3. Your IDE's configured JDK
+
+To check `JAVA_HOME`, run this in your terminal:
+
+[source,bash]
+----
+echo $JAVA_HOME
+----
+
+Your project may be using a specific toolchain in your `build.gradle(.kts)` file.
+Check for similar code:
+
+[source,kotlin]
+----
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
+----
+
+If your build uses a toolchain, ensure it matches the `JAVA_HOME` value, or at least know they differ intentionally.
+You should also check your IDE settings to make sure they match as well.
 
 == Configuring the Daemon JVM
 
@@ -513,7 +556,7 @@ You can do this on the command line with the following command:
 $ gradle <task> -Dorg.gradle.daemon.performance.enable-monitoring=false
 ----
 
-Or you can configure the property in the `gradle.properties` file in the project root or your GRADLE_USER_HOME (Gradle User Home):
+Or you can configure the property in the `gradle.properties` file in the project root or your <<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>> (Gradle User Home):
 
 ====
 .gradle.properties

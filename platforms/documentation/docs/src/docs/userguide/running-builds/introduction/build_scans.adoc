@@ -28,7 +28,7 @@ A build scan is a *representation of metadata captured* as you run your build.
 
 image::gradle-basic-1.png[]
 
-== Build Scans
+== About Build Scans
 
 Gradle <<#sec:captured-information,captures your build metadata>> and sends it to the link:https://scans.gradle.com/[Build Scan Service].
 The service then transforms the metadata into information you can analyze and share with others.
@@ -59,6 +59,8 @@ Visit the link:https://scans.gradle.com/[Build Scans page] to learn more.
 == Captured Information
 
 To see what data is captured and sent in a Build Scan, refer to the link:https://docs.gradle.com/develocity/gradle-plugin/current/#captured_information)[Captured Information] section in the Gradle Develocity Plugin documentation.
+
+Ready to build something? Start with the <<gradle_basics.adoc#gradle,Gradle Basics Tutorial>>.
 
 [.text-right]
 **Next Step:** <<part1_gradle_init.adoc#part1_gradle_init,Start the Tutorial>> >>

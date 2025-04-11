@@ -2178,6 +2178,10 @@ table.pyhltable .linenodiv {
 	display: none;
 }
 
+table.stretch {
+    width: 100%;
+}
+
 table.tableblock {
 	max-width: 100%;
 	border-collapse: separate;
