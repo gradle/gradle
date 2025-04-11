@@ -14,6 +14,7 @@ import org.gradle.api.Task
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.Exec
 import org.gradle.api.tasks.TaskContainer
+import org.gradle.api.tasks.TaskProvider
 import org.gradle.kotlin.dsl.support.uncheckedCast
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.sameInstance
@@ -260,19 +261,18 @@ class NamedDomainObjectContainerExtensionsTest {
         }
     }
 
-    @Suppress("DEPRECATION")
     @Test
-    fun `can create element within configuration block via delegated property`() {
+    fun `can register element within configuration block via delegated property`() {
 
         val tasks = mock<TaskContainer> {
-            on { create("hello") } doReturn mock<Task>()
+            on { register("hello") } doReturn mock<TaskProvider<Task>>()
         }
 
         tasks {
             @Suppress("UnusedPrivateProperty")
-            val hello by creating
+            val hello by registering
         }
-        verify(tasks).create("hello")
+        verify(tasks).register("hello")
     }
 
     @Test

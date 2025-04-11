@@ -319,16 +319,15 @@ class TaskContainerDslIntegrationTest : AbstractKotlinIntegrationTest() {
         )
     }
 
-    @Suppress("DEPRECATION")
     private
     val beforeDelegatedProperties: Project.() -> Unit = {
         // For cases not exercised by delegated properties
         tasks["bar"].description += "A"
-        tasks.create<Copy>("cabin")
-        tasks.create<Copy>("valley").description += "!"
+        tasks.register<Copy>("cabin")
+        tasks.register<Copy>("valley").get().description += "!"
         tasks["pipistrelle"].description += "A"
-        tasks.create<Copy>("quartern")
-        tasks.create<Copy>("koto").description += "!"
+        tasks.register<Copy>("quartern")
+        tasks.register<Copy>("koto").get().description += "!"
     }
 
     private

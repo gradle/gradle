@@ -514,7 +514,7 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
                 @TaskAction fun run() = println("\$message \$number")
             }
 
-            tasks.create<CustomTask>("myTask", "hello", 42)
+            tasks.register<CustomTask>("myTask", "hello", 42)
         """
 
         when:
@@ -586,7 +586,7 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
             def schema = tasks.collectionSchema.elements.collectEntries { e ->
                 [ e.name, e.publicType.simpleName ]
             }
-            
+
             // check some built-in tasks
             assert schema["help"] == "Help"
             assert schema["projects"] == "ProjectReportTask"
