@@ -199,7 +199,7 @@ abstract class AbstractLineEndingSensitivityIntegrationSpec extends AbstractInte
         buildFile << """
             task jarTask(type: Jar) {
                 from(project.files("foo"))
-                archiveFile.set(project.file("\${buildDir}/foo.jar"))
+                destinationDirectory = project.layout.buildDirectory
             }
             taskWithInputs {
                 sources.from(jarTask)
@@ -241,11 +241,11 @@ abstract class AbstractLineEndingSensitivityIntegrationSpec extends AbstractInte
         buildFile << """
             task zipTask(type: Zip) {
                 from(project.files("foo"))
-                archiveFile.set(project.file("\${buildDir}/foo.zip"))
+                destinationDirectory = project.layout.buildDirectory
             }
             task jarTask(type: Jar) {
                 from(zipTask)
-                archiveFile.set(project.file("\${buildDir}/foo.jar"))
+                destinationDirectory = project.layout.buildDirectory
             }
             taskWithInputs {
                 sources.from(jarTask)

@@ -137,9 +137,4 @@ abstract class AbstractArchiveTaskTest extends AbstractCopyTaskContractTest {
         then:
         archiveTask.archiveFileName.get() == 'somefile.out'
     }
-
-    def "correct archive path"() {
-        expect:
-        archiveTask.archiveFile.set(new File(archiveTask.destinationDirectory.get().asFile, archiveTask.archiveFileName.get()))
-    }
 }
