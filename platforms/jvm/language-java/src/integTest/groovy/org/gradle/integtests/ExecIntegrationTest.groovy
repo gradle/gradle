@@ -547,7 +547,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         outputContains("Hello")
 
         where:
-        location   | method     | args           | expectedDeprecatedMethod        | replacements
+        location   | method     | args           | expectedDeprecatedMethod         | replacements
         "build"    | "exec"     | execSpec()     | "Using method exec(Closure)"     | "ExecOperations.exec(Action) or ProviderFactory.exec(Action)"
         "build"    | "javaexec" | javaExecSpec() | "Using method javaexec(Closure)" | "ExecOperations.javaexec(Action) or ProviderFactory.javaexec(Action)"
         "settings" | "exec"     | execSpec()     | "Using method exec(Closure)"     | "ExecOperations.exec(Action) or ProviderFactory.exec(Action)"
@@ -661,11 +661,11 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         outputContains("Hello")
 
         where:
-        location   | method     | args           | expectedDeprecatedMethod              | replacements
-        "build"    | "exec"     | execSpec()     | "The Project.exec(Action) method"     | "ExecOperations.exec(Action) or ProviderFactory.exec(Action)"
-        "build"    | "javaexec" | javaExecSpec() | "The Project.javaexec(Action) method" | "ExecOperations.javaexec(Action) or ProviderFactory.javaexec(Action)"
-        "settings" | "exec"     | execSpec()     | "Using method exec(Action)"           | "ExecOperations.exec(Action) or ProviderFactory.exec(Action)"
-        "settings" | "javaexec" | javaExecSpec() | "Using method javaexec(Action)"       | "ExecOperations.javaexec(Action) or ProviderFactory.javaexec(Action)"
+        location   | method     | args           | expectedDeprecatedMethod        | replacements
+        "build"    | "exec"     | execSpec()     | "Using method exec(Action)"     | "ExecOperations.exec(Action) or ProviderFactory.exec(Action)"
+        "build"    | "javaexec" | javaExecSpec() | "Using method javaexec(Action)" | "ExecOperations.javaexec(Action) or ProviderFactory.javaexec(Action)"
+        "settings" | "exec"     | execSpec()     | "Using method exec(Action)"     | "ExecOperations.exec(Action) or ProviderFactory.exec(Action)"
+        "settings" | "javaexec" | javaExecSpec() | "Using method javaexec(Action)" | "ExecOperations.javaexec(Action) or ProviderFactory.javaexec(Action)"
     }
 
     @UnsupportedWithConfigurationCache(because = "Uses script or project at execution time")
@@ -842,7 +842,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
             .requireIsolatedDaemons()
             .noDeprecationChecks()
             .withStackTraceChecksDisabled()
-            // Needed to get client pid
+        // Needed to get client pid
             .withArgument("--debug")
             .withTasks("appStart")
         def client = new DaemonClientFixture(executer.start())
@@ -887,7 +887,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
             .requireDaemon()
             .requireIsolatedDaemons()
             .withStackTraceChecksDisabled()
-            // Needed to get client pid
+        // Needed to get client pid
             .withArgument("--debug")
             .withTasks("appStart")
         def client = new DaemonClientFixture(executer.start())
@@ -971,7 +971,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private void expectTaskProjectDeprecation() {
-        executer.expectDocumentedDeprecationWarning("Invocation of Task.project at execution time has been deprecated. "+
+        executer.expectDocumentedDeprecationWarning("Invocation of Task.project at execution time has been deprecated. " +
             "This will fail with an error in Gradle 10.0. " +
             "This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release. " +
             "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_project")
