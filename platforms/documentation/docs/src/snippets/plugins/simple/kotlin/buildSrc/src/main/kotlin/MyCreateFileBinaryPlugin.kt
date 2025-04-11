@@ -7,7 +7,7 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import java.io.File
 
-abstract class CreateFileTask : DefaultTask() {
+abstract class MyCreateFileTask : DefaultTask() {
     @get:Input
     abstract val fileText: Property<String>
 
@@ -26,7 +26,7 @@ abstract class CreateFileTask : DefaultTask() {
 
 class MyCreateFileBinaryPlugin : Plugin<Project> {
     override fun apply(project: Project) {
-        project.tasks.register("createFileTaskFromBinaryPlugin", CreateFileTask::class.java) {
+        project.tasks.register("createFileTaskFromBinaryPlugin", MyCreateFileTask::class.java) {
             group = "from my binary plugin"
             description = "Create myfile.txt in the current directory"
             fileText.set("HELLO FROM MY BINARY PLUGIN")
