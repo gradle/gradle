@@ -627,7 +627,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         "configurations.maybeCreateConsumableUnlocked('additionalRuntimeClasspath')"    | ConfigurationRoles.CONSUMABLE | true  | "internal unlocked role-based configuration, if it doesn't already exist"
     }
 
-    def "changing usage on detached configurations does not warn"() {
+    def "changing usage on detached configurations warns"() {
         given:
         buildFile << """
             def detached = project.configurations.detachedConfiguration()
@@ -642,6 +642,9 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         """
 
         expect:
+        expectConsumableChanging(":detachedConfiguration1", false)
+        expectResolvableChanging(":detachedConfiguration1", false)
+        expectDeclarableChanging(":detachedConfiguration1", false)
         run "help"
     }
 
@@ -659,41 +662,6 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         expectConsumableChanging(":detachedConfiguration1", false)
         expectResolvableChanging(":detachedConfiguration1", false)
         expectDeclarableChanging(":detachedConfiguration1", false)
-        succeeds('help', "-Dorg.gradle.internal.deprecation.preliminary.Configuration.redundantUsageChangeWarning.enabled=true")
-    }
-
-    def "redundantly changing usage on a role-locked configuration warns when flag is set"() {
-        given:
-        buildFile << """
-            configurations {
-                consumable('cons')
-                resolvable('res')
-                dependencyScope('dep')
-            }
-
-            configurations.cons.canBeConsumed = true
-            configurations.cons.canBeResolved = false
-            configurations.cons.canBeDeclared = false
-
-            configurations.res.canBeConsumed = false
-            configurations.res.canBeResolved = true
-            configurations.res.canBeDeclared = false
-
-            configurations.dep.canBeConsumed = false
-            configurations.dep.canBeResolved = false
-            configurations.dep.canBeDeclared = true
-        """
-
-        expect:
-        expectConsumableChanging(":cons", true)
-        expectResolvableChanging(":cons", false)
-        expectDeclarableChanging(":cons", false)
-        expectConsumableChanging(":res", false)
-        expectResolvableChanging(":res", true)
-        expectDeclarableChanging(":res", false)
-        expectConsumableChanging(":dep", false)
-        expectResolvableChanging(":dep", false)
-        expectDeclarableChanging(":dep", true)
         succeeds('help', "-Dorg.gradle.internal.deprecation.preliminary.Configuration.redundantUsageChangeWarning.enabled=true")
     }
 

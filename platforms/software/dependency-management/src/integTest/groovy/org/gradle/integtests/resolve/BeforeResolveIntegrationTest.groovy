@@ -21,7 +21,7 @@ import org.gradle.test.fixtures.dsl.GradleDsl
 import spock.lang.Issue
 
 class BeforeResolveIntegrationTest extends AbstractDependencyResolutionTest {
-    def "can use beforeResolve hook to add dependencies"() {
+    def "can use beforeResolve hook to add dependencies only if configuration is not resolved as a build dependency"() {
         mavenRepo.module('org.test', 'dep1', '1.0').publish()
         mavenRepo.module('org.test', 'dep2', '1.0').publish()
         mavenRepo.module('org.test', 'dep3', '1.0').publish()
@@ -73,18 +73,16 @@ task copyFiles(type:Copy) {
         outputContains('[dep1-1.0.jar, dep2-1.0.jar]')
 
         when:
-        executer.expectDocumentedDeprecationWarning("Mutating a configuration after it has been resolved, consumed as a variant, or used for generating published metadata. This behavior has been deprecated. This will fail with an error in Gradle 9.0. The dependencies of configuration ':conf' were mutated after the configuration was resolved. After a configuration has been observed, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
-        succeeds 'printFilesWithConfigurationInput'
+        fails 'printFilesWithConfigurationInput'
 
         then:
-        outputContains('[dep1-1.0.jar, dep2-1.0.jar]')
+        failure.assertHasCause("Cannot mutate a configuration after it has been resolved, consumed as a variant, or used for generating published metadata.  The dependencies of configuration ':conf' were mutated after the configuration was resolved.")
 
         when:
-        executer.expectDocumentedDeprecationWarning("Mutating a configuration after it has been resolved, consumed as a variant, or used for generating published metadata. This behavior has been deprecated. This will fail with an error in Gradle 9.0. The dependencies of configuration ':conf' were mutated after the configuration was resolved. After a configuration has been observed, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
-        succeeds 'copyFiles'
+        fails 'copyFiles'
 
         then:
-        file('libs').assertHasDescendants('dep1-1.0.jar', 'dep2-1.0.jar')
+        failure.assertHasCause("Cannot mutate a configuration after it has been resolved, consumed as a variant, or used for generating published metadata.  The dependencies of configuration ':conf' were mutated after the configuration was resolved.")
 
         when:
         buildFile << """
@@ -93,16 +91,14 @@ configurations.conf.incoming.beforeResolve { resolvableDependencies ->
     project.dependencies.add('conf', 'org.test:dep3:1.0')
 }
 """
-        executer.expectDocumentedDeprecationWarning("Mutating a configuration after it has been resolved, consumed as a variant, or used for generating published metadata. This behavior has been deprecated. This will fail with an error in Gradle 9.0. The dependencies of configuration ':conf' were mutated after the configuration was resolved. After a configuration has been observed, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
-        executer.expectDocumentedDeprecationWarning("Mutating a configuration after it has been resolved, consumed as a variant, or used for generating published metadata. This behavior has been deprecated. This will fail with an error in Gradle 9.0. The dependencies of configuration ':conf' were mutated after the configuration was resolved. After a configuration has been observed, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
-        succeeds "copyFiles"
+        fails "copyFiles"
 
         then:
-        file('libs').assertHasDescendants('dep1-1.0.jar', 'dep2-1.0.jar', 'dep3-1.0.jar')
+        failure.assertHasCause("Cannot mutate a configuration after it has been resolved, consumed as a variant, or used for generating published metadata.  The dependencies of configuration ':conf' were mutated after the configuration was resolved.")
     }
 
     @Issue("gradle/gradle#2480")
-    def "can use beforeResolve hook to modify dependency excludes"() {
+    def "can use beforeResolve hook to modify dependency excludes only if configuration is not resolved as a build dependency"() {
         def module1 = mavenRepo.module('org.test', 'excluded-dep', '1.0').publish()
         mavenRepo.module('org.test', 'direct-dep', '1.0').dependsOn(module1).publish()
 
@@ -155,19 +151,20 @@ task copyFiles(type:Copy) {
         outputContains('[direct-dep-1.0.jar]')
 
         when:
-        executer.expectDocumentedDeprecationWarning("Mutating a configuration after it has been resolved, consumed as a variant, or used for generating published metadata. This behavior has been deprecated. This will fail with an error in Gradle 9.0. The dependency attributes of configuration ':conf' were mutated after the configuration was resolved. After a configuration has been observed, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
-        succeeds 'printFilesWithConfigurationInput'
+        fails 'printFilesWithConfigurationInput'
 
-        and:
-        executer.expectDocumentedDeprecationWarning("Mutating a configuration after it has been resolved, consumed as a variant, or used for generating published metadata. This behavior has been deprecated. This will fail with an error in Gradle 9.0. The dependency attributes of configuration ':conf' were mutated after the configuration was resolved. After a configuration has been observed, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
-        succeeds 'copyFiles'
+        then:
+        failure.assertHasCause("Cannot mutate a configuration after it has been resolved, consumed as a variant, or used for generating published metadata.  The dependency attributes of configuration ':conf' were mutated after the configuration was resolved.")
 
-        then: // Currently fails: excluded dependency is copied as part of configuration
-        file('libs').assertHasDescendants('direct-dep-1.0.jar')
+        when:
+        fails 'copyFiles'
+
+        then:
+        failure.assertHasCause("Cannot mutate a configuration after it has been resolved, consumed as a variant, or used for generating published metadata.  The dependency attributes of configuration ':conf' were mutated after the configuration was resolved.")
     }
 
     // This emulates the behaviour of the Spring Dependency Management plugin when applying dependency excludes from a BOM
-    def "can use beforeResolve hook to modify dependency excludes for configuration hierarchy"() {
+    def "can not use beforeResolve hook to modify dependency excludes for configuration hierarchy"() {
         mavenRepo.module('org.test', 'module1', '1.0').publish()
         mavenRepo.module('org.test', 'module2', '1.0').publish()
 
@@ -215,14 +212,22 @@ task copyFiles(type:Copy) {
             }
 """
 
-        expect:
-        executer.expectDocumentedDeprecationWarning("Mutating a configuration after it has been resolved, consumed as a variant, or used for generating published metadata. This behavior has been deprecated. This will fail with an error in Gradle 9.0. The dependency attributes of configuration ':implementation' were mutated after the configuration's child configuration ':compileClasspath' was resolved. After a configuration has been observed, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
-        executer.expectDocumentedDeprecationWarning("Mutating a configuration after it has been resolved, consumed as a variant, or used for generating published metadata. This behavior has been deprecated. This will fail with an error in Gradle 9.0. The dependency attributes of configuration ':testImplementation' were mutated after the configuration's child configuration ':testCompileClasspath' was resolved. After a configuration has been observed, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
-        succeeds('resolveCompile', 'resolveTestCompile')
+        when:
+        fails('resolveCompile')
+
+        then:
+        failure.assertHasCause("Cannot mutate a configuration after it has been resolved, consumed as a variant, or used for generating published metadata.  The dependency attributes of configuration ':implementation' were mutated after the configuration's child configuration ':compileClasspath' was resolved.")
+
+
+        when:
+        fails('resolveTestCompile')
+
+        then:
+        failure.assertHasCause("Cannot mutate a configuration after it has been resolved, consumed as a variant, or used for generating published metadata.  The dependency attributes of configuration ':implementation' were mutated after the configuration's child configuration ':testCompileClasspath' was resolved.")
     }
 
     // This emulates the historical behaviour of the Spring Dependency Management plugin when applying dependency excludes from a BOM
-    def "can use beforeResolve hook to modify excludes for a dependency shared with an already-resolved configuration"() {
+    def "can not use beforeResolve hook to modify excludes for a dependency shared with an already-resolved configuration"() {
         given: "3 modules, where there are dependency relations such that module1 depends on module2 and module2 depends on module3"
         mavenRepo.module('org.test', 'module1', '1.0').publish()
         mavenRepo.module('org.test', 'module2', '1.0')
@@ -267,12 +272,14 @@ task resolveDependencies {
 }
 """
 
-        expect: "that resolving conf a, then b, then a again, succeeds"
-        executer.expectDocumentedDeprecationWarning("Mutating a configuration after it has been resolved, consumed as a variant, or used for generating published metadata. This behavior has been deprecated. This will fail with an error in Gradle 9.0. The dependency attributes of configuration ':shared' were mutated after the configuration's child configuration ':a' was resolved. After a configuration has been observed, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
-        succeeds 'resolveDependencies'
+        when: "resolving conf a, then b, then a again, fails"
+        fails 'resolveDependencies'
+
+        then:
+        failure.assertHasCause("Cannot change dependency attributes of dependency configuration ':shared' after it has been included in dependency resolution.")
     }
 
-    def "can modify a configuration in a beforeResolve hook when the hook resolves another configuration"() {
+    def "can not modify a configuration in a beforeResolve hook when the hook resolves another configuration"() {
         mavenRepo.module('org.test', 'module1', '1.0').publish()
         mavenRepo.module('org.test', 'module2', '1.0').publish()
         settingsFile << """
@@ -325,16 +332,15 @@ task resolveDependencies {
             }
         """
 
-        expect:
+        when:
         executer.withArgument("--parallel")
-        executer.expectDocumentedDeprecationWarning("Mutating a configuration after it has been resolved, consumed as a variant, or used for generating published metadata. This behavior has been deprecated. This will fail with an error in Gradle 9.0. The dependencies of configuration ':bar' were mutated after the configuration was resolved. After a configuration has been observed, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
-        succeeds "a", "b"
+        fails "a", "b"
 
-        and:
-        output.count("resolving foo") == 1
+        then:
+        failure.assertHasCause("Cannot mutate a configuration after it has been resolved, consumed as a variant, or used for generating published metadata.  The dependencies of configuration ':bar' were mutated after the configuration was resolved.")
     }
 
-    def "Adding dependencies in a beforeResolve is deprecated in Kotlin DSL"() {
+    def "adding dependencies in a beforeResolve fails in Kotlin DSL only if configuration is not resolved as a build dependency"() {
         mavenRepo.module("com", "foo").publish()
         buildKotlinFile << """
             plugins {
@@ -367,13 +373,15 @@ task resolveDependencies {
             }
         """
 
-        expect:
-        executer.expectDocumentedDeprecationWarning("Mutating a configuration after it has been resolved, consumed as a variant, or used for generating published metadata. This behavior has been deprecated. This will fail with an error in Gradle 9.0. The dependencies of configuration ':implementation' were mutated after the configuration's child configuration ':runtimeClasspath' was resolved. After a configuration has been observed, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
-        succeeds("resolve")
+        when:
+        fails("resolve")
+
+        then:
+        failure.assertHasCause("Cannot mutate a configuration after it has been resolved, consumed as a variant, or used for generating published metadata.  The dependencies of configuration ':implementation' were mutated after the configuration's child configuration ':runtimeClasspath' was resolved.")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/27947")
-    def "exclude added in beforeResolve is not ignored"() {
+    def "exclude added in beforeResolve fails if configuration is not resolved as a build dependency"() {
         mavenRepo.module("org", "direct")
             .dependsOn(mavenRepo.module("org", "transitive").publish())
             .publish()
@@ -410,8 +418,10 @@ task resolveDependencies {
             }
         """
 
-        expect:
-        executer.expectDocumentedDeprecationWarning("Mutating a configuration after it has been resolved, consumed as a variant, or used for generating published metadata. This behavior has been deprecated. This will fail with an error in Gradle 9.0. The dependency attributes of configuration ':implementation' were mutated after the configuration's child configuration ':runtimeClasspath' was resolved. After a configuration has been observed, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
-        succeeds("resolve")
+        when:
+        fails("resolve")
+
+        then:
+        failure.assertHasCause("Cannot mutate a configuration after it has been resolved, consumed as a variant, or used for generating published metadata.  The dependency attributes of configuration ':implementation' were mutated after the configuration's child configuration ':runtimeClasspath' was resolved.")
     }
 }

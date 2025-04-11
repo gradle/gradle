@@ -484,7 +484,7 @@ configurations.compile.withDependencies {
         succeeds("resolve")
     }
 
-    def "modifying dependency and constraint attributes are deprecated after resolution"() {
+    def "modifying dependency and constraint attributes is banned after resolution"() {
         given:
         ["1.0", "2.0"].each { version ->
             mavenRepo.module("org", "foo", version).publish()
@@ -536,11 +536,10 @@ configurations.compile.withDependencies {
             }
         """
 
-        expect:
-        executer.expectDocumentedDeprecationWarning("Mutating a configuration after it has been resolved, consumed as a variant, or used for generating published metadata. This behavior has been deprecated. This will fail with an error in Gradle 9.0. The dependency attributes of configuration ':deps' were mutated after the configuration's child configuration ':res' was resolved. After a configuration has been observed, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
-        executer.expectDocumentedDeprecationWarning("Mutating a configuration after it has been resolved, consumed as a variant, or used for generating published metadata. This behavior has been deprecated. This will fail with an error in Gradle 9.0. The dependency attributes of configuration ':parent' were mutated after the configuration's child configuration ':res' was resolved. After a configuration has been observed, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
-        executer.expectDocumentedDeprecationWarning("Mutating a configuration after it has been resolved, consumed as a variant, or used for generating published metadata. This behavior has been deprecated. This will fail with an error in Gradle 9.0. The dependency constraint attributes of configuration ':deps' were mutated after the configuration's child configuration ':res' was resolved. After a configuration has been observed, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
-        executer.expectDocumentedDeprecationWarning("Mutating a configuration after it has been resolved, consumed as a variant, or used for generating published metadata. This behavior has been deprecated. This will fail with an error in Gradle 9.0. The dependency constraint attributes of configuration ':parent' were mutated after the configuration's child configuration ':res' was resolved. After a configuration has been observed, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
-        succeeds("resolve")
+        when:
+        fails("resolve")
+
+        then:
+        failure.assertHasCause("Cannot mutate a configuration after it has been resolved, consumed as a variant, or used for generating published metadata.  The dependency attributes of configuration ':deps' were mutated after the configuration's child configuration ':res' was resolved.")
     }
 }
