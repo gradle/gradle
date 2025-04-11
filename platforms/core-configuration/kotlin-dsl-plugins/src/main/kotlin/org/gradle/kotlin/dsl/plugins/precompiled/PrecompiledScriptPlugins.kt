@@ -26,6 +26,7 @@ import org.gradle.kotlin.dsl.precompile.v1.PrecompiledPluginsBlock
 import org.gradle.kotlin.dsl.provider.PrecompiledScriptPluginsSupport
 import org.gradle.kotlin.dsl.provider.gradleKotlinDslJarsOf
 import org.gradle.kotlin.dsl.support.serviceOf
+import org.jetbrains.kotlin.gradle.dsl.ExplicitApiMode
 import org.jetbrains.kotlin.gradle.plugin.KotlinBaseApiPlugin
 import org.jetbrains.kotlin.gradle.scripting.internal.ScriptingGradleSubplugin
 
@@ -71,12 +72,14 @@ abstract class PrecompiledScriptPlugins : Plugin<Project> {
 
         kotlinBaseApiPlugin.registerKotlinJvmCompileTask(
             taskName = taskName,
-            moduleName = "gradle-kotlin-dsl-plugins-blocks",
+            compilerOptions = kotlinBaseApiPlugin.createCompilerJvmOptions(),
+            explicitApiMode = provider { ExplicitApiMode.Disabled },
         ).configure { task ->
             task.enabled = false
             task.multiPlatformEnabled.set(false)
             task.libraries.from(sourceSets["main"].compileClasspath)
             task.pluginClasspath.from(pluginClasspath.get())
+            task.compilerOptions.moduleName.set("gradle-kotlin-dsl-plugins-blocks")
             task.compilerOptions.freeCompilerArgs.addAll(listOf("-script-templates", PrecompiledPluginsBlock::class.qualifiedName!!))
         }
     }

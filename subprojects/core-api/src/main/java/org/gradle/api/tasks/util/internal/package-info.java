@@ -14,5 +14,5 @@
  * limitations under the License.
  */
 
-@javax.annotation.Nonnull
+@org.jspecify.annotations.NullMarked
 package org.gradle.api.tasks.util.internal;

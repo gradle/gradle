@@ -182,23 +182,23 @@ public class DefaultJavaExecAction implements JavaExecAction {
     }
 
     @Override
-    public Map<String, Object> getSystemProperties() {
+    public Map<String, @Nullable Object> getSystemProperties() {
         return javaExecHandleBuilder.getSystemProperties();
     }
 
     @Override
-    public void setSystemProperties(Map<String, ?> properties) {
+    public void setSystemProperties(Map<String, ? extends @Nullable Object> properties) {
         javaExecHandleBuilder.setSystemProperties(properties);
     }
 
     @Override
-    public JavaForkOptions systemProperties(Map<String, ?> properties) {
+    public JavaForkOptions systemProperties(Map<String, ? extends @Nullable Object> properties) {
         javaExecHandleBuilder.systemProperties(properties);
         return this;
     }
 
     @Override
-    public JavaForkOptions systemProperty(String name, Object value) {
+    public JavaForkOptions systemProperty(String name, @Nullable Object value) {
         javaExecHandleBuilder.systemProperty(name, value);
         return this;
     }

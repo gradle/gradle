@@ -17,13 +17,14 @@
 package org.gradle.kotlin.dsl.support
 
 import com.google.common.annotations.VisibleForTesting
+import org.gradle.api.HasImplicitReceiver
 import org.gradle.api.JavaVersion
 import org.gradle.api.SupportsKotlinAssignmentOverloading
 import org.gradle.internal.SystemProperties
 import org.gradle.internal.io.NullOutputStream
 import org.gradle.internal.logging.ConsoleRenderer
-import org.jetbrains.kotlin.assignment.plugin.AssignmentComponentContainerContributor
-import org.jetbrains.kotlin.assignment.plugin.CliAssignPluginResolutionAltererExtension
+import org.jetbrains.kotlin.assignment.plugin.AssignmentComponentRegistrar
+import org.jetbrains.kotlin.assignment.plugin.AssignmentConfigurationKeys
 import org.jetbrains.kotlin.cli.common.CompilerSystemProperties.KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY
 import org.jetbrains.kotlin.cli.common.config.addKotlinSourceRoot
 import org.jetbrains.kotlin.cli.common.config.addKotlinSourceRoots
@@ -39,7 +40,6 @@ import org.jetbrains.kotlin.cli.jvm.config.addJvmClasspathRoot
 import org.jetbrains.kotlin.cli.jvm.config.addJvmSdkRoots
 import org.jetbrains.kotlin.codegen.CompilationException
 import org.jetbrains.kotlin.com.intellij.openapi.Disposable
-import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.com.intellij.openapi.util.Disposer.dispose
 import org.jetbrains.kotlin.com.intellij.openapi.util.Disposer.newDisposable
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
@@ -47,7 +47,6 @@ import org.jetbrains.kotlin.config.AnalysisFlags
 import org.jetbrains.kotlin.config.ApiVersion
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
-import org.jetbrains.kotlin.config.JVMConfigurationKeys.IR
 import org.jetbrains.kotlin.config.JVMConfigurationKeys.JDK_HOME
 import org.jetbrains.kotlin.config.JVMConfigurationKeys.JVM_TARGET
 import org.jetbrains.kotlin.config.JVMConfigurationKeys.OUTPUT_DIRECTORY
@@ -58,19 +57,17 @@ import org.jetbrains.kotlin.config.JvmClosureGenerationScheme
 import org.jetbrains.kotlin.config.JvmDefaultMode
 import org.jetbrains.kotlin.config.JvmTarget
 import org.jetbrains.kotlin.config.JvmTarget.JVM_1_8
-import org.jetbrains.kotlin.config.JvmTarget.JVM_22
-import org.jetbrains.kotlin.config.LanguageFeature
+import org.jetbrains.kotlin.config.JvmTarget.JVM_23
 import org.jetbrains.kotlin.config.LanguageVersion
 import org.jetbrains.kotlin.config.LanguageVersionSettingsImpl
-import org.jetbrains.kotlin.extensions.StorageComponentContainerContributor
-import org.jetbrains.kotlin.extensions.internal.InternalNonStableExtensionPoints
 import org.jetbrains.kotlin.load.java.JavaTypeEnhancementState
 import org.jetbrains.kotlin.load.java.Jsr305Settings
 import org.jetbrains.kotlin.load.java.ReportLevel
 import org.jetbrains.kotlin.name.NameUtils
-import org.jetbrains.kotlin.resolve.extensions.AssignResolutionAltererExtension
-import org.jetbrains.kotlin.samWithReceiver.CliSamWithReceiverComponentContributor
+import org.jetbrains.kotlin.samWithReceiver.SamWithReceiverComponentRegistrar
+import org.jetbrains.kotlin.samWithReceiver.SamWithReceiverConfigurationKeys
 import org.jetbrains.kotlin.scripting.compiler.plugin.ScriptingCompilerConfigurationComponentRegistrar
+import org.jetbrains.kotlin.scripting.compiler.plugin.ScriptingK2CompilerPluginRegistrar
 import org.jetbrains.kotlin.scripting.compiler.plugin.impl.ScriptJvmCompilerFromEnvironment
 import org.jetbrains.kotlin.scripting.compiler.plugin.toCompilerMessageSeverity
 import org.jetbrains.kotlin.scripting.configuration.ScriptingConfigurationKeys.SCRIPT_DEFINITIONS
@@ -141,7 +138,6 @@ fun compileKotlinScriptModuleForPrecompiledScriptPluginsTo(
     withRootDisposable {
         withCompilationExceptionHandler(messageCollector) {
             val configuration = compilerConfigurationFor(messageCollector, compilerOptions).apply {
-                put(RETAIN_OUTPUT_IN_MEMORY, false)
                 put(OUTPUT_DIRECTORY, outputDirectory)
                 setModuleName(moduleName)
                 addScriptingCompilerComponents()
@@ -150,12 +146,7 @@ fun compileKotlinScriptModuleForPrecompiledScriptPluginsTo(
                 classPath.forEach { addJvmClasspathRoot(it) }
             }
 
-            val environment = kotlinCoreEnvironmentFor(configuration).apply {
-                HasImplicitReceiverCompilerPlugin.apply(project)
-                KotlinAssignmentCompilerPlugin.apply(project)
-            }
-
-            compileBunchOfSources(environment)
+            compileBunchOfSources(kotlinCoreEnvironmentFor(configuration))
                 || throw ScriptCompilationException(messageCollector.errors)
         }
     }
@@ -225,16 +216,14 @@ fun compileKotlinScriptModuleTo(
     withRootDisposable {
         withCompilationExceptionHandler(messageCollector) {
             val configuration = compilerConfigurationFor(messageCollector, compilerOptions).apply {
-                put(RETAIN_OUTPUT_IN_MEMORY, false)
                 put(OUTPUT_DIRECTORY, outputDirectory)
                 setModuleName(moduleName)
                 addScriptingCompilerComponents()
+                add(SamWithReceiverConfigurationKeys.ANNOTATION, HasImplicitReceiver::class.qualifiedName!!)
+                add(AssignmentConfigurationKeys.ANNOTATION, SupportsKotlinAssignmentOverloading::class.qualifiedName!!)
             }
 
-            val environment = kotlinCoreEnvironmentFor(configuration).apply {
-                HasImplicitReceiverCompilerPlugin.apply(project)
-                KotlinAssignmentCompilerPlugin.apply(project)
-            }
+            val environment = kotlinCoreEnvironmentFor(configuration)
 
             val host = BasicJvmScriptingHost(
                 compiler = JvmScriptCompiler(scriptDef.hostConfiguration, ScriptJvmCompilerFromEnvironment(environment)),
@@ -279,30 +268,6 @@ private fun ResultWithDiagnostics<*>.reportToMessageCollectorAndThrowOnErrors(sc
     if (it is ResultWithDiagnostics.Failure || (messageCollector.hasErrors() && scriptErrors.isNotEmpty())) {
         throw ScriptCompilationException(scriptErrors)
     }
-}
-
-private
-object KotlinAssignmentCompilerPlugin {
-
-    @OptIn(InternalNonStableExtensionPoints::class)
-    fun apply(project: Project) {
-        val annotations = listOf(SupportsKotlinAssignmentOverloading::class.qualifiedName!!)
-        AssignResolutionAltererExtension.Companion.registerExtension(project, CliAssignPluginResolutionAltererExtension(annotations))
-        StorageComponentContainerContributor.registerExtension(project, AssignmentComponentContainerContributor(annotations))
-    }
-}
-
-
-private
-object HasImplicitReceiverCompilerPlugin {
-
-    fun apply(project: Project) {
-        StorageComponentContainerContributor.registerExtension(project, samWithReceiverComponentContributor)
-    }
-
-    val samWithReceiverComponentContributor = CliSamWithReceiverComponentContributor(
-        listOf("org.gradle.api.HasImplicitReceiver")
-    )
 }
 
 
@@ -447,9 +412,10 @@ private
 fun compilerConfigurationFor(messageCollector: MessageCollector, compilerOptions: KotlinCompilerOptions): CompilerConfiguration =
     CompilerConfiguration().apply {
         put(CommonConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
+        put(CommonConfigurationKeys.USE_FIR, true) // Enables K2
+        put(RETAIN_OUTPUT_IN_MEMORY, false)
         put(JVM_TARGET, compilerOptions.jvmTarget.toKotlinJvmTarget())
         put(JDK_HOME, File(System.getProperty("java.home")))
-        put(IR, true)
         put(SAM_CONVERSIONS, JvmClosureGenerationScheme.CLASS)
         addJvmSdkRoots(PathUtil.getJdkClassesRootsFromCurrentJre())
         put(CommonConfigurationKeys.LANGUAGE_VERSION_SETTINGS, gradleKotlinDslLanguageVersionSettingsFor(compilerOptions))
@@ -460,17 +426,17 @@ fun compilerConfigurationFor(messageCollector: MessageCollector, compilerOptions
 @VisibleForTesting
 internal
 fun JavaVersion.toKotlinJvmTarget(): JvmTarget {
-    // JvmTarget.fromString(JavaVersion.majorVersion) works from Java 9 to Java 21
+    // JvmTarget.fromString(JavaVersion.majorVersion) works from Java 9 to Java 23
     return JvmTarget.fromString(majorVersion)
         ?: if (this <= JavaVersion.VERSION_1_8) JVM_1_8
-        else JVM_22
+        else JVM_23
 }
 
 
 private
 fun gradleKotlinDslLanguageVersionSettingsFor(compilerOptions: KotlinCompilerOptions) = LanguageVersionSettingsImpl(
-    languageVersion = LanguageVersion.KOTLIN_1_8,
-    apiVersion = ApiVersion.KOTLIN_1_8,
+    languageVersion = LanguageVersion.KOTLIN_2_1,
+    apiVersion = ApiVersion.KOTLIN_2_1,
     analysisFlags = mapOf(
         AnalysisFlags.skipMetadataVersionCheck to compilerOptions.skipMetadataVersionCheck,
         AnalysisFlags.skipPrereleaseCheck to true,
@@ -481,10 +447,6 @@ fun gradleKotlinDslLanguageVersionSettingsFor(compilerOptions: KotlinCompilerOpt
             getReportLevelForAnnotation = { ReportLevel.STRICT }
         ),
     ),
-    specificFeatures = mapOf(
-        LanguageFeature.DisableCompatibilityModeForNewInference to LanguageFeature.State.ENABLED,
-        LanguageFeature.TypeEnhancementImprovementsInStrictMode to LanguageFeature.State.DISABLED,
-    )
 )
 
 
@@ -501,6 +463,18 @@ fun CompilerConfiguration.addScriptingCompilerComponents() {
     add(
         org.jetbrains.kotlin.compiler.plugin.ComponentRegistrar.PLUGIN_COMPONENT_REGISTRARS,
         ScriptingCompilerConfigurationComponentRegistrar()
+    )
+    add(
+        org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar.COMPILER_PLUGIN_REGISTRARS,
+        ScriptingK2CompilerPluginRegistrar()
+    )
+    add(
+        org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar.COMPILER_PLUGIN_REGISTRARS,
+        SamWithReceiverComponentRegistrar()
+    )
+    add(
+        org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar.COMPILER_PLUGIN_REGISTRARS,
+        AssignmentComponentRegistrar()
     )
 }
 

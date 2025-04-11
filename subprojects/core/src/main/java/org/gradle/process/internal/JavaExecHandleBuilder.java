@@ -177,20 +177,20 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
         return jvmArguments;
     }
 
-    public Map<String, Object> getSystemProperties() {
+    public Map<String, @Nullable Object> getSystemProperties() {
         return javaOptions.getSystemProperties();
     }
 
-    public void setSystemProperties(Map<String, ?> properties) {
+    public void setSystemProperties(Map<String, ? extends @Nullable Object> properties) {
         javaOptions.setSystemProperties(properties);
     }
 
-    public JavaExecHandleBuilder systemProperties(Map<String, ?> properties) {
+    public JavaExecHandleBuilder systemProperties(Map<String, ? extends @Nullable Object> properties) {
         javaOptions.systemProperties(properties);
         return this;
     }
 
-    public JavaExecHandleBuilder systemProperty(String name, Object value) {
+    public JavaExecHandleBuilder systemProperty(String name, @Nullable Object value) {
         javaOptions.systemProperty(name, value);
         return this;
     }

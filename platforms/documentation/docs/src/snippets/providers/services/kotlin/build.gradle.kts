@@ -233,8 +233,8 @@ class OrtModelBuilder : ToolingModelBuilder {
         return false
     }
 
-    override fun buildAll(modelName: String, project: Project): Any? {
-        return null
+    override fun buildAll(modelName: String, project: Project): Any {
+        return "model"
     }
 }
 

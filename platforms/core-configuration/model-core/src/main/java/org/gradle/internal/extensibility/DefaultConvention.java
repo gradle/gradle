@@ -253,7 +253,7 @@ public class DefaultConvention implements org.gradle.api.plugins.Convention, Ext
         }
 
         @Override
-        public Map<String, Object> getProperties() {
+        public Map<String, @Nullable Object> getProperties() {
             Map<String, Object> properties = new HashMap<String, Object>();
             if (plugins != null) {
                 List<Object> reverseOrder = new ArrayList<Object>(plugins.values());
