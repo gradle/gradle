@@ -21,7 +21,6 @@ import org.gradle.api.internal.file.FileResolver;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.Collection;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -32,13 +31,11 @@ public class EnvironmentVariableListInstallationSupplier implements Installation
 
     private final ToolchainConfiguration buildOptions;
     private final FileResolver fileResolver;
-    private final Map<String, String> environment;
 
     @Inject
-    public EnvironmentVariableListInstallationSupplier(ToolchainConfiguration buildOptions, FileResolver fileResolver, Map<String, String> environment) {
+    public EnvironmentVariableListInstallationSupplier(ToolchainConfiguration buildOptions, FileResolver fileResolver) {
         this.buildOptions = buildOptions;
         this.fileResolver = fileResolver;
-        this.environment = environment;
     }
 
     @Override
@@ -68,7 +65,7 @@ public class EnvironmentVariableListInstallationSupplier implements Installation
 
     @Nullable
     private String environmentVariableValue(String environmentVariable) {
-        return environment.get(environmentVariable.trim());
+        return buildOptions.getEnvironmentVariableValue(environmentVariable.trim());
     }
 
 

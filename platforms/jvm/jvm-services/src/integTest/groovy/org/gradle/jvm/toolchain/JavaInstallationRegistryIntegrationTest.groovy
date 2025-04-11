@@ -18,6 +18,7 @@ package org.gradle.jvm.toolchain
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
@@ -96,6 +97,41 @@ class JavaInstallationRegistryIntegrationTest extends AbstractIntegrationSpec {
         outputContains("Directory '${new File("/unknown/env").absolutePath}' (environment variable 'JDK1') used for java installations does not exist")
         outputContains(firstJavaHome)
         outputContains(secondJavaHome)
+    }
+
+    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    def "installation registry is populated by JAVA_HOME environment variable"() {
+        def currentJvm = Jvm.current().javaHome.absolutePath
+        def otherJvm = AvailableJavaHomes.differentVersion.javaHome.absolutePath
+
+        buildFile << """
+            import org.gradle.internal.jvm.inspection.JavaInstallationRegistry;
+
+            abstract class ShowPlugin implements Plugin<Project> {
+                @Inject
+                abstract JavaInstallationRegistry getRegistry()
+
+                void apply(Project project) {
+                    project.tasks.register("show") {
+                       registry.listInstallations().each { println it.location }
+                    }
+                }
+            }
+
+            apply plugin: ShowPlugin
+        """
+
+        when:
+        result = executer
+            .withArguments("-Dorg.gradle.java.home=$currentJvm", "--info")
+            .withEnvironmentVars([JAVA_HOME: otherJvm])
+            .withTasks("show")
+            .requireIsolatedDaemons()
+            .run()
+
+        then:
+        outputContains(currentJvm)
+        outputContains(otherJvm)
     }
 
     def "relative file paths are resolved relative to root dir"() {
