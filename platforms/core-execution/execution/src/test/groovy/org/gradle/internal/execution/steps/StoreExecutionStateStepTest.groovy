@@ -18,10 +18,10 @@ package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSortedMap
+import org.gradle.caching.internal.SimpleBuildCacheKey
 import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.internal.Try
 import org.gradle.internal.execution.caching.CachingState
-import org.gradle.internal.execution.caching.impl.DefaultBuildCacheKey
 import org.gradle.internal.execution.history.AfterExecutionState
 import org.gradle.internal.execution.history.BeforeExecutionState
 import org.gradle.internal.execution.history.ExecutionHistoryStore
@@ -70,7 +70,7 @@ class StoreExecutionStateStepTest extends StepSpec<IncrementalCachingContext> im
             _ * getOriginMetadata() >> originMetadata
         })
 
-        _ * context.cachingState >> CachingState.enabled(new DefaultBuildCacheKey(cacheKey), beforeExecutionState)
+        _ * context.cachingState >> CachingState.enabled(new SimpleBuildCacheKey(cacheKey), beforeExecutionState)
         _ * delegateResult.execution >> Try.successful(Mock(Execution))
 
         then:
@@ -91,7 +91,7 @@ class StoreExecutionStateStepTest extends StepSpec<IncrementalCachingContext> im
             1 * getOutputFilesProducedByWork() >> this.outputFilesProducedByWork
             1 * getOriginMetadata() >> originMetadata
         })
-        _ * context.cachingState >> CachingState.enabled(new DefaultBuildCacheKey(cacheKey), beforeExecutionState)
+        _ * context.cachingState >> CachingState.enabled(new SimpleBuildCacheKey(cacheKey), beforeExecutionState)
         _ * delegateResult.execution >> Try.failure(new RuntimeException("execution error"))
         _ * context.previousExecutionState >> Optional.empty()
 
@@ -115,7 +115,7 @@ class StoreExecutionStateStepTest extends StepSpec<IncrementalCachingContext> im
             _ * getOutputFilesProducedByWork() >> this.outputFilesProducedByWork
             _ * getOriginMetadata() >> originMetadata
         })
-        _ * context.cachingState >> CachingState.enabled(new DefaultBuildCacheKey(cacheKey), beforeExecutionState)
+        _ * context.cachingState >> CachingState.enabled(new SimpleBuildCacheKey(cacheKey), beforeExecutionState)
         _ * delegateResult.execution >> Try.failure(new RuntimeException("execution error"))
         _ * context.previousExecutionState >> Optional.of(previousExecutionState)
         1 * previousExecutionState.outputFilesProducedByWork >> snapshotsOf([:])
@@ -139,7 +139,7 @@ class StoreExecutionStateStepTest extends StepSpec<IncrementalCachingContext> im
         1 * delegateResult.afterExecutionOutputState >> Optional.of(Mock(AfterExecutionState) {
             _ * getOutputFilesProducedByWork() >> this.outputFilesProducedByWork
         })
-        _ * context.cachingState >> CachingState.enabled(new DefaultBuildCacheKey(cacheKey), beforeExecutionState)
+        _ * context.cachingState >> CachingState.enabled(new SimpleBuildCacheKey(cacheKey), beforeExecutionState)
         _ * delegateResult.execution >> Try.failure(new RuntimeException("execution error"))
         _ * context.previousExecutionState >> Optional.of(previousExecutionState)
         1 * previousExecutionState.outputFilesProducedByWork >> outputFilesProducedByWork
