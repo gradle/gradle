@@ -15,7 +15,7 @@ dependencies {
 // end::dependencies[]
 
 // tag::fail-on-version-conflict[]
-configurations.all {
+configurations.configureEach {
     resolutionStrategy {
         failOnVersionConflict()
     }
@@ -23,7 +23,7 @@ configurations.all {
 // end::fail-on-version-conflict[]
 
 // tag::fail-on-dynamic[]
-configurations.all {
+configurations.configureEach {
     resolutionStrategy {
         failOnDynamicVersions()
     }
@@ -31,7 +31,7 @@ configurations.all {
 // end::fail-on-dynamic[]
 
 // tag::fail-on-changing[]
-configurations.all {
+configurations.configureEach {
     resolutionStrategy {
         failOnChangingVersions()
     }
@@ -39,7 +39,7 @@ configurations.all {
 // end::fail-on-changing[]
 
 // tag::fail-on-unstable[]
-configurations.all {
+configurations.configureEach {
     resolutionStrategy {
         failOnNonReproducibleResolution()
     }
