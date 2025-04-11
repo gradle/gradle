@@ -186,7 +186,7 @@ public class AccessTrackingProperties extends Properties {
     }
 
     @Override
-    public Object putIfAbsent(Object key, Object value) {
+    public @Nullable Object putIfAbsent(Object key, Object value) {
         Object oldValue;
         synchronized (delegate) {
             oldValue = delegate.putIfAbsent(key, value);

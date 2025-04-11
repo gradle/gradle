@@ -44,7 +44,7 @@ public class AccessTrackingEnvMap extends ForwardingMap<String, String> implemen
     }
 
     @Override
-    public String get(@Nullable Object key) {
+    public @Nullable String get(@Nullable Object key) {
         return getAndReport(key);
     }
 
