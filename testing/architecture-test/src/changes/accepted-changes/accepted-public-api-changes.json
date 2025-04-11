@@ -353,6 +353,110 @@
             ]
         },
         {
+            "type": "org.gradle.api.plugins.ApplicationPluginConvention",
+            "member": "Class org.gradle.api.plugins.ApplicationPluginConvention",
+            "acceptation": "Remove deprecated feature",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.ApplicationPluginConvention",
+            "member": "Constructor org.gradle.api.plugins.ApplicationPluginConvention()",
+            "acceptation": "Remove deprecated feature",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.ApplicationPluginConvention",
+            "member": "Method org.gradle.api.plugins.ApplicationPluginConvention.getApplicationDefaultJvmArgs()",
+            "acceptation": "Remove deprecated feature",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.ApplicationPluginConvention",
+            "member": "Method org.gradle.api.plugins.ApplicationPluginConvention.getApplicationDistribution()",
+            "acceptation": "Remove deprecated feature",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.ApplicationPluginConvention",
+            "member": "Method org.gradle.api.plugins.ApplicationPluginConvention.getApplicationName()",
+            "acceptation": "Remove deprecated feature",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.ApplicationPluginConvention",
+            "member": "Method org.gradle.api.plugins.ApplicationPluginConvention.getExecutableDir()",
+            "acceptation": "Remove deprecated feature",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.ApplicationPluginConvention",
+            "member": "Method org.gradle.api.plugins.ApplicationPluginConvention.getMainClassName()",
+            "acceptation": "Remove deprecated feature",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.ApplicationPluginConvention",
+            "member": "Method org.gradle.api.plugins.ApplicationPluginConvention.getProject()",
+            "acceptation": "Remove deprecated feature",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.ApplicationPluginConvention",
+            "member": "Method org.gradle.api.plugins.ApplicationPluginConvention.setApplicationDefaultJvmArgs(java.lang.Iterable)",
+            "acceptation": "Remove deprecated feature",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.ApplicationPluginConvention",
+            "member": "Method org.gradle.api.plugins.ApplicationPluginConvention.setApplicationDistribution(org.gradle.api.file.CopySpec)",
+            "acceptation": "Remove deprecated feature",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.ApplicationPluginConvention",
+            "member": "Method org.gradle.api.plugins.ApplicationPluginConvention.setApplicationName(java.lang.String)",
+            "acceptation": "Remove deprecated feature",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.ApplicationPluginConvention",
+            "member": "Method org.gradle.api.plugins.ApplicationPluginConvention.setExecutableDir(java.lang.String)",
+            "acceptation": "Remove deprecated feature",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.ApplicationPluginConvention",
+            "member": "Method org.gradle.api.plugins.ApplicationPluginConvention.setMainClassName(java.lang.String)",
+            "acceptation": "Remove deprecated feature",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.plugins.BasePluginConvention",
             "member": "Class org.gradle.api.plugins.BasePluginConvention",
             "acceptation": "Remove deprecated API",

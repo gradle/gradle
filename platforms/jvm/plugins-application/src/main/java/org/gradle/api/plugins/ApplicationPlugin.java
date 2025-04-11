@@ -28,7 +28,6 @@ import org.gradle.api.distribution.plugins.DistributionPlugin;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.provider.PropertyFactory;
-import org.gradle.api.plugins.internal.DefaultApplicationPluginConvention;
 import org.gradle.api.plugins.internal.DefaultJavaApplication;
 import org.gradle.api.plugins.internal.JavaPluginHelper;
 import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
@@ -42,7 +41,6 @@ import org.gradle.api.tasks.application.CreateStartScripts;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.internal.JavaExecExecutableUtils;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 
@@ -135,12 +133,10 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
         }
     }
 
-    @SuppressWarnings("deprecation")
     private JavaApplication addExtension(Project project) {
-        @SuppressWarnings("deprecation") ApplicationPluginConvention pluginConvention = project.getObjects().newInstance(DefaultApplicationPluginConvention.class, project);
-        DeprecationLogger.whileDisabled(() -> pluginConvention.setApplicationName(project.getName()));
-        DeprecationLogger.whileDisabled(() -> project.getConvention().getPlugins().put("application", pluginConvention));
-        return project.getExtensions().create(JavaApplication.class, "application", DefaultJavaApplication.class, pluginConvention);
+        JavaApplication javaApplication = project.getExtensions().create(JavaApplication.class, "application", DefaultJavaApplication.class);
+        javaApplication.setApplicationName(project.getName());
+        return javaApplication;
     }
 
     private void addRunTask(Project project, JvmFeatureInternal mainFeature, JavaApplication pluginExtension) {
