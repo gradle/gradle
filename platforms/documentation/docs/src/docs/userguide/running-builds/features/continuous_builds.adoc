@@ -20,6 +20,7 @@ You can execute the build in this mode using the `-t` or `--continuous` command-
 
 For example, you can continuously run the `test` task and all dependent tasks by running:
 
+[source,bash]
 ----
 $ gradle test --continuous
 ----

@@ -43,7 +43,7 @@ NOTE: For information on what data is collected and how it's handled, see the li
 
 In Gradle 4.3 and above, you can create a Build Scan using the `--scan` command line option:
 
-[listing.terminal]
+[source,bash]
 ----
 $ gradle build --scan
 ----
@@ -53,6 +53,7 @@ https://docs.gradle.com/build-scan-plugin/#getting_set_up[Build Scan Plugin User
 
 At the end of your build, Gradle displays a URL where you can find your Build Scan:
 
+[source,text]
 ----
 BUILD SUCCESSFUL in 2s
 4 actionable tasks: 4 executed
@@ -103,7 +104,7 @@ If you prefer not to use Build Scans, you can generate an HTML report in the
 `build/reports/profile` directory of your root project. To generate this report,
 use the `--profile` command-line option:
 
-[listing.terminal]
+[source,bash]
 ----
 $ gradle --profile <tasks>
 ----

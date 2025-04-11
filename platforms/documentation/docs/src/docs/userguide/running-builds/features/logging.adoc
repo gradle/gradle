@@ -78,7 +78,7 @@ org.gradle.logging.level=info
 
 Similarly on the command line:
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew run --info
 ----
