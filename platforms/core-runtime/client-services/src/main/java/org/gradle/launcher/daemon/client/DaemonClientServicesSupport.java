@@ -16,6 +16,9 @@
 package org.gradle.launcher.daemon.client;
 
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
+import org.gradle.api.internal.provider.DefaultPropertyFactory;
+import org.gradle.api.internal.provider.PropertyFactory;
+import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.GlobalCache;
 import org.gradle.cache.UnscopedCacheBuilderFactory;
@@ -26,9 +29,6 @@ import org.gradle.cache.internal.scopes.DefaultGlobalScopedCacheBuilderFactory;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.initialization.layout.GlobalCacheDir;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.api.internal.provider.DefaultPropertyFactory;
-import org.gradle.api.internal.provider.PropertyFactory;
-import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.UUIDGenerator;
@@ -100,11 +100,6 @@ public abstract class DaemonClientServicesSupport implements ServiceRegistration
     }
 
     @Provides
-    JvmVersionValidator createJvmVersionValidator() {
-        return new JvmVersionValidator();
-    }
-
-    @Provides
     JvmMetadataDetector createJvmMetadataDetector(ClientExecHandleBuilderFactory execHandleFactory, TemporaryFileProvider temporaryFileProvider, GlobalScopedCacheBuilderFactory globalScopedCacheBuilderFactory) {
         return new PersistentJvmMetadataDetector(new DefaultJvmMetadataDetector(execHandleFactory, temporaryFileProvider), globalScopedCacheBuilderFactory.createCacheBuilder("jvms"));
     }
@@ -145,8 +140,8 @@ public abstract class DaemonClientServicesSupport implements ServiceRegistration
     }
 
     @Provides
-    DaemonStarter createDaemonStarter(DaemonDir daemonDir, DaemonParameters daemonParameters, DaemonGreeter daemonGreeter, JvmVersionValidator jvmVersionValidator, JvmVersionDetector jvmVersionDetector, DaemonRequestContext daemonRequestContext, Lazy<JavaToolchainQueryService> javaToolchainQueryService, PropertyFactory propertyFactory) {
-        return new DefaultDaemonStarter(daemonDir, daemonParameters, daemonRequestContext, daemonGreeter, jvmVersionValidator, jvmVersionDetector, javaToolchainQueryService, propertyFactory);
+    DaemonStarter createDaemonStarter(DaemonDir daemonDir, DaemonParameters daemonParameters, DaemonGreeter daemonGreeter, JvmVersionDetector jvmVersionDetector, DaemonRequestContext daemonRequestContext, Lazy<JavaToolchainQueryService> javaToolchainQueryService, PropertyFactory propertyFactory) {
+        return new DefaultDaemonStarter(daemonDir, daemonParameters, daemonRequestContext, daemonGreeter, jvmVersionDetector, javaToolchainQueryService, propertyFactory);
     }
 
     @Provides

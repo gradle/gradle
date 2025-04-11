@@ -22,13 +22,24 @@ package org.gradle.internal.jvm;
 public class SupportedJavaVersions {
 
     /**
+     * The minimum version of Java that is required to run a Gradle daemon client.
+     * <p>
+     * The Tooling API client and CLI Client are both Gradle daemon clients.
+     */
+    public static final int MINIMUM_CLIENT_JAVA_VERSION = 8;
+
+    /**
      * The minimum version of Java that is required to run the Gradle daemon.
      */
-    public static final int MINIMUM_JAVA_VERSION = 8;
+    public static final int MINIMUM_DAEMON_JAVA_VERSION = 8;
 
     /**
      * The minimum version of Java that will be required to run the Gradle daemon in the next major version.
+     * <p>
+     * If this is the same version as {@link #MINIMUM_DAEMON_JAVA_VERSION}, then the next major
+     * version will not require a newer minimum Java version. When you update this version,
+     * be sure to add an entry to the upgrade guide.
      */
-    public static final int FUTURE_MINIMUM_JAVA_VERSION = 17;
+    public static final int FUTURE_MINIMUM_DAEMON_JAVA_VERSION = 17;
 
 }

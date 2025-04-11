@@ -47,6 +47,7 @@ dependencies {
 
     implementation(projects.time)
     implementation(projects.baseAsm)
+    implementation(projects.buildProcessStartup)
 
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)

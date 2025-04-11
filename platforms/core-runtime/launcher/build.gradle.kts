@@ -49,6 +49,7 @@ dependencies {
     api(libs.guava)
     api(libs.jspecify)
 
+    implementation(projects.buildProcessStartup)
     implementation(projects.enterpriseOperations)
     implementation(projects.functional)
     implementation(projects.io)
@@ -81,6 +82,7 @@ dependencies {
     integTestImplementation(libs.commonsLang)
     integTestImplementation(libs.commonsIo)
     integTestImplementation(testFixtures(projects.buildConfiguration))
+    integTestImplementation(testFixtures(projects.buildProcessStartup))
     integTestImplementation(testFixtures(projects.toolchainsJvmShared))
 
     integTestDistributionRuntimeOnly(projects.distributionsFull) {

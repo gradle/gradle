@@ -43,6 +43,7 @@ import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.instrumentation.agent.AgentStatus;
 import org.gradle.internal.jvm.JavaHomeException;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.jvm.SupportedJavaVersionsDeprecations;
 import org.gradle.internal.jvm.inspection.CachingJvmMetadataDetector;
 import org.gradle.internal.jvm.inspection.DefaultJvmMetadataDetector;
 import org.gradle.internal.jvm.inspection.DefaultJvmVersionDetector;
@@ -1398,14 +1399,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
         List<ExpectedDeprecationWarning> maybeExpectedDeprecationWarnings = new ArrayList<>();
         if (filterJavaVersionDeprecation) {
-            maybeExpectedDeprecationWarnings.add(ExpectedDeprecationWarning.withMessage(normalizeDocumentationLink(
-                "Executing Gradle on JVM versions 16 and lower has been deprecated. " +
-                    "This will fail with an error in Gradle 9.0. " +
-                    "Use JVM 17 or greater to execute Gradle. " +
-                    "Projects can continue to use older JVM versions via toolchains. " +
-                    "Consult the upgrading guide for further information: " +
-                    "https://docs.gradle.org/current/userguide/upgrading_version_8.html#minimum_daemon_jvm_version"
-            )));
+            maybeExpectedDeprecationWarnings.add(ExpectedDeprecationWarning.withMessage(
+                SupportedJavaVersionsDeprecations.getExpectedDaemonDeprecationWarning(getComputedGradleVersion())
+            ));
         }
 
         return new ResultAssertion(
@@ -1450,11 +1446,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     }
 
     private String normalizeDocumentationLink(String warning) {
-        if (gradleVersionOverride != null) {
-            return DocumentationUtils.normalizeDocumentationLink(warning, gradleVersionOverride);
-        } else {
-            return DocumentationUtils.normalizeDocumentationLink(warning, gradleVersion);
-        }
+        return DocumentationUtils.normalizeDocumentationLink(warning, getComputedGradleVersion());
+    }
+
+    private GradleVersion getComputedGradleVersion() {
+        return gradleVersionOverride != null ? gradleVersionOverride : gradleVersion;
     }
 
     @Override

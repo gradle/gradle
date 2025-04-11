@@ -49,6 +49,17 @@ public abstract class GradleVersion implements Comparable<GradleVersion> {
     public abstract String getVersion();
 
     /**
+     * Returns the major version of this Gradle version.
+     * <p>
+     * For example, if the version is {@code "9.3-rc-1"}, the major version is {@code 9}.
+     *
+     * @return The major version.
+     *
+     * @since 9.0
+     */
+    public abstract int getMajorVersion();
+
+    /**
      * Returns {@code true} if this instance represent a snapshot version (e.g. 7.0-20210406233629+0000).
      *
      * @return Whether the current instance is a snapshot version
@@ -58,7 +69,7 @@ public abstract class GradleVersion implements Comparable<GradleVersion> {
     /**
      * The base version of this version. For pre-release versions, this is the target version.
      *
-     * For example, the version base of '7.0-rc-1' is '7.0'.
+     * For example, the version base of '7.1-rc-1' is '7.1'.
      *
      * @return The version base
      */

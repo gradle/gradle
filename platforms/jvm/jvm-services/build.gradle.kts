@@ -45,6 +45,7 @@ dependencies {
     implementation(projects.functional)
     implementation(projects.native)
     implementation(projects.serialization)
+    implementation(projects.buildProcessStartup)
 
     implementation(libs.asm)
     implementation(libs.commonsLang)

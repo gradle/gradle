@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.util.GradleVersion
 
 @Requires(
     value = [IntegTestPreconditions.UnsupportedDaemonJavaHomeAvailable, IntegTestPreconditions.NotEmbeddedExecutor],
@@ -38,7 +37,7 @@ class WrapperSupportedBuildJvmIntegrationTest extends AbstractWrapperIntegration
 
         expect:
         def failure = wrapperExecuter.withTasks("help").runWithFailure()
-        failure.assertHasErrorOutput("Gradle ${GradleVersion.current().version} requires Java 1.8 or later to run. You are currently using Java ${jdk.javaVersion}.")
+        failure.assertHasErrorOutput("Gradle requires JVM 8 or later to run. You are currently using JVM ${jdk.javaVersionMajor}.")
 
         where:
         jdk << AvailableJavaHomes.getJdks("1.6", "1.7")
@@ -51,7 +50,7 @@ class WrapperSupportedBuildJvmIntegrationTest extends AbstractWrapperIntegration
 
         expect:
         def failure = wrapperExecuter.withTasks("help").runWithFailure()
-        failure.assertHasErrorOutput("Gradle ${GradleVersion.current().version} requires Java 8 or later to run. Your build is currently configured to use Java ${jdk.javaVersion.majorVersion}.")
+        failure.assertHasErrorOutput("Gradle requires JVM 8 or later to run. Your build is currently configured to use JVM ${jdk.javaVersionMajor}.")
 
         where:
         jdk << AvailableJavaHomes.getJdks("1.6", "1.7")

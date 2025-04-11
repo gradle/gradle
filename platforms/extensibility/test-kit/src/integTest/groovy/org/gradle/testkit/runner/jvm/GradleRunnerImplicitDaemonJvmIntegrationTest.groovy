@@ -16,6 +16,7 @@
 
 package org.gradle.testkit.runner.jvm
 
+import org.gradle.internal.jvm.SupportedJavaVersionsDeprecations
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testkit.runner.BaseGradleRunnerIntegrationTest
@@ -38,7 +39,7 @@ class GradleRunnerImplicitDaemonJvmIntegrationTest extends BaseGradleRunnerInteg
         def result = runner("help").build()
 
         then:
-        result.output.contains("Executing Gradle on JVM versions 16 and lower has been deprecated. This will fail with an error in Gradle 9.0. Use JVM 17 or greater to execute Gradle. Projects can continue to use older JVM versions via toolchains. Consult the upgrading guide for further information: https://docs.gradle.org/${gradleVersion.version}/userguide/upgrading_version_8.html#minimum_daemon_jvm_version")
+        result.output.contains(SupportedJavaVersionsDeprecations.getExpectedDaemonDeprecationWarning(gradleVersion))
     }
 
     @Requires(UnitTestPreconditions.DeprecatedDaemonJdkVersion)
@@ -50,7 +51,7 @@ class GradleRunnerImplicitDaemonJvmIntegrationTest extends BaseGradleRunnerInteg
         def result = runner("help").buildAndFail()
 
         then:
-        result.output.contains("Executing Gradle on JVM versions 16 and lower has been deprecated. This will fail with an error in Gradle 9.0. Use JVM 17 or greater to execute Gradle. Projects can continue to use older JVM versions via toolchains. Consult the upgrading guide for further information: https://docs.gradle.org/${gradleVersion.version}/userguide/upgrading_version_8.html#minimum_daemon_jvm_version")
+        result.output.contains(SupportedJavaVersionsDeprecations.getExpectedDaemonDeprecationWarning(gradleVersion))
         result.output.contains("A problem occurred evaluating root project")
         result.output.contains("> Boom")
     }
@@ -61,7 +62,7 @@ class GradleRunnerImplicitDaemonJvmIntegrationTest extends BaseGradleRunnerInteg
         def result = runner("help").run()
 
         then:
-        result.output.contains("Executing Gradle on JVM versions 16 and lower has been deprecated. This will fail with an error in Gradle 9.0. Use JVM 17 or greater to execute Gradle. Projects can continue to use older JVM versions via toolchains. Consult the upgrading guide for further information: https://docs.gradle.org/${gradleVersion.version}/userguide/upgrading_version_8.html#minimum_daemon_jvm_version")
+        result.output.contains(SupportedJavaVersionsDeprecations.getExpectedDaemonDeprecationWarning(gradleVersion))
     }
 
     @Requires(UnitTestPreconditions.DeprecatedDaemonJdkVersion)
@@ -73,7 +74,7 @@ class GradleRunnerImplicitDaemonJvmIntegrationTest extends BaseGradleRunnerInteg
         def result = runner("help").run()
 
         then:
-        result.output.contains("Executing Gradle on JVM versions 16 and lower has been deprecated. This will fail with an error in Gradle 9.0. Use JVM 17 or greater to execute Gradle. Projects can continue to use older JVM versions via toolchains. Consult the upgrading guide for further information: https://docs.gradle.org/${gradleVersion.version}/userguide/upgrading_version_8.html#minimum_daemon_jvm_version")
+        result.output.contains(SupportedJavaVersionsDeprecations.getExpectedDaemonDeprecationWarning(gradleVersion))
         result.output.contains("A problem occurred evaluating root project")
         result.output.contains("> Boom")
     }

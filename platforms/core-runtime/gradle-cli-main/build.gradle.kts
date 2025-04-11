@@ -40,11 +40,13 @@ app {
 
 dependencies {
     implementation(projects.buildProcessServices)
+    implementation(projects.buildProcessStartup)
 
     implementation(libs.jspecify)
 
     manifestClasspath(projects.stdlibJavaExtensions)
     manifestClasspath(projects.buildProcessServices)
+    manifestClasspath(projects.buildProcessStartup)
     manifestClasspath(projects.baseServices)
     manifestClasspath(projects.classloaders)
     manifestClasspath(projects.concurrent)
