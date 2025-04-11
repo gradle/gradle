@@ -37,7 +37,7 @@ class AutoTestedSamplesUtil {
                 String name = p.toString()
                 return name.endsWith(".java") || name.endsWith(".groovy")
             })
-        .forEach {runSamplesFromFile(it.toFile(), runner) }
+        .forEach { runSamplesFromFile(it.toFile(), runner) }
     }
 
     static String findDir(String dir) {

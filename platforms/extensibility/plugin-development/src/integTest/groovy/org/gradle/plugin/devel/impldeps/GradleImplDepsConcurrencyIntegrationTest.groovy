@@ -20,7 +20,7 @@ import org.gradle.api.Plugin
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 
-//@Requires(UnitTestPreconditions.HighPerformance)
+@Requires(UnitTestPreconditions.HighPerformance)
 class GradleImplDepsConcurrencyIntegrationTest extends BaseGradleImplDepsIntegrationTest {
 
     private static final int CONCURRENT_BUILDS_PROJECT_COUNT = 4

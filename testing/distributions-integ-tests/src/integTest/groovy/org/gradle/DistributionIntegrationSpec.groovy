@@ -150,7 +150,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
     abstract String getDistributionLabel()
 
-    abstract int getDistributionSizeMb()
+    abstract int getDistributionSizeMiB()
 
     /**
      * Change this whenever you add or remove subprojects for distribution core modules (lib/).
@@ -187,9 +187,9 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
     def "distribution size should not exceed a certain number"() {
         expect:
         def size = getZip().size()
-        def sizeMb = (int) Math.ceil((double) size / 1024 / 1024)
+        def sizeMiB = (int) Math.ceil((double) size / 1024 / 1024)
 
-        assert sizeMb == getDistributionSizeMb() : "Distribution content needs to be verified. Current size: ${sizeMb} MB. Expected size: ${getDistributionSizeMb()} MB."
+        assert sizeMiB == getDistributionSizeMiB() : "Distribution content needs to be verified. Current size: ${sizeMiB} MiB. Expected size: ${getDistributionSizeMiB()} MiB."
     }
 
     def "no duplicate jar entries in distribution"() {
