@@ -1818,6 +1818,14 @@
             ]
         },
         {
+            "type": "org.gradle.process.JavaForkOptions",
+            "member": "Method org.gradle.process.JavaForkOptions.getSystemProperties()",
+            "acceptation": "Values of returned map can be null",
+            "changes": [
+                "From non-null returning to null returning breaking change"
+            ]
+        },
+        {
             "type": "org.gradle.util.CollectionUtils",
             "member": "Class org.gradle.util.CollectionUtils",
             "acceptation": "Remove deprecated API",
@@ -2303,14 +2311,6 @@
             "acceptation": "Remove deprecated API",
             "changes": [
                 "Field has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.process.JavaForkOptions",
-            "member": "Method org.gradle.process.JavaForkOptions.getSystemProperties()",
-            "acceptation": "Values of returned map can be null",
-            "changes": [
-                "From non-null returning to null returning breaking change"
             ]
         },
         {
