@@ -20,10 +20,8 @@ import groovy.json.JsonSlurper
 import groovy.util.logging.Slf4j
 import org.apache.commons.io.FileUtils
 import org.gradle.api.UncheckedIOException
-import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.testfixtures.internal.NativeServicesTestFixture
 
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
@@ -121,7 +119,8 @@ class MavenInstallationDownloader {
         if (!OperatingSystem.current().isWindows()) {
             // We do this after the move because that "move" can fallback to a Java copy
             // that does not preserve permissions when java.io.tmpdir sits in a different filesystem).
-            NativeServicesTestFixture.instance.get(FileSystem).chmod(MavenInstallation.findMvnExecutable(home), 0744)
+            TestFile executable = new TestFile(MavenInstallation.findMvnExecutable(home))
+            executable.permissions = "rwxr--r--"
         }
         home
     }
