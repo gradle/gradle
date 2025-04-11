@@ -91,3 +91,15 @@ In general, Gradle will not detect changes to symbolic links or to files referen
 
 The current implementation does not recalculate the build model on subsequent builds.
 This means that changes to task configuration, or any other change to the build model, are effectively ignored.
+
+Here's an additional section you can add to cover **Continuous Build behavior in IDEs**, especially for IntelliJ IDEA and similar environments:
+
+[[continuous_build_in_ides]]
+== Continuous Build in IDEs
+
+Most modern IDEs like **IntelliJ IDEA**, **Android Studio**, or **Eclipse** already offer their own form of continuous compilation and test execution.
+
+For example, If you’re only interested in triggering something on file changes (e.g., running tests or generating docs), you might consider using IntelliJ’s **File Watchers** feature as an alternative for specific tasks.
+
+Gradle’s `--continuous` mode is designed for command-line use and is **not typically integrated into IDE workflows**.
+To use continuous build in an IDE environment, run `./gradlew <task> --continuous` from a terminal window alongside the IDE.
