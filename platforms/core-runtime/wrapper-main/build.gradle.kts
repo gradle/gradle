@@ -59,6 +59,9 @@ val executableJar by tasks.registering(Jar::class) {
     manifest {
         attributes.remove(Attributes.Name.IMPLEMENTATION_VERSION.toString())
         attributes(Attributes.Name.IMPLEMENTATION_TITLE.toString() to "Gradle Wrapper")
+        attributes(Attributes.Name.MAIN_CLASS.toString() to "org.gradle.wrapper.GradleWrapperMain")
+        // Allow launcher to access JNI: https://openjdk.org/jeps/472
+        attributes("Enable-Native-Access" to "ALL-UNNAMED")
     }
     from(layout.projectDirectory.dir("src/executable/resources"))
     from(sourceSets.main.get().output)
