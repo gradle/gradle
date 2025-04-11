@@ -156,22 +156,22 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private final DefaultDomainObjectSet<DependencyConstraint> ownDependencyConstraints;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
     private final ProjectStateRegistry projectStateRegistry;
-    private CompositeDomainObjectSet<Dependency> inheritedDependencies;
-    private CompositeDomainObjectSet<DependencyConstraint> inheritedDependencyConstraints;
-    private DefaultDependencySet allDependencies;
-    private DefaultDependencyConstraintSet allDependencyConstraints;
+    private @Nullable CompositeDomainObjectSet<Dependency> inheritedDependencies;
+    private @Nullable CompositeDomainObjectSet<DependencyConstraint> inheritedDependencyConstraints;
+    private @Nullable DefaultDependencySet allDependencies;
+    private @Nullable DefaultDependencyConstraintSet allDependencyConstraints;
     private ImmutableActionSet<DependencySet> defaultDependencyActions = ImmutableActionSet.empty();
     private ImmutableActionSet<DependencySet> withDependencyActions = ImmutableActionSet.empty();
     private final DefaultPublishArtifactSet artifacts;
     private final DefaultDomainObjectSet<PublishArtifact> ownArtifacts;
-    private CompositeDomainObjectSet<PublishArtifact> inheritedArtifacts;
-    private DefaultPublishArtifactSet allArtifacts;
+    private @Nullable CompositeDomainObjectSet<PublishArtifact> inheritedArtifacts;
+    private @Nullable DefaultPublishArtifactSet allArtifacts;
     private final ConfigurationResolvableDependencies resolvableDependencies;
     private ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners;
     private final BuildOperationRunner buildOperationRunner;
     private final Instantiator instantiator;
     private Factory<ResolutionStrategyInternal> resolutionStrategyFactory;
-    private ResolutionStrategyInternal resolutionStrategy;
+    private @Nullable ResolutionStrategyInternal resolutionStrategy;
     private final FileCollectionFactory fileCollectionFactory;
     private final ResolveExceptionMapper exceptionMapper;
     private final AttributeDesugaring attributeDesugaring;
@@ -191,9 +191,9 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private boolean visible = true;
     private boolean transitive = true;
     private Set<Configuration> extendsFrom = new LinkedHashSet<>();
-    private String description;
+    private @Nullable String description;
     private final Set<Object> excludeRules = new LinkedHashSet<>();
-    private Set<ExcludeRule> parsedExcludeRules;
+    private @Nullable Set<ExcludeRule> parsedExcludeRules;
 
     private final Object observationLock = new Object();
     private volatile InternalState observedState = UNRESOLVED;
@@ -208,12 +208,12 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private boolean usageCanBeMutated = true;
     private final ConfigurationRole roleAtCreation;
 
-    private Supplier<String> observationReason = null;
+    private @Nullable Supplier<String> observationReason = null;
     private final FreezableAttributeContainer configurationAttributes;
     private final DomainObjectContext domainObjectContext;
     private final AttributesFactory attributesFactory;
     private final ResolutionAccess resolutionAccess;
-    private FileCollectionInternal intrinsicFiles;
+    private @Nullable FileCollectionInternal intrinsicFiles;
 
     private final DisplayName displayName;
     private final UserCodeApplicationContext userCodeApplicationContext;
@@ -227,8 +227,8 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     private final CalculatedModelValue<Optional<ResolverResults>> currentResolveState;
 
-    private ConfigurationInternal consistentResolutionSource;
-    private String consistentResolutionReason;
+    private @Nullable ConfigurationInternal consistentResolutionSource;
+    private @Nullable String consistentResolutionReason;
     private final DefaultConfigurationFactory defaultConfigurationFactory;
     private final InternalProblems problemsService;
     private final DocumentationRegistry documentationRegistry;
