@@ -18,7 +18,7 @@
 [[use_kotlin_dsl]]
 == Use Kotlin DSL
 
-Prefer the Kotlin DSL (`build.gradle.kts`) over the traditional Groovy DSL (`build.gradle`) when authoring new builds or creating new subprojects in existing builds.
+Prefer the Kotlin DSL (`build.gradle.kts`) over the Groovy DSL (`build.gradle`) when authoring new builds or creating new subprojects in existing builds.
 
 === Explanation
 
@@ -29,6 +29,8 @@ The Kotlin DSL offers several advantages over the Groovy DSL:
 * Single-language stack: Projects that already use Kotlin for production and test code don’t need to introduce Groovy just for the build.
 
 Since Gradle 8.0, link:https://blog.gradle.org/kotlin-dsl-is-now-the-default-for-new-gradle-builds[Kotlin DSL is the default] for new builds created with `gradle init`.
+Android Studio also link:https://developer.android.com/build/migrate-to-kotlin-dsl#timeline[defaults to Kotlin DSL].
+
 
 === References
 
