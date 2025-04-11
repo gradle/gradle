@@ -253,6 +253,14 @@ This is accessible from a build script, an init script, or via the embedding API
 Note that this completely disables Gradle's default output.
 Below is an example init script that changes how task execution and build completion are logged:
 
+++++
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/initScripts/customLogger">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+++++
+
 ====
 include::sample[dir="snippets/initScripts/customLogger/kotlin",files="customLogger.init.gradle.kts[]"]
 include::sample[dir="snippets/initScripts/customLogger/groovy",files="customLogger.init.gradle[]"]
@@ -260,12 +268,12 @@ include::sample[dir="snippets/initScripts/customLogger/groovy",files="customLogg
 
 [.multi-language-text.lang-kotlin]
 ----
-$ gradle -I customLogger.init.gradle.kts build
+$ ./gradlew -I customLogger.init.gradle.kts build
 include::{snippetsPath}/initScripts/customLogger/tests/customLogger.out[]
 ----
 [.multi-language-text.lang-groovy]
 ----
-$ gradle -I customLogger.init.gradle build
+$ ./gradlew -I customLogger.init.gradle build
 include::{snippetsPath}/initScripts/customLogger/tests/customLogger.out[]
 ----
 

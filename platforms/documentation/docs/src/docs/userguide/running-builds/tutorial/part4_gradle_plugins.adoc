@@ -268,7 +268,7 @@ plugins {
 }
 ----
 
-2. **Community plugins** – Published by others to the [Gradle Plugin Portal](https://plugins.gradle.org):
+2. **Community plugins** – Published by others to the link:https://plugins.gradle.org/[Gradle Plugin Portal]:
 +
 [source,kotlin]
 ----

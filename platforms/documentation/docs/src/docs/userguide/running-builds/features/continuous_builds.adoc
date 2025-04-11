@@ -92,8 +92,6 @@ In general, Gradle will not detect changes to symbolic links or to files referen
 The current implementation does not recalculate the build model on subsequent builds.
 This means that changes to task configuration, or any other change to the build model, are effectively ignored.
 
-Here's an additional section you can add to cover **Continuous Build behavior in IDEs**, especially for IntelliJ IDEA and similar environments:
-
 [[continuous_build_in_ides]]
 == Continuous Build in IDEs
 

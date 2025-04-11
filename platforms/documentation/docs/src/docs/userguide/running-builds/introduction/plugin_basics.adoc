@@ -111,7 +111,7 @@ Community plugins are plugins developed by the Gradle community, rather than bei
 These plugins provide additional functionality that may be specific to certain use cases or technologies.
 
 Gradle’s plugin ecosystem includes thousands of open-source plugins shared by the community.
-These are published to the [Gradle Plugin Portal](https://plugins.gradle.org) and can be applied by ID and version:
+These are published to the link:https://plugins.gradle.org/[Gradle Plugin Portal] and can be applied by ID and version:
 
 [source,kotlin]
 ----
