@@ -25,7 +25,6 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.internal.Actions;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.MethodAccess;
 import org.gradle.internal.metaobject.MethodMixIn;
@@ -55,7 +54,7 @@ public class DefaultArtifactHandler implements ArtifactHandler, MethodMixIn {
     }
 
     private PublishArtifact pushArtifact(Configuration configuration, Object notation, Action<? super ConfigurablePublishArtifact> configureAction) {
-        warnIfConfigurationIsDeprecated((DeprecatableConfiguration) configuration);
+        errorIfConfigurationIsDeprecated((DeprecatableConfiguration) configuration);
         ConfigurablePublishArtifact publishArtifact = publishArtifactFactory.parseNotation(notation);
         configuration.getArtifacts().add(publishArtifact);
         configureAction.execute(publishArtifact);
@@ -63,15 +62,12 @@ public class DefaultArtifactHandler implements ArtifactHandler, MethodMixIn {
     }
 
     // Update this with issue: https://github.com/gradle/gradle/issues/22339
-    private void warnIfConfigurationIsDeprecated(DeprecatableConfiguration configuration) {
+    private void errorIfConfigurationIsDeprecated(DeprecatableConfiguration configuration) {
         // To avoid potentially adding new deprecation warnings in Gradle 8.0, we will maintain
         // the existing fully deprecated logic here (migrating the method out of DefaultConfiguration
         // so it isn't mistakenly used elsewhere)
         if (isFullyDeprecated(configuration)) {
-            DeprecationLogger.deprecateConfiguration(configuration.getName()).forArtifactDeclaration()
-                .willBecomeAnErrorInGradle9()
-                .withUserManual("declaring_dependencies", "sec:deprecated-configurations")
-                .nagUser();
+            throw new IllegalStateException("Artifacts cannot be added to the '" + configuration.getName() + "' configuration.  Add the artifact to a consumable instead.");
         }
     }
 
