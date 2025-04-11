@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableSortedMap;
 import org.apache.commons.io.FileUtils;
 import org.gradle.caching.internal.origin.OriginMetadata;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.execution.ExecutionEngine.Execution;
 import org.gradle.internal.execution.ImmutableUnitOfWork;
 import org.gradle.internal.execution.OutputSnapshotter;
@@ -48,7 +47,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.FileSystemException;
-import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.time.Duration;
 import java.util.Map;
@@ -146,10 +144,18 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
         ImmutableListMultimap<String, HashCode> outputHashes = calculateOutputHashes(outputSnapshots);
         ImmutableWorkspaceMetadata metadata = workspaceMetadataStore.loadWorkspaceMetadata(immutableLocation);
         if (!metadata.getOutputPropertyHashes().equals(outputHashes)) {
-            return workspace.withTemporaryWorkspace(temporaryWorkspace -> {
-                moveInconsistentImmutableWorkspaceToTemporaryLocation(immutableLocation, temporaryWorkspace, outputSnapshots);
-                return Optional.empty();
-            });
+            fileSystemAccess.invalidate(ImmutableList.of(immutableLocation.getAbsolutePath()));
+            String actualOutputHashes = outputSnapshots.entrySet().stream()
+                .map(entry -> entry.getKey() + ":\n" + entry.getValue().roots()
+                    .map(AssignImmutableWorkspaceStep::describeSnapshot)
+                    .collect(Collectors.joining("\n")))
+                .collect(Collectors.joining("\n"));
+            throw new IllegalStateException(String.format(
+                "The contents of the immutable workspace '%s' have been modified. " +
+                    "These workspace directories are not supposed to be modified once they are created. " +
+                    "The modification might have been caused by an external process, or could be the result of disk corruption.\n" +
+                    "%s",
+                immutableLocation.getAbsolutePath(), actualOutputHashes));
         }
 
         return Optional.of(loadImmutableWorkspace(work, immutableLocation, metadata, outputSnapshots));
@@ -166,33 +172,6 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
                 null,
                 originMetadata),
             immutableLocation);
-    }
-
-    private void moveInconsistentImmutableWorkspaceToTemporaryLocation(File immutableLocation, File failedWorkspaceLocation, ImmutableSortedMap<String, FileSystemSnapshot> outputSnapshots) {
-        fileSystemAccess.invalidate(ImmutableList.of(immutableLocation.getAbsolutePath()));
-        String outputHashes = outputSnapshots.entrySet().stream()
-            .map(entry -> entry.getKey() + ":\n" + entry.getValue().roots()
-                .map(AssignImmutableWorkspaceStep::describeSnapshot)
-                .collect(Collectors.joining("\n")))
-            .collect(Collectors.joining("\n"));
-        DeprecationLogger.deprecateBehaviour(String.format("The contents of the immutable workspace '%s' have been modified.", immutableLocation.getAbsolutePath()))
-            .withContext("These workspace directories are not supposed to be modified once they are created. " +
-                "The modification might have been caused by an external process, or could be the result of disk corruption. " +
-                String.format("The inconsistent workspace will be moved to '%s', and will be recreated.", failedWorkspaceLocation.getAbsolutePath()) +
-                "\n" +
-                outputHashes)
-            .willBecomeAnErrorInGradle9()
-            .undocumented()
-            .nagUser();
-        try {
-            // We move the inconsistent workspace to a "temporary" location as a way to atomically move it out of the permanent workspace.
-            // Deleting it in-place is not an option, as we can't do that atomically.
-            // By moving the inconsistent workspace we also preserve it for later inspection.
-            Files.move(immutableLocation.toPath(), failedWorkspaceLocation.toPath(), StandardCopyOption.ATOMIC_MOVE);
-        } catch (IOException e) {
-            throw new UncheckedIOException(String.format("Could not move inconsistent immutable workspace (%s) to temporary location (%s)",
-                immutableLocation.getAbsolutePath(), failedWorkspaceLocation.getAbsolutePath()), e);
-        }
     }
 
     private WorkspaceResult executeInTemporaryWorkspace(UnitOfWork work, C context, ImmutableWorkspace workspace) {
