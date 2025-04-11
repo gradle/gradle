@@ -96,6 +96,7 @@ include::sample[dir="snippets/bestPractices/avoidInternal/groovy",files="build.g
 
 [[favor_composite_builds]]
 == Favor Composite Builds over `buildSrc`
+:keywords: structuring-builds,composite-builds,buildSrc
 
 You should setup a <<composite_builds.adoc#defining_composite_builds,Composite Build>> (commonly called an "included build") to hold your _build logic_ (such as any plugins - including convention plugins - and other customizations that are specific to your build).
 
@@ -150,8 +151,8 @@ include::sample[dir="snippets/bestPractices/favorCompositeBuilds/groovy/do-this"
 <1> *Composite builds must be declared*: Use the `includeBuild` method to locate and include a build in order to use its products.
 
 === References
-<<part3_multi_project_builds.adoc#step_3_understand_composite_builds,Composite Builds in the Multi-Project Builds Tutorial>>
-<<composite_builds.adoc#composite_builds,Composite Builds reference documentation>>
+- <<part3_multi_project_builds.adoc#step_3_understand_composite_builds,Composite Builds in the Multi-Project Builds Tutorial>>
+- <<composite_builds.adoc#composite_builds,Composite Builds reference documentation>>
 
 === Tags
-`#structuring-builds`
+`<<tags_reference.adoc#tag:structuring-builds,#structuring-builds>>`, `<<tags_reference.adoc#tag:composite-builds,#composite-builds>>`
