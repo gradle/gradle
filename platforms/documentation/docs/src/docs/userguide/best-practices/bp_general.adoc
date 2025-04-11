@@ -36,26 +36,6 @@ Similarly, use the latest _compatible_ version for each plugin in your build:
 * Test compatibility proactively: Run link:https://slack.engineering/shadow-jobs/[shadow jobs] or CI jobs to detect regressions early.
 * Upgrade Gradle first: Many plugin upgrades require features or fixes in newer Gradle versions.
 
-=== Example
-
-==== Don't Do This
-
-====
-include::sample[dir="snippets/bestPractices/useLatestVersion/kotlin/avoid-this",files="build.gradle.kts[tags=avoid-this]"]
-include::sample[dir="snippets/bestPractices/useLatestVersion/groovy/avoid-this",files="build.gradle[tags=avoid-this]"]
-====
-
-<1> Old and potentially buggy version of plugin.
-
-==== Do This Instead
-
-====
-include::sample[dir="snippets/bestPractices/useLatestVersion/kotlin/do-this",files="build.gradle.kts[tags=do-this]"]
-include::sample[dir="snippets/bestPractices/useLatestVersion/groovy/do-this",files="build.gradle[tags=do-this]"]
-====
-
-<1> Latest known stable minor version of plugin.
-
 === References
 <<upgrading_version_8.adoc#upgrading_version_8,Upgrade Guide>>
 
