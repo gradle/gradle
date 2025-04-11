@@ -23,7 +23,6 @@ import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.evaluation.EvaluationContext;
 import org.gradle.internal.evaluation.EvaluationScopeContext;
 import org.gradle.internal.logging.text.TreeFormatter;
@@ -124,17 +123,6 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
     @Override
     public Provider<T> orElse(Provider<? extends T> provider) {
         return new OrElseProvider<>(this, Providers.internal(provider));
-    }
-
-    @Deprecated
-    @Override
-    public final Provider<T> forUseAtConfigurationTime() {
-        DeprecationLogger.deprecateMethod(Provider.class, "forUseAtConfigurationTime")
-            .withAdvice("Simply remove the call.")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(7, "for_use_at_configuration_time_deprecation")
-            .nagUser();
-        return this;
     }
 
     @Override
