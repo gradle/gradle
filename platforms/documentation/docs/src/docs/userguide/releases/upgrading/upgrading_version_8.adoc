@@ -121,7 +121,7 @@ They will be removed in Gradle 9.0.
 [[undeprecated_fork_options_java_home]]
 ==== The `ForkOptions.getJavaHome()` and `ForkOptions.setJavaHome()` methods are no longer deprecated
 
-These methods were deprecated in Gradle 8.11, but are no longer deprecated.
+These methods were deprecated in Gradle 8.11, but are no longer deprecated, as they do not yet have stable replacements.
 
 [[changes_8.13]]
 == Upgrading from 8.12 and earlier
