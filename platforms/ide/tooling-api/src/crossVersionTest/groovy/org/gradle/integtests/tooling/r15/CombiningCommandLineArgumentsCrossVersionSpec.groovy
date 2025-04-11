@@ -15,11 +15,12 @@
  */
 package org.gradle.integtests.tooling.r15
 
-
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.util.GradleVersion
 import spock.lang.Issue
 
+@TargetGradleVersion('<9.0') // -b removed in Gradle 9.0
 class CombiningCommandLineArgumentsCrossVersionSpec extends ToolingApiSpecification {
 
     @Issue("GRADLE-2635")

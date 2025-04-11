@@ -60,6 +60,7 @@ class PassingCommandLineArgumentsCrossVersionSpec extends ToolingApiSpecificatio
         file('sysProperty.txt').text.contains('welcomeToTheJungle')
     }
 
+    @TargetGradleVersion('<9.0') // -b removed in Gradle 9.0
     def "can use custom build file"() {
         given:
         file("foo.gradle") << """
@@ -73,7 +74,6 @@ class PassingCommandLineArgumentsCrossVersionSpec extends ToolingApiSpecificatio
 
         then:
         noExceptionThrown()
-
     }
 
     def "can use custom log level"() {
