@@ -66,41 +66,6 @@ class LoadBuildStructureBuildOperationIntegrationTest extends AbstractIntegratio
         verifyProject(project(':a:c:d', eventRootProject), 'd', ':a:c:d', [], testDirectory.file('d'), 'd.gradle')
     }
 
-    def "settings set via cmdline flag are exposed correctly"() {
-        createDirs("custom", "custom/a")
-        def customSettingsDir = file("custom")
-        def customSettingsFile = new File(customSettingsDir, "settings.gradle")
-        customSettingsFile << """
-        rootProject.name = "root"
-        rootProject.buildFileName = 'root.gradle'
-
-        include "a"
-        """
-
-        when:
-        executer.expectDocumentedDeprecationWarning("Specifying custom settings file location has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#configuring_custom_build_layout")
-        executer.usingSettingsFile(customSettingsFile)
-        succeeds('help')
-
-        then:
-        def operation = buildOperations.only(LoadProjectsBuildOperationType)
-        def opResult = operation.result
-        opResult.buildPath == ":"
-
-        def rootProject = opResult.rootProject
-        rootProject.name == "root"
-        opResult.rootProject.path == ":"
-        opResult.rootProject.projectDir == customSettingsDir.absolutePath
-        opResult.rootProject.buildFile == customSettingsDir.file("root.gradle").absolutePath
-
-        verifyProject(rootProject, 'root', ':', [':a'], customSettingsDir, 'root.gradle')
-        verifyProject(project(':a', rootProject), 'a', ':a', [], customSettingsDir.file('a'))
-
-        def events = buildOperations.progress(ProjectsIdentifiedProgressDetails)
-        events.size() == 1
-        events[0].details.buildPath == ":"
-    }
-
     def "composite participants expose their project structure"() {
         createDirs("a", "nested", "nested/b")
         settingsFile << """
@@ -152,7 +117,6 @@ class LoadBuildStructureBuildOperationIntegrationTest extends AbstractIntegratio
         assert project.getBuildTreePath == buildTreePath ?: project.path
         assert project.buildTreePath == buildTreePath ?: project.path
         assert project.projectDir == projectDir.absolutePath
-        assert project.buildFile == new File(projectDir, buildFileName).absolutePath
         assert project.children*.path == children
         assert project.buildTreePath == buildTreePath ?: project.path
     }

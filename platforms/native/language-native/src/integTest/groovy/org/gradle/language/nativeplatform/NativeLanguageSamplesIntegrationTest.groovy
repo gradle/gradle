@@ -39,6 +39,7 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
     @Rule public final Sample objectiveCpp = sample(testDirProvider, 'objective-cpp')
     @Rule public final Sample customLayout = sample(testDirProvider, 'custom-layout')
     @Rule public final Sample windowsResources = sample(testDirProvider, 'windows-resources')
+    @Rule public final Sample windowsResourcesOnlyDll = sample(testDirProvider, 'windows-resources-only-dll')
     @Rule public final Sample idl = sample(testDirProvider, 'idl')
     @Rule public final Sample cunit = sample(testDirProvider, 'cunit')
     @Rule public final Sample pch = sample(testDirProvider, 'pre-compiled-headers')
@@ -128,7 +129,7 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
     @ToBeFixedForConfigurationCache
     def "win rc"() {
         given:
-        sample windowsResources
+        sample windowsResourcesOnlyDll
 
         when:
         run "installMainExecutable"
@@ -139,17 +140,13 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
                               ":compileMainExecutableMainCpp", ":linkMainExecutable", ":mainExecutable"
 
         and:
-        installation(windowsResources.dir.file("build/install/main")).exec().out == "Hello world!\n"
+        installation(windowsResourcesOnlyDll.dir.file("build/install/main")).exec().out == "Hello world!\n"
 
         when:
-        // To get rid of the deprecation, the sample under test could be split into two or otherwise refactored to use a single build file
-        // Since this one uses Software Model + Windows, for now letting it stay with the deprecation
-        executer.expectDocumentedDeprecationWarning("Specifying custom build file location has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#configuring_custom_build_layout");
-        executer.usingBuildScript(windowsResources.dir.file('build-resource-only-dll.gradle'))
         run "helloResSharedLibrary"
 
         then:
-        file(windowsResources.dir.file("build/libs/helloRes/shared/helloRes.dll")).assertExists()
+        file(windowsResourcesOnlyDll.dir.file("build/libs/helloRes/shared/helloRes.dll")).assertExists()
     }
 
     def "custom layout"() {

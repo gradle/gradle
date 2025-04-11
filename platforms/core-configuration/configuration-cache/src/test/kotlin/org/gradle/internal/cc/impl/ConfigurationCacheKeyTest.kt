@@ -63,33 +63,6 @@ class ConfigurationCacheKeyTest {
         )
     }
 
-    @Suppress("DEPRECATION") // StartParameter.setSettingsFile
-    @Test
-    fun `cache key honours --settings-file`() {
-        assertThat(
-            cacheKeyStringFromStartParameter {
-                settingsFile = file("settings.gradle")
-            },
-            equalTo(
-                cacheKeyStringFromStartParameter {
-                    settingsFile = file("settings.gradle")
-                }
-            )
-        )
-        assertThat(
-            cacheKeyStringFromStartParameter {
-                settingsFile = file("settings.gradle")
-            },
-            not(
-                equalTo(
-                    cacheKeyStringFromStartParameter {
-                        settingsFile = file("custom-settings.gradle")
-                    }
-                )
-            )
-        )
-    }
-
     @Test
     fun `cache key honours --offline`() {
         assertThat(

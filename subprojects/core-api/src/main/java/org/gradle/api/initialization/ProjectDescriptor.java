@@ -74,7 +74,7 @@ public interface ProjectDescriptor {
      *
      * @param name The build file name. Should not be null.
      */
-    void setBuildFileName(String name);
+    void setBuildFileName(String name); // TODO (donat) is it still used?
 
     /**
      * Returns the build file for this project.

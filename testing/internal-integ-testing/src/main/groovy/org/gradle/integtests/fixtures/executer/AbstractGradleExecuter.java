@@ -156,9 +156,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     private File userHomeDir;
     private String javaHome;
     private Jvm jvm;
-    private File buildScript;
     private File projectDir;
-    private File settingsFile;
     private boolean ignoreMissingSettingsFile;
     private boolean ignoreCleanupAssertions;
     private PipedOutputStream stdinPipe;
@@ -245,8 +243,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         initScripts.clear();
         workingDir = null;
         projectDir = null;
-        buildScript = null;
-        settingsFile = null;
         ignoreMissingSettingsFile = false;
         // ignoreCleanupAssertions is intentionally sticky
         // ignoreCleanupAssertions = false;
@@ -333,12 +329,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         }
         if (projectDir != null) {
             executer.usingProjectDirectory(projectDir);
-        }
-        if (buildScript != null) {
-            executer.usingBuildScript(buildScript);
-        }
-        if (settingsFile != null) {
-            executer.usingSettingsFile(settingsFile);
         }
         if (ignoreMissingSettingsFile) {
             executer.ignoreMissingSettingsFile();
@@ -479,22 +469,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     }
 
     @Override
-    @Deprecated
-    public GradleExecuter usingBuildScript(File buildScript) {
-        this.buildScript = buildScript;
-        return this;
-    }
-
-    @Override
     public GradleExecuter usingProjectDirectory(File projectDir) {
         this.projectDir = projectDir;
-        return this;
-    }
-
-    @Override
-    @Deprecated
-    public GradleExecuter usingSettingsFile(File settingsFile) {
-        this.settingsFile = settingsFile;
         return this;
     }
 
@@ -1096,10 +1072,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
     protected List<String> getAllArgs() {
         List<String> allArgs = new ArrayList<>();
-        if (buildScript != null) {
-            allArgs.add("--build-file");
-            allArgs.add(buildScript.getAbsolutePath());
-        }
         if (projectDir != null) {
             allArgs.add("--project-dir");
             allArgs.add(projectDir.getAbsolutePath());
@@ -1107,10 +1079,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         for (File initScript : initScripts) {
             allArgs.add("--init-script");
             allArgs.add(initScript.getAbsolutePath());
-        }
-        if (settingsFile != null) {
-            allArgs.add("--settings-file");
-            allArgs.add(settingsFile.getAbsolutePath());
         }
         if (quiet) {
             allArgs.add("--quiet");
@@ -1132,7 +1100,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             allArgs.add("dependencies");
         }
 
-        if (settingsFile == null && !ignoreMissingSettingsFile) {
+        if (!ignoreMissingSettingsFile) {
             ensureSettingsFileAvailable();
         }
 

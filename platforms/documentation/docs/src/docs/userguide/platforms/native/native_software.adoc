@@ -606,7 +606,7 @@ You are able to construct a resource-only library by providing Windows Resource 
 [source.multi-language-sample,groovy]
 .build-resource-only-dll.gradle
 ----
-include::{snippetsPath}/native-binaries/windows-resources/groovy/build-resource-only-dll.gradle[tag=resource-only-library]
+include::{snippetsPath}/native-binaries/windows-resources-only-dll/groovy/build.gradle[tag=resource-only-library]
 ----
 
 The example above also demonstrates the mechanism of passing extra command-line arguments to the resource compiler. The `rcCompiler` extension is of type link:{javadocPath}/org/gradle/nativeplatform/PreprocessingTool.html[PreprocessingTool].
