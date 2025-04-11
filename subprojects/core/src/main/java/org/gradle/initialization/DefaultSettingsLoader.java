@@ -19,7 +19,6 @@ package org.gradle.initialization;
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.StartParameter;
 import org.gradle.api.GradleException;
-import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.StartParameterInternal;
@@ -34,7 +33,6 @@ import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.util.Path;
 
-import java.io.File;
 import java.util.List;
 
 /**
@@ -114,13 +112,6 @@ public class DefaultSettingsLoader implements SettingsLoader {
     }
 
     private boolean useEmptySettings(ProjectSpec spec, SettingsInternal loadedSettings, StartParameter startParameter) {
-        // Never use empty settings when the settings were explicitly set
-        @SuppressWarnings("deprecation")
-        File customSettingsFile = DeprecationLogger.whileDisabled(startParameter::getSettingsFile);
-        if (customSettingsFile != null) {
-            return false;
-        }
-
         // Use the loaded settings if it includes the target project (based on build file, project dir or current dir)
         if (spec.containsProject(loadedSettings.getProjectRegistry())) {
             return false;
@@ -147,21 +138,10 @@ public class DefaultSettingsLoader implements SettingsLoader {
     private SettingsState createEmptySettings(GradleInternal gradle, StartParameter startParameter, ClassLoaderScope classLoaderScope) {
         logger.debug("Creating empty settings for build: '{}'", gradle.getIdentityPath());
         StartParameterInternal noSearchParameter = (StartParameterInternal) startParameter.newInstance();
-        DeprecationLogger.whileDisabled(() ->
-            noSearchParameter.setSettingsFile(null)
-        );
         noSearchParameter.useEmptySettings();
         noSearchParameter.doNotSearchUpwards();
         BuildLayout layout = buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(noSearchParameter));
         SettingsState state = findSettingsAndLoadIfAppropriate(gradle, noSearchParameter, layout, classLoaderScope);
-
-        // Set explicit build file, if required
-        @SuppressWarnings("deprecation")
-        File customBuildFile = DeprecationLogger.whileDisabled(noSearchParameter::getBuildFile);
-        if (customBuildFile != null) {
-            ProjectDescriptor rootProject = state.getSettings().getRootProject();
-            rootProject.setBuildFileName(customBuildFile.getName());
-        }
         return state;
     }
 

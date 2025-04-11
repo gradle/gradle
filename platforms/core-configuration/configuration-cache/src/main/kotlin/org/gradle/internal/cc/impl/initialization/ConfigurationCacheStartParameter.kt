@@ -21,12 +21,10 @@ import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.logging.LogLevel
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
 import org.gradle.initialization.layout.BuildLayout
-import org.gradle.internal.Factory
 import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.cc.impl.ConfigurationCacheLoggingParameters
 import org.gradle.internal.cc.impl.Workarounds
-import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.extensions.core.getInternalFlag
 import org.gradle.internal.extensions.stdlib.unsafeLazy
 import org.gradle.internal.service.scopes.Scope
@@ -135,10 +133,6 @@ class ConfigurationCacheStartParameter internal constructor(
 
     val settingsDirectory: File
         get() = buildLayout.settingsDir
-
-    @Suppress("DEPRECATION")
-    val settingsFile: File?
-        get() = DeprecationLogger.whileDisabled(Factory { startParameter.settingsFile })
 
     val rootDirectory: File
         get() = buildLayout.rootDirectory
