@@ -17,6 +17,7 @@
 
 Here you can find a brief explanation of all the tags used in the best practices documentation.
 
+[horizontal]
 `#caching` :: Items that are related to using Gradle's various caching mechanisms, such as <<build_cache.adoc#sec:task_output_caching,caching tasks>>.
 
 `#inputs-and-outputs` :: Items that are related to Gradle <<writing_tasks.adoc#task_inputs_and_outputs,task inputs and outputs>>, the annotations used to declare them, and their proper use.
