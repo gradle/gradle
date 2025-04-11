@@ -49,7 +49,7 @@ class DeprecatedConfigurationUsageIntegrationTest extends AbstractIntegrationSpe
         'getBuildDependencies()'     | 'dependencyScope' | 'getBuildDependencies()'     || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
     }
 
-    def "calling an invalid public API method #methodName for role #role produces a deprecation warning"() {
+    def "calling an invalid public API method (#methodCall) for role #role fails"() {
         given:
         buildFile << """
             import org.gradle.api.internal.artifacts.configurations.ConfigurationRole
@@ -58,70 +58,74 @@ class DeprecatedConfigurationUsageIntegrationTest extends AbstractIntegrationSpe
             configurations.custom.$methodCall
         """
 
-        expect:
-        executer.expectDocumentedDeprecationWarning(buildDeprecationMessage(methodName, role, allowed, false))
-        succeeds('help')
-
-        where:
-        methodName                                     | role              | methodCall                                                     || allowed
-        'attributes(Action)'                           | 'dependencyScope' | "attributes { attribute(Attribute.of('foo', String), 'bar') }" || [ProperMethodUsage.CONSUMABLE, ProperMethodUsage.RESOLVABLE]
-        'defaultDependencies(Action)'                  | 'consumable'      | 'defaultDependencies { }'                                      || [ProperMethodUsage.DECLARABLE_AGAINST]
-        'defaultDependencies(Action)'                  | 'resolvable'      | 'defaultDependencies { }'                                      || [ProperMethodUsage.DECLARABLE_AGAINST]
-        'shouldResolveConsistentlyWith(Configuration)' | 'consumable'      | 'shouldResolveConsistentlyWith(null)'                          || [ProperMethodUsage.RESOLVABLE]
-        'shouldResolveConsistentlyWith(Configuration)' | 'dependencyScope' | 'shouldResolveConsistentlyWith(null)'                          || [ProperMethodUsage.RESOLVABLE]
-        'disableConsistentResolution()'                | 'consumable'      | 'disableConsistentResolution()'                                || [ProperMethodUsage.RESOLVABLE]
-        'disableConsistentResolution()'                | 'dependencyScope' | 'disableConsistentResolution()'                                || [ProperMethodUsage.RESOLVABLE]
-        'copy()'                                       | 'consumable'      | 'copy()'                                                       || [ProperMethodUsage.RESOLVABLE]
-        'copy()'                                       | 'dependencyScope' | 'copy()'                                                       || [ProperMethodUsage.RESOLVABLE]
-        'copyRecursive()'                              | 'consumable'      | 'copyRecursive()'                                              || [ProperMethodUsage.RESOLVABLE]
-        'copyRecursive()'                              | 'dependencyScope' | 'copyRecursive()'                                              || [ProperMethodUsage.RESOLVABLE]
-        'copy(Spec)'                                   | 'consumable'      | 'copy { } as Spec'                                             || [ProperMethodUsage.RESOLVABLE]
-        'copy(Spec)'                                   | 'dependencyScope' | 'copy { } as Spec'                                             || [ProperMethodUsage.RESOLVABLE]
-        'copyRecursive(Spec)'                          | 'consumable'      | 'copyRecursive { } as Spec'                                    || [ProperMethodUsage.RESOLVABLE]
-        'copyRecursive(Spec)'                          | 'dependencyScope' | 'copyRecursive { } as Spec'                                    || [ProperMethodUsage.RESOLVABLE]
-
-    }
-
-    def "calling an invalid internal API method #methodName for role #role produces a deprecation warning"() {
-        given:
-        buildFile << """
-            import org.gradle.api.internal.artifacts.configurations.ConfigurationRole
-
-            configurations.$role('custom')
-            configurations.custom.$methodCall
-        """
-
-        expect:
-        executer.expectDocumentedDeprecationWarning(buildDeprecationMessage(methodName, role, allowed, true))
-        succeeds('help')
-
-        where:
-        methodName                         | role              | methodCall                              || allowed
-        'getConsistentResolutionSource()'  | 'consumable'      | "getConsistentResolutionSource()"       || [ProperMethodUsage.RESOLVABLE]
-        'getConsistentResolutionSource()'  | 'dependencyScope' | "getConsistentResolutionSource()"       || [ProperMethodUsage.RESOLVABLE]
-        'callAndResetResolutionState()'    | 'consumable'      | "callAndResetResolutionState { 'foo' }" || [ProperMethodUsage.RESOLVABLE]
-        'callAndResetResolutionState()'    | 'dependencyScope' | "callAndResetResolutionState { 'foo' }" || [ProperMethodUsage.RESOLVABLE]
-    }
-
-    def "forcing resolve of a non-resolvable configuration via calling invalid internal API method #methodName for role #role warns and then throws an exception"() {
-        given:
-        buildFile << """
-            import org.gradle.api.internal.artifacts.configurations.ConfigurationRole
-
-            configurations.$role('custom')
-            configurations.custom.$methodCall
-        """
-
-        expect:
-        executer.expectDocumentedDeprecationWarning(buildDeprecationMessage(methodName, role, allowed, true))
+        when:
         fails('help')
 
+        then:
+        failure.assertHasCause(buildFailureMessage(what, why))
+
         where:
-        methodName       | role         | methodCall                  || allowed
-        'contains(File)' | 'consumable' | "contains(new File('foo'))" || [ProperMethodUsage.RESOLVABLE]
+        role              | methodCall                                                     || what                                  | why
+        'dependencyScope' | "attributes { attribute(Attribute.of('foo', String), 'bar') }" || "set attributes on"                   | "a consumable or resolvable configuration"
+        'consumable'      | 'defaultDependencies { }'                                      || "set default dependencies on"         | "a configuration that allows declaring dependencies"
+        'resolvable'      | 'defaultDependencies { }'                                      || "set default dependencies on"         | "a configuration that allows declaring dependencies"
+        'consumable'      | 'shouldResolveConsistentlyWith(null)'                          || "set consistent resolution on"        | "a resolvable configuration"
+        'dependencyScope' | 'shouldResolveConsistentlyWith(null)'                          || "set consistent resolution on"        | "a resolvable configuration"
+        'consumable'      | 'disableConsistentResolution()'                                || "disable consistent resolution on"    | "a resolvable configuration"
+        'dependencyScope' | 'disableConsistentResolution()'                                || "disable consistent resolution on"    | "a resolvable configuration"
+        'consumable'      | 'copy()'                                                       || "copy"                                | "a resolvable configuration"
+        'dependencyScope' | 'copy()'                                                       || "copy"                                | "a resolvable configuration"
+        'consumable'      | 'copyRecursive()'                                              || "copy"                                | "a resolvable configuration"
+        'dependencyScope' | 'copyRecursive()'                                              || "copy"                                | "a resolvable configuration"
+        'consumable'      | 'copy { } as Spec'                                             || "copy"                                | "a resolvable configuration"
+        'dependencyScope' | 'copy { } as Spec'                                             || "copy"                                | "a resolvable configuration"
+        'consumable'      | 'copyRecursive { } as Spec'                                    || "copy"                                | "a resolvable configuration"
+        'dependencyScope' | 'copyRecursive { } as Spec'                                    || "copy"                                | "a resolvable configuration"
     }
 
-    def "calling deprecated usage produces a deprecation warning"() {
+    def "calling an invalid internal API (#methodCall) for role #role fails"() {
+        given:
+        buildFile << """
+            import org.gradle.api.internal.artifacts.configurations.ConfigurationRole
+
+            configurations.$role('custom')
+            configurations.custom.$methodCall
+        """
+
+        when:
+        fails('help')
+
+        then:
+        failure.assertHasCause(buildFailureMessage(what, why))
+
+        where:
+        role              | methodCall                              || what                                     | why
+        'consumable'      | "getConsistentResolutionSource()"       || "get consistent resolution source on"    | "a resolvable configuration"
+        'dependencyScope' | "getConsistentResolutionSource()"       || "get consistent resolution source on"    | "a resolvable configuration"
+        'consumable'      | "callAndResetResolutionState { 'foo' }" || "reset consistent resolution state on"   | "a resolvable configuration"
+        'dependencyScope' | "callAndResetResolutionState { 'foo' }" || "reset consistent resolution state on"   | "a resolvable configuration"
+    }
+
+    def "forcing resolve of a non-resolvable configuration via calling invalid internal API (contains) for role #role fails"() {
+        given:
+        buildFile << """
+            import org.gradle.api.internal.artifacts.configurations.ConfigurationRole
+
+            configurations.$role('custom')
+            configurations.custom.contains(new File('foo'))
+        """
+
+        when:
+        fails('help')
+
+        then:
+        failure.assertHasCause("Not allowed to check if configuration ':custom' contains a file as it is not a resolvable configuration.")
+
+        where:
+        role << ['consumable', 'dependencyScope']
+    }
+
+    def "calling unpermitted usage produces a failure"() {
         given:
         buildFile << """
             configurations.consumable('custom')
@@ -129,11 +133,11 @@ class DeprecatedConfigurationUsageIntegrationTest extends AbstractIntegrationSpe
             configurations.custom.getConsistentResolutionSource()
         """
 
-        expect:
-        executer.expectDocumentedDeprecationWarning("""Calling configuration method 'getConsistentResolutionSource()' is deprecated for configuration 'custom', which has permitted usage(s):
-\tConsumable - this configuration can be selected by another project as a dependency
-This method is only meant to be called on configurations which allow the usage(s): 'Resolvable'. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: ${documentationRegistry.getDocumentationFor("upgrading_version_8", "deprecated_configuration_usage")}""")
-        succeeds('help')
+        when:
+        fails('help')
+
+        then:
+        failure.assertHasCause("Not allowed to get consistent resolution source on configuration ':custom' as it is not a resolvable configuration.")
     }
 
     def "calling deprecated usage does not produce a deprecation warning if other allowed usage permits it"() {
@@ -168,8 +172,11 @@ This method is only meant to be called on configurations which allow the usage(s
 
         expect:
         executer.expectDocumentedDeprecationWarning("The foo configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
-        executer.expectDocumentedDeprecationWarning("The foo configuration has been deprecated for resolution. This will fail with an error in Gradle 9.0. Please resolve another configuration instead. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
         succeeds("help")
+    }
+
+    private String buildFailureMessage(String what, String why) {
+        return String.format("Not allowed to %s configuration ':custom' as it is not %s.", what, why)
     }
 
     private String buildDeprecationMessage(String methodName, String role, List<ProperMethodUsage> allowed, boolean allowDeprecated) {

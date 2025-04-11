@@ -1007,7 +1007,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/25604")
-    def "test suite configurations can be copied"() {
+    def "test suite configurations can not be copied"() {
         buildFile << """
             plugins {
                 id 'java-library'
@@ -1038,9 +1038,12 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
-        expect:
-        executer.noDeprecationChecks() // deprecated copy() on dependency scope
-        succeeds("assertCopyCanBeResolved")
+
+        when:
+        fails("assertCopyCanBeResolved")
+
+        then:
+        failure.assertHasCause("Not allowed to copy configuration ':testImplementation' as it is not a resolvable configuration.")
     }
 
     def "configuring different test suites with different framework versions is allowed"() {

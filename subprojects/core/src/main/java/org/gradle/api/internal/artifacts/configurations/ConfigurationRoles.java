@@ -81,7 +81,7 @@ public final class ConfigurationRoles {
      * Creates a new role which is not deprecated for any usage.
      */
     private static ConfigurationRole createNonDeprecatedRole(String name, boolean consumable, boolean resolvable, boolean declarable) {
-        return new DefaultConfigurationRole(name, consumable, resolvable, declarable, false, false, false);
+        return new DefaultConfigurationRole(name, consumable, resolvable, declarable, false, false);
     }
 
     private static final Set<ConfigurationRole> ALL_ROLES = ImmutableSet.of(

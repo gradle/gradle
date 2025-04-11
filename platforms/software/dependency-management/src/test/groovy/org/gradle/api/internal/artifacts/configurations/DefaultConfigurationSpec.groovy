@@ -629,59 +629,37 @@ class DefaultConfigurationSpec extends Specification {
         checkCopiedConfiguration(configuration, copied3Configuration, resolutionStrategyCopy, 3)
     }
 
-    void "deprecations are passed to copies when corresponding role is #baseRole"() {
-        ConfigurationRole role = new DefaultConfigurationRole("test", baseRole.consumable, baseRole.resolvable, baseRole.declarable, true, true, true)
+    void "not allowed to copy when corresponding role is #baseRole"() {
+        ConfigurationRole role = new DefaultConfigurationRole("test", baseRole.consumable, baseRole.resolvable, baseRole.declarable, true, true)
         def configuration = prepareConfigurationForCopyTest(conf("conf", ":", ":", role))
-        def resolutionStrategyCopy = Mock(ResolutionStrategyInternal)
-        1 * resolutionStrategy.copy() >> resolutionStrategyCopy
         configuration.addDeclarationAlternatives("declaration")
-        configuration.addResolutionAlternatives("resolution")
-
         when:
-        def copy = configuration.copy()
+        configuration.copy()
 
         then:
-        // This is not desired behavior. Role should be same as detached configuration.
-        copy.canBeDeclared
-        copy.canBeResolved
-        copy.canBeConsumed
-        copy.declarationAlternatives == ["declaration"]
-        copy.resolutionAlternatives == ["resolution"]
-        copy.deprecatedForConsumption
-        !copy.deprecatedForResolution
-        !copy.deprecatedForDeclarationAgainst
+        GradleException e = thrown(GradleException)
+        e.message == "Not allowed to copy configuration ':conf' as it is not a resolvable configuration."
 
         where:
         baseRole << [
-            ConfigurationRoles.ALL,
-            ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE,
-            ConfigurationRoles.CONSUMABLE_DEPENDENCY_SCOPE
-        ] + ConfigurationRolesForMigration.ALL
+            ConfigurationRoles.CONSUMABLE_DEPENDENCY_SCOPE,
+            ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE
+        ]
     }
 
-    void "copies disabled configuration role as a deprecation"() {
+    void "not allowed to copy disabled configuration role"() {
         def configuration = prepareConfigurationForCopyTest()
-        def resolutionStrategyCopy = Mock(ResolutionStrategyInternal)
-        1 * resolutionStrategy.copy() >> resolutionStrategyCopy
 
         when:
         configuration.canBeConsumed = false
         configuration.canBeResolved = false
         configuration.canBeDeclared = false
 
-
-        def copy = configuration.copy()
+        configuration.copy()
 
         then:
-        // This is not desired behavior. Role should be same as detached configuration.
-        copy.canBeDeclared
-        copy.canBeResolved
-        copy.canBeConsumed
-        copy.declarationAlternatives == []
-        copy.resolutionAlternatives == []
-        copy.roleAtCreation.consumptionDeprecated
-        !copy.roleAtCreation.resolutionDeprecated
-        !copy.roleAtCreation.declarationAgainstDeprecated
+        GradleException e = thrown(GradleException)
+        e.message == "Not allowed to copy configuration ':conf' as it is not a resolvable configuration."
     }
 
     def "can copy with spec"() {
@@ -767,7 +745,7 @@ class DefaultConfigurationSpec extends Specification {
         copy.dependencyResolutionListeners.size() == 1
     }
 
-    private prepareConfigurationForCopyTest(configuration = conf()) {
+    private DefaultConfiguration prepareConfigurationForCopyTest(configuration = conf()) {
         configuration.visible = false
         configuration.transitive = false
         configuration.description = "descript"
