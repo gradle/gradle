@@ -249,6 +249,7 @@ org.gradle.api.internal.tasks.CompileServices"""
                                       'org/apache/commons/logging/Log',
                                       'org/apache/log4j/Logger',
                                       'org/apache/xerces/parsers/SAXParser',
+                                      'org/jspecify/annotations/Nullable',
                                       'org/w3c/dom/Document',
                                       'org/xml/sax/XMLReader']
         def relocationClassNames = ['org/apache/commons/lang/StringUtils',
@@ -280,6 +281,7 @@ org.gradle.api.internal.tasks.CompileServices"""
             assert jar.getJarEntry('org/apache/commons/logging/Log.class')
             assert jar.getJarEntry('org/apache/log4j/Logger.class')
             assert jar.getJarEntry('org/apache/xerces/parsers/SAXParser.class')
+            assert jar.getJarEntry('org/jspecify/annotations/Nullable.class')
             assert jar.getJarEntry('org/w3c/dom/Document.class')
             assert jar.getJarEntry('org/xml/sax/XMLReader.class')
             assert jar.getJarEntry('org/gradle/internal/impldep/org/apache/commons/lang/StringUtils.class')

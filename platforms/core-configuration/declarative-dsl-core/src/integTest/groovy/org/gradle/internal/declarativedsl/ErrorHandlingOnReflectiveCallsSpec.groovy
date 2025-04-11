@@ -125,7 +125,7 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractKotlinIntegrationTest {
 
                 abstract class Access {
                     @get:Restricted
-                    abstract val name: Property<String?>?
+                    abstract val name: Property<String>?
                 }
             }
         """
@@ -191,7 +191,7 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractKotlinIntegrationTest {
 
                 abstract class Access {
                     @get:Restricted
-                    abstract val name: Property<String?>?
+                    abstract val name: Property<String>?
                 }
             }
         """

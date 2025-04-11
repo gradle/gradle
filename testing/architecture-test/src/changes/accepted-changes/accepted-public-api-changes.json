@@ -1,6 +1,30 @@
 {
     "acceptedApiChanges": [
         {
+            "type": "org.gradle.api.AntBuilder",
+            "member": "Method org.gradle.api.AntBuilder.getProperties()",
+            "acceptation": "Values of returned map can be null",
+            "changes": [
+                "From non-null returning to null returning breaking change"
+            ]
+        },
+        {
+            "type": "org.gradle.api.AntBuilder",
+            "member": "Method org.gradle.api.AntBuilder.getReferences()",
+            "acceptation": "Values of returned map can be null",
+            "changes": [
+                "From non-null returning to null returning breaking change"
+            ]
+        },
+        {
+            "type": "org.gradle.api.Project",
+            "member": "Method org.gradle.api.Project.getProperties()",
+            "acceptation": "Values of returned map can be null",
+            "changes": [
+                "From non-null returning to null returning breaking change"
+            ]
+        },
+        {
             "type": "org.gradle.api.Task$Namer",
             "member": "Class org.gradle.api.Task$Namer",
             "acceptation": "Removed deprecated class",
@@ -345,14 +369,6 @@
             ]
         },
         {
-            "type": "org.gradle.api.file.RelativePath",
-            "member": "Method org.gradle.api.file.RelativePath.getParent()",
-            "acceptation": "Method can return null values",
-            "changes": [
-                "From non-null returning to null returning breaking change"
-            ]
-        },
-        {
             "type": "org.gradle.api.plugins.BasePluginConvention",
             "member": "Class org.gradle.api.plugins.BasePluginConvention",
             "acceptation": "Remove deprecated API",
@@ -371,14 +387,6 @@
         {
             "type": "org.gradle.api.plugins.BasePluginConvention",
             "member": "Method org.gradle.api.plugins.BasePluginConvention.getArchivesBaseName()",
-            "acceptation": "Remove deprecated API",
-            "changes": [
-                "Method has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.api.plugins.BasePluginConvention",
-            "member": "Method org.gradle.api.plugins.BasePluginConvention.getDistsDirName()",
             "acceptation": "Remove deprecated API",
             "changes": [
                 "Method has been removed"
@@ -865,6 +873,14 @@
             ]
         },
         {
+            "type": "org.gradle.api.tasks.JavaExec",
+            "member": "Method org.gradle.api.tasks.JavaExec.getSystemProperties()",
+            "acceptation": "Values of returned map can be null",
+            "changes": [
+                "From non-null returning to null returning breaking change"
+            ]
+        },
+        {
             "type": "org.gradle.api.tasks.Upload",
             "member": "Class org.gradle.api.tasks.Upload",
             "acceptation": "Removed deprecated class",
@@ -1170,6 +1186,14 @@
         },
         {
             "type": "org.gradle.api.tasks.testing.Test",
+            "member": "Method org.gradle.api.tasks.testing.Test.getSystemProperties()",
+            "acceptation": "Values of returned map can be null",
+            "changes": [
+                "From non-null returning to null returning breaking change"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.Test",
             "member": "Method org.gradle.api.tasks.testing.Test.setForkEvery(java.lang.Long)",
             "acceptation": "Remove deprecated method",
             "changes": [
@@ -1426,6 +1450,14 @@
             ]
         },
         {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_4vqe7vkwi3h45wskb54l2vuiuKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_4vqe7vkwi3h45wskb54l2vuiuKt.setSystemProperties(org.gradle.process.JavaForkOptions,kotlin.Pair[])",
+            "acceptation": "Values of returned map can be null",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
             "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_87iiq4r8d2anat7cruxlw9c13Kt",
             "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_87iiq4r8d2anat7cruxlw9c13Kt",
             "acceptation": "Removed deprecated class",
@@ -1639,6 +1671,14 @@
             "acceptation": "Remove deprecated API",
             "changes": [
                 "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.process.JavaForkOptions",
+            "member": "Method org.gradle.process.JavaForkOptions.getSystemProperties()",
+            "acceptation": "Values of returned map can be null",
+            "changes": [
+                "From non-null returning to null returning breaking change"
             ]
         },
         {
