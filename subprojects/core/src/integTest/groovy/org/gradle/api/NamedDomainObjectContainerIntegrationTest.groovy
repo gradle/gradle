@@ -118,4 +118,22 @@ class NamedDomainObjectContainerIntegrationTest extends AbstractDomainObjectCont
         expect:
         succeeds "help"
     }
+
+    def "failing to create a domain object produces a nice message"() {
+        buildFile << """
+            testContainer.register("foo") {
+                throw new RuntimeException("fail creation")
+            }.get()
+        """
+
+        when:
+        fails "help"
+
+        then:
+
+        failure.assertHasFailure("A problem occurred evaluating root project 'root'.") {
+            it.assertHasFirstCause("Could not create domain object 'foo' (SomeType) in SomeType container")
+            it.assertHasCause("fail creation")
+        }
+    }
 }
