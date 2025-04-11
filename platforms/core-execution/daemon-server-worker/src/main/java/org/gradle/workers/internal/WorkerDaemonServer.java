@@ -64,6 +64,7 @@ import org.gradle.internal.service.scopes.WorkerSharedUserHomeScopeServices;
 import org.gradle.internal.snapshot.impl.IsolatableSerializerRegistry;
 import org.gradle.internal.state.ManagedFactoryRegistry;
 import org.gradle.process.internal.DefaultExecActionFactory;
+import org.gradle.process.internal.DefaultExecActionFactory.JavaModuleDetectorSupplier;
 import org.gradle.process.internal.ExecFactory;
 import org.gradle.process.internal.worker.RequestHandler;
 import org.gradle.process.internal.worker.request.RequestArgumentSerializers;
@@ -240,7 +241,8 @@ public class WorkerDaemonServer implements RequestHandler<TransportableActionExe
                 executorFactory,
                 temporaryFileProvider,
                 buildCancellationToken,
-                objectFactory
+                objectFactory,
+                JavaModuleDetectorSupplier.NO_JAVA_MODULE_DETECTOR
             );
         }
 

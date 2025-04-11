@@ -48,6 +48,7 @@ import org.gradle.execution.plan.ToPlannedTaskConverter;
 import org.gradle.groovy.scripts.internal.CrossBuildInMemoryCachingScriptClassCache;
 import org.gradle.groovy.scripts.internal.GroovyDslWorkspaceProvider;
 import org.gradle.groovy.scripts.internal.RegistryAwareClassLoaderHierarchyHasher;
+import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.initialization.ClassLoaderScopeRegistryListenerManager;
@@ -92,8 +93,8 @@ import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.process.internal.ClientExecHandleBuilderFactory;
+import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.process.internal.ExecFactory;
-import org.gradle.process.internal.JavaExecHandleFactory;
 import org.gradle.process.internal.health.memory.MemoryManager;
 import org.gradle.process.internal.worker.DefaultWorkerProcessFactory;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
@@ -203,14 +204,26 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
     }
 
     @Provides
-    ExecFactory createExecFactory(ExecFactory parent, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, ObjectFactory objectFactory, JavaModuleDetector javaModuleDetector) {
-        return parent.forContext()
-            .withFileResolver(fileResolver)
-            .withFileCollectionFactory(fileCollectionFactory)
-            .withInstantiator(instantiator)
-            .withObjectFactory(objectFactory)
-            .withJavaModuleDetector(javaModuleDetector)
-            .build();
+    protected ExecFactory createExecFactory(
+        FileResolver fileResolver,
+        FileCollectionFactory fileCollectionFactory,
+        Instantiator instantiator,
+        BuildCancellationToken buildCancellationToken,
+        ExecutorFactory executorFactory,
+        TemporaryFileProvider temporaryFileProvider,
+        ObjectFactory objectFactory,
+        JavaModuleDetector javaModuleDetector
+    ) {
+        return DefaultExecActionFactory.of(
+            fileResolver,
+            fileCollectionFactory,
+            instantiator,
+            executorFactory,
+            temporaryFileProvider,
+            buildCancellationToken,
+            objectFactory,
+            () -> javaModuleDetector
+        );
     }
 
     @Provides
@@ -219,7 +232,7 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
         MessagingServer messagingServer,
         ClassPathRegistry classPathRegistry,
         TemporaryFileProvider temporaryFileProvider,
-        JavaExecHandleFactory execHandleFactory,
+        ExecFactory execFactory,
         JvmVersionDetector jvmVersionDetector,
         MemoryManager memoryManager,
         GradleUserHomeDirProvider gradleUserHomeDirProvider,
@@ -232,7 +245,7 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
             new LongIdGenerator(),
             gradleUserHomeDirProvider.getGradleUserHomeDirectory(),
             temporaryFileProvider,
-            execHandleFactory,
+            execFactory,
             jvmVersionDetector,
             outputEventListener,
             memoryManager

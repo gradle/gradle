@@ -28,6 +28,8 @@ import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.TestUtil
 import org.junit.Rule
 
+import static org.gradle.process.internal.DefaultExecActionFactory.JavaModuleDetectorSupplier
+
 class DefaultExecActionFactoryTest extends ConcurrentSpec {
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
@@ -41,7 +43,8 @@ class DefaultExecActionFactoryTest extends ConcurrentSpec {
         executorFactory,
         TestFiles.tmpDirTemporaryFileProvider(tmpDir.createDir("tmp")),
         new DefaultBuildCancellationToken(),
-        TestUtil.objectFactory()
+        TestUtil.objectFactory(),
+        JavaModuleDetectorSupplier.NO_JAVA_MODULE_DETECTOR
     )
 
     def javaexec() {

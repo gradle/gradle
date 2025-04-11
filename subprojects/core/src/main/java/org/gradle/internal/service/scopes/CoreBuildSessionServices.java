@@ -21,14 +21,24 @@ import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.BuildSessionScopeFileTimeStampInspector;
 import org.gradle.api.internal.changedetection.state.CrossBuildFileHashCache;
 import org.gradle.api.internal.changedetection.state.FileHasherStatistics;
+import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
+import org.gradle.api.internal.file.DefaultFilePropertyFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileLookup;
+import org.gradle.api.internal.file.FilePropertyFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.archive.DecompressionCoordinator;
 import org.gradle.api.internal.file.archive.DefaultDecompressionCoordinator;
+import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
+import org.gradle.api.internal.model.DefaultObjectFactory;
+import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.project.BuildOperationCrossProjectConfigurator;
 import org.gradle.api.internal.project.CrossProjectConfigurator;
+import org.gradle.api.internal.provider.PropertyFactory;
+import org.gradle.api.internal.provider.PropertyHost;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.tasks.util.internal.PatternSetFactory;
 import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.internal.BuildScopeCacheDir;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
@@ -49,6 +59,7 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.hash.DefaultChecksumService;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.model.InMemoryCacheFactory;
@@ -66,6 +77,7 @@ import org.gradle.internal.service.PrivateService;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.internal.work.DefaultAsyncWorkTracker;
@@ -153,6 +165,42 @@ public class CoreBuildSessionServices implements ServiceRegistrationProvider {
     BuildStartedTime createBuildStartedTime(Clock clock, BuildRequestMetaData buildRequestMetaData) {
         long currentTime = clock.getCurrentTime();
         return BuildStartedTime.startingAt(Math.min(currentTime, buildRequestMetaData.getStartTime()));
+    }
+
+    @Provides
+    protected FileCollectionFactory createFilePropertyFactory(FileCollectionFactory fileCollectionFactory, FileResolver fileResolver) {
+        return fileCollectionFactory.withResolver(fileResolver);
+    }
+
+    @Provides
+    protected FilePropertyFactory createFilePropertyFactory(PropertyHost host, FileCollectionFactory fileCollectionFactory, FileResolver fileResolver) {
+        return new DefaultFilePropertyFactory(host, fileResolver, fileCollectionFactory);
+    }
+
+    @Provides
+    ObjectFactory createObjectFactory(
+        InstantiatorFactory instantiatorFactory,
+        DirectoryFileTreeFactory directoryFileTreeFactory,
+        PatternSetFactory patternSetFactory,
+        ServiceRegistry services,
+        PropertyFactory propertyFactory,
+        FilePropertyFactory filePropertyFactory,
+        TaskDependencyFactory taskDependencyFactory,
+        FileCollectionFactory fileCollectionFactory,
+        DomainObjectCollectionFactory domainObjectCollectionFactory,
+        NamedObjectInstantiator instantiator
+    ) {
+        return new DefaultObjectFactory(
+            instantiatorFactory.decorate(services),
+            instantiator,
+            directoryFileTreeFactory,
+            patternSetFactory,
+            propertyFactory,
+            filePropertyFactory,
+            taskDependencyFactory,
+            fileCollectionFactory,
+            domainObjectCollectionFactory
+        );
     }
 
     @Provides

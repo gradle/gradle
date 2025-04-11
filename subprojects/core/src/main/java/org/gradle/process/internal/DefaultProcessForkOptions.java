@@ -16,21 +16,55 @@
 package org.gradle.process.internal;
 
 import com.google.common.collect.Maps;
+import org.gradle.api.file.Directory;
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.FileSystemLocation;
+import org.gradle.api.internal.file.DefaultFileCollectionFactory;
+import org.gradle.api.internal.file.DefaultFilePropertyFactory;
+import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory;
+import org.gradle.api.internal.provider.PropertyHost;
+import org.gradle.api.internal.provider.Providers;
+import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.internal.nativeintegration.services.FileSystems;
 import org.gradle.process.ProcessForkOptions;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.gradle.api.internal.lambdas.SerializableLambdas.transformer;
+
 public class DefaultProcessForkOptions implements ProcessForkOptions {
     protected final PathToFileResolver resolver;
     private Object executable;
-    private File workingDir;
+    private final DirectoryProperty workingDir;
     private Map<String, Object> environment;
 
+    /**
+     * Don't use it! Kept for KGP binary compatibility for version lower than 2.1.20.
+     * See: <a href="https://github.com/JetBrains/kotlin/blob/658a2010b15a22583f9841e1a2d4bddf1baac612/libraries/tools/kotlin-gradle-plugin/src/common/kotlin/org/jetbrains/kotlin/gradle/targets/js/testing/KotlinJsTest.kt#L158">KotlinJsTest.kt#L158</a>.
+     *
+     * We can remove it once we stop supporting that version.
+     */
+    @Deprecated
     public DefaultProcessForkOptions(PathToFileResolver resolver) {
+        this(resolver, SimplePropertyFactory.directoryProperty((FileResolver) resolver), SimplePropertyFactory.directoryProperty((FileResolver) resolver));
+    }
+
+    public DefaultProcessForkOptions(ObjectFactory objectFactory, PathToFileResolver resolver) {
+        this(resolver, objectFactory.directoryProperty(), objectFactory.directoryProperty());
+    }
+
+    private DefaultProcessForkOptions(PathToFileResolver resolver, DirectoryProperty defaultWorkingDir, DirectoryProperty workingDir) {
         this.resolver = resolver;
+        this.workingDir = workingDir.convention(defaultWorkingDir.fileProvider(Providers.of(new File("."))));
     }
 
     @Override
@@ -56,20 +90,33 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
 
     @Override
     public File getWorkingDir() {
-        if (workingDir == null) {
-            workingDir = resolver.resolve(".");
-        }
-        return workingDir;
+        return workingDir.getAsFile().get();
     }
 
     @Override
     public void setWorkingDir(File dir) {
-        this.workingDir = resolver.resolve(dir);
+        this.workingDir.set(dir);
     }
 
     @Override
     public void setWorkingDir(Object dir) {
-        this.workingDir = resolver.resolve(dir);
+        if (dir instanceof DirectoryProperty) {
+            workingDir.set((DirectoryProperty) dir);
+        } else if (dir instanceof Provider) {
+            workingDir.fileProvider(((Provider<?>) dir).map(transformer(file -> {
+                if (file instanceof FileSystemLocation) {
+                    return ((Directory) file).getAsFile();
+                } else if (file instanceof File) {
+                    return (File) file;
+                } else {
+                    return resolver.resolve(file);
+                }
+            })));
+        } else if (dir instanceof File) {
+            workingDir.set((File) dir);
+        } else {
+            workingDir.set(resolver.resolve(dir));
+        }
     }
 
     @Override
@@ -125,5 +172,29 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
         target.setWorkingDir(getWorkingDir());
         target.setEnvironment(getEnvironment());
         return this;
+    }
+
+    /**
+     * Do not use it, used only for KGP binary compatibility.
+     */
+    @NullMarked
+    @Deprecated
+    private static class SimplePropertyFactory {
+
+        public static DirectoryProperty directoryProperty(FileResolver fileResolver) {
+            FileCollectionFactory fileCollectionFactory = new DefaultFileCollectionFactory(
+                fileResolver,
+                DefaultTaskDependencyFactory.withNoAssociatedProject(),
+                new DefaultDirectoryFileTreeFactory(),
+                PatternSets.getNonCachingPatternSetFactory(),
+                PropertyHost.NO_OP,
+                FileSystems.getDefault()
+            );
+            return new DefaultFilePropertyFactory(
+                PropertyHost.NO_OP,
+                fileResolver,
+                fileCollectionFactory
+            ).newDirectoryProperty();
+        }
     }
 }
