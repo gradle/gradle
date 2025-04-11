@@ -16,17 +16,18 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
 import com.google.common.base.Joiner;
-import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-class RejectedModuleMessageBuilder {
+/**
+ * A utility class that packages the logic necessary to build a message describing why a {@link ComponentState} was rejected.
+ */
+/* package */ class ComponentRejectedMessageBuilder {
     String buildFailureMessage(ModuleResolveState module) {
         boolean hasRejectAll = false;
         for (SelectorState candidate : module.getSelectors()) {
@@ -42,9 +43,7 @@ class RejectedModuleMessageBuilder {
             sb.append("Cannot find a version of '").append(module.getId()).append("' that satisfies the version constraints:\n");
         }
 
-        Set<EdgeState> allEdges = new LinkedHashSet<>();
-        allEdges.addAll(module.getIncomingEdges());
-        allEdges.addAll(module.getUnattachedEdges());
+        Set<EdgeState> allEdges = module.getAllEdges();
         renderEdges(sb, allEdges);
         return sb.toString();
     }
@@ -71,10 +70,9 @@ class RejectedModuleMessageBuilder {
         if (selectionReason.hasCustomDescriptions()) {
             sb.append(" because of the following reason");
             List<String> reasons = new ArrayList<>(1);
-            for (ComponentSelectionDescriptor componentSelectionDescriptor : selectionReason.getDescriptions()) {
-                ComponentSelectionDescriptorInternal next = (ComponentSelectionDescriptorInternal) componentSelectionDescriptor;
-                if (next.hasCustomDescription()) {
-                    reasons.add(next.getDescription());
+            for (ComponentSelectionDescriptorInternal componentSelectionDescriptor : selectionReason.getDescriptions()) {
+                if (componentSelectionDescriptor.hasCustomDescription()) {
+                    reasons.add(componentSelectionDescriptor.getDescription());
                 }
             }
             if (reasons.size() == 1) {
@@ -85,5 +83,4 @@ class RejectedModuleMessageBuilder {
             }
         }
     }
-
 }
