@@ -17,36 +17,33 @@
 plugins {
     id("gradlebuild.distribution.implementation-kotlin")
     id("gradlebuild.kotlin-dsl-sam-with-receiver")
+    id("gradlebuild.kotlin-experimental-contracts")
 }
 
-description = "Configuration Cache services supporting bean serialization"
-
-gradlebuildJava {
-    usesJdkInternals = true
-}
+description = "Supporting services for the isolation of IsolatedAction instances"
 
 dependencies {
-    api(projects.graphSerialization)
-    api(projects.stdlibJavaExtensions)
-    api(projects.modelCore)
-    api(projects.persistentCache)
-    api(projects.serviceProvider)
-
-    api(libs.kotlinStdlib)
-
     implementation(projects.baseServices)
+    implementation(projects.configurationCacheBase)
     implementation(projects.configurationProblemsBase)
     implementation(projects.core)
     implementation(projects.coreApi)
-    implementation(projects.coreKotlinExtensions)
-    implementation(projects.logging)
-    implementation(projects.modelReflect)
-    implementation(projects.serviceLookup)
+    implementation(projects.coreSerializationCodecs)
+    implementation(projects.fileCollections)
+    implementation(projects.graphSerialization)
+    implementation(projects.graphIsolation)
+    implementation(projects.modelCore)
+    implementation(projects.serviceProvider)
+    implementation(projects.stdlibJavaExtensions)
     implementation(projects.stdlibKotlinExtensions)
+    implementation(projects.stdlibSerializationCodecs)
 
-    implementation(libs.groovy)
-    implementation(libs.guava)
+    implementation(libs.jspecify)
+    implementation(libs.kotlinStdlib)
+    implementation(libs.slf4jApi)
 
-    testFixturesImplementation(testFixtures(projects.core))
-    testFixturesImplementation(testFixtures(projects.persistentCache))
+    testImplementation(projects.beanSerializationServices)
+    testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.beanSerializationServices))
+    testImplementation(libs.mockitoKotlin2)
 }

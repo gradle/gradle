@@ -32,7 +32,10 @@ import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFacto
 import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal.ClassPathNotation.LOCAL_GROOVY;
 
 public class DependencyClassPathProvider implements ClassPathProvider {
-    private static final List<String> MODULES = Arrays.asList(
+    /**
+     * List of Gradle API jar entry points. These modules and their dependencies are available for ProjectBuilder.
+     */
+    private static final List<String> GRADLE_API_ENTRY_POINTS = Arrays.asList(
         "gradle-worker-main",
         "gradle-launcher",
         "gradle-workers",
@@ -40,6 +43,7 @@ public class DependencyClassPathProvider implements ClassPathProvider {
         "gradle-plugin-use",
         "gradle-tooling-api-builders",
         "gradle-configuration-cache",
+        "gradle-isolated-action-services",
         "gradle-unit-test-fixtures"
     );
 
@@ -83,7 +87,7 @@ public class DependencyClassPathProvider implements ClassPathProvider {
         // This method is involved in generating the gradleApi() Jar which is used in a real Gradle run.
         // See: `org.gradle.api.internal.notations.DependencyClassPathNotationConverter`
         ClassPath classpath = ClassPath.EMPTY;
-        for (String moduleName : MODULES) {
+        for (String moduleName : GRADLE_API_ENTRY_POINTS) {
             classpath = classpath.plus(moduleRegistry.getModule(moduleName).getAllRequiredModulesClasspath());
         }
         for (Module pluginModule : pluginModuleRegistry.getApiModules()) {

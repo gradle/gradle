@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.impl.services
+package org.gradle.internal.isolate.actions.services
 
 import org.gradle.api.IsolatedAction
 import org.gradle.api.Project
@@ -23,11 +23,11 @@ import org.gradle.api.ProjectState
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.invocation.Gradle
 import org.gradle.internal.cc.base.serialize.IsolateOwners
-import org.gradle.internal.cc.impl.isolation.IsolatedActionDeserializer
-import org.gradle.internal.cc.impl.isolation.IsolatedActionSerializer
-import org.gradle.internal.cc.impl.isolation.SerializedIsolatedActionGraph
 import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.extensions.stdlib.uncheckedCast
+import org.gradle.internal.isolate.graph.IsolatedActionDeserializer
+import org.gradle.internal.isolate.graph.IsolatedActionSerializer
+import org.gradle.internal.isolate.graph.SerializedIsolatedActionGraph
 import org.gradle.internal.serialize.graph.IsolateOwner
 import org.gradle.internal.serialize.graph.serviceOf
 import org.gradle.invocation.GradleLifecycleActionExecutor
@@ -111,9 +111,10 @@ class DefaultIsolatedProjectEvaluationListenerProvider(
 
     private
     fun isolate(actions: IsolatedProjectActions, owner: IsolateOwner) =
-        IsolatedActionSerializer(owner, owner.serviceOf(), owner.serviceOf())
+        IsolatedActionSerializer(owner, owner.serviceOf(), owner.serviceOf<IsolatedActionCodecsFactory>())
             .serialize(actions)
 }
+
 
 private
 sealed class IsolatedProjectActionsState {
@@ -206,7 +207,7 @@ fun isolatedActions(
     gradle: Gradle,
     isolated: SerializedIsolatedActionGraph<IsolatedProjectActions>
 ) = IsolateOwners.OwnerGradle(gradle).let { owner ->
-    IsolatedActionDeserializer(owner, owner.serviceOf(), owner.serviceOf())
+    IsolatedActionDeserializer(owner, owner.serviceOf(), owner.serviceOf<IsolatedActionCodecsFactory>())
         .deserialize(isolated)
 }
 
