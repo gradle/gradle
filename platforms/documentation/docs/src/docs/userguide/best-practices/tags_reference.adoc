@@ -25,3 +25,7 @@ Items that explain the proper way to structure maintainable builds in Gradle.
 `#up-to-date-checking`
 
 Items that are related to Gradle's <<incremental_build.adoc#sec:how_does_it_work,up-to-date checking>> mechanism, and how to ensure work avoidance behaves properly in your build.
+
+`#upgrades`
+
+Items that are related to making Gradle version upgrades easier.
