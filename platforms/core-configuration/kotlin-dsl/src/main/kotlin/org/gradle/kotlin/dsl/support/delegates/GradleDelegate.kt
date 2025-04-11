@@ -58,6 +58,9 @@ abstract class GradleDelegate : Gradle {
     override fun getGradleVersion(): String =
         delegate.gradleVersion
 
+    override fun notCompatibleWithFeature(featureKey: String) =
+        delegate.notCompatibleWithFeature(featureKey)
+
     override fun getGradleUserHomeDir(): File =
         delegate.gradleUserHomeDir
 

@@ -53,6 +53,15 @@ public interface Gradle extends PluginAware, ExtensionAware {
     String getGradleVersion();
 
     /**
+     * Tells Gradle some feature is not supported.
+     *
+     * @since 9.0
+     * @param featureKey the feature that is unsupported
+     */
+    @Incubating
+    void notCompatibleWithFeature(String featureKey);
+
+    /**
      * Returns the Gradle user home directory.
      *
      * This directory is used to cache downloaded resources, compiled build scripts and so on.
