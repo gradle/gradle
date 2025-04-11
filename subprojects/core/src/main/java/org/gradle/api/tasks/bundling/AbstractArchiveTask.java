@@ -20,7 +20,9 @@ import org.gradle.api.Action;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFile;
+import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.copy.CopyActionExecuter;
+import org.gradle.api.internal.provider.BuildableBackedProvider;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.Property;
@@ -81,7 +83,9 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
             return name;
         }));
 
-        archiveFile = archiveDestinationDirectory.file(archiveName);
+        // TODO This should be possible with public APIs
+        archiveFile = new BuildableBackedProvider<>((FileCollectionInternal) getOutputs().getFiles(), RegularFile.class,
+            () -> archiveDestinationDirectory.file(archiveName).get());
 
         archivePreserveFileTimestamps = objectFactory.property(Boolean.class).convention(true);
         archiveReproducibleFileOrder = objectFactory.property(Boolean.class).convention(false);
