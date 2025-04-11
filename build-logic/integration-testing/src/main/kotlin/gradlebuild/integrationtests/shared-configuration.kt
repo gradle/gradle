@@ -91,6 +91,8 @@ fun Project.addDependenciesAndConfigurations(prefix: String) {
     if (project.name != "gradle-kotlin-dsl-accessors" && project.name != "enterprise-plugin-performance" && project.name != "test" /* remove once wrapper is updated */) {
         dependencies {
             "${prefix}TestImplementation"(project)
+            "${prefix}TestImplementation"(project.the<ExternalModulesExtension>().junitJupiter)
+            "${prefix}TestRuntimeOnly"(project.the<ExternalModulesExtension>().junitPlatform)
             "${prefix}TestRuntimeOnly"(project.the<ExternalModulesExtension>().junit5Vintage)
             "${prefix}TestImplementation"(project(":internal-integ-testing"))
             "${prefix}TestFullDistributionRuntimeClasspath"(project(":distributions-full"))

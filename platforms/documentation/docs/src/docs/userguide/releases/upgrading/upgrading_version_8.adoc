@@ -51,7 +51,7 @@ For Gradle 8.x, the minimum supported version was 1.6.10.
 
 ==== Lowest supported Android Gradle Plugin version change
 
-Starting with Gradle 9.0, the minimum supported Android Gradle Plugin version is 7.4.0.
+Starting with Gradle 9.0, the minimum supported Android Gradle Plugin version is 8.4.0.
 Earlier versions are no longer supported as they rely on Gradle APIs that have been removed.
 
 For Gradle 8.x, the minimum supported version was 7.3.0.
@@ -337,6 +337,13 @@ We encourage you to use the https://plugins.gradle.org/plugin/com.gradle.develoc
 
 Reference a task or other domain object by its name using the `"name"()` notation is no longer possible in Gradle 9.
 Instead of using `"name"()` to reference a task or domain object, use `named("name")` or one of the other supported notations.
+
+==== Select Groovy modules removed from distribution
+
+The following Groovy modules have been removed from the Gradle distribution.
+They will no longer be available on the classpath or be available via `localGroovy`:
+
+- `groovy-test`
 
 [[changes_8.14]]
 == Upgrading from 8.13 and earlier

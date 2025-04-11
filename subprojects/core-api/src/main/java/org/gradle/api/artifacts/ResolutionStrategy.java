@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit;
  * For example, forcing certain dependency versions, substitutions, conflict resolutions or snapshot timeouts.
  * <p>
  * Examples:
- * <pre class='autoTested'>
+ * <pre>
  * plugins {
  *     id 'java' // so that there are some configurations
  * }

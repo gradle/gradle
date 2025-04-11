@@ -47,8 +47,11 @@ dependencies {
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
     implementation(libs.guava)
-    implementation(libs.junit)
     implementation(libs.slf4jApi)
+
+    compileOnly(libs.junit) {
+        because("The actual version is provided by the user on the testRuntimeClasspath")
+    }
 
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.modelReflect))

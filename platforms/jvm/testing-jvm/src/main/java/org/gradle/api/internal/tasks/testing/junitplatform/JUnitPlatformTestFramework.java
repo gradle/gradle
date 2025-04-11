@@ -16,12 +16,10 @@
 
 package org.gradle.api.internal.tasks.testing.junitplatform;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.tasks.testing.TestFramework;
-import org.gradle.api.internal.tasks.testing.TestFrameworkDistributionModule;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.api.internal.tasks.testing.detection.TestFrameworkDetector;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
@@ -35,46 +33,23 @@ import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Set;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @UsedByScanPlugin("test-retry")
 public class JUnitPlatformTestFramework implements TestFramework {
     private static final Logger LOGGER = Logging.getLogger(JUnitPlatformTestFramework.class);
 
-    private static final List<TestFrameworkDistributionModule> DISTRIBUTION_MODULES =
-        ImmutableList.of(
-            new TestFrameworkDistributionModule(
-                "junit-platform-engine",
-                Pattern.compile("junit-platform-engine-1.*\\.jar"),
-                "org.junit.platform.engine.DiscoverySelector"
-            ),
-            new TestFrameworkDistributionModule(
-                "junit-platform-launcher",
-                Pattern.compile("junit-platform-launcher-1.*\\.jar"),
-                "org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder"
-            ),
-            new TestFrameworkDistributionModule(
-                "junit-platform-commons",
-                Pattern.compile("junit-platform-commons-1.*\\.jar"),
-                "org.junit.platform.commons.util.ReflectionUtils"
-            )
-        );
-
     private final JUnitPlatformOptions options;
     private final DefaultTestFilter filter;
-    private final boolean useImplementationDependencies;
     private final Provider<Boolean> dryRun;
 
-    public JUnitPlatformTestFramework(DefaultTestFilter filter, boolean useImplementationDependencies, Provider<Boolean> dryRun) {
-        this(filter, useImplementationDependencies, new JUnitPlatformOptions(), dryRun);
+    public JUnitPlatformTestFramework(DefaultTestFilter filter, Provider<Boolean> dryRun) {
+        this(filter, new JUnitPlatformOptions(), dryRun);
     }
 
-    private JUnitPlatformTestFramework(DefaultTestFilter filter, boolean useImplementationDependencies, JUnitPlatformOptions options, Provider<Boolean> dryRun) {
+    private JUnitPlatformTestFramework(DefaultTestFilter filter, JUnitPlatformOptions options, Provider<Boolean> dryRun) {
         this.filter = filter;
-        this.useImplementationDependencies = useImplementationDependencies;
         this.options = options;
         this.dryRun = dryRun;
     }
@@ -87,7 +62,6 @@ public class JUnitPlatformTestFramework implements TestFramework {
 
         return new JUnitPlatformTestFramework(
             (DefaultTestFilter) newTestFilters,
-            useImplementationDependencies,
             copiedOptions,
             dryRun
         );
@@ -108,16 +82,6 @@ public class JUnitPlatformTestFramework implements TestFramework {
     @Override
     public Action<WorkerProcessBuilder> getWorkerConfigurationAction() {
         return workerProcessBuilder -> workerProcessBuilder.sharedPackages("org.junit");
-    }
-
-    @Override
-    public List<TestFrameworkDistributionModule> getWorkerApplicationModulepathModules() {
-        return DISTRIBUTION_MODULES;
-    }
-
-    @Override
-    public boolean getUseDistributionDependencies() {
-        return useImplementationDependencies;
     }
 
     @Override

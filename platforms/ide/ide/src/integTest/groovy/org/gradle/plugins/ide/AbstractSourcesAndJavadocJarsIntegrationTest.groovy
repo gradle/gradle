@@ -388,7 +388,6 @@ dependencies {
         ideFileContainsEntry("groovy-nio-${groovyVersion}.jar", ["groovy-nio-${groovyVersion}-sources.jar"], [])
         ideFileContainsEntry("groovy-sql-${groovyVersion}.jar", ["groovy-sql-${groovyVersion}-sources.jar"], [])
         ideFileContainsEntry("groovy-templates-${groovyVersion}.jar", ["groovy-templates-${groovyVersion}-sources.jar"], [])
-        ideFileContainsEntry("groovy-test-${groovyVersion}.jar", ["groovy-test-${groovyVersion}-sources.jar"], [])
         ideFileContainsEntry("groovy-xml-${groovyVersion}.jar", ["groovy-xml-${groovyVersion}-sources.jar"], [])
     }
 
@@ -541,7 +540,6 @@ dependencies {
         publishGroovyModuleWithSources(repo, "groovy-sql")
         publishGroovyModuleWithSources(repo, "groovy-swing")
         publishGroovyModuleWithSources(repo, "groovy-templates")
-        publishGroovyModuleWithSources(repo, "groovy-test")
         publishGroovyModuleWithSources(repo, "groovy-xml")
         return repo
     }

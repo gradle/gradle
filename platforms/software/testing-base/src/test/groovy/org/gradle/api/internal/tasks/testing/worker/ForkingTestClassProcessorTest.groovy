@@ -72,9 +72,8 @@ class ForkingTestClassProcessorTest extends Specification {
         def appClasspath = ImmutableList.of(new File("cls.jar"))
         def appModulepath = ImmutableList.of(new File("mod.jar"))
         def implClasspath = ImmutableList.of(new URL("file://cls.jar"))
-        def implModulepath = ImmutableList.of(new URL("file://mod.jar"))
         def processor = newProcessor(new ForkedTestClasspath(
-            appClasspath, appModulepath, implClasspath, implModulepath
+            appClasspath, appModulepath, implClasspath
         ))
 
         when:
@@ -84,7 +83,6 @@ class ForkingTestClassProcessorTest extends Specification {
         1 * workerProcessBuilder.applicationClasspath(_) >> { assert it[0] == appClasspath }
         1 * workerProcessBuilder.applicationModulePath(_) >> { assert it[0] == appModulepath}
         1 * workerProcessBuilder.setImplementationClasspath(_) >> { assert it[0] == implClasspath }
-        1 * workerProcessBuilder.setImplementationModulePath(_) >> { assert it[0] == implModulepath }
     }
 
     def "stopNow does nothing when no remote processor"() {
@@ -175,7 +173,7 @@ class ForkingTestClassProcessorTest extends Specification {
     }
 
     def newProcessor(
-        ForkedTestClasspath classpath = new ForkedTestClasspath(ImmutableList.of(), ImmutableList.of(), ImmutableList.of(), ImmutableList.of())
+        ForkedTestClasspath classpath = new ForkedTestClasspath(ImmutableList.of(), ImmutableList.of(), ImmutableList.of())
     ) {
         return new ForkingTestClassProcessor(
             workerLeaseRegistry, workerProcessFactory, Mock(WorkerTestClassProcessorFactory),
