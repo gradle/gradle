@@ -120,6 +120,10 @@ public class JavaCompilerArgumentsBuilder {
             if ("--release".equals(arg) && spec.getRelease() != null) {
                 throw new InvalidUserDataException("Cannot specify --release via `CompileOptions.compilerArgs` when using `CompileOptions.release`.");
             }
+
+            if ("--enable-preview".equals(arg) && spec.getEnablePreview() != null) {
+                throw new InvalidUserDataException("Cannot specify --enable-preview via `CompileOptions.compilerArgs` when using `CompileOptions.enablePreview`.");
+            }
         }
     }
 
@@ -146,6 +150,10 @@ public class JavaCompilerArgumentsBuilder {
         }
         Integer release = spec.getRelease();
         final MinimalJavaCompileOptions compileOptions = spec.getCompileOptions();
+
+        if (spec.getEnablePreview() != null && spec.getEnablePreview()) {
+            args.add("--enable-preview");
+        }
 
         if (release != null) {
             args.add("--release");
