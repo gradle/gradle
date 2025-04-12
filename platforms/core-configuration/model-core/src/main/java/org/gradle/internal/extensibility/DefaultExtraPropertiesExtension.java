@@ -109,20 +109,21 @@ public class DefaultExtraPropertiesExtension extends GroovyObjectSupport impleme
 
     @Override
     public Map<String, Object> getProperties() {
+        // Must return a mutable map to preserve contract
         // TODO:configuration-cache use a tracking map here
         if (storage == null) {
-            return gradleProperties;
+            return new HashMap<>(gradleProperties);
         }
-        ImmutableMap.Builder<String, Object> builder = ImmutableMap.builderWithExpectedSize(storage.size() + gradleProperties.size());
-        builder.putAll(storage);
+        Map<String, Object> properties = new HashMap<>(storage.size() + gradleProperties.size());
+        properties.putAll(storage);
         for (Map.Entry<String, Object> entry : gradleProperties.entrySet()) {
             if (!storage.containsKey(entry.getKey())) {
                 // TODO:configuration-cache track Gradle property lookup
 //                onGradlePropertyLookup(entry.getKey());
-                builder.put(entry.getKey(), entry.getValue());
+                properties.put(entry.getKey(), entry.getValue());
             }
         }
-        return builder.build();
+        return properties;
     }
 
     @SuppressWarnings("rawtypes")

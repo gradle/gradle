@@ -19,6 +19,7 @@ package org.gradle.internal.extensibility
 import org.gradle.api.Project
 import org.gradle.api.plugins.ExtraPropertiesExtension
 import org.gradle.testfixtures.ProjectBuilder
+import spock.lang.Issue
 import spock.lang.Specification
 
 /**
@@ -188,6 +189,26 @@ abstract class ExtraPropertiesExtensionTest<T extends ExtraPropertiesExtension> 
 
         then:
         notThrown(Exception)
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/33074')
+    def "can add null properties using ext block notation"() {
+        given:
+        Project project = ProjectBuilder.builder().build()
+
+        when:
+        project.ext {
+            aProperty = null as Integer
+        }
+
+        then:
+        notThrown(Exception)
+
+        and:
+        project.ext.has 'aProperty'
+
+        and:
+        project.ext.properties.containsKey('aProperty')
     }
 
     def "can use [] notation to get and set"() {
