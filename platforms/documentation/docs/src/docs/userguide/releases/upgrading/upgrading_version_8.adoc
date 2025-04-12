@@ -138,6 +138,37 @@ The nullability of generic bounds is now handled strictly.
 For example, you can't use `Property<String?>` anymore because the `T` in `Property<T>` is not nullable.
 Another example is using a function from the Gradle API that takes a `Map<String, *>` parameter ; you could pass a map with nullable values before, you can't do that anymore.
 
+==== Plugins written with the Kotlin DSL require Gradle >= 8.11 by default
+
+When building and publishing plugins written using the Kotlin DSL, they will be usable on Gradle >= 8.11 only.
+This is because Gradle 8.11 is the oldest version that embeds Kotlin >= 2.0 which is capable of reading Kotlin metadata version 2.
+
+If you want to target older versions of Gradle with a plugin written using the Kotlin DSL on Gradle 9.x you need to configure the target Kotlin language and api versions to 1.x.
+
+For example, targeting Kotlin 1.7 which allow to apply the plugin on Gradle >= 6.8:
+
+.build.gradle.kts
+[source,kotlin]
+----
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
+plugins {
+    `kotlin-dsl`
+}
+
+tasks.withType<KotlinCompile>().configureEach {
+    compilerOptions {
+        languageVersion = KotlinVersion.KOTLIN_1_7
+        apiVersion = KotlinVersion.KOTLIN_1_7
+    }
+}
+----
+
+Please refer to Gradle's link:compatibility.html#kotlin[compatibility matrix] to learn which version of Kotlin is embedded in which Gradle version.
+
+Plugins written with the Kotlin DSL and published with Gradle 7.x and 8.x were usable on Gradle >= 6.8 only.
+
 ==== Scala plugins no longer create unresolvable configurations
 
 The Scala plugins used configurations named `incrementalScalaAnalysisFor` to resolve incremental analysis information from other projects.
