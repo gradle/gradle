@@ -28,6 +28,7 @@ Include only their name, impactful features should be called out separately belo
 -->
 
 We would like to thank the following community members for their contributions to this release of Gradle:
+[Aurimas](https://github.com/liutikas),
 [Ben Bader](https://github.com/benjamin-bader),
 [Björn Kautler](https://github.com/Vampire),
 [chandre92](https://github.com/chandre92),
