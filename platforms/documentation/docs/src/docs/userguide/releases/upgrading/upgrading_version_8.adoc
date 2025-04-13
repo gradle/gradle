@@ -376,6 +376,12 @@ They will no longer be available on the classpath or be available via `localGroo
 
 - `groovy-test`
 
+==== `libraries` or `bundles` from dependency version catalogs in the `plugins {}` block no longer accessible in Kotlin scripts
+
+Accessing `libraries` or `bundles` from dependency version catalogs in the `plugins {}` block of a Kotlin script has been deprecated in Gradle 8.1.
+Gradle 9.0 completes their removal, attempting to use them will result in errors and the failure of the build.
+Please only use `versions` or `plugins` from dependency version catalogs in the `plugins {}` block.
+
 [[changes_8.14]]
 == Upgrading from 8.13 and earlier
 
