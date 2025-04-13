@@ -16,7 +16,6 @@
 
 package org.gradle.kotlin.dsl
 
-import org.gradle.api.Incubating
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.plugins.PluginAware
@@ -32,8 +31,10 @@ import kotlin.script.experimental.api.implicitReceivers
 import kotlin.script.templates.ScriptTemplateDefinition
 
 
+private const val SETTINGS_SCRIPT_FILE_PATTERN = "(?:.+\\.)?settings\\.gradle\\.kts"
+
 class KotlinSettingsScriptTemplateCompilationConfiguration : KotlinDslStandaloneScriptCompilationConfiguration({
-    filePathPattern.put("(?:.+\\.)?settings\\.gradle\\.kts")
+    filePathPattern.put(SETTINGS_SCRIPT_FILE_PATTERN)
     baseClass(KotlinSettingsScript::class)
     implicitReceivers(Settings::class)
 })
@@ -41,14 +42,12 @@ class KotlinSettingsScriptTemplateCompilationConfiguration : KotlinDslStandalone
 
 /**
  * Base class for Gradle Kotlin DSL standalone [Settings] scripts IDE support.
- *
- * @since 8.1
  */
-@Incubating
 @KotlinScript(
     compilationConfiguration = KotlinSettingsScriptTemplateCompilationConfiguration::class
 )
 @ScriptTemplateDefinition(
+    scriptFilePattern = SETTINGS_SCRIPT_FILE_PATTERN,
     resolver = KotlinBuildScriptDependenciesResolver::class,
 )
 @GradleDsl

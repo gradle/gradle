@@ -25,7 +25,7 @@ import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptTemplateModel
 @TargetGradleVersion(">=4.1")
 class KotlinBuildScriptTemplateModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVersionTest {
 
-    def "can load script template using classpath model"() {
+    def "can load project script template and resolver using classpath model"() {
 
         when:
         def model = loadToolingModel(KotlinBuildScriptTemplateModel)

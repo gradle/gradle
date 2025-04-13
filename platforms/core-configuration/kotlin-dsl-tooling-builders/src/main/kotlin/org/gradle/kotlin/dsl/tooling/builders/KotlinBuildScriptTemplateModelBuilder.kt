@@ -32,10 +32,14 @@ internal
 object KotlinBuildScriptTemplateModelBuilder : ToolingModelBuilder {
 
     private
-    val gradleModules = listOf("gradle-core", "gradle-tooling-api")
+    val gradleModules = listOf(
+        "gradle-base-services",
+        "gradle-core",
+        "gradle-tooling-api",
+    )
 
     override fun canBuild(modelName: String): Boolean =
-        modelName == "org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptTemplateModel"
+        modelName == KotlinBuildScriptTemplateModel::class.java.name
 
     override fun buildAll(modelName: String, project: Project): KotlinBuildScriptTemplateModel =
         project.serviceOf<ModuleRegistry>().run {

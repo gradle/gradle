@@ -16,7 +16,6 @@
 
 package org.gradle.kotlin.dsl
 
-import org.gradle.api.Incubating
 import org.gradle.api.Project
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver
@@ -33,8 +32,10 @@ import kotlin.script.experimental.api.implicitReceivers
 import kotlin.script.templates.ScriptTemplateDefinition
 
 
+private const val PROJECT_SCRIPT_FILE_PATTERN = ".+(?<!(^|\\.)(init|settings))\\.gradle\\.kts"
+
 class KotlinBuildScriptTemplateCompilationConfiguration : KotlinDslStandaloneScriptCompilationConfiguration({
-    filePathPattern.put(".+(?<!(^|\\.)(init|settings))\\.gradle\\.kts")
+    filePathPattern.put(PROJECT_SCRIPT_FILE_PATTERN)
     baseClass(KotlinBuildScript::class)
     implicitReceivers(Project::class)
 })
@@ -42,14 +43,12 @@ class KotlinBuildScriptTemplateCompilationConfiguration : KotlinDslStandaloneScr
 
 /**
  * Base class for Gradle Kotlin DSL standalone [Project] scripts IDE support, aka. build scripts.
- *
- * @since 8.1
  */
-@Incubating
 @KotlinScript(
     compilationConfiguration = KotlinBuildScriptTemplateCompilationConfiguration::class
 )
 @ScriptTemplateDefinition(
+    scriptFilePattern = PROJECT_SCRIPT_FILE_PATTERN,
     resolver = KotlinBuildScriptDependenciesResolver::class,
 )
 @GradleDsl

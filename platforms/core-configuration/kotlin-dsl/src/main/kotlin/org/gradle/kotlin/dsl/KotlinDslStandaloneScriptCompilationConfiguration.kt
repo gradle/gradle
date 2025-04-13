@@ -43,7 +43,7 @@ abstract class KotlinDslStandaloneScriptCompilationConfiguration protected const
         "-P=plugin:org.jetbrains.kotlin.assignment:annotation=org.gradle.api.SupportsKotlinAssignmentOverloading",
     ))
     annotationsForSamWithReceivers.put(listOf(
-        KotlinType(HasImplicitReceiver::class),
+        KotlinType(qualifiedTypeName = "org.gradle.api.HasImplicitReceiver"),
     ))
 
     body()
