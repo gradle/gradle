@@ -604,7 +604,7 @@ The automatically available `buildSrc` is great for rapid prototyping, but it co
 
 Ideally, there would be no difference between using `buildSrc` and an included build, `buildSrc` is intended to behave like an implicitly available included build.
 However, due to historical reasons, some subtle differences still exist.
-It is likely that in the future this recommendation will be weakened or removed entirely, as Gradle continues to work to converge the behavior of these two approaches.
+Gradle is working to unify the behavior of these two approaches, and this recommendation may be revised in the future.
 At present, however, the differences can be a potential stumbling block.
 
 As there is only minor additional configuration necessary to setup a composite build, we recommend using these instead of `buildSrc`.
