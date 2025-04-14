@@ -169,7 +169,11 @@ include::sample[dir="snippets/bestPractices/avoidInternal/kotlin",files="build.g
 include::sample[dir="snippets/bestPractices/avoidInternal/groovy",files="build.gradle[tags=do-this]"]
 ====
 
-<2> Implementing your own version of `toMap()` that only uses public APIs is a lot more robust.
+<1> Implementing your own version of `toMap()` that only uses public APIs is a lot more robust.
+
+=== References
+
+link:https://docs.gradle.org/current/javadoc/[Gradle API]
 
 === Tags
 
