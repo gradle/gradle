@@ -169,7 +169,7 @@ Kotlin Gradle Plugin automatically adds a dependency on the Kotlin standard libr
 
 === Explanation
 
-The version of the standard library added is the same as the version of the Kotlin Gradle Plugin.
+The version of the standard library added is the same as the version of the Kotlin Gradle Plugin applied to the project.  
 If your build does not require a specific or different version of the standard library, you should avoid adding it manually.
 
 NOTE: Setting the `kotlin.stdlib.default.dependency` property to `false` prevents the Kotlin plugin from automatically adding the Kotlin standard library dependency to your project. This can be useful in specific scenarios, such as when you want to manage the Kotlin standard library dependency version manually.
