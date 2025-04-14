@@ -607,7 +607,7 @@ However, due to historical reasons, some subtle differences still exist.
 Gradle is working to unify the behavior of these two approaches, and this recommendation may be revised in the future.
 For now, these differences can introduce confusion and are best avoided.
 
-As there is only minor additional configuration necessary to setup a composite build, we recommend using these instead of `buildSrc`.
+Since setting up a composite build requires only minimal additional configuration, we recommend using it over `buildSrc`.
 
 === Example
 
