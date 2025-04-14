@@ -68,7 +68,6 @@ dependencies {
     testImplementation(project(":base-services"))
     testImplementation(project(":core"))
     testImplementation(libs.jsoup)
-    testImplementation("org.gebish:geb-spock:2.2")
     testImplementation("org.seleniumhq.selenium:selenium-htmlunit-driver:2.42.2")
     testImplementation(libs.commonsHttpclient)
     testImplementation(libs.httpmime)
@@ -710,16 +709,6 @@ tasks.named<Test>("docsTest") {
             // We don't have Android SDK installed on Mac M1 now
             excludeTestsMatching("org.gradle.docs.samples.*.building-android-*.sample")
             excludeTestsMatching("org.gradle.docs.samples.*.structuring-software-projects*android-app.sample")
-        }
-
-        // filter tests which won't run on Groovy 4 without updating the Spock version
-        if (System.getProperty("bundleGroovy4", "false") == "true") {
-            excludeTestsMatching("org.gradle.docs.samples.*.convention-plugins*check.sample")
-            excludeTestsMatching("org.gradle.docs.samples.*.convention-plugins*sanityCheck.sample")
-            excludeTestsMatching("org.gradle.docs.samples.*.incubating-publishing-convention-plugins*publish.sample")
-            excludeTestsMatching("org.gradle.docs.samples.*.publishing-convention-plugins*publish.sample")
-            excludeTestsMatching("org.gradle.docs.samples.*.snippet-configuration-cache-test-kit*configurationCacheTestKit.sample")
-            excludeTestsMatching("org.gradle.docs.samples.*.snippet-developing-plugins-testing-plugins*testPlugin.sample")
         }
     }
 
