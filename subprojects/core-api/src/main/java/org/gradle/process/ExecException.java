@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,33 @@
  * limitations under the License.
  */
 
-package org.gradle.process.internal;
+package org.gradle.process;
 
-import org.gradle.api.GradleException;
+import org.jspecify.annotations.NullMarked;
 
 /**
- * Deprecated, will be removed in Gradle 10.0. Use {@link org.gradle.process.ExecException} instead.
+ * An exception thrown when an error occurs while executing a process.
+ *
+ * @since 9.0
  */
-@Deprecated
-public class ExecException extends GradleException {
+@NullMarked
+@SuppressWarnings("deprecation")
+public class ExecException extends org.gradle.process.internal.ExecException {
+
+    /**
+     * Creates a new instance of {@code ExecException} with the specified message.
+     *
+     * @since 9.0
+     */
     public ExecException(String message) {
         super(message);
     }
 
+    /**
+     * Creates a new instance of {@code ExecException} with the specified message and cause.
+     *
+     * @since 9.0
+     */
     public ExecException(String message, Throwable cause) {
         super(message, cause);
     }

@@ -31,10 +31,10 @@ import org.gradle.internal.io.TextStream;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.WorkerLeaseService;
+import org.gradle.process.ExecException;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.ClientExecHandleBuilder;
 import org.gradle.process.internal.ClientExecHandleBuilderFactory;
-import org.gradle.process.internal.ExecException;
 import org.gradle.process.internal.ExecHandle;
 
 import javax.inject.Inject;

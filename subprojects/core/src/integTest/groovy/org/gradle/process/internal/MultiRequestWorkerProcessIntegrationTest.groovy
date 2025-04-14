@@ -169,7 +169,7 @@ class CustomTestWorker implements RequestHandler<Long, Object> {
         then:
         def e = thrown(WorkerProcessException)
         e.message == 'Failed to run broken worker'
-        e.cause instanceof ExecException
+        e.cause instanceof org.gradle.process.ExecException
         e.cause.message.matches("Process 'broken worker 1' finished with non-zero exit value \\d+")
 
         cleanup:
@@ -205,7 +205,7 @@ class CustomTestWorker implements RequestHandler<Long, Object> {
         then:
         def e = thrown(WorkerProcessException)
         e.message == 'Failed to run broken worker'
-        e.cause instanceof ExecException
+        e.cause instanceof org.gradle.process.ExecException
         e.cause.message == "Process 'broken worker 1' finished with non-zero exit value 12"
 
         cleanup:
@@ -219,7 +219,7 @@ class CustomTestWorker implements RequestHandler<Long, Object> {
         try {
             workerControl.stop()
             throw new AssertionFailedError("stop should fail")
-        } catch (ExecException e) {
+        } catch (org.gradle.process.ExecException e) {
             // Ignore
         }
     }

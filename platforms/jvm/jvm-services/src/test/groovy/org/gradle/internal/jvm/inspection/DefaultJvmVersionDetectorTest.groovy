@@ -21,7 +21,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.jvm.Jvm
 import org.gradle.jvm.toolchain.internal.InstallationLocation
-import org.gradle.process.internal.ExecException
+import org.gradle.process.ExecException
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification

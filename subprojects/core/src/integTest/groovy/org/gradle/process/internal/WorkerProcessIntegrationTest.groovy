@@ -304,7 +304,7 @@ class WorkerProcessIntegrationTest extends AbstractWorkerProcessIntegrationSpec 
             try {
                 proc.start()
                 assertFalse(startFails)
-            } catch (ExecException e) {
+            } catch (org.gradle.process.ExecException e) {
                 if (!startFails) {
                     throw new AssertionError(e)
                 }
@@ -324,7 +324,7 @@ class WorkerProcessIntegrationTest extends AbstractWorkerProcessIntegrationSpec 
             try {
                 proc.waitForStop()
                 assertFalse("Expected process to fail", stopFails)
-            } catch (ExecException e) {
+            } catch (org.gradle.process.ExecException e) {
                 assertTrue("Unexpected failure in worker process", stopFails)
             }
         }

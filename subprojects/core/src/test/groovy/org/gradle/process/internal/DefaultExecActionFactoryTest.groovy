@@ -67,7 +67,7 @@ class DefaultExecActionFactoryTest extends ConcurrentSpec {
         }
 
         then:
-        thrown(ExecException)
+        thrown(org.gradle.process.ExecException)
     }
 
     def javaexecWithNonZeroExitValueAndIgnoreExitValueShouldNotThrowException() {
@@ -107,7 +107,7 @@ class DefaultExecActionFactoryTest extends ConcurrentSpec {
         }
 
         then:
-        thrown(ExecException)
+        thrown(org.gradle.process.ExecException)
     }
 
     @Requires(UnitTestPreconditions.NotWindows)

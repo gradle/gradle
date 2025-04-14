@@ -20,7 +20,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.internal.jvm.JavaVersionParser;
 import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.jvm.toolchain.internal.InstallationLocation;
-import org.gradle.process.internal.ExecException;
+import org.gradle.process.ExecException;
 
 import java.io.File;
 import java.nio.file.NoSuchFileException;

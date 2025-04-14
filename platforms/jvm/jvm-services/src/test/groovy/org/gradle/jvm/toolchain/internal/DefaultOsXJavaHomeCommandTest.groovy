@@ -16,8 +16,8 @@
 
 package org.gradle.jvm.toolchain.internal
 
+import org.gradle.process.ExecException
 import org.gradle.process.internal.ClientExecHandleBuilderFactory
-import org.gradle.process.internal.ExecException
 import spock.lang.Specification
 
 class DefaultOsXJavaHomeCommandTest extends Specification {

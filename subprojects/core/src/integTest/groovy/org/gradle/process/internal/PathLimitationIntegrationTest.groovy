@@ -126,7 +126,7 @@ class PathLimitationIntegrationTest extends AbstractWorkerProcessIntegrationSpec
             try {
                 proc.start();
                 assertFalse(startFails);
-            } catch (ExecException e) {
+            } catch (org.gradle.process.ExecException e) {
                 e.printStackTrace()
                 assertTrue(startFails);
                 return;
@@ -142,7 +142,7 @@ class PathLimitationIntegrationTest extends AbstractWorkerProcessIntegrationSpec
             try {
                 proc.waitForStop();
                 assertFalse("Expected process to fail", stopFails);
-            } catch (ExecException e) {
+            } catch (org.gradle.process.ExecException e) {
                 assertTrue("Unexpected failure in worker process", stopFails);
             }
         }

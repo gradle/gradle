@@ -21,9 +21,9 @@ import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.process.ExecException;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecActionFactory;
-import org.gradle.process.internal.ExecException;
 import org.gradle.util.internal.GFileUtils;
 import org.jspecify.annotations.NullMarked;
 

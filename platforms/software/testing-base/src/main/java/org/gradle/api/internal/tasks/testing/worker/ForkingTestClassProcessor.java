@@ -27,8 +27,8 @@ import org.gradle.internal.nativeintegration.services.NativeServices.NativeServi
 import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerThreadRegistry;
+import org.gradle.process.ExecException;
 import org.gradle.process.JavaForkOptions;
-import org.gradle.process.internal.ExecException;
 import org.gradle.process.internal.worker.WorkerProcess;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
 import org.gradle.process.internal.worker.WorkerProcessFactory;

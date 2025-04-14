@@ -17,9 +17,9 @@
 package org.gradle.jvm.toolchain.internal;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.gradle.process.ExecException;
 import org.gradle.process.internal.ClientExecHandleBuilder;
 import org.gradle.process.internal.ClientExecHandleBuilderFactory;
-import org.gradle.process.internal.ExecException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

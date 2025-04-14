@@ -24,8 +24,8 @@ import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.remote.ObjectConnection
 import org.gradle.internal.work.WorkerThreadRegistry
+import org.gradle.process.ExecException
 import org.gradle.process.JavaForkOptions
-import org.gradle.process.internal.ExecException
 import org.gradle.process.internal.JavaExecHandleBuilder
 import org.gradle.process.internal.worker.WorkerProcess
 import org.gradle.process.internal.worker.WorkerProcessBuilder

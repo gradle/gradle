@@ -21,6 +21,6 @@ import org.gradle.process.ExecSpec;
 
 @NonExtensible
 public interface ExecAction extends ExecSpec {
-    ExecResult execute() throws ExecException;
+    ExecResult execute() throws org.gradle.process.ExecException;
     ExecAction listener(ExecHandleListener listener);
 }
