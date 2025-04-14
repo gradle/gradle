@@ -15,7 +15,6 @@
  */
 package org.gradle.api.plugins.quality;
 
-import groovy.lang.GroovySystem;
 import org.gradle.api.Plugin;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.ProjectLayout;
@@ -33,7 +32,6 @@ import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.CurrentJvmToolchainSpec;
-import org.gradle.util.internal.VersionNumber;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -47,10 +45,8 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
  */
 public abstract class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc> {
 
-    public static final String DEFAULT_CODENARC_VERSION = appropriateCodeNarcVersion();
+    public static final String DEFAULT_CODENARC_VERSION = "3.6.0-groovy-4.0";
     private static final String DEFAULT_CONFIG_FILE_PATH = "config/codenarc/codenarc.xml";
-    static final String STABLE_VERSION = "3.2.0";
-    static final String STABLE_VERSION_WITH_GROOVY4_SUPPORT = "3.2.0-groovy-4.0";
 
     private CodeNarcExtension extension;
 
@@ -147,10 +143,5 @@ public abstract class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc>
         task.setDescription("Run CodeNarc analysis for " + sourceSet.getName() + " classes");
         SourceDirectorySet groovySourceSet =  sourceSet.getExtensions().getByType(GroovySourceDirectorySet.class);
         task.setSource(groovySourceSet.matching(filter -> filter.include("**/*.groovy")));
-    }
-
-    private static String appropriateCodeNarcVersion() {
-        int groovyMajorVersion = VersionNumber.parse(GroovySystem.getVersion()).getMajor();
-        return groovyMajorVersion < 4 ? STABLE_VERSION : STABLE_VERSION_WITH_GROOVY4_SUPPORT;
     }
 }

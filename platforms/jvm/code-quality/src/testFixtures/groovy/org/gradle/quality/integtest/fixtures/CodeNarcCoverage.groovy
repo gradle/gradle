@@ -18,36 +18,16 @@ package org.gradle.quality.integtest.fixtures
 
 import org.gradle.api.JavaVersion
 import org.gradle.api.plugins.quality.CodeNarcPlugin
-import org.gradle.util.internal.VersionNumber
 
 class CodeNarcCoverage {
-    public static final List<String> ALL = [CodeNarcPlugin.DEFAULT_CODENARC_VERSION, "1.0", "1.6.1", "2.0.0", "2.2.0", "3.0.1"].asImmutable()
-
-    private static boolean isAtLeastGroovy4() {
-        return VersionNumber.parse(GroovySystem.version).major >= 4
-    }
-
-    private static final List<String> CURRENT_GROOVY_SUPPORTED = isAtLeastGroovy4() ? [CodeNarcPlugin.DEFAULT_CODENARC_VERSION].asImmutable()
-                                                               : ALL
-
-    private static final List<String> JDK11_SUPPORTED = versionsAboveInclusive(CURRENT_GROOVY_SUPPORTED, "0.23")
-    private static final List<String> JDK14_SUPPORTED = JDK11_SUPPORTED - ['1.6.1', '1.0']
+    public static final List<String> ALL = [CodeNarcPlugin.DEFAULT_CODENARC_VERSION].asImmutable()
 
     static List<String> getSupportedVersionsByCurrentJdk() {
         getSupportedVersionsByJdk(JavaVersion.current())
     }
 
+    // Leaving this in since it might change in the future.
     static List<String> getSupportedVersionsByJdk(JavaVersion version) {
-        if (version.isCompatibleWith(JavaVersion.VERSION_14)) {
-            return JDK14_SUPPORTED
-        } else if (version.isCompatibleWith(JavaVersion.VERSION_11)) {
-            return JDK11_SUPPORTED
-        } else {
-            return CURRENT_GROOVY_SUPPORTED
-        }
-    }
-
-    private static List<String> versionsAboveInclusive(List<String> versionsToFilter, String threshold) {
-        versionsToFilter.findAll { VersionNumber.parse(it) >= VersionNumber.parse(threshold) }.asImmutable()
+        return ALL
     }
 }

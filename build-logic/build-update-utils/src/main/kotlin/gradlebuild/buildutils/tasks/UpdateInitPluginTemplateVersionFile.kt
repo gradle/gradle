@@ -59,7 +59,7 @@ abstract class UpdateInitPluginTemplateVersionFile : DefaultTask() {
 
         // The latest released version is 2.0.0-M1, which is excluded by "don't use snapshot" strategy
         findLatest("scala-xml", "org.scala-lang.modules:scala-xml_${versionProperties["scala"]}:1.2.0", versionProperties)
-        findLatest("groovy", "org.codehaus.groovy:groovy:[3.0,4.0)", versionProperties)
+        findLatest("groovy", "org.apache.groovy:groovy:[4.0,5.0)", versionProperties)
         findLatest("junit", "junit:junit:(4.0,)", versionProperties)
         findLatest("junit-jupiter", "org.junit.jupiter:junit-jupiter-api:(5,)", versionProperties)
         findLatest("testng", "org.testng:testng:(6.0,7.6.0)", versionProperties) // TestNG 7.6.0 and above require JDK 11; see https://groups.google.com/g/testng-users/c/BAFB1vk-kok
@@ -70,7 +70,7 @@ abstract class UpdateInitPluginTemplateVersionFile : DefaultTask() {
         findLatest("scalatestplus-junit", "org.scalatestplus:junit-4-12_${versionProperties["scala"]}:(3.1,)", versionProperties)
 
         val groovyVersion = VersionNumber.parse(versionProperties["groovy"] as String)
-        versionProperties["spock"] = "2.2-groovy-${groovyVersion.major}.${groovyVersion.minor}"
+        versionProperties["spock"] = "2.3-groovy-${groovyVersion.major}.${groovyVersion.minor}"
 
         findLatest("guava", "com.google.guava:guava:(20,)", versionProperties)
         findLatest("commons-math", "org.apache.commons:commons-math3:latest.release", versionProperties)

@@ -106,7 +106,7 @@ val rules by configurations.creating {
 
 val groovyVersion = GroovySystem.getVersion()
 val isAtLeastGroovy4 = VersionNumber.parse(groovyVersion).major >= 4
-val codenarcVersion = if (isAtLeastGroovy4) "3.1.0-groovy-4.0" else "3.1.0"
+val codenarcVersion = if (isAtLeastGroovy4) "3.6.0-groovy-4.0" else "3.6.0"
 
 dependencies {
     rules("gradlebuild:code-quality-rules") {
