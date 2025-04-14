@@ -1377,6 +1377,14 @@
             ]
         },
         {
+            "type": "org.gradle.caching.BuildCacheKey",
+            "member": "Method org.gradle.caching.BuildCacheKey.getDisplayName()",
+            "acceptation": "Removed deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.jvm.application.tasks.CreateStartScripts",
             "member": "Method org.gradle.jvm.application.tasks.CreateStartScripts.getMainClassName()",
             "acceptation": "Removed deprecated method",

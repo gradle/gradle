@@ -33,13 +33,4 @@ public interface BuildCacheKey {
      * @since 5.4
      */
     byte[] toByteArray();
-
-    /**
-     * Returns the same as {@link #getHashCode()}.
-     *
-     * @since 8.7
-     * @deprecated Use {@link #getHashCode()} instead.
-     */
-    @Deprecated
-    String getDisplayName();
 }
