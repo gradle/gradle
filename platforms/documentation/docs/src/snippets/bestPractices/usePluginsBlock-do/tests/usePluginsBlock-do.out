@@ -1,8 +1,7 @@
-
 > Task :tasks
 
 ------------------------------------------------------------
-Tasks runnable from root project 'use-plugins-block'
+Tasks runnable from root project 'use-plugins-block-do'
 ------------------------------------------------------------
 
 Build tasks
@@ -28,17 +27,17 @@ javadoc - Generates Javadoc API documentation for the 'main' feature.
 
 Help tasks
 ----------
-artifactTransforms - Displays the Artifact Transforms that can be executed in root project 'use-plugins-block'.
-buildEnvironment - Displays all buildscript dependencies declared in root project 'use-plugins-block'.
-dependencies - Displays all dependencies declared in root project 'use-plugins-block'.
-dependencyInsight - Displays the insight into a specific dependency in root project 'use-plugins-block'.
+artifactTransforms - Displays the Artifact Transforms that can be executed in root project 'use-plugins-block-do'.
+buildEnvironment - Displays all buildscript dependencies declared in root project 'use-plugins-block-do'.
+dependencies - Displays all dependencies declared in root project 'use-plugins-block-do'.
+dependencyInsight - Displays the insight into a specific dependency in root project 'use-plugins-block-do'.
 help - Displays a help message.
 javaToolchains - Displays the detected java toolchains.
-outgoingVariants - Displays the outgoing variants of root project 'use-plugins-block'.
-projects - Displays the sub-projects of root project 'use-plugins-block'.
-properties - Displays the properties of root project 'use-plugins-block'.
-resolvableConfigurations - Displays the configurations that can be resolved in root project 'use-plugins-block'.
-tasks - Displays the tasks runnable from root project 'use-plugins-block'.
+outgoingVariants - Displays the outgoing variants of root project 'use-plugins-block-do'.
+projects - Displays the sub-projects of root project 'use-plugins-block-do'.
+properties - Displays the properties of root project 'use-plugins-block-do'.
+resolvableConfigurations - Displays the configurations that can be resolved in root project 'use-plugins-block-do'.
+tasks - Displays the tasks runnable from root project 'use-plugins-block-do'.
 
 Verification tasks
 ------------------
