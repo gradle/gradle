@@ -624,8 +624,6 @@ tasks.named<Test>("docsTest") {
     systemProperties.clear()
 
     filter {
-        // workaround for https://github.com/gradle/dotcom/issues/5958
-        isFailOnNoMatchingTests = false
         // Only execute C++ sample tests on Linux because it is the configured target
         if (!OperatingSystem.current().isLinux) {
             excludeTestsMatching("org.gradle.docs.samples.*.building-cpp-*.sample")
