@@ -1,11 +1,12 @@
 #
-#Wed Feb 12 16:19:35 CET 2025
+#Mon Apr 14 10:43:26 EEST 2025
 classes\ that\ are\ Gradle\ public\ API\ should\ have\ accessors\ with\ symmetrical\ @Nullable\ annotations=public-api-symmetrical-accessors-nullability.txt
 classes\ that\ are\ Gradle\ public\ API\ should\ not\ have\ direct\ super-class\ or\ interface\ that\ are\ Gradle\ Internal\ API=public-api-not-extends-internal-types.txt
 classes\ that\ are\ in\ Gradle\ internal\ API\ packages\ and\ classes\ written\ in\ Java\ or\ Groovy\ and\ not\ synthetic\ classes\ should\ be\ annotated\ (directly\ or\ via\ its\ package)\ with\ @org.jspecify.annotations.NullMarked=internal-api-nullability.txt
 classes\ that\ are\ not\ Gradle\ public\ API\ should\ have\ accessors\ with\ symmetrical\ @Nullable\ annotations=internal-api-symmetrical-accessors-nullability.txt
 classes\ that\ are\ not\ assignable\ from\ org.gradle.internal.Factory\ and\ are\ injected\ into\ getters\ via\ @Inject\ or\ are\ injected\ into\ constructors\ via\ @Inject\ should\ be\ annotated\ with\ @ServiceScope=injected-services-should-have-service-scope-applied.txt
 classes\ that\ are\ not\ special\ class\ and\ are\ injected\ into\ getters\ via\ @Inject\ or\ are\ injected\ into\ constructors\ via\ @Inject\ should\ be\ annotated\ with\ @ServiceScope=injected-services-should-have-service-scope-applied.txt
+fields\ that\ are\ declared\ in\ assignable\ to\ org.gradle.api.Task\ and\ not\ declared\ in\ org.gradle.api.Task\ and\ not\ declared\ in\ org.gradle.api.DefaultTask\ and\ not\ declared\ in\ org.gradle.api.internal.AbstractTask\ should\ define\ properties\ via\ abstract\ getters=explicit-properties.txt
 methods\ that\ are\ mutable\ public\ API\ properties\ and\ do\ not\ have\ raw\ return\ type\ org.gradle.api.resources.TextResource\ and\ do\ not\ have\ raw\ return\ type\ assignable\ to\ org.gradle.api.file.FileCollection\ and\ not\ declared\ in\ reside\ in\ a\ package\ 'org.gradle.tooling..'\ should\ have\ return\ type\ Provider=public-api-mutable-properties.txt
 methods\ that\ are\ mutable\ public\ API\ properties\ and\ do\ not\ have\ raw\ return\ type\ org.gradle.api.resources.TextResource\ and\ do\ not\ have\ raw\ return\ type\ assignable\ to\ org.gradle.api.file.FileCollection\ should\ have\ return\ type\ Provider=public-api-mutable-properties.txt
 methods\ that\ are\ mutable\ public\ API\ properties\ and\ have\ raw\ return\ type\ assignable\ to\ org.gradle.api.file.FileCollection\ should\ have\ return\ type\ FileCollection=public-api-mutable-file-collection.txt

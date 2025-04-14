@@ -326,12 +326,12 @@ public interface ArchUnitFixture {
                 method.getSourceCodeLocation())
 
                 : String.format("%s has arguments/return type %s that %s not %s in %s",
-                method.getDescription(),
-                String.join(", ", matchedClasses),
-                matchedClasses.size() == 1 ? "is" : "are",
-                types.getDescription(),
-                method.getSourceCodeLocation()
-            );
+                    method.getDescription(),
+                    String.join(", ", matchedClasses),
+                    matchedClasses.size() == 1 ? "is" : "are",
+                    types.getDescription(),
+                    method.getSourceCodeLocation()
+                );
             events.add(new SimpleConditionEvent(method, fulfilled, message));
         }
 
